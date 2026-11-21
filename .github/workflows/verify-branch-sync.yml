@@ -1,0 +1,26 @@
+name: Verify Branch Sync
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  check-sync:
+    name: PR branch is up to date with main
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR head (not the merge commit)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Fail if branch is behind main
+        run: |
+          git fetch origin main
+          BEHIND=$(git rev-list --count HEAD..origin/main)
+          if [ "$BEHIND" -gt 0 ]; then
+            echo "::error::Branch is behind origin/main by $BEHIND commit(s). Run: git merge origin/main && git push"
+            exit 1
+          fi
+          echo "Branch is up to date with main."
