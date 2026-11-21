@@ -1,0 +1,91 @@
+#!/bin/sh
+# Git pre-push hook: for each branch being pushed, fetch the remote, merge the
+# branch's remote copy and origin/main into it, then re-push. Direct pushes to
+# main are allowed only when the pusher has already pulled the latest remote main.
+# Refuses to merge over uncommitted changes.
+#
+# Git passes pushed refs on stdin: "<local ref> <local sha> <remote ref> <remote sha>".
+# Decisions are made per pushed ref, not from the checked-out branch.
+
+remote="$1"
+url="$2"
+
+# Prevent recursion when this hook re-pushes.
+if [ "$PRE_PUSH_RUNNING" = "1" ]; then
+    exit 0
+fi
+
+current=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+zero=0000000000000000000000000000000000000000
+
+merged_any=0
+repush_refs=""
+
+while read local_ref local_sha remote_ref remote_sha; do
+    [ -z "$local_ref" ] && continue
+
+    # Deletions pass through untouched.
+    [ "$local_sha" = "$zero" ] && continue
+
+    case "$remote_ref" in
+        refs/heads/*) branch=${remote_ref#refs/heads/} ;;
+        *) continue ;;
+    esac
+
+    # Direct pushes to main are allowed, but only from a commit that already
+    # contains everything on the remote main ("pull first"). No auto-merge here:
+    # the pusher must pull, check the result, then push.
+    if [ "$branch" = "main" ]; then
+        git fetch -q "$remote" main 2>/dev/null
+        remote_main=$(git rev-parse -q --verify "$remote/main" 2>/dev/null)
+        if [ -n "$remote_main" ] && ! git merge-base --is-ancestor "$remote_main" "$local_sha" 2>/dev/null; then
+            missing=$(git rev-list --count "$local_sha..$remote_main" 2>/dev/null || echo "?")
+            echo " [pre-push hook] ERROR: $remote/main has $missing commit(s) you have not pulled."
+            echo " [pre-push hook] Run: git pull $remote main   then check the result and push again."
+            exit 1
+        fi
+        echo " [pre-push hook] '$branch' contains latest $remote/main. Push allowed."
+        continue
+    fi
+
+    # Auto-merge only works on the branch that is checked out, and only on a clean tree.
+    if [ "${local_ref#refs/heads/}" != "$current" ]; then
+        echo " [pre-push hook] '$branch' is not checked out; skipping auto-sync for it."
+        continue
+    fi
+    if ! git diff-index --quiet HEAD -- 2>/dev/null; then
+        echo " [pre-push hook] ERROR: uncommitted changes in working tree. Commit or stash, then push again."
+        exit 1
+    fi
+
+    echo " [pre-push hook] Syncing '$branch' with $remote before push..."
+    git fetch -q "$remote" 2>/dev/null
+
+    for upstream in "$remote/$branch" "$remote/main"; do
+        git rev-parse --verify -q "$upstream" >/dev/null 2>&1 || continue
+        behind=$(git rev-list --count "HEAD..$upstream" 2>/dev/null || echo 0)
+        [ "$behind" -gt 0 ] || continue
+        echo " [pre-push hook] $upstream has $behind new commit(s). Merging into '$branch'..."
+        if ! git merge "$upstream" --no-edit; then
+            echo " [pre-push hook] ERROR: merge conflict with $upstream. Resolve, commit, then push again."
+            exit 1
+        fi
+        merged_any=1
+        repush_refs="$repush_refs $branch"
+    done
+done
+
+if [ "$merged_any" -eq 1 ]; then
+    export PRE_PUSH_RUNNING=1
+    for b in $(printf '%s\n' $repush_refs | sort -u); do
+        if git push "$remote" "$b"; then
+            echo " [pre-push hook] Pushed '$b' with merged changes."
+        else
+            echo " [pre-push hook] ERROR: re-push of '$b' failed. Fix and run git push again."
+        fi
+    done
+    echo " [pre-push hook] The 'failed to push' line below is expected: the original, stale push is cancelled."
+    exit 1
+fi
+
+exit 0

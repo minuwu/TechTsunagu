@@ -1,0 +1,5 @@
+package-lock.json
+src/i18n/paraglide/
+src/services/generated/
+src/routeTree.gen.ts
+.output/

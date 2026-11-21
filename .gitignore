@@ -1,0 +1,107 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Local databases and dumps (may hold case data, even if synthetic)
+pgdata/
+*.dump
+*.backup
+
+# Environment & secrets (keep .env.example committed)
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.key
+
+# Build outputs
+*.tsbuildinfo
+dist/
+build/
+out/
+.next/
+.nuxt/
+.turbo/
+.vite/
+coverage/
+.nyc_output/
+# Firebase & Cloud Credentials (sensitive)
+.firebase/
+.firebaserc
+firebase-debug.log*
+firestore-debug.log*
+ui-debug.log*
+*firebase-adminsdk*.json
+*serviceAccountKey*.json
+*service-account*.json
+google-services.json
+GoogleService-Info.plist
+.runtimeconfig.json
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# IDE & OS
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.sublime-workspace
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Temp
+*.tmp
+*.bak
+*.swp
+*~
+
+# graphify: local knowledge graph cache/output (not synced in git)
+graphify-out/
+
+# Coding-agent local state (machine-specific; shared rules live in AGENTS.md)
+.claude/settings.local.json
+.claude/worktrees/
+CLAUDE.local.md
+.claude-mem/
+
+# Python tool caches not covered above
+.pyright/
+.hypothesis/
+.tox/
+
+# Scratch & temporary artifacts
+scratch/
+/screenshot-*.png
+
+# Playwright / vitest output
+frontend/test-results/
+frontend/playwright-report/
+frontend/coverage/

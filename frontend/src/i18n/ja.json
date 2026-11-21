@@ -1,0 +1,16 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "app_name": "TechTsunagu",
+  "skip_to_main": "本文へスキップ",
+  "language_label": "言語",
+  "health_title": "APIの状態",
+  "health_loading": "読み込み中…",
+  "health_up": "APIは正常に動作しています。",
+  "health_down": "APIに問題が発生しています：{status}",
+  "health_error": "APIに接続できませんでした。通信環境をご確認のうえ、もう一度お試しください。",
+  "retry": "もう一度試す",
+  "mock_badge": "デモデータ",
+  "not_found_title": "ページが見つかりません",
+  "not_found_body": "お探しのページは存在しないか、移動した可能性があります。",
+  "back_home": "ホームに戻る"
+}
