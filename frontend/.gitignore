@@ -1,0 +1,6 @@
+.output/
+.nitro/
+.tanstack/
+src/i18n/paraglide/
+test-results/
+playwright-report/

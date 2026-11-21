@@ -9,6 +9,8 @@ A ready-to-use starting point for a hackathon team. It holds the team protocol, 
 | [AGENTS.md](AGENTS.md) | Single source of truth: XREQ cross-team request queue, agent protocol, git rules, team and contributor directives |
 | `CLAUDE.md`, `GEMINI.md`, `.cursor/rules/agents.mdc`, `.github/copilot-instructions.md` | Entry pointers for each coding agent. They only point to AGENTS.md |
 | [docs/ENGINEERING_GUIDELINES.md](docs/ENGINEERING_GUIDELINES.md) | Quality checklist `G-01`…`G-53` (lint over prose, verification evidence, no slop) |
+| [docs/FRONTEND_ARCHITECTURE.md](docs/FRONTEND_ARCHITECTURE.md) | Replaceable-UI architecture `A-01`…`A-09`: swappable UI kits on one headless core |
+| [docs/FRONTEND_REGULATIONS.md](docs/FRONTEND_REGULATIONS.md) | Japan-facing UI rules `F-01`…`F-53` and pre-demo checklist |
 | [docs/API_SPEC.md](docs/API_SPEC.md), [docs/openapi.yaml](docs/openapi.yaml) | Contract-first API stubs with the response envelope |
 | [TEAM_INSTRUCTIONS.md](TEAM_INSTRUCTIONS.md) | Human onboarding, daily loop, per-person checklist, Hour-0 agenda |
 | [HACKATHON_PRESETUP.md](HACKATHON_PRESETUP.md) | Parallel workflow playbook and stack options |

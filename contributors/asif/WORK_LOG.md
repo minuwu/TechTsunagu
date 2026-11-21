@@ -7,14 +7,13 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 ## 2026-11-22
 
 ### Completed
-- Moving to a new repo: removed all old git history and started fresh from the current files as a single initial commit. The old history stays on `minuwu/TechTsunagu`; commit hashes in the 2026-11-21 entry refer to that old repo.
+- Moved to the recreated repo (same URL, `minuwu/TechTsunagu`, fresh history from Minhaz's `init`). Dropped my old local history and merged my copy into the new `main`; the only change carried over is this log entry. Commit hashes in the 2026-11-21 entry refer to the old, deleted history.
 
 ### Next
-- Connect the new remote, pull, then push `main`.
-- Then the Hour-0 backend scaffold below.
+- Hour-0 backend scaffold (see the 2026-11-21 "Next" list).
 
 ### Blockers / handoff
-- For the team: once the new repo is live, re-clone it and run `scripts/setup.sh` (or `scripts\setup.ps1`) again; don't push from old clones.
+- For the team: re-clone the repo and run `scripts/setup.sh` (or `scripts\setup.ps1`) again; don't push from clones made before 2026-11-22.
 
 ## 2026-11-21
 

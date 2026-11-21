@@ -48,9 +48,12 @@ Keep all code in a single repository so commits, branches, and shared schemas ar
 <repo>/
 ├── frontend/             # Vite + React or Next.js
 │   ├── src/
-│   │   ├── components/   # UI elements (buttons, cards, modals)
+│   │   ├── shell/        # Entry, routes, UI-kit registry
+│   │   ├── ui/<version>/ # Swappable UI kits: screens, components, tokens
+│   │   ├── features/     # Headless view-model hooks shared by every kit
 │   │   ├── services/     # api.ts (handles mock vs live fetch)
-│   │   └── pages/        # Views / Screens
+│   │   └── domain/       # Types, schemas, formatters
+│   │                     # Full layout: docs/FRONTEND_ARCHITECTURE.md
 ├── backend/              # FastAPI / Express / Flask
 │   ├── app/
 │   │   ├── routers/      # API endpoints

@@ -1,0 +1,16 @@
+{
+  "$schema": "https://inlang.com/schema/inlang-message-format",
+  "app_name": "TechTsunagu",
+  "skip_to_main": "Skip to main content",
+  "language_label": "Language",
+  "health_title": "API status",
+  "health_loading": "Loading…",
+  "health_up": "The API is running.",
+  "health_down": "The API reports a problem: {status}",
+  "health_error": "We could not reach the API. Please check your connection and try again.",
+  "retry": "Try again",
+  "mock_badge": "Demo data",
+  "not_found_title": "Page not found",
+  "not_found_body": "The page you are looking for does not exist or has moved.",
+  "back_home": "Back to the home page"
+}

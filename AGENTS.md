@@ -200,6 +200,9 @@ flowchart TD
   - Mocks mirror [docs/API_SPEC.md](docs/API_SPEC.md) or the open `XREQ` exactly.
 - **Requesting from Backend**: file an `XREQ` with request + response JSON, including error states (400/401/404/500). Don't break existing components while waiting.
 - **UI states**: always handle loading, empty and error (skeletons, toasts).
+- **Replaceable UI**: the UI will change drastically and several UI versions may coexist. A redesign replaces presentation only: logic, data access, copy and routes are written once and never rewritten for a new look. Each UI version is a kit in `frontend/src/ui/<version>/` on top of one shared headless core; follow [docs/FRONTEND_ARCHITECTURE.md](docs/FRONTEND_ARCHITECTURE.md) (items `A-01`…`A-09`).
+- **Stack**: TanStack Start + React + TypeScript + Vite. Versions, data flow and state rules live in [docs/FRONTEND_STACK.md](docs/FRONTEND_STACK.md) (items `S-01`…`S-35`); layers in [docs/FRONTEND_ARCHITECTURE.md](docs/FRONTEND_ARCHITECTURE.md).
+- **Japan standards**: judges are Japanese. Every UI change must follow [docs/FRONTEND_REGULATIONS.md](docs/FRONTEND_REGULATIONS.md) (items `F-01`…`F-53`, pre-demo checklist).
 
 ### 4.2 Backend Team Directives
 - **Mission**: fast, documented, reliable REST/SSE endpoints and business logic.
