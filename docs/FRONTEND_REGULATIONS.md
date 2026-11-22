@@ -63,6 +63,7 @@ Western "move fast, bold, minimal text" pages can read as *unexplained* or *untr
                "Yu Gothic UI", "Meiryo", system-ui, sans-serif;
   ```
   Never let Japanese fall back to a Chinese glyph font (e.g. PingFang SC, Microsoft YaHei). Set `<html lang="ja">`; it selects Japanese glyph forms. Switch `lang` when the user switches language.
+  Bengali (`:lang(bn)`) puts **Hind Siliguri** first, then the stack above, with no letter spacing (it pulls conjuncts apart). Both live in `src/theme/base.css`.
 - **F-10** Body text 16px minimum (team floor). Never body text below 14px. Japanese characters are dense; small text looks cramped.
 - **F-11** Line height 1.7–1.8 for Japanese body text, 1.4–1.5 for headings. DADS sets a floor of 150% for body text; Western default 1.4 is too tight for kanji.
 - **F-12** **SHOULD:** slight letter spacing for body (`letter-spacing: 0.04em`–`0.05em`). Headings may use `font-feature-settings: "palt"` for tighter, polished kerning.
