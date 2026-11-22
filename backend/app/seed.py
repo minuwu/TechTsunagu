@@ -147,18 +147,22 @@ def seed_work(db: Session, pepper: str, now: datetime) -> Refs:
             )
         )
 
+    # The shop runs on Tokyo time but testers are in Bangladesh (3 h behind): both shifts, today and tomorrow in
+    # Tokyo, so the board and Panels look the same at any hour a tester or judge opens them.
     today = now.astimezone(ZoneInfo("Asia/Tokyo")).date()
-    for a in work["assignments"]:
-        db.add(
-            ShiftAssignment(
-                shop_id=home,
-                worker_id=refs[a["worker"]],
-                machine_id=refs[a["machine"]],
-                shift_date=today,
-                shift=a["shift"],
-                assigned_by=refs["f-yamaguchi"],
-            )
-        )
+    for day in (today, today + timedelta(days=1)):
+        for shift in ("day", "night"):
+            for a in work["assignments"]:
+                db.add(
+                    ShiftAssignment(
+                        shop_id=home,
+                        worker_id=refs[a["worker"]],
+                        machine_id=refs[a["machine"]],
+                        shift_date=day,
+                        shift=shift,
+                        assigned_by=refs["f-yamaguchi"],
+                    )
+                )
     db.flush()
     return refs
 

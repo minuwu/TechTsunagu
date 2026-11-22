@@ -7,6 +7,8 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from app.seed import Refs, seed_work
+from app.services import floor
+from app.services.auth import Principal
 from tests.factories import TEST_PEPPER
 
 NOW = datetime.now(UTC)
@@ -41,6 +43,21 @@ def test_the_board_shows_every_case_the_demo_needs(client: TestClient, refs: Ref
     assert ("Sadia Akter", "none", True) in seen["crane-3"]  # assigned without a Sign-off: flagged
     assert ("Tanvir Hasan", "expired", True) in seen["press-brake-2"]  # 100 days old
     assert ("Rahim Uddin", "valid", False) in seen["plasma-1"]
+
+
+@pytest.mark.parametrize("bangladesh_hour", [10, 16, 20, 22, 23])
+def test_the_board_is_filled_at_any_hour_testers_use_in_bangladesh(
+    client: TestClient, db: Session, bangladesh_hour: int
+) -> None:
+    # Seeded at 09:00 Bangladesh time; testers click later the same evening, after Tokyo's midnight too (21:00 BST).
+    seeded_at = datetime(2026, 11, 24, 3, 0, tzinfo=UTC)
+    refs = seed_work(db, TEST_PEPPER, seeded_at)
+    later = datetime(2026, 11, 24, bangladesh_hour - 6, 30, tzinfo=UTC)
+
+    who = Principal("foreman", refs["f-yamaguchi"], refs["s-sasebo"], refs["d-minato"], None, False, b"")
+    board = floor.board(db, who, later)
+
+    assert all(m.assignments for m in board.machines)
 
 
 def test_the_other_shop_is_isolated(client: TestClient, refs: Refs) -> None:
