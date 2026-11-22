@@ -66,6 +66,10 @@ _Avoid_: Block, disabled
 The screen beside a Machine that shows Lock or Ready for the Worker on it; it simulates a hardware interlock.
 _Avoid_: Interlock (in code), kiosk
 
+**Presence**:
+The Worker currently at a Machine, set when they pick their name after scanning its QR; the Machine Panel shows that Worker for 10 minutes, then falls back to the Shift Assignment.
+_Avoid_: Login, check-in, session
+
 ## Shop management
 
 **Shift Assignment**:
