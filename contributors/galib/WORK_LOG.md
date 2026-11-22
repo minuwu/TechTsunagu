@@ -4,6 +4,26 @@ Owner: Galib (`Ga-lib`) — Role: AI / LLM
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-23
+
+### Completed
+- **Live AI check (item 3 of the handoff below):** the Wakatta? Gemini key and a Groq key exist (in my local `backend/.env`, never in git). One call per model with the same Japanese voice note (TTS, 4 shop words: 玉掛け, 保護メガネ, 寸法, ノギス), audio in, JSON out:
+
+  | Model | Result | Time | Shop words |
+  | :--- | :--- | ---: | :--- |
+  | Gemini 3.8 Flash | 503 "high demand" twice (Google's side, not quota) | — | — |
+  | Gemini 3.6 Flash | ok | 48 s | 4/4 |
+  | Gemini 3.5 Flash-Lite | ok | 3 s | 4/4, clean ja/bn/en |
+  | Gemini 3.1 Flash-Lite | ok | 3 s | 4/4, but bn/en keep Japanese words in brackets |
+  | Groq `whisper-large-v3-turbo` | ok | 0.6 s | 2/4 (保護眼鏡, のぎす: other script; "measure in 2 places" garbled) |
+
+  Takeaways: audio + JSON works on every model that answered; 3.5 Flash-Lite is the strong everyday model; the 503 shows why the chain (AI_PLAN.md §3) must skip a busy model, not only an exhausted one; Whisper stays the last voice fallback (it loses shop words). I retry 3.8 later.
+
+### Blockers / handoff
+- **Asif:** I am sending you the Gemini and Groq keys by private message for the Azure secrets (`GEMINI_API_KEY`, `GROQ_API_KEY`). Please answer **XREQ-003** (model chain, Groq Whisper step, `httpx`, `transcribed`); the voice ladder waits on it.
+- **Anim:** I build `draft_message`, `translate`, `reexplain` (XREQ-006) next and add `question_text` to `AskDraft` for your voice Asks. Is `answer_ask` returning your `GroundedAnswer` OK? No reply by **Mon 03:00** → I build to [WS1_INTEGRATION_PLAN.md](WS1_INTEGRATION_PLAN.md).
+- **Everyone:** who reads Bengali best and can score the AI eval outputs on Monday?
+
 ## 2026-11-22 (proto → production handoff from Minhaz)
 
 Minhaz mapped the prototype (`prototypes/wakatta/`) and the frontend against `main` (`c07a8fb`). Decisions: the prototype's **Chat is in production scope (WS12, P1)**; Course stays P2 and frontend-only. Read [BACKEND_PLAN.md](../../docs/BACKEND_PLAN.md) decision #8 and the new XREQ cards in [AGENTS.md](../../AGENTS.md) §2.2. Do the items in this order.
