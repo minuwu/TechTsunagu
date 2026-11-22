@@ -1,5 +1,21 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
 import AxeBuilder from '@axe-core/playwright'
+
+// Unlock a PIN screen. Typing can land before hydration, when React resets the field to empty,
+// so retry until the PIN sticks and Open is enabled.
+async function unlock(page: Page, path: string, pin: string) {
+  await page.goto(path)
+  await expect(async () => {
+    await page.getByLabel('4-digit PIN').fill(pin)
+    await expect(page.getByRole('button', { name: 'Open' })).toBeEnabled({
+      timeout: 1000,
+    })
+  }).toPass()
+  await page.getByRole('button', { name: 'Open' }).click()
+  await expect(
+    page.getByRole('button', { name: 'Lock this screen' }),
+  ).toBeVisible()
+}
 
 // Core loop from the plan: expired Worker is locked, passes the Check, Panel turns READY
 test('passing the Check unlocks the Machine Panel', async ({
@@ -62,14 +78,8 @@ test('every demo screen renders cleanly', async ({ page }) => {
   for (const [path, pin] of [
     ['/foreman', '1234'],
     ['/community', '5678'],
-  ] as const) {
-    await page.goto(path)
-    await page.getByLabel('4-digit PIN').fill(pin)
-    await page.getByRole('button', { name: 'Open' }).click()
-    await expect(
-      page.getByRole('button', { name: 'Lock this screen' }),
-    ).toBeVisible()
-  }
+  ] as const)
+    await unlock(page, path, pin)
   for (const path of ROUTES) {
     await page.goto(path)
     await expect(page.getByRole('heading', { level: 1 }), path).toBeVisible()
@@ -121,4 +131,28 @@ test('publishing a new version locks the Machine again', async ({ page }) => {
   await expect(page.getByText('Expired')).toBeVisible()
   await page.goto('/panel/m-plasma')
   await expect(page.getByText('LOCKED')).toBeVisible()
+})
+
+// Desktop layout of the Foreman console: no sideways scroll at the 1024px tablet-landscape
+// width, and the Foreman nav stays on screen (any kit; checked by role, not by class)
+test.describe('tablet landscape', () => {
+  test.use({ viewport: { width: 1024, height: 768 } })
+
+  test('Foreman screens fit 1024px', async ({ page }) => {
+    // 12 server-rendered pages: past the 30 s default on a slow runner
+    test.setTimeout(120_000)
+    await unlock(page, '/foreman', '1234')
+    for (const path of ROUTES.filter((p) => p.startsWith('/foreman'))) {
+      await page.goto(path)
+      await expect(page.getByRole('heading', { level: 1 }), path).toBeVisible()
+      await expect(
+        page.getByRole('navigation', { name: 'Foreman', exact: true }),
+        path,
+      ).toBeInViewport()
+      const overflow = await page.evaluate(
+        () => document.documentElement.scrollWidth - window.innerWidth,
+      )
+      expect(overflow, path).toBeLessThanOrEqual(0)
+    }
+  })
 })
