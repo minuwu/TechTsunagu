@@ -4,8 +4,8 @@
 /* Utilities read the kit's variables, so one Tailwind build serves every kit */
 @theme inline {
   --font-sans:
-    'Noto Sans JP', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN',
-    'Yu Gothic UI', 'Meiryo', system-ui, sans-serif;
+    'Noto Sans JP', 'Noto Sans Bengali', 'Hiragino Sans',
+    'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', 'Meiryo', system-ui, sans-serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -20,12 +20,20 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-life: var(--life);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
+}
+
+/* Bengali and Japanese mixed on one line: Bengali needs a little more height (F-11) */
+:lang(bn) {
+  line-height: 1.85;
+  letter-spacing: 0;
 }
 
 /* Japan typography floor (F-09 to F-13, F-15, F-16) */

@@ -16,7 +16,8 @@ const machine: Machine = {
   activeWorkerId: null,
 }
 const now = new Date('2026-11-23T00:00:00Z')
-const daysAgo = (d: number) => new Date(now.getTime() - d * 86_400_000).toISOString()
+const daysAgo = (d: number) =>
+  new Date(now.getTime() - d * 86_400_000).toISOString()
 const signOff = (version: string, passedAt: string) => ({
   id: 's',
   workerId: 'w',
@@ -27,16 +28,24 @@ const signOff = (version: string, passedAt: string) => ({
 
 describe('skillStatus', () => {
   it('is valid for the current version within 90 days', () => {
-    expect(skillStatus(signOff('v2', daysAgo(10)), machine, now).status).toBe('valid')
+    expect(skillStatus(signOff('v2', daysAgo(10)), machine, now).status).toBe(
+      'valid',
+    )
   })
   it('is expiring in the last 14 days', () => {
-    expect(skillStatus(signOff('v2', daysAgo(80)), machine, now).status).toBe('expiring')
+    expect(skillStatus(signOff('v2', daysAgo(80)), machine, now).status).toBe(
+      'expiring',
+    )
   })
   it('expires after 90 days', () => {
-    expect(skillStatus(signOff('v2', daysAgo(91)), machine, now).status).toBe('expired')
+    expect(skillStatus(signOff('v2', daysAgo(91)), machine, now).status).toBe(
+      'expired',
+    )
   })
   it('expires when a new Note Version is approved', () => {
-    expect(skillStatus(signOff('v1', daysAgo(1)), machine, now).status).toBe('expired')
+    expect(skillStatus(signOff('v1', daysAgo(1)), machine, now).status).toBe(
+      'expired',
+    )
   })
   it('is none without a Sign-off', () => {
     expect(skillStatus(undefined, machine, now).status).toBe('none')
@@ -71,7 +80,11 @@ describe('calendar', () => {
   }
   it('expands Mon/Thu 8:00 in Japan time', () => {
     // 2026-11-23 is a Monday
-    const dates = nextOccurrences(burnable, new Date('2026-11-22T12:00:00+09:00'), 3)
+    const dates = nextOccurrences(
+      burnable,
+      new Date('2026-11-22T12:00:00+09:00'),
+      3,
+    )
     expect(dates.map((d) => d.toISOString())).toEqual([
       '2026-11-22T23:00:00.000Z', // Mon 23 Nov 08:00 JST
       '2026-11-25T23:00:00.000Z', // Thu 26 Nov
@@ -84,12 +97,23 @@ describe('calendar', () => {
     expect(isValidRrule('FREQ=WEEKLY;BYDAY=XX')).toBe(false)
   })
   it('keeps a one-off date only if it is still ahead', () => {
-    const drill = { ...burnable, rrule: null, startsAt: '2026-11-01T09:00:00+09:00' }
+    const drill = {
+      ...burnable,
+      rrule: null,
+      startsAt: '2026-11-01T09:00:00+09:00',
+    }
     expect(nextOccurrences(drill, now, 3)).toEqual([])
   })
   it('writes an .ics with TZID and RRULE', () => {
     const ics = toIcs(
-      [{ id: 'e1', title: 'Burnable, bag', startsAt: burnable.startsAt, rrule: burnable.rrule }],
+      [
+        {
+          id: 'e1',
+          title: 'Burnable, bag',
+          startsAt: burnable.startsAt,
+          rrule: burnable.rrule,
+        },
+      ],
       now,
     )
     expect(ics).toContain('DTSTART;TZID=Asia/Tokyo:20261102T080000')

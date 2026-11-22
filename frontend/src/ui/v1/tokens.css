@@ -1,21 +1,27 @@
-/* Kit v1 look: values only. Utilities that read them are mapped in theme/base.css (A-06). */
+/* Kit v1 look: shop-floor signage. Colour carries meaning only (JIS Z 9103 safety colours):
+   red = Lock / Confusion, green = Ready / valid, amber = expiring / caution, blue = action.
+   Values only; utilities that read them are mapped in theme/base.css (A-06). */
 :root {
-  --background: oklch(0.99 0.002 250);
-  --foreground: oklch(0.22 0.02 255);
+  --background: oklch(0.975 0.005 90); /* warm off-white, like a printed sign */
+  --foreground: oklch(0.2 0.01 260);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.22 0.02 255);
-  --primary: oklch(0.48 0.16 255); /* blue = primary action (F-21) */
+  --card-foreground: oklch(0.2 0.01 260);
+  --primary: oklch(0.45 0.15 255); /* action blue (F-21) */
   --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.96 0.01 255);
-  --secondary-foreground: oklch(0.3 0.03 255);
-  --muted: oklch(0.96 0.005 255);
-  --muted-foreground: oklch(0.45 0.02 255);
-  --accent: oklch(0.95 0.02 255);
-  --accent-foreground: oklch(0.3 0.03 255);
-  --destructive: oklch(0.5 0.2 27); /* red = error only (F-21) */
-  --success: oklch(0.48 0.13 150); /* green = success (F-21) */
-  --border: oklch(0.6 0.02 255); /* 3:1 against background (F-35) */
-  --input: oklch(0.6 0.02 255);
-  --ring: oklch(0.48 0.16 255);
+  --secondary: oklch(0.94 0.008 90);
+  --secondary-foreground: oklch(0.25 0.01 260);
+  --muted: oklch(0.94 0.006 90);
+  --muted-foreground: oklch(0.42 0.015 260);
+  --accent: oklch(0.93 0.02 255);
+  --accent-foreground: oklch(0.25 0.03 255);
+  --destructive: oklch(0.5 0.2 27); /* red = Lock, Confusion, error */
+  --success: oklch(0.47 0.13 150); /* green = Ready, valid Sign-off */
+  --warning: oklch(
+    0.5 0.13 65
+  ); /* amber = expiring, caution (text-safe shade) */
+  --life: oklch(0.5 0.11 190); /* teal accent for the Life tab */
+  --border: oklch(0.6 0.015 260); /* 3:1 against background (F-35) */
+  --input: oklch(0.6 0.015 260);
+  --ring: oklch(0.45 0.15 255);
   --radius: 0.5rem; /* 8px (F-20) */
 }

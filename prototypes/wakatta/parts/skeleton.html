@@ -1,0 +1,582 @@
+<!doctype html>
+<!-- data-platform: "android" (Material 3, default) or "ios" -->
+<html lang="en" data-platform="android">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#fef7ff">
+<title>Wakatta? — workplace chat</title>
+<style>
+/* ===== Tokens ===== */
+:root{
+  --bg:#fef7ff;--surface:#fef7ff;--surface-1:#f7f2fa;--surface-2:#f3edf7;--surface-3:#ece6f0;
+  --on:#1d1b20;--on-2:#49454f;--outline:#79747e;--outline-2:#cac4d0;
+  --primary:#6750a4;--on-primary:#fff;--primary-c:#eaddff;--on-primary-c:#21005d;
+  --error:#b3261e;--scrim:rgba(0,0,0,.32);
+  --font:Roboto,"Google Sans",system-ui,sans-serif;
+  --r-s:8px;--r-m:12px;--r-l:16px;--r-xl:28px;
+  --ease:cubic-bezier(.2,0,0,1);--ease-out:cubic-bezier(.05,.7,.1,1);--dur:400ms;
+  --status-h:36px;--nav-h:24px;
+}
+[data-platform=ios]{
+  --bg:#f2f2f7;--surface:#fff;--surface-1:#fff;--surface-2:#fff;--surface-3:#e5e5ea;
+  --on:#000;--on-2:#8e8e93;--outline:#c6c6c8;--outline-2:#e5e5ea;
+  --primary:#007aff;--on-primary:#fff;--primary-c:#e5f0ff;--on-primary-c:#007aff;
+  --error:#ff3b30;--scrim:rgba(0,0,0,.4);
+  --font:-apple-system,"SF Pro Text",system-ui,sans-serif;
+  --r-s:8px;--r-m:10px;--r-l:12px;--r-xl:14px;
+  --ease:cubic-bezier(.32,.72,0,1);--ease-out:cubic-bezier(.32,.72,0,1);--dur:500ms;
+  --status-h:54px;--nav-h:34px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{display:grid;place-items:center;background:#e4e4e7;font:16px/1.4 var(--font);color:var(--on);user-select:none;-webkit-user-select:none}
+button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:pointer}
+input,textarea{font:inherit;color:inherit;user-select:text}
+
+/* ===== Device frame (desktop) / full screen (real phone) ===== */
+.device{position:relative;width:412px;height:892px;border-radius:48px;border:12px solid #111;overflow:hidden;background:var(--bg);box-shadow:0 30px 80px rgba(0,0,0,.25);isolation:isolate}
+@media (max-width:520px),(pointer:coarse) and (max-width:1024px){
+  body{background:var(--bg)}
+  .device{width:100vw;height:100dvh;border:0;border-radius:0;box-shadow:none}
+  .statusbar{display:none!important}
+  :root,[data-platform=ios]{--status-h:env(safe-area-inset-top,0px);--nav-h:env(safe-area-inset-bottom,0px)}
+}
+.statusbar{position:absolute;top:0;left:0;right:0;height:var(--status-h);z-index:900;display:flex;align-items:center;justify-content:space-between;padding:0 26px;font-size:14px;font-weight:500;pointer-events:none}
+[data-platform=ios] .statusbar{font-weight:600;font-size:16px;padding:6px 34px 0}
+.statusbar.light{color:#fff}
+.gesturebar{position:absolute;bottom:8px;left:50%;width:108px;height:4px;margin-left:-54px;border-radius:4px;background:var(--on);opacity:.85;z-index:900;pointer-events:none}
+[data-platform=ios] .gesturebar{width:134px;margin-left:-67px;height:5px}
+
+/* ===== Screens ===== */
+.stage{position:absolute;inset:0;overflow:hidden}
+.screen{position:absolute;inset:0;display:none;flex-direction:column;background:var(--bg);padding-top:var(--status-h);will-change:transform,opacity}
+.screen.active,.screen.leaving{display:flex}
+.screen[data-root]{padding-bottom:calc(80px + var(--nav-h))}
+[data-platform=ios] .screen[data-root]{padding-bottom:calc(50px + var(--nav-h))}
+.screen.full{padding-top:0}
+.content{flex:1;overflow-y:auto;overscroll-behavior:contain;padding-bottom:calc(16px + var(--nav-h))}
+.content::-webkit-scrollbar{display:none}
+.pad{padding:0 16px}
+
+/* ===== Top app bar ===== */
+.appbar{display:flex;align-items:center;gap:4px;min-height:64px;padding:0 4px;flex-shrink:0;transition:background .2s}
+.appbar h1{flex:1;margin:0 0 0 12px;font-size:22px;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.appbar.scrolled{background:var(--surface-2)}
+.appbar.large{flex-wrap:wrap;min-height:112px;align-content:space-between;padding-bottom:20px}
+.appbar.large h1{flex-basis:100%;order:9;font-size:28px;margin-left:12px}
+[data-platform=ios] .appbar{min-height:44px;padding:0 8px;justify-content:space-between}
+[data-platform=ios] .appbar h1{flex:1;text-align:center;font-size:17px;font-weight:600;margin:0}
+[data-platform=ios] .appbar.large h1{flex:0 0 100%;text-align:left;font-size:34px;font-weight:700;margin-left:8px}
+[data-platform=ios] .appbar.large{min-height:96px;padding-bottom:8px}
+[data-platform=ios] .appbar.scrolled{background:rgba(249,249,249,.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);box-shadow:0 .5px 0 var(--outline)}
+.icon-btn{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;position:relative;overflow:hidden;flex-shrink:0}
+.icon-btn svg,.ic{width:24px;height:24px;fill:currentColor}
+
+/* ===== Components ===== */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 24px;border-radius:20px;font-size:14px;font-weight:500;letter-spacing:.1px;position:relative;overflow:hidden;background:var(--primary);color:var(--on-primary)}
+.btn.tonal{background:var(--primary-c);color:var(--on-primary-c)}
+.btn.outlined{background:none;color:var(--primary);box-shadow:inset 0 0 0 1px var(--outline)}
+.btn.text{background:none;color:var(--primary);padding:0 12px}
+.btn.block{display:flex;width:100%}
+[data-platform=ios] .btn{height:50px;border-radius:var(--r-m);font-size:17px;font-weight:600}
+.fab{position:absolute;right:16px;bottom:calc(16px + var(--nav-h));z-index:5;width:56px;height:56px;border-radius:16px;display:grid;place-items:center;background:var(--primary-c);color:var(--on-primary-c);box-shadow:0 3px 8px rgba(0,0,0,.18);overflow:hidden}
+.screen[data-root] .fab{bottom:calc(96px + var(--nav-h))}
+.card{background:var(--surface-1);border-radius:var(--r-m);overflow:hidden;position:relative}
+.card.outlined{background:var(--surface);box-shadow:inset 0 0 0 1px var(--outline-2)}
+.list{margin:0;padding:0;list-style:none}
+.list-item{display:flex;align-items:center;gap:16px;min-height:56px;padding:8px 16px;position:relative;overflow:hidden}
+.list-item .grow{flex:1;min-width:0}
+.list-item .sub{font-size:14px;color:var(--on-2)}
+[data-platform=ios] .list{background:var(--surface);border-radius:var(--r-m);margin:0 16px}
+[data-platform=ios] .list-item{min-height:44px}
+[data-platform=ios] .list-item+.list-item::before{content:"";position:absolute;top:0;left:16px;right:0;border-top:.5px solid var(--outline)}
+.avatar{width:40px;height:40px;border-radius:50%;background:var(--primary-c);color:var(--on-primary-c);display:grid;place-items:center;font-weight:500;flex-shrink:0;object-fit:cover}
+.chip{display:inline-flex;align-items:center;height:32px;padding:0 16px;border-radius:8px;font-size:14px;box-shadow:inset 0 0 0 1px var(--outline);position:relative;overflow:hidden;white-space:nowrap}
+.chip.on{background:var(--primary-c);color:var(--on-primary-c);box-shadow:none}
+[data-platform=ios] .chip{border-radius:16px;box-shadow:none;background:var(--surface-3)}
+.row{display:flex;gap:8px;align-items:center}
+.scroll-x{display:flex;gap:8px;overflow-x:auto;padding:0 16px;scroll-snap-type:x mandatory}
+.scroll-x::-webkit-scrollbar{display:none}
+.scroll-x>*{scroll-snap-align:start;flex-shrink:0}
+.field{display:block;width:100%;height:56px;padding:0 16px;border-radius:4px;border:1px solid var(--outline);background:none;outline:none}
+.field:focus{border:2px solid var(--primary);padding:0 15px}
+[data-platform=ios] .field{height:44px;border:0;border-radius:var(--r-m);background:var(--surface)}
+.switch{appearance:none;-webkit-appearance:none;width:52px;height:32px;border-radius:16px;background:var(--surface-3);box-shadow:inset 0 0 0 2px var(--outline);position:relative;transition:background .2s;flex-shrink:0;margin:0}
+.switch::after{content:"";position:absolute;top:8px;left:8px;width:16px;height:16px;border-radius:50%;background:var(--outline);transition:all .25s var(--ease)}
+.switch:checked{background:var(--primary);box-shadow:none}
+.switch:checked::after{left:24px;top:4px;width:24px;height:24px;background:var(--on-primary)}
+[data-platform=ios] .switch{width:51px;height:31px;box-shadow:none;background:#e9e9ea}
+[data-platform=ios] .switch::after{top:2px;left:2px;width:27px;height:27px;background:#fff;box-shadow:0 3px 8px rgba(0,0,0,.15)}
+[data-platform=ios] .switch:checked{background:#34c759}
+[data-platform=ios] .switch:checked::after{left:22px;top:2px;width:27px;height:27px}
+.skeleton{background:linear-gradient(90deg,var(--surface-3) 0,var(--surface-1) 50%,var(--surface-3) 100%);background-size:200% 100%;animation:shimmer 1.2s linear infinite;border-radius:var(--r-s)}
+@keyframes shimmer{to{background-position:-200% 0}}
+.spinner{width:28px;height:28px;border-radius:50%;border:3px solid var(--primary-c);border-top-color:var(--primary);animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.stagger>*{animation:rise .45s var(--ease-out) both}
+.stagger>*:nth-child(2){animation-delay:40ms}.stagger>*:nth-child(3){animation-delay:80ms}.stagger>*:nth-child(4){animation-delay:120ms}.stagger>*:nth-child(5){animation-delay:160ms}.stagger>*:nth-child(n+6){animation-delay:200ms}
+@keyframes rise{from{opacity:0;transform:translateY(16px)}}
+
+/* ===== Press feedback ===== */
+.ripple-ink{position:absolute;border-radius:50%;background:currentColor;opacity:.12;transform:scale(0);pointer-events:none;animation:ink .5s var(--ease) forwards}
+@keyframes ink{to{transform:scale(1);opacity:0}}
+[data-platform=ios] [data-tap]:active,[data-platform=ios] .btn:active,[data-platform=ios] .list-item:active,[data-platform=ios] .icon-btn:active{opacity:.4;transition:opacity 0s}
+[data-platform=ios] .btn,[data-platform=ios] .list-item,[data-platform=ios] .icon-btn{transition:opacity .25s}
+
+/* ===== Bottom navigation / tab bar ===== */
+.tabbar{position:absolute;left:0;right:0;bottom:0;z-index:10;display:flex;height:calc(80px + var(--nav-h));padding-bottom:var(--nav-h);background:var(--surface-2);transition:transform .3s var(--ease)}
+.tabbar.hidden{transform:translateY(100%)}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:12px;font-weight:500;color:var(--on-2)}
+.tab .pill{width:64px;height:32px;border-radius:16px;display:grid;place-items:center;position:relative;overflow:hidden;transition:background .25s}
+.tab.on{color:var(--on)}
+.tab.on .pill{background:var(--primary-c);color:var(--on-primary-c)}
+[data-platform=ios] .tabbar{height:calc(50px + var(--nav-h));background:rgba(249,249,249,.9);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);box-shadow:0 -.5px 0 var(--outline)}
+[data-platform=ios] .tab{font-size:10px;gap:2px}
+[data-platform=ios] .tab .pill{width:auto;height:auto;background:none!important}
+[data-platform=ios] .tab.on{color:var(--primary)}
+
+/* ===== Overlays: sheet, dialog, snackbar ===== */
+.scrim{position:absolute;inset:0;z-index:600;background:var(--scrim);opacity:0;pointer-events:none;transition:opacity .3s}
+.scrim.on{opacity:1;pointer-events:auto}
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:700;max-height:90%;display:flex;flex-direction:column;background:var(--surface-1);border-radius:var(--r-xl) var(--r-xl) 0 0;padding-bottom:var(--nav-h);transform:translateY(105%);visibility:hidden}
+.sheet .grip{flex-shrink:0;padding:16px 0 12px;touch-action:none}
+.sheet .grip::before{content:"";display:block;margin:auto;width:32px;height:4px;border-radius:2px;background:var(--outline)}
+.sheet .body{overflow-y:auto;padding:0 16px 16px}
+[data-platform=ios] .sheet .grip::before{width:36px;height:5px;background:#c7c7cc}
+.dialog{position:absolute;left:50%;top:50%;z-index:700;width:min(312px,85%);margin:0;background:var(--surface-3);border-radius:var(--r-xl);padding:24px;transform:translate(-50%,-50%);visibility:hidden;opacity:0}
+.dialog h2{margin:0 0 16px;font-size:24px;font-weight:400}
+.dialog .actions{display:flex;justify-content:flex-end;gap:8px;margin-top:24px}
+[data-platform=ios] .dialog{width:270px;padding:20px 16px 0;text-align:center;background:rgba(242,242,242,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+[data-platform=ios] .dialog h2{font-size:17px;font-weight:600;margin-bottom:4px}
+[data-platform=ios] .dialog .actions{margin:20px -16px 0;gap:0;border-top:.5px solid var(--outline)}
+[data-platform=ios] .dialog .actions .btn{flex:1;background:none;color:var(--primary);font-weight:400;height:44px;border-radius:0}
+[data-platform=ios] .dialog .actions .btn+.btn{border-left:.5px solid var(--outline);font-weight:600}
+.snackbar{position:absolute;left:16px;right:16px;bottom:calc(16px + var(--nav-h));z-index:800;min-height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 8px 0 16px;border-radius:4px;background:#322f35;color:#f5eff7;font-size:14px;transform:translateY(24px);opacity:0;pointer-events:none;transition:transform .3s var(--ease-out),opacity .2s}
+.snackbar.on{transform:none;opacity:1;pointer-events:auto}
+.has-tabs .snackbar{bottom:calc(96px + var(--nav-h))}
+[data-platform=ios] .snackbar{top:calc(var(--status-h) + 8px);bottom:auto;border-radius:24px;justify-content:center;background:rgba(30,30,30,.9);transform:translateY(-120%)}
+[data-platform=ios] .snackbar.on{transform:none}
+
+/* ===== Pull to refresh ===== */
+.ptr{height:0;display:grid;place-items:center;overflow:visible;position:relative;z-index:2}
+.ptr .spinner{position:absolute;top:0;opacity:0;transform:translateY(-40px)}
+
+/* ===== Embedded in index.html (two phones): keep status bar, host draws the bezel ===== */
+html.embed{--status-h:36px;--nav-h:24px}
+html.embed body{background:transparent}
+html.embed .device{width:100vw;height:100vh;border:0;border-radius:0;box-shadow:none}
+html.embed .statusbar{display:flex!important}
+/* ===== Wakatta status colors ===== */
+:root{--ok:#1e8e3e;--ok-c:#ceead6;--warn:#e37400;--warn-c:#feefc3;--bad:#d93025;--bad-c:#fad2cf;--wait:#9aa0a6}
+/* PART:A:CSS */
+/* PART:B:CSS */
+/* PART:C:CSS */
+/* PART:D:CSS */
+/* PART:E:CSS */
+@media (prefers-reduced-motion:reduce){*{animation-duration:1ms!important;transition-duration:1ms!important}}
+</style>
+</head>
+<body>
+<div class="device has-tabs" id="device">
+  <div class="statusbar"><span>9:41</span><span>&#9679;&#9679;&#9679; &#9646;</span></div>
+
+  <div class="stage" id="stage">
+<!-- PART:A:SCREENS -->
+<!-- PART:B:SCREENS -->
+<!-- PART:C:SCREENS -->
+<!-- PART:D:SCREENS -->
+<!-- PART:E:SCREENS -->
+  </div>
+
+  <!-- ===== Bottom navigation: shown on data-root screens ===== -->
+  <nav class="tabbar" id="tabbar">
+<!-- PART:A:TABS -->
+<!-- PART:B:TABS -->
+<!-- PART:C:TABS -->
+<!-- PART:D:TABS -->
+<!-- PART:E:TABS -->
+  </nav>
+
+  <!-- ===== Overlays ===== -->
+  <div class="scrim" id="scrim"></div>
+
+  <!-- PART:A:OVERLAYS -->
+<!-- PART:B:OVERLAYS -->
+<!-- PART:C:OVERLAYS -->
+<!-- PART:D:OVERLAYS -->
+<!-- PART:E:OVERLAYS -->
+
+  <div class="snackbar" id="snackbar"><span></span></div>
+  <div class="gesturebar"></div>
+</div>
+
+<script>
+/* ===== Role: ?role=foreman (Japanese, default) | ?role=worker (English). ?embed=1 when inside index.html ===== */
+const QS = new URLSearchParams(location.search);
+const ROLE = QS.get('role') === 'worker' ? 'worker' : 'foreman';
+const ME = ROLE === 'foreman' ? 'u_tanaka' : 'u_rahim';
+if (QS.has('embed')) document.documentElement.classList.add('embed');
+document.documentElement.dataset.role = ROLE;
+
+/* ===== Bus: events shared between the two phones. index.html relays postMessage between iframes.
+   Standalone (no parent) => Bus.paired === false: the foreman side simulates Rahim's answers itself. ===== */
+const Bus = (() => {
+  const h = {};
+  const local = (t, p) => (h[t] || []).forEach(f => f(p));
+  const paired = window.parent !== window;
+  addEventListener('message', e => { if (e.data && e.data.wk) local(e.data.t, e.data.p); });
+  return {
+    paired,
+    on: (t, f) => (h[t] = h[t] || []).push(f),
+    // fires locally AND on the other phone
+    emit: (t, p) => { local(t, p); if (paired) window.parent.postMessage({wk: 1, t, p}, '*'); },
+  };
+})();
+/* Events:
+   'msg:new'      {thread, msg}                       foreman sent a message (msg shape below)
+   'wk:stage'     {msgId, stage}                      Wakatta pipeline advanced (0..5, see WK_STAGES)
+   'check:answer' {msgId, user, answers:[idx], status} a worker answered; status green|orange|red
+   'task:update'  {task}                              task created or moved on the Board
+*/
+
+const WK_STAGES = ['Transcribed', 'Translated to English', 'Check Questions made', 'Tasks extracted', 'Sent to workers', 'Answers in'];
+const STATUS = {green: 'Wakatta', orange: 'Needs clarifying', red: 'Not understood', wait: 'Waiting'};
+
+const DATA = {
+  users: {
+    u_tanaka: {name: '田中 健一', en: 'Tanaka Kenichi', role: 'foreman', initials: '田', color: '#6750a4'},
+    u_rahim:  {name: 'Rahim Uddin', role: 'worker', initials: 'R', color: '#00897b'},
+    u_nguyen: {name: 'Nguyen Van An', role: 'worker', initials: 'N', color: '#e65100'},
+    u_siti:   {name: 'Siti Rahma', role: 'worker', initials: 'S', color: '#1565c0'},
+  },
+  threads: [
+    {id: 't_line2', title: 'Line 2 · プレス班', titleEn: 'Line 2 · Press team', members: ['u_tanaka', 'u_rahim', 'u_nguyen', 'u_siti'], unread: 2},
+    {id: 't_rahim', title: 'Rahim Uddin', titleEn: '田中 健一 (Foreman)', members: ['u_tanaka', 'u_rahim'], unread: 0},
+    {id: 't_safety', title: '安全連絡', titleEn: 'Safety notices', members: ['u_tanaka', 'u_rahim', 'u_nguyen', 'u_siti'], unread: 0},
+  ],
+  /* msg: {id, thread, from, at:'HH:MM', kind:'voice'|'text', ja, en, wk:{stage, questions:[{q, qJa, term?, options:[], optionsJa?:[], answer}], results:{userId:{status, answers}}}, tasks:[taskId]} */
+  messages: {
+    t_line2: [
+      {id: 'm1', thread: 't_line2', from: 'u_tanaka', at: '08:02', kind: 'voice',
+       ja: '今日は3号機の油の点検を先にしてください。オイルが少ないときは、私に言ってください。',
+       en: 'Today, check the oil on Machine 3 first. If the oil is low, tell me.',
+       wk: {stage: 5, questions: [
+         {q: 'What do you check first today?', qJa: '今日最初に何を点検しますか？', options: ['Oil on Machine 3', 'Air on Machine 2', 'Safety shoes'], optionsJa: ['3号機のオイル', '2号機のエア', '安全靴'], answer: 0},
+       ], results: {u_rahim: {status: 'green', answers: [0]}, u_nguyen: {status: 'green', answers: [0]}, u_siti: {status: 'orange', answers: [1]}}},
+       tasks: ['k1']},
+      {id: 'm2', thread: 't_line2', from: 'u_siti', at: '08:15', kind: 'text', ja: '機械3のオイル、少ないです。', en: 'Machine 3 oil is low.'},
+    ],
+    t_rahim: [
+      {id: 'm3', thread: 't_rahim', from: 'u_tanaka', at: '昨日', kind: 'text', ja: '明日の点検表、ありがとう。', en: 'Thanks for tomorrow’s inspection sheet.'},
+    ],
+    t_safety: [],
+  },
+  tasks: [
+    {id: 'k1', title: 'Check oil · Machine 3', ja: '3号機 オイル点検', col: 'done', assignees: ['u_siti'], due: 'Today 09:00', machine: 'mc3', from: 'm1'},
+    {id: 'k2', title: 'Clean chip tray · Lathe 1', ja: '旋盤1 切粉トレー清掃', col: 'doing', assignees: ['u_nguyen'], due: 'Today 12:00', machine: 'mc1', from: null},
+    {id: 'k3', title: 'Order gloves (size L)', ja: '手袋 Lサイズ 発注', col: 'todo', assignees: ['u_tanaka'], due: 'Fri', machine: null, from: null},
+  ],
+  machines: [
+    {id: 'mc1', name: 'Lathe 1', ja: '旋盤1号機', ready: {u_rahim: true, u_nguyen: true, u_siti: false}},
+    {id: 'mc2', name: 'Press #2 (200t)', ja: '2号プレス (200t)', ready: {u_rahim: false, u_nguyen: true, u_siti: false}},
+    {id: 'mc3', name: 'Machine 3 · Molding', ja: '3号機 成形', ready: {u_rahim: true, u_nguyen: true, u_siti: true}},
+  ],
+  /* The scripted voice message the foreman dictates in the demo */
+  script: {
+    ja: '明日の朝8時から、2号プレスの金型交換をします。ラヒムさんとグエンさんは、7時45分に集合してください。交換の前に、必ず電源をロックアウトして、安全靴と手袋をつけてください。終わったら点検表を書いて、私に報告してください。',
+    en: 'Tomorrow from 8:00 we change the die on Press #2. Rahim and Nguyen, gather at 7:45. Before the change, always lock out the power and wear safety shoes and gloves. When you finish, fill in the inspection sheet and report to me.',
+    questions: [
+      {q: 'What time do you gather tomorrow?', qJa: '明日は何時に集合しますか？', options: ['7:30', '7:45', '8:00'], answer: 1},
+      {q: 'What must you do before the die change?', qJa: '金型交換の前に、必ず何をしますか？', options: ['Run the press once', 'Lock out the power', 'Call the office'], optionsJa: ['プレスを一度動かす', '電源をロックアウトする', '事務所に電話する'], answer: 1},
+      {q: 'What is 金型交換 (kanagata kōkan)?', qJa: '「金型交換」の意味は？', term: '金型交換', options: ['Oil change', 'Shift change', 'Die change'], optionsJa: ['オイル交換', 'シフト交代', '金型の交換'], answer: 2},
+    ],
+    tasks: [
+      {title: 'Die change · Press #2', ja: '2号プレス 金型交換', assignees: ['u_rahim', 'u_nguyen'], due: 'Tomorrow 08:00', machine: 'mc2'},
+      {title: 'Lockout + PPE before change', ja: '交換前 ロックアウト・保護具', assignees: ['u_rahim', 'u_nguyen'], due: 'Tomorrow 07:45', machine: 'mc2'},
+      {title: 'Fill inspection sheet, report to Tanaka', ja: '点検表記入・田中へ報告', assignees: ['u_rahim', 'u_nguyen'], due: 'Tomorrow', machine: 'mc2'},
+    ],
+    // simulated answers from the workers who are not on a phone in the demo
+    simulated: {u_nguyen: {after: 3500, answers: [1, 1, 2]}, u_siti: {after: 6000, answers: [1, 0, 2]}},
+  },
+};
+const nameOf = id => ROLE === 'worker' && DATA.users[id].en ? DATA.users[id].en : DATA.users[id].name;
+const textOf = m => ROLE === 'worker' ? m.en : m.ja;
+// status from answers: all right = green, all wrong = red, else orange
+const statusOf = (qs, ans) => { const ok = ans.filter((a, i) => a === qs[i].answer).length; return ok === qs.length ? 'green' : ok === 0 ? 'red' : 'orange'; };
+console.assert(statusOf([{answer: 1}, {answer: 0}], [1, 0]) === 'green' && statusOf([{answer: 1}], [0]) === 'red' && statusOf([{answer: 1}, {answer: 0}], [1, 1]) === 'orange', 'statusOf');
+
+/* Notifications: any part calls notify({to:'foreman'|'worker'|'all', title, body, push:['screenId', {params}]}).
+   Part E renders the bell badge + notification centre from DATA.notifications. */
+DATA.notifications = [];
+const notify = n => Bus.emit('notify', Object.assign({id: 'n' + Date.now() + Math.random().toString(36).slice(2, 6), at: new Date().toTimeString().slice(0, 5), read: false}, n));
+Bus.on('notify', n => { if (n.to === 'all' || n.to === ROLE) DATA.notifications.unshift(n); });
+
+/* Screen hooks: each part adds its own with Object.assign(SCREENS, {...}) */
+const SCREENS = {};
+
+// PART:A:JS
+// PART:B:JS
+// PART:C:JS
+// PART:D:JS
+// PART:E:JS
+
+/* ===================================================================
+   Runtime. Normally no edits needed below this line.
+   Attributes:  data-push="id" [data-param='{json}']   data-back   data-home
+                data-tab="rootId"  data-open="sheetOrDialogId"  data-close
+                data-toast="msg"   data-chip   data-bind="key"   data-autofocus
+   Screens:     data-root (tab root, shows tabbar)   data-transition="modal|fade"
+   JS:          App.push(id, params)  App.back()  App.home()  App.tab(id)
+                App.open(id)  App.close()  App.toast(msg, action?)  App.bind(el, obj)
+                App.onRefresh = async () => {...}   (enables pull-to-refresh)
+   =================================================================== */
+const App = (() => {
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const html = document.documentElement, device = $('#device'), stage = $('#stage');
+  const tabbar = $('#tabbar'), scrim = $('#scrim'), snack = $('#snackbar');
+  const ios = () => html.dataset.platform === 'ios';
+  const dur = () => ios() ? 500 : 400;
+  const ease = () => ios() ? 'cubic-bezier(.32,.72,0,1)' : 'cubic-bezier(.2,0,0,1)';
+  const screen = id => $(`.screen[data-screen="${id}"]`, stage);
+  let stack = [];            // [{id, params}]
+  let busy = false, overlay = null, z = 20;
+
+  /* ---- transitions (Web Animations API, so gestures can scrub them) ---- */
+  function frames(kind, dir) {
+    // returns [incomingKeyframes, outgoingKeyframes] for a forward move; reversed for back
+    if (kind === 'modal') return [
+      [{transform: 'translateY(100%)'}, {transform: 'none'}],
+      ios() ? [{transform: 'none', filter: 'brightness(1)'}, {transform: 'scale(.94)', filter: 'brightness(.7)'}]
+            : [{opacity: 1}, {opacity: 1}]];
+    if (kind === 'fade') return [
+      [{opacity: 0, transform: 'scale(.92)'}, {opacity: 1, transform: 'none'}],
+      [{opacity: 1}, {opacity: 0}]];
+    return ios()
+      ? [[{transform: 'translateX(100%)', boxShadow: '0 0 0 rgba(0,0,0,0)'}, {transform: 'none', boxShadow: '-8px 0 24px rgba(0,0,0,.12)'}],
+         [{transform: 'none', filter: 'brightness(1)'}, {transform: 'translateX(-30%)', filter: 'brightness(.9)'}]]
+      : [[{transform: 'translateX(25%)', opacity: 0}, {transform: 'none', opacity: 1}],   // M3 shared axis X
+         [{transform: 'none', opacity: 1}, {transform: 'translateX(-25%)', opacity: 0}]];
+  }
+  function animatePair(inEl, outEl, kind, back, paused) {
+    const [fi, fo] = frames(kind);
+    const opt = {duration: dur(), easing: paused ? 'linear' : ease(), fill: 'both', direction: back ? 'reverse' : 'normal'};
+    // on back, the incoming element is the one revealed (plays the "outgoing" frames reversed)
+    const a = back ? [outEl.animate(fi, opt), inEl.animate(fo, opt)] : [inEl.animate(fi, opt), outEl.animate(fo, opt)];
+    if (paused) a.forEach(x => x.pause());
+    return a;
+  }
+  const done = anims => Promise.all(anims.map(a => a.finished));
+  const clear = anims => anims.forEach(a => a.cancel());
+
+  function show(el, params = {}) {
+    el.classList.add('active');
+    el.scrollTop = 0;
+    const hook = SCREENS[el.dataset.screen];
+    if (hook) hook(el, params);
+    const af = $('[data-autofocus]', el); if (af) setTimeout(() => af.focus(), dur());
+    syncChrome();
+  }
+  function syncChrome() {
+    const top = stack[stack.length - 1];
+    const root = top && screen(top.id).hasAttribute('data-root');
+    tabbar.classList.toggle('hidden', !root);
+    device.classList.toggle('has-tabs', !!root);
+    $$('.tab', tabbar).forEach(t => t.classList.toggle('on', t.dataset.tab === stack[0]?.id));
+    history.replaceState(null, '', '#' + stack.map(s => s.id).join('/'));
+  }
+
+  async function push(id, params = {}) {
+    if (busy || !screen(id)) return;
+    busy = true;
+    const from = screen(stack[stack.length - 1].id), to = screen(id);
+    stack.push({id, params});
+    to.style.zIndex = ++z;
+    show(to, params);
+    from.classList.add('leaving');
+    const a = animatePair(to, from, to.dataset.transition, false);
+    await done(a);
+    from.classList.remove('active', 'leaving'); clear(a);
+    busy = false;
+  }
+  async function back(anims) {
+    if (overlay) return close();
+    if (stack.length < 2 || (busy && !anims)) return;
+    busy = true;
+    const from = screen(stack.pop().id), prev = stack[stack.length - 1], to = screen(prev.id);
+    to.classList.add('active'); syncChrome();
+    const a = anims || animatePair(to, from, from.dataset.transition, true);
+    await done(a);
+    from.classList.remove('active'); clear(a);
+    from.style.zIndex = '';
+    busy = false;
+  }
+  async function home() { while (stack.length > 2) { const s = stack.pop(); screen(s.id).classList.remove('active'); } return back(); }
+  function tab(id) {
+    if (busy || stack[0]?.id === id && stack.length === 1) return;
+    stack.slice(1).forEach(s => screen(s.id).classList.remove('active'));
+    const old = stack[0] && screen(stack[0].id);
+    stack = [{id, params: {}}];
+    const el = screen(id); el.style.zIndex = 1;
+    if (old && old !== el) old.classList.remove('active');
+    show(el);
+    // M3 fade-through / iOS instant
+    if (!ios()) el.animate([{opacity: 0, transform: 'scale(.96)'}, {opacity: 1, transform: 'none'}], {duration: 250, easing: 'cubic-bezier(.2,0,0,1)'});
+  }
+
+  /* ---- overlays: sheet & dialog ---- */
+  function open(id) {
+    const el = $(`[data-sheet="${id}"],[data-dialog="${id}"]`, device);
+    if (!el || overlay) return;
+    overlay = el; scrim.classList.add('on'); el.style.visibility = 'visible';
+    el.animate(el.dataset.sheet ? [{transform: 'translateY(105%)'}, {transform: 'none'}]
+      : [{opacity: 0, transform: 'translate(-50%,-50%) scale(.9)'}, {opacity: 1, transform: 'translate(-50%,-50%)'}],
+      {duration: el.dataset.sheet ? dur() : 250, easing: 'cubic-bezier(.05,.7,.1,1)', fill: 'forwards'});
+  }
+  async function close() {
+    const el = overlay; if (!el) return;
+    overlay = null; scrim.classList.remove('on');
+    const cur = getComputedStyle(el).transform;
+    const a = el.animate(el.dataset.sheet ? [{transform: cur}, {transform: 'translateY(105%)'}]
+      : [{opacity: 1}, {opacity: 0}], {duration: 220, easing: 'cubic-bezier(.3,0,.8,.15)', fill: 'forwards'});
+    await a.finished;
+    el.getAnimations().forEach(x => x.cancel()); el.style.visibility = ''; el.style.transform = '';
+  }
+
+  /* ---- snackbar / toast ---- */
+  let snackTimer;
+  function toast(msg, action) {
+    snack.innerHTML = `<span>${msg}</span>` + (action ? `<button class="btn text" style="color:#d0bcff">${action.label}</button>` : '');
+    if (action) snack.querySelector('button').onclick = () => { action.run(); snack.classList.remove('on'); };
+    snack.classList.add('on'); clearTimeout(snackTimer);
+    snackTimer = setTimeout(() => snack.classList.remove('on'), 2800);
+  }
+
+  function bind(el, obj) { $$('[data-bind]', el).forEach(n => { if (n.dataset.bind in obj) n.textContent = obj[n.dataset.bind]; }); }
+
+  /* ---- clicks (event delegation) ---- */
+  device.addEventListener('click', e => {
+    const t = e.target.closest('[data-push],[data-back],[data-home],[data-tab],[data-open],[data-close],[data-toast],[data-chip]');
+    if (!t) return;
+    if (t.dataset.chip !== undefined) $$('[data-chip]', t.parentElement).forEach(c => c.classList.toggle('on', c === t));
+    if (t.dataset.close !== undefined) close();
+    if (t.dataset.toast) setTimeout(() => toast(t.dataset.toast), t.dataset.close !== undefined ? 200 : 0);
+    if (t.dataset.push) push(t.dataset.push, t.dataset.param ? JSON.parse(t.dataset.param) : {});
+    if (t.dataset.back !== undefined) back();
+    if (t.dataset.home !== undefined) home();
+    if (t.dataset.tab) tab(t.dataset.tab);
+    if (t.dataset.open) open(t.dataset.open);
+  });
+  scrim.addEventListener('click', close);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') back(); });
+
+  /* ---- Android ripple ---- */
+  device.addEventListener('pointerdown', e => {
+    if (ios()) return;
+    const t = e.target.closest('.btn,.icon-btn,.list-item[data-tap],.chip,.fab,.tab .pill,.card[data-push]');
+    if (!t) return;
+    const r = t.getBoundingClientRect(), k = r.width / t.offsetWidth || 1, s = Math.max(t.offsetWidth, t.offsetHeight) * 2.2;
+    const ink = document.createElement('span');
+    ink.className = 'ripple-ink';
+    Object.assign(ink.style, {width: s + 'px', height: s + 'px', left: (e.clientX - r.left) / k - s / 2 + 'px', top: (e.clientY - r.top) / k - s / 2 + 'px'});
+    t.appendChild(ink); setTimeout(() => ink.remove(), 550);
+  });
+
+  /* ---- edge swipe back (iOS swipe-back / Android predictive back), scrubs the real transition ---- */
+  let sw = null;
+  stage.addEventListener('pointerdown', e => {
+    const r = stage.getBoundingClientRect();
+    const fromEdge = e.clientX - r.left < 24 || (!ios() && r.right - e.clientX < 24);
+    if (!fromEdge || stack.length < 2 || busy || overlay) return;
+    const top = screen(stack[stack.length - 1].id);
+    if (top.dataset.transition === 'modal') return;
+    sw = {x: e.clientX, t: e.timeStamp, w: r.width, top, sign: e.clientX - r.left < 24 ? 1 : -1, anims: null};
+    stage.setPointerCapture(e.pointerId);
+  });
+  stage.addEventListener('pointermove', e => {
+    if (!sw) return;
+    const dx = (e.clientX - sw.x) * sw.sign;
+    if (!sw.anims) {
+      if (dx < 8) return;
+      const prev = screen(stack[stack.length - 2].id);
+      prev.classList.add('active');
+      sw.anims = animatePair(prev, sw.top, null, true, true);
+    }
+    sw.p = Math.min(Math.max(dx / sw.w, 0), 1);
+    sw.v = dx / Math.max(e.timeStamp - sw.t, 1);
+    sw.anims.forEach(a => a.currentTime = sw.p * dur());
+  });
+  const endSwipe = () => {
+    if (!sw) return;
+    const s = sw; sw = null;
+    if (!s.anims) return;
+    const commit = s.p > .35 || s.v > .5;
+    s.anims.forEach(a => { a.updatePlaybackRate(commit ? 1.6 : -1.6); a.play(); });
+    if (commit) back(s.anims);
+    else done(s.anims).then(() => { clear(s.anims); screen(stack[stack.length - 2].id).classList.remove('active'); });
+  };
+  stage.addEventListener('pointerup', endSwipe);
+  stage.addEventListener('pointercancel', endSwipe);
+
+  /* ---- drag sheet down to dismiss ---- */
+  device.addEventListener('pointerdown', e => {
+    const grip = e.target.closest('.sheet .grip'); if (!grip) return;
+    const el = grip.parentElement, y0 = e.clientY, t0 = e.timeStamp;
+    el.getAnimations().forEach(a => { a.commitStyles?.(); a.cancel(); });
+    grip.setPointerCapture(e.pointerId);
+    const move = ev => { el.style.transform = `translateY(${Math.max(0, ev.clientY - y0)}px)`; };
+    const up = ev => {
+      grip.removeEventListener('pointermove', move); grip.removeEventListener('pointerup', up);
+      const dy = ev.clientY - y0, v = dy / (ev.timeStamp - t0);
+      if (dy > el.offsetHeight * .3 || v > .6) close();
+      else el.animate([{transform: el.style.transform}, {transform: 'none'}], {duration: 250, easing: 'cubic-bezier(.05,.7,.1,1)'}).finished.then(() => el.style.transform = 'none');
+    };
+    grip.addEventListener('pointermove', move); grip.addEventListener('pointerup', up);
+  });
+
+  /* ---- app bar elevation on scroll + pull to refresh ---- */
+  stage.addEventListener('scroll', e => {
+    const c = e.target; if (!c.classList?.contains('content')) return;
+    const bar = $('.appbar', c.parentElement); if (bar) bar.classList.toggle('scrolled', c.scrollTop > 4);
+  }, true);
+  stage.addEventListener('pointerdown', e => {
+    const c = e.target.closest('.content'), ptr = c && $('.ptr', c);
+    if (!ptr || !App.onRefresh || c.scrollTop > 0 || sw) return;
+    const sp = $('.spinner', ptr), y0 = e.clientY; let d = 0;
+    const move = ev => { d = Math.max(0, Math.min((ev.clientY - y0) * .5, 90)); sp.style.opacity = d / 60; sp.style.transform = `translateY(${d - 30}px) rotate(${d * 4}deg)`; sp.style.animation = 'none'; };
+    const up = async () => {
+      removeEventListener('pointermove', move); removeEventListener('pointerup', up);
+      if (d > 60) { sp.style.animation = ''; sp.style.transform = 'translateY(30px)'; await App.onRefresh(); }
+      sp.animate([{opacity: sp.style.opacity}, {opacity: 0}], 200).finished.then(() => { sp.style.opacity = 0; sp.style.transform = ''; });
+    };
+    addEventListener('pointermove', move); addEventListener('pointerup', up);
+  });
+
+  /* ---- boot: restore stack from #a/b/c, else first data-root screen ---- */
+  function boot() {
+    const ids = location.hash.slice(1).split('/').filter(id => screen(id));
+    const first = $('.screen[data-root]', stage) || $('.screen', stage);
+    if (!ids.length || !screen(ids[0]).hasAttribute('data-root')) ids.unshift(first.dataset.screen);
+    stack = [{id: ids[0], params: {}}];
+    screen(ids[0]).style.zIndex = 1; show(screen(ids[0]));
+    ids.slice(1).forEach(id => { stack.push({id, params: {}}); const el = screen(id); el.style.zIndex = ++z; show(el); });
+    stack.slice(0, -1).forEach(x => screen(x.id).classList.remove('active'));
+    if (!tabbar.children.length) tabbar.remove();
+  }
+  boot();
+  // desktop: scale the phone frame to fit short windows
+  const fit = () => { device.style.zoom = matchMedia('(max-width:520px),(pointer:coarse) and (max-width:1024px)').matches ? '' : Math.min(1, (innerHeight - 24) / 916); };
+  fit(); addEventListener('resize', fit);
+  return {push, back, home, tab, open, close, toast, bind, get stack() { return stack.map(s => s.id); }, onRefresh: null};
+})();
+
+/* Optional: enable pull-to-refresh on screens that contain .ptr */
+// PART:A:INIT
+// PART:B:INIT
+// PART:C:INIT
+// PART:D:INIT
+// PART:E:INIT
+</script>
+</body>
+</html>

@@ -12,9 +12,8 @@ test('home renders in English by default and passes axe', async ({ page }) => {
   await page.goto('/')
   await expect(page.locator('html')).toHaveAttribute('lang', 'en')
   await expect(
-    page.getByRole('heading', { level: 1, name: 'API status' }),
+    page.getByRole('heading', { level: 1, name: 'Wakatta? demo' }),
   ).toBeVisible()
-  await expect(page.getByText('The API is running.')).toBeVisible()
   await expectNoBrokenText(page)
   const { violations } = await new AxeBuilder({ page }).analyze()
   expect(violations).toEqual([])
@@ -27,7 +26,7 @@ test.describe('Japanese browser', () => {
     await page.goto('/')
     await expect(page.locator('html')).toHaveAttribute('lang', 'ja')
     await expect(
-      page.getByRole('heading', { level: 1, name: 'APIの状態' }),
+      page.getByRole('heading', { level: 1, name: 'Wakatta? デモ' }),
     ).toBeVisible()
     await expectNoBrokenText(page)
     const { violations } = await new AxeBuilder({ page }).analyze()
@@ -40,7 +39,7 @@ test('the language toggle switches to Japanese', async ({ page }) => {
   await page.getByRole('button', { name: '日本語' }).click()
   await expect(page.locator('html')).toHaveAttribute('lang', 'ja')
   await expect(
-    page.getByRole('heading', { level: 1, name: 'APIの状態' }),
+    page.getByRole('heading', { level: 1, name: 'Wakatta? デモ' }),
   ).toBeVisible()
 })
 

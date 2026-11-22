@@ -10,33 +10,258 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CommunityRouteImport } from './routes/community'
+import { Route as ForemanIndexRouteImport } from './routes/foreman.index'
+import { Route as ForemanAssignRouteImport } from './routes/foreman.assign'
+import { Route as ForemanBriefingRouteImport } from './routes/foreman.briefing'
+import { Route as ForemanGlossaryRouteImport } from './routes/foreman.glossary'
+import { Route as ForemanHeatmapRouteImport } from './routes/foreman.heatmap'
+import { Route as ForemanNearMissesRouteImport } from './routes/foreman.near-misses'
+import { Route as ForemanQrRouteImport } from './routes/foreman.qr'
+import { Route as ForemanSenpaiRouteImport } from './routes/foreman.senpai'
+import { Route as ForemanSkillsRouteImport } from './routes/foreman.skills'
+import { Route as MMachineIdRouteImport } from './routes/m.$machineId'
+import { Route as PanelMachineIdRouteImport } from './routes/panel.$machineId'
+import { Route as SenpaiTokenRouteImport } from './routes/senpai.$token'
+import { Route as ForemanLibraryMachineIdRouteImport } from './routes/foreman.library.$machineId'
+import { Route as ForemanRecordMachineIdRouteImport } from './routes/foreman.record.$machineId'
+import { Route as MeWorkerIdIndexRouteImport } from './routes/me.$workerId.index'
+import { Route as MeWorkerIdLifeRouteImport } from './routes/me.$workerId.life'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CommunityRoute = CommunityRouteImport.update({
+  id: '/community',
+  path: '/community',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForemanIndexRoute = ForemanIndexRouteImport.update({
+  id: '/foreman/',
+  path: '/foreman/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForemanAssignRoute = ForemanAssignRouteImport.update({
+  id: '/foreman/assign',
+  path: '/foreman/assign',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForemanBriefingRoute = ForemanBriefingRouteImport.update({
+  id: '/foreman/briefing',
+  path: '/foreman/briefing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForemanGlossaryRoute = ForemanGlossaryRouteImport.update({
+  id: '/foreman/glossary',
+  path: '/foreman/glossary',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForemanHeatmapRoute = ForemanHeatmapRouteImport.update({
+  id: '/foreman/heatmap',
+  path: '/foreman/heatmap',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForemanNearMissesRoute = ForemanNearMissesRouteImport.update({
+  id: '/foreman/near-misses',
+  path: '/foreman/near-misses',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForemanQrRoute = ForemanQrRouteImport.update({
+  id: '/foreman/qr',
+  path: '/foreman/qr',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForemanSenpaiRoute = ForemanSenpaiRouteImport.update({
+  id: '/foreman/senpai',
+  path: '/foreman/senpai',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForemanSkillsRoute = ForemanSkillsRouteImport.update({
+  id: '/foreman/skills',
+  path: '/foreman/skills',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MMachineIdRoute = MMachineIdRouteImport.update({
+  id: '/m/$machineId',
+  path: '/m/$machineId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PanelMachineIdRoute = PanelMachineIdRouteImport.update({
+  id: '/panel/$machineId',
+  path: '/panel/$machineId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SenpaiTokenRoute = SenpaiTokenRouteImport.update({
+  id: '/senpai/$token',
+  path: '/senpai/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForemanLibraryMachineIdRoute = ForemanLibraryMachineIdRouteImport.update({
+  id: '/foreman/library/$machineId',
+  path: '/foreman/library/$machineId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForemanRecordMachineIdRoute = ForemanRecordMachineIdRouteImport.update({
+  id: '/foreman/record/$machineId',
+  path: '/foreman/record/$machineId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MeWorkerIdIndexRoute = MeWorkerIdIndexRouteImport.update({
+  id: '/me/$workerId/',
+  path: '/me/$workerId/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MeWorkerIdLifeRoute = MeWorkerIdLifeRouteImport.update({
+  id: '/me/$workerId/life',
+  path: '/me/$workerId/life',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/community': typeof CommunityRoute
+  '/foreman/assign': typeof ForemanAssignRoute
+  '/foreman/briefing': typeof ForemanBriefingRoute
+  '/foreman/glossary': typeof ForemanGlossaryRoute
+  '/foreman/heatmap': typeof ForemanHeatmapRoute
+  '/foreman/near-misses': typeof ForemanNearMissesRoute
+  '/foreman/qr': typeof ForemanQrRoute
+  '/foreman/senpai': typeof ForemanSenpaiRoute
+  '/foreman/skills': typeof ForemanSkillsRoute
+  '/m/$machineId': typeof MMachineIdRoute
+  '/panel/$machineId': typeof PanelMachineIdRoute
+  '/senpai/$token': typeof SenpaiTokenRoute
+  '/foreman/': typeof ForemanIndexRoute
+  '/foreman/library/$machineId': typeof ForemanLibraryMachineIdRoute
+  '/foreman/record/$machineId': typeof ForemanRecordMachineIdRoute
+  '/me/$workerId/life': typeof MeWorkerIdLifeRoute
+  '/me/$workerId/': typeof MeWorkerIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/community': typeof CommunityRoute
+  '/foreman/assign': typeof ForemanAssignRoute
+  '/foreman/briefing': typeof ForemanBriefingRoute
+  '/foreman/glossary': typeof ForemanGlossaryRoute
+  '/foreman/heatmap': typeof ForemanHeatmapRoute
+  '/foreman/near-misses': typeof ForemanNearMissesRoute
+  '/foreman/qr': typeof ForemanQrRoute
+  '/foreman/senpai': typeof ForemanSenpaiRoute
+  '/foreman/skills': typeof ForemanSkillsRoute
+  '/m/$machineId': typeof MMachineIdRoute
+  '/panel/$machineId': typeof PanelMachineIdRoute
+  '/senpai/$token': typeof SenpaiTokenRoute
+  '/foreman': typeof ForemanIndexRoute
+  '/foreman/library/$machineId': typeof ForemanLibraryMachineIdRoute
+  '/foreman/record/$machineId': typeof ForemanRecordMachineIdRoute
+  '/me/$workerId/life': typeof MeWorkerIdLifeRoute
+  '/me/$workerId': typeof MeWorkerIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/community': typeof CommunityRoute
+  '/foreman/assign': typeof ForemanAssignRoute
+  '/foreman/briefing': typeof ForemanBriefingRoute
+  '/foreman/glossary': typeof ForemanGlossaryRoute
+  '/foreman/heatmap': typeof ForemanHeatmapRoute
+  '/foreman/near-misses': typeof ForemanNearMissesRoute
+  '/foreman/qr': typeof ForemanQrRoute
+  '/foreman/senpai': typeof ForemanSenpaiRoute
+  '/foreman/skills': typeof ForemanSkillsRoute
+  '/m/$machineId': typeof MMachineIdRoute
+  '/panel/$machineId': typeof PanelMachineIdRoute
+  '/senpai/$token': typeof SenpaiTokenRoute
+  '/foreman/': typeof ForemanIndexRoute
+  '/foreman/library/$machineId': typeof ForemanLibraryMachineIdRoute
+  '/foreman/record/$machineId': typeof ForemanRecordMachineIdRoute
+  '/me/$workerId/life': typeof MeWorkerIdLifeRoute
+  '/me/$workerId/': typeof MeWorkerIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/community'
+    | '/foreman/assign'
+    | '/foreman/briefing'
+    | '/foreman/glossary'
+    | '/foreman/heatmap'
+    | '/foreman/near-misses'
+    | '/foreman/qr'
+    | '/foreman/senpai'
+    | '/foreman/skills'
+    | '/m/$machineId'
+    | '/panel/$machineId'
+    | '/senpai/$token'
+    | '/foreman/'
+    | '/foreman/library/$machineId'
+    | '/foreman/record/$machineId'
+    | '/me/$workerId/life'
+    | '/me/$workerId/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/community'
+    | '/foreman/assign'
+    | '/foreman/briefing'
+    | '/foreman/glossary'
+    | '/foreman/heatmap'
+    | '/foreman/near-misses'
+    | '/foreman/qr'
+    | '/foreman/senpai'
+    | '/foreman/skills'
+    | '/m/$machineId'
+    | '/panel/$machineId'
+    | '/senpai/$token'
+    | '/foreman'
+    | '/foreman/library/$machineId'
+    | '/foreman/record/$machineId'
+    | '/me/$workerId/life'
+    | '/me/$workerId'
+  id:
+    | '__root__'
+    | '/'
+    | '/community'
+    | '/foreman/assign'
+    | '/foreman/briefing'
+    | '/foreman/glossary'
+    | '/foreman/heatmap'
+    | '/foreman/near-misses'
+    | '/foreman/qr'
+    | '/foreman/senpai'
+    | '/foreman/skills'
+    | '/m/$machineId'
+    | '/panel/$machineId'
+    | '/senpai/$token'
+    | '/foreman/'
+    | '/foreman/library/$machineId'
+    | '/foreman/record/$machineId'
+    | '/me/$workerId/life'
+    | '/me/$workerId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CommunityRoute: typeof CommunityRoute
+  ForemanAssignRoute: typeof ForemanAssignRoute
+  ForemanBriefingRoute: typeof ForemanBriefingRoute
+  ForemanGlossaryRoute: typeof ForemanGlossaryRoute
+  ForemanHeatmapRoute: typeof ForemanHeatmapRoute
+  ForemanNearMissesRoute: typeof ForemanNearMissesRoute
+  ForemanQrRoute: typeof ForemanQrRoute
+  ForemanSenpaiRoute: typeof ForemanSenpaiRoute
+  ForemanSkillsRoute: typeof ForemanSkillsRoute
+  MMachineIdRoute: typeof MMachineIdRoute
+  PanelMachineIdRoute: typeof PanelMachineIdRoute
+  SenpaiTokenRoute: typeof SenpaiTokenRoute
+  ForemanIndexRoute: typeof ForemanIndexRoute
+  ForemanLibraryMachineIdRoute: typeof ForemanLibraryMachineIdRoute
+  ForemanRecordMachineIdRoute: typeof ForemanRecordMachineIdRoute
+  MeWorkerIdLifeRoute: typeof MeWorkerIdLifeRoute
+  MeWorkerIdIndexRoute: typeof MeWorkerIdIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +273,147 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/community': {
+      id: '/community'
+      path: '/community'
+      fullPath: '/community'
+      preLoaderRoute: typeof CommunityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/foreman/': {
+      id: '/foreman/'
+      path: '/foreman'
+      fullPath: '/foreman/'
+      preLoaderRoute: typeof ForemanIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/foreman/assign': {
+      id: '/foreman/assign'
+      path: '/foreman/assign'
+      fullPath: '/foreman/assign'
+      preLoaderRoute: typeof ForemanAssignRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/foreman/briefing': {
+      id: '/foreman/briefing'
+      path: '/foreman/briefing'
+      fullPath: '/foreman/briefing'
+      preLoaderRoute: typeof ForemanBriefingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/foreman/glossary': {
+      id: '/foreman/glossary'
+      path: '/foreman/glossary'
+      fullPath: '/foreman/glossary'
+      preLoaderRoute: typeof ForemanGlossaryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/foreman/heatmap': {
+      id: '/foreman/heatmap'
+      path: '/foreman/heatmap'
+      fullPath: '/foreman/heatmap'
+      preLoaderRoute: typeof ForemanHeatmapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/foreman/near-misses': {
+      id: '/foreman/near-misses'
+      path: '/foreman/near-misses'
+      fullPath: '/foreman/near-misses'
+      preLoaderRoute: typeof ForemanNearMissesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/foreman/qr': {
+      id: '/foreman/qr'
+      path: '/foreman/qr'
+      fullPath: '/foreman/qr'
+      preLoaderRoute: typeof ForemanQrRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/foreman/senpai': {
+      id: '/foreman/senpai'
+      path: '/foreman/senpai'
+      fullPath: '/foreman/senpai'
+      preLoaderRoute: typeof ForemanSenpaiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/foreman/skills': {
+      id: '/foreman/skills'
+      path: '/foreman/skills'
+      fullPath: '/foreman/skills'
+      preLoaderRoute: typeof ForemanSkillsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/m/$machineId': {
+      id: '/m/$machineId'
+      path: '/m/$machineId'
+      fullPath: '/m/$machineId'
+      preLoaderRoute: typeof MMachineIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/panel/$machineId': {
+      id: '/panel/$machineId'
+      path: '/panel/$machineId'
+      fullPath: '/panel/$machineId'
+      preLoaderRoute: typeof PanelMachineIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/senpai/$token': {
+      id: '/senpai/$token'
+      path: '/senpai/$token'
+      fullPath: '/senpai/$token'
+      preLoaderRoute: typeof SenpaiTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/foreman/library/$machineId': {
+      id: '/foreman/library/$machineId'
+      path: '/foreman/library/$machineId'
+      fullPath: '/foreman/library/$machineId'
+      preLoaderRoute: typeof ForemanLibraryMachineIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/foreman/record/$machineId': {
+      id: '/foreman/record/$machineId'
+      path: '/foreman/record/$machineId'
+      fullPath: '/foreman/record/$machineId'
+      preLoaderRoute: typeof ForemanRecordMachineIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/me/$workerId/': {
+      id: '/me/$workerId/'
+      path: '/me/$workerId'
+      fullPath: '/me/$workerId/'
+      preLoaderRoute: typeof MeWorkerIdIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/me/$workerId/life': {
+      id: '/me/$workerId/life'
+      path: '/me/$workerId/life'
+      fullPath: '/me/$workerId/life'
+      preLoaderRoute: typeof MeWorkerIdLifeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CommunityRoute: CommunityRoute,
+  ForemanAssignRoute: ForemanAssignRoute,
+  ForemanBriefingRoute: ForemanBriefingRoute,
+  ForemanGlossaryRoute: ForemanGlossaryRoute,
+  ForemanHeatmapRoute: ForemanHeatmapRoute,
+  ForemanNearMissesRoute: ForemanNearMissesRoute,
+  ForemanQrRoute: ForemanQrRoute,
+  ForemanSenpaiRoute: ForemanSenpaiRoute,
+  ForemanSkillsRoute: ForemanSkillsRoute,
+  MMachineIdRoute: MMachineIdRoute,
+  PanelMachineIdRoute: PanelMachineIdRoute,
+  SenpaiTokenRoute: SenpaiTokenRoute,
+  ForemanIndexRoute: ForemanIndexRoute,
+  ForemanLibraryMachineIdRoute: ForemanLibraryMachineIdRoute,
+  ForemanRecordMachineIdRoute: ForemanRecordMachineIdRoute,
+  MeWorkerIdLifeRoute: MeWorkerIdLifeRoute,
+  MeWorkerIdIndexRoute: MeWorkerIdIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

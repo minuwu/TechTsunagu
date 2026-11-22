@@ -21,7 +21,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       meta: [
         { charSet: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        { title: 'TechTsunagu' },
+        { title: 'Wakatta?' },
       ],
       links: [
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
@@ -32,7 +32,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         },
         {
           rel: 'stylesheet',
-          href: 'https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap',
+          href: 'https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Noto+Sans+Bengali:wght@400;700&display=swap',
         },
         { rel: 'stylesheet', href: baseCss },
         ...(loaderData

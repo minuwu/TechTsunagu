@@ -1,16 +1,12 @@
-import type {
-  Briefing,
-  Notice,
-  NoteVersion,
-  Tri,
-} from '@/domain/wakatta'
+import type { Briefing, Notice, NoteVersion, Tri } from '@/domain/wakatta'
 import { FOREMAN_NAME } from './seed'
 
 // Canned AI output: what the Gemini pipeline returns for the filmed demo takes (plan: AI pipeline, step 4).
 // shortcut: fixed answers regardless of the audio/photo; replace with POST /api/... once the backend is live.
 
 const t = (ja: string, bn: string, en: string): Tri => ({ ja, bn, en })
-const id = (prefix: string) => `${prefix}-${Math.random().toString(36).slice(2, 9)}`
+const id = (prefix: string) =>
+  `${prefix}-${Math.random().toString(36).slice(2, 9)}`
 
 export function noteDraft(
   machineId: string,
@@ -28,11 +24,46 @@ export function noteDraft(
       transcriptJa:
         'いいか、プラズマは段取りが命だ。保護メガネ。切ったらバリ取り。寸法はプラスマイナス1ミリ、ノギスで2か所測れ。外れてたら次を切るな、俺を呼べ。',
       steps: [
-        { text: t('保護メガネをかけます。', 'সুরক্ষা চশমা পরুন।', 'Put on safety glasses.'), icon: 'ppe-goggles' },
-        { text: t('段取り（材料の位置と設定）を確認します。', 'দানদোরি (প্রস্তুতি): মালের জায়গা আর সেটিং দেখে নিন।', 'Check the set-up (dandori): material position and settings.'), icon: 'check-list' },
-        { text: t('切ったあと、バリを取ります。', 'কাটার পরে ধারালো কিনারা (বারি) পরিষ্কার করুন।', 'After cutting, remove the burr (bari).'), icon: 'ppe-gloves' },
-        { text: t('ノギスで寸法を2か所測ります。±1mm以内です。', 'ক্যালিপার দিয়ে ২ জায়গায় মাপ (সুনপো) নিন। ±১ মিমি-র মধ্যে থাকতে হবে।', 'Measure the dimensions (sunpō) at 2 points with calipers. Within ±1 mm.'), icon: 'measure' },
-        { text: t('寸法が外れたら、次を切らずに班長を呼びます。', 'মাপ না মিললে পরেরটা কাটবেন না, ফোরম্যানকে ডাকুন।', 'If the dimensions are out, do not cut the next piece. Call the foreman.'), icon: 'emergency-stop' },
+        {
+          text: t(
+            '保護メガネをかけます。',
+            'সুরক্ষা চশমা পরুন।',
+            'Put on safety glasses.',
+          ),
+          icon: 'ppe-goggles',
+        },
+        {
+          text: t(
+            '段取り（材料の位置と設定）を確認します。',
+            'দানদোরি (প্রস্তুতি): মালের জায়গা আর সেটিং দেখে নিন।',
+            'Check the set-up (dandori): material position and settings.',
+          ),
+          icon: 'check-list',
+        },
+        {
+          text: t(
+            '切ったあと、バリを取ります。',
+            'কাটার পরে ধারালো কিনারা (বারি) পরিষ্কার করুন।',
+            'After cutting, remove the burr (bari).',
+          ),
+          icon: 'ppe-gloves',
+        },
+        {
+          text: t(
+            'ノギスで寸法を2か所測ります。±1mm以内です。',
+            'ক্যালিপার দিয়ে ২ জায়গায় মাপ (সুনপো) নিন। ±১ মিমি-র মধ্যে থাকতে হবে।',
+            'Measure the dimensions (sunpō) at 2 points with calipers. Within ±1 mm.',
+          ),
+          icon: 'measure',
+        },
+        {
+          text: t(
+            '寸法が外れたら、次を切らずに班長を呼びます。',
+            'মাপ না মিললে পরেরটা কাটবেন না, ফোরম্যানকে ডাকুন।',
+            'If the dimensions are out, do not cut the next piece. Call the foreman.',
+          ),
+          icon: 'emergency-stop',
+        },
       ],
       backTranslation: {
         bn: '保護メガネをかける。段取りを見る。切ったあとバリをきれいにする。ノギスで2か所寸法を測る。±1ミリの中。寸法が合わなければ次を切らず班長を呼ぶ。',
@@ -42,28 +73,60 @@ export function noteDraft(
         {
           id: id('q'),
           termId: 'g-sunpo',
-          prompt: t('寸法が±1mmから外れていました。どうしますか？', 'মাপ ±১ মিমি-র বাইরে। কী করবেন?', 'The dimensions are outside ±1 mm. What do you do?'),
+          prompt: t(
+            '寸法が±1mmから外れていました。どうしますか？',
+            'মাপ ±১ মিমি-র বাইরে। কী করবেন?',
+            'The dimensions are outside ±1 mm. What do you do?',
+          ),
           options: [
-            t('次を切らずに班長を呼ぶ', 'পরেরটা না কেটে ফোরম্যানকে ডাকব', 'Stop and call the foreman'),
-            t('そのまま次を切る', 'পরেরটা কেটে ফেলব', 'Cut the next piece anyway'),
-            t('バリを取ればよい', 'শুধু বারি পরিষ্কার করলেই হবে', 'Just remove the burr'),
+            t(
+              '次を切らずに班長を呼ぶ',
+              'পরেরটা না কেটে ফোরম্যানকে ডাকব',
+              'Stop and call the foreman',
+            ),
+            t(
+              'そのまま次を切る',
+              'পরেরটা কেটে ফেলব',
+              'Cut the next piece anyway',
+            ),
+            t(
+              'バリを取ればよい',
+              'শুধু বারি পরিষ্কার করলেই হবে',
+              'Just remove the burr',
+            ),
           ],
           correctIndex: 0,
         },
         {
           id: id('q'),
           termId: 'g-sunpo',
-          prompt: t('寸法は何か所測りますか？', 'কত জায়গায় মাপ নেবেন?', 'At how many points do you measure?'),
-          options: [t('1か所', '১ জায়গায়', '1 point'), t('2か所', '২ জায়গায়', '2 points'), t('測らない', 'মাপব না', 'None')],
+          prompt: t(
+            '寸法は何か所測りますか？',
+            'কত জায়গায় মাপ নেবেন?',
+            'At how many points do you measure?',
+          ),
+          options: [
+            t('1か所', '১ জায়গায়', '1 point'),
+            t('2か所', '২ জায়গায়', '2 points'),
+            t('測らない', 'মাপব না', 'None'),
+          ],
           correctIndex: 1,
         },
         {
           id: id('q'),
           termId: 'g-bari',
-          prompt: t('「バリ」は何ですか？', '"বারি" মানে কী?', 'What is "bari"?'),
+          prompt: t(
+            '「バリ」は何ですか？',
+            '"বারি" মানে কী?',
+            'What is "bari"?',
+          ),
           options: [
             t('材料の名前', 'মালের নাম', 'The name of the material'),
-            t('切ったあとの、とがった部分', 'কাটার পরে ধারালো কিনারা', 'The sharp edge left after cutting'),
+            t(
+              '切ったあとの、とがった部分',
+              'কাটার পরে ধারালো কিনারা',
+              'The sharp edge left after cutting',
+            ),
             t('機械のボタン', 'মেশিনের বোতাম', 'A button on the machine'),
           ],
           correctIndex: 1,
@@ -82,7 +145,14 @@ export function noteDraft(
     transcriptJa: base.transcriptJa + ' 終わったら指差し確認して報告。',
     steps: [
       ...base.steps,
-      { text: t('終わったら、指差し確認をして班長に報告します。', 'কাজ শেষে আঙুল দিয়ে দেখিয়ে যাচাই করে ফোরম্যানকে জানান।', 'When finished, do a point-and-call check and report to the foreman.'), icon: 'check-list' },
+      {
+        text: t(
+          '終わったら、指差し確認をして班長に報告します。',
+          'কাজ শেষে আঙুল দিয়ে দেখিয়ে যাচাই করে ফোরম্যানকে জানান।',
+          'When finished, do a point-and-call check and report to the foreman.',
+        ),
+        icon: 'check-list',
+      },
     ],
     questions: base.questions.map((q) => ({ ...q, id: id('q') })),
     createdAt: nowIso,
@@ -101,8 +171,16 @@ export function briefingDraft(nowIso: string): Briefing {
     question: {
       id: id('q'),
       termId: 'g-tsuriage',
-      prompt: t('クレーンが使えないのは何時から何時？', 'ক্রেন কখন ব্যবহার করা যাবে না?', 'When can the crane not be used?'),
-      options: [t('15時〜16時', 'বিকেল ৩টা–৪টা', '15:00–16:00'), t('9時〜10時', 'সকাল ৯টা–১০টা', '9:00–10:00'), t('一日中', 'সারাদিন', 'All day')],
+      prompt: t(
+        'クレーンが使えないのは何時から何時？',
+        'ক্রেন কখন ব্যবহার করা যাবে না?',
+        'When can the crane not be used?',
+      ),
+      options: [
+        t('15時〜16時', 'বিকেল ৩টা–৪টা', '15:00–16:00'),
+        t('9時〜10時', 'সকাল ৯টা–১০টা', '9:00–10:00'),
+        t('一日中', 'সারাদিন', 'All day'),
+      ],
       correctIndex: 0,
     },
     createdAt: nowIso,
@@ -126,19 +204,55 @@ export function noticeDraft(
     photo,
     title: t('ごみの出し方', 'ময়লা ফেলার নিয়ম', 'How to put out garbage'),
     steps: [
-      t('可燃ごみ：月・木の朝8:00まで。市の指定袋を使います。', 'পোড়ানো যায় এমন ময়লা: সোম ও বৃহস্পতিবার সকাল ৮টার আগে। সিটির নির্দিষ্ট ব্যাগ ব্যবহার করুন।', "Burnable: Mon/Thu before 8:00, use the city's designated bag."),
-      t('缶・びん・ペットボトル：水曜の朝8:00まで。', 'ক্যান, বোতল, প্লাস্টিক বোতল: বুধবার সকাল ৮টার আগে।', 'Cans, bottles, PET bottles: Wednesday before 8:00.'),
-      t('粗大ごみ（扇風機・いすなど）：先に電話で申し込み、処理券をはって出します。', 'বড় আকারের ময়লা (ফ্যান, চেয়ার ইত্যাদি): আগে ফোনে আবেদন করুন, তারপর ফি-এর স্টিকার লাগিয়ে বের করুন।', 'Oversized items (fans, chairs…): book by phone first, then attach the fee sticker.'),
+      t(
+        '可燃ごみ：月・木の朝8:00まで。市の指定袋を使います。',
+        'পোড়ানো যায় এমন ময়লা: সোম ও বৃহস্পতিবার সকাল ৮টার আগে। সিটির নির্দিষ্ট ব্যাগ ব্যবহার করুন।',
+        "Burnable: Mon/Thu before 8:00, use the city's designated bag.",
+      ),
+      t(
+        '缶・びん・ペットボトル：水曜の朝8:00まで。',
+        'ক্যান, বোতল, প্লাস্টিক বোতল: বুধবার সকাল ৮টার আগে।',
+        'Cans, bottles, PET bottles: Wednesday before 8:00.',
+      ),
+      t(
+        '粗大ごみ（扇風機・いすなど）：先に電話で申し込み、処理券をはって出します。',
+        'বড় আকারের ময়লা (ফ্যান, চেয়ার ইত্যাদি): আগে ফোনে আবেদন করুন, তারপর ফি-এর স্টিকার লাগিয়ে বের করুন।',
+        'Oversized items (fans, chairs…): book by phone first, then attach the fee sticker.',
+      ),
     ],
     events: [
-      { id: id('ev'), title: t('可燃ごみの日', 'পোড়ানো যায় এমন ময়লার দিন', 'Burnable garbage day'), startsAt: '2026-11-02T08:00:00+09:00', rrule: 'FREQ=WEEKLY;BYDAY=MO,TH', confirmed: false },
-      { id: id('ev'), title: t('資源物の日', 'রিসাইকেলের দিন', 'Recyclables day'), startsAt: '2026-11-04T08:00:00+09:00', rrule: 'FREQ=WEEKLY;BYDAY=WE', confirmed: false },
+      {
+        id: id('ev'),
+        title: t(
+          '可燃ごみの日',
+          'পোড়ানো যায় এমন ময়লার দিন',
+          'Burnable garbage day',
+        ),
+        startsAt: '2026-11-02T08:00:00+09:00',
+        rrule: 'FREQ=WEEKLY;BYDAY=MO,TH',
+        confirmed: false,
+      },
+      {
+        id: id('ev'),
+        title: t('資源物の日', 'রিসাইকেলের দিন', 'Recyclables day'),
+        startsAt: '2026-11-04T08:00:00+09:00',
+        rrule: 'FREQ=WEEKLY;BYDAY=WE',
+        confirmed: false,
+      },
     ],
     question: {
       id: id('q'),
       termId: 'g-kanen',
-      prompt: t('可燃ごみは何曜日に出しますか？', 'পোড়ানো যায় এমন ময়লা কোন দিন ফেলবেন?', 'Which days is burnable garbage collected?'),
-      options: [t('月・木', 'সোম ও বৃহস্পতি', 'Mon & Thu'), t('水', 'বুধ', 'Wed'), t('毎日', 'প্রতিদিন', 'Every day')],
+      prompt: t(
+        '可燃ごみは何曜日に出しますか？',
+        'পোড়ানো যায় এমন ময়লা কোন দিন ফেলবেন?',
+        'Which days is burnable garbage collected?',
+      ),
+      options: [
+        t('月・木', 'সোম ও বৃহস্পতি', 'Mon & Thu'),
+        t('水', 'বুধ', 'Wed'),
+        t('毎日', 'প্রতিদিন', 'Every day'),
+      ],
       correctIndex: 0,
     },
     status: 'draft',
@@ -146,12 +260,24 @@ export function noticeDraft(
   }
 }
 
-const FAN_WORDS = ['扇風機', '粗大', 'fan', 'chair', 'ফ্যান', 'চেয়ার', 'বড়', 'いす', 'oversized']
+const FAN_WORDS = [
+  '扇風機',
+  '粗大',
+  'fan',
+  'chair',
+  'ফ্যান',
+  'চেয়ার',
+  'বড়',
+  'いす',
+  'oversized',
+]
 
 /** Grounded answer: only from published Notices; otherwise not covered. */
 export function answerAsk(text: string, notices: Notice[]) {
   const lower = text.toLowerCase()
-  const garbage = notices.find((n) => n.status === 'published' && n.category === 'garbage')
+  const garbage = notices.find(
+    (n) => n.status === 'published' && n.category === 'garbage',
+  )
   if (garbage && FAN_WORDS.some((w) => lower.includes(w.toLowerCase())))
     return {
       covered: true,
@@ -162,8 +288,15 @@ export function answerAsk(text: string, notices: Notice[]) {
       ),
       sourceNoticeIds: [garbage.id],
     }
-  const drill = notices.find((n) => n.status === 'published' && n.category === 'disaster')
-  if (drill && ['訓練', 'drill', 'মহড়া', '避難', 'shelter', 'আশ্রয়'].some((w) => lower.includes(w.toLowerCase())))
+  const drill = notices.find(
+    (n) => n.status === 'published' && n.category === 'disaster',
+  )
+  if (
+    drill &&
+    ['訓練', 'drill', 'মহড়া', '避難', 'shelter', 'আশ্রয়'].some((w) =>
+      lower.includes(w.toLowerCase()),
+    )
+  )
     return {
       covered: true,
       answer: t(

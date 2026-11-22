@@ -51,11 +51,20 @@ const icsDate = (iso: string) => {
 }
 
 const icsText = (s: string) =>
-  s.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n')
+  s
+    .replace(/\\/g, '\\\\')
+    .replace(/;/g, '\\;')
+    .replace(/,/g, '\\,')
+    .replace(/\n/g, '\\n')
 
 /** One .ics file for all events; titles in the Worker's language. */
 export function toIcs(
-  events: { id: string; title: string; startsAt: string; rrule: string | null }[],
+  events: {
+    id: string
+    title: string
+    startsAt: string
+    rrule: string | null
+  }[],
   stamp: Date,
 ): string {
   const dtstamp = stamp.toISOString().replace(/[-:]/g, '').slice(0, 15) + 'Z'

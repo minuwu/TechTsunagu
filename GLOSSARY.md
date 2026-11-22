@@ -99,6 +99,44 @@ _Avoid_: Incident, accident report
 All Note Versions of every Machine, in time order, with who recorded each one.
 _Avoid_: History, archive, wiki
 
+## Chat (prototype: prototypes/wakatta/)
+
+**Thread**:
+A chat between a Foreman and one or more Workers, where the Foreman's messages are translated for each Worker.
+_Avoid_: Channel, room, conversation
+
+**Wakatta Status**:
+One Worker's result on the Check Questions of one Foreman message: green (all right, わかった), orange (some wrong or "not sure", needs clarifying), red (all wrong) or grey (waiting).
+_Avoid_: Score, grade, read receipt
+
+**Auto-send Countdown**:
+The few seconds after dictation ends, shown as a ring on the send button, in which the Foreman can cancel and edit before the message sends itself.
+_Avoid_: Delay, timer (in code)
+
+**Re-explanation**:
+A simpler version of a Foreman message, aimed at the term one Worker got wrong, sent to that Worker only with one new Check Question.
+_Avoid_: Retry, resend, correction
+
+**Follow-up**:
+The item a wrong or "not sure" answer creates for the Foreman, moving from open (要フォロー) to clarified (説明済, with the Re-explanation recorded) to understood (理解) when the Worker passes the new Check.
+_Avoid_: Ticket, issue, alert (an alert is how a Confusion is shown)
+
+**Learning History**:
+One Worker's timeline of terms they missed and later understood, built from their Confusions and Follow-ups.
+_Avoid_: Progress report, transcript, record
+
+**Nudge**:
+A reminder the Foreman sends to a Worker who has not answered a message's Check Questions before its deadline.
+_Avoid_: Ping, poke, reminder (reminders belong to Events)
+
+**Task**:
+A piece of work extracted from a Foreman's message (or added by hand) with assignees, due time and Machine, kept on the Board.
+_Avoid_: Ticket, todo, job
+
+**Board**:
+The shared Kanban of Tasks (未着手 / 作業中 / 完了) that the Foreman and every Worker see and move.
+_Avoid_: Tracker, backlog
+
 ## Life
 
 **Community Poster**:

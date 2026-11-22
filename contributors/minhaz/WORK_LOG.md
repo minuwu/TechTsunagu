@@ -4,6 +4,22 @@ Owner: Minhaz (`minuwu`) — Role: Frontend / Full-Stack / Architecture
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-22 (demo frontend)
+
+### Completed
+- Built a clickable demo frontend for every part of the plan, on mock data (no backend needed). Start at `/` (demo hub). Foreman PIN `1234`, Community PIN `5678`.
+  - Worker: `/m/$machineId` (read → Check → unlock), `/me/$workerId` (shift, Skill Passport, Briefing, Near-miss), `/me/$workerId/life` (Events + .ics, Notices, Ask, Senpai).
+  - Machine Panel: `/panel/$machineId` (LOCKED / READY, polls 2 s).
+  - Foreman: Board, Record note (AI draft, back-translation, confirm), Assign, Skill Matrix, Heatmap, Glossary, Briefing, Near-misses, Library, QR stickers, Senpai + Support Log CSV.
+  - Community Poster: `/community` (flyer photo / text / voice → confirm dates → publish → reach). Senpai link: `/senpai/$token`.
+- UI in ja / en / bn (`src/i18n/*.json`). Mic and camera are real; AI answers are canned in `src/services/mocks/ai.ts`. Every service call has the real endpoint path ready for when the backend lands.
+- E2E: lock → pass Check → Panel READY, flyer → notice → Ask cites it, and axe on all 18 screens.
+
+### Next
+- Team: click through the demo hub and note anything that does not match the plan.
+- Swap Unicode pictograms in `src/ui/v1/components/Icon.tsx` for real JIS/ISO 7010 SVGs.
+- Wire services to the FastAPI endpoints once WS0 is up (`VITE_USE_MOCK=false`).
+
 ## 2026-11-22
 
 ### Completed

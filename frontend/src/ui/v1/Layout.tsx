@@ -14,8 +14,11 @@ export function Layout({ children }: { children: ReactNode }) {
       </a>
       <header className="border-b border-border">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-2">
-          <Link to="/" className="py-2 text-lg font-bold">
-            {m.app_name()}
+          <Link to="/" className="flex items-baseline gap-2 py-2">
+            <span className="text-xl font-black">{m.app_name()}</span>
+            <span className="hidden text-sm text-muted-foreground sm:inline">
+              {m.app_tagline()}
+            </span>
           </Link>
           <LocaleSwitcher />
         </div>

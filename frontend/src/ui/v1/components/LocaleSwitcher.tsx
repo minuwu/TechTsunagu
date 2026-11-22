@@ -3,7 +3,7 @@ import { getLocale, setLocale, type Locale } from '@/i18n/paraglide/runtime'
 import { Button } from './ui/button'
 
 // Each label is written in its own language so anyone can find theirs (F-01)
-const LABELS: Record<Locale, string> = { ja: '日本語', en: 'EN' }
+const LABELS: Record<Locale, string> = { ja: '日本語', en: 'EN', bn: 'বাংলা' }
 
 export function LocaleSwitcher() {
   const current = getLocale()
