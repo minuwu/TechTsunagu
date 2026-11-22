@@ -12,6 +12,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import Connection, Engine, create_engine, text
 from sqlalchemy.orm import Session, sessionmaker
 
+from app.ai.fake import FakeAiClient
 from app.config import Settings
 from app.main import create_app
 from tests.factories import TEST_PEPPER
@@ -84,7 +85,14 @@ def settings() -> Settings:
 
 
 @pytest.fixture
-def client(settings: Settings, db: Session) -> Iterator[TestClient]:
+def fake_ai() -> FakeAiClient:
+    """Scripted per test with `fake_ai.queue(pipeline, answer)`; an empty queue means the model is unavailable."""
+    return FakeAiClient()
+
+
+@pytest.fixture
+def client(settings: Settings, db: Session, fake_ai: FakeAiClient) -> Iterator[TestClient]:
     factory: sessionmaker[Session] = db.info["factory"]
-    with TestClient(create_app(settings, session_factory=factory), raise_server_exceptions=False) as c:
+    app = create_app(settings, session_factory=factory, ai_client=fake_ai)
+    with TestClient(app, raise_server_exceptions=False) as c:
         yield c
