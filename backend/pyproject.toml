@@ -4,10 +4,15 @@ version = "0.1.0"
 description = "Wakatta? backend: FastAPI + PostgreSQL (see docs/BACKEND_ARCHITECTURE.md)"
 requires-python = ">=3.12,<3.13"
 dependencies = [
+    "alembic>=1.20.1",
+    "argon2-cffi>=25.1.0",
     "fastapi>=0.165.0",
+    "google-genai>=3.6.1",
+    "psycopg[binary]>=3.3.9",
     "pydantic-settings>=2.16.3",
     "python-dateutil>=4.0.0",
     "python-multipart>=0.0.34",
+    "sqlalchemy>=2.1.9",
     "uvicorn[standard]>=0.54.0",
 ]
 
@@ -31,6 +36,7 @@ select = ["E", "F", "I", "B", "UP", "S", "ASYNC", "T20", "ERA"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S101"]
+"migrations/versions/**" = ["E501"]  # generated DDL strings
 
 [tool.pyright]
 pythonVersion = "3.12"
@@ -38,6 +44,36 @@ typeCheckingMode = "strict"
 include = ["app", "tests"]
 venvPath = "."
 venv = ".venv"
+
+[tool.importlinter]
+root_package = "app"
+include_external_packages = true
+
+# Architecture §4: routers never touch SQL or tables; domain stays pure; ai never reaches the data layers.
+[[tool.importlinter.contracts]]
+name = "Routers go through services"
+type = "forbidden"
+source_modules = ["app.routers"]
+forbidden_modules = ["app.repositories", "app.models", "sqlalchemy"]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "Domain is pure"
+type = "forbidden"
+source_modules = ["app.domain"]
+forbidden_modules = ["app.repositories", "app.models", "app.services", "app.routers", "app.api", "sqlalchemy", "fastapi"]
+
+[[tool.importlinter.contracts]]
+name = "AI seam stays out of the data layers"
+type = "forbidden"
+source_modules = ["app.ai"]
+forbidden_modules = ["app.repositories", "app.models", "app.services", "app.routers", "sqlalchemy"]
+
+[[tool.importlinter.contracts]]
+name = "Repositories do not call upward"
+type = "forbidden"
+source_modules = ["app.repositories"]
+forbidden_modules = ["app.services", "app.routers", "app.api"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]

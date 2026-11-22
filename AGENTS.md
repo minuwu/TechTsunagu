@@ -56,6 +56,8 @@ This file is:
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | `XREQ-001` | P1 | Backend (Asif) | Frontend (Minhaz) | Auth, ids and list shape for the real API ([BACKEND_ARCHITECTURE.md §17](docs/BACKEND_ARCHITECTURE.md#17-frontend-contract-changes)) | `[PENDING]` | 2026-11-22 19:10 |
 | `XREQ-002` | P1 | Backend (Anim) | Frontend (Minhaz) | Life contract: Notices, Events, Asks, Senpai, Meet-ups (`backend/app/schemas/`) | `[PENDING]` | 2026-11-22 20:06 |
+| `XREQ-003` | P1 | AI (Galib) | Backend (Asif) | Review the free-AI plan: model chain, budgets, Groq Whisper, settings; Briefing receipts route ([AI_PLAN.md](contributors/galib/AI_PLAN.md)) | `[PENDING]` | 2026-11-22 22:40 |
+| `XREQ-004` | P2 | AI (Galib) | Frontend (Minhaz, Arjun) | "Dictate instead" fallback, degraded-draft message, provenance line ([AI_PLAN.md](contributors/galib/AI_PLAN.md) §2, §8) | `[PENDING]` | 2026-11-22 22:40 |
 
 *(When adding a request: append a row above AND add a detailed card in 2.2. Never insert in the middle.)*
 
@@ -134,6 +136,74 @@ GET /api/senpai/{token} → 200
   "meetups": [] } }
 ```
 Errors: `404 NOT_FOUND` (wrong or revoked Senpai token), `409 NO_ACTIVE_PAIR` (forwarding an Ask without a Senpai), `422 VALIDATION_ERROR`.
+
+**Fulfillment & Proof (filled by recipient on completion):**
+- **Branch / Commit**: 
+- **Status / Notes**: 
+- **Verification Proof**: 
+
+#### `[XREQ-003]` Review the free-AI plan (model chain, budgets, Whisper, settings)
+- **Priority**: `P1 (High)`
+- **From**: AI (Galib)
+- **To**: Backend (Asif)
+- **Status**: `[PENDING]`
+- **Created**: `2026-11-22 22:40 (UTC+6)`
+- **Target Interface / Endpoint**: `docs/BACKEND_ARCHITECTURE.md` §10.3, §10.4; `backend/.env.example`; `backend/pyproject.toml`; `app/ai/`
+
+**Requirement Details:**
+The team agreed to use every free AI API, so the demo does not hang on one model's 20-a-day quota. The full proposal is [contributors/galib/AI_PLAN.md](contributors/galib/AI_PLAN.md). This is a proposal: accept, change or reject each item, and I build WS1 to match.
+1. Two model chains behind one setting `AI_CHAIN=dev|demo` (replaces `GEMINI_MODEL` and `GEMINI_MODEL_DEV`): `dev` = 3.5 Flash-Lite → 3.1 Flash-Lite; `demo` = 3.8 Flash → 3.6 Flash → 3.5 Flash-Lite → 3.1 Flash-Lite.
+2. Fallback ladder (§10.4): cache looked up for each chain model → the chain in order (a model with `ai_usage.exhausted` or at budget is skipped) → one validation retry → seeded result → **Groq Whisper transcript for voice input** → degraded. Add `transcribed` to `note_versions.ai_outcome`.
+3. Budgets per model in `ai_usage` (already keyed by `(day, model)`, so no schema change): 18/day for 3.8 and 3.6 Flash, 450 for both Flash-Lites, 1,800 for Whisper; per-minute buckets 4 / 12 / 15.
+4. Settings: `GROQ_API_KEY` (optional; empty disables the Whisper step) and `AI_CHAIN` in `.env.example`; `httpx` as a runtime dependency for Groq.
+5. From [WS6_BRIEFING_PLAN.md](contributors/galib/WS6_BRIEFING_PLAN.md) (branch `galib/ws1-ai`): OK `GET /briefings/{id}/receipts` for the Foreman's "understood / opened only / not opened" view, and seed shop A's Glossary from `backend/tests/fixtures/ai/glossary.json` (or move that file into `seed_data/`).
+6. For XREQ-004's provenance line: include `approvedBy` (display name) and `needsEdit` in the Note Version response; both columns already exist (§6).
+7. **Ownership of the remaining pipelines (Asif and Anim, by Mon 03:00 BST):** [WS1_INTEGRATION_PLAN.md](contributors/galib/WS1_INTEGRATION_PLAN.md) §1. Proposal: Galib builds `app/services/ai_pipelines.py` (`draft_briefing`, `draft_notice`, `answer_ask`, `translate`) by Mon 10:00; Anim's services call them; Asif keeps `notes.py`. If nobody objects by Mon 03:00, I build to it.
+
+**Expected Request (Payload / Query Params / Headers):**
+```json
+GET /api/briefings/41/receipts
+Authorization: Bearer <foreman token>
+```
+
+**Expected Response (Status Code + Payload / Error Codes):**
+```json
+{ "success": true, "data": {
+  "understood": [{ "id": "12", "displayName": "Rahim Uddin" }],
+  "openedOnly": [{ "id": "13", "displayName": "Sadia Akter" }],
+  "notOpened": [{ "id": "14", "displayName": "Tanvir Hasan" }] } }
+```
+Errors: `403 FORBIDDEN` (not a Foreman), `404 NOT_FOUND` (another shop's Briefing), `409` if the Briefing is still a draft.
+
+**Fulfillment & Proof (filled by recipient on completion):**
+- **Branch / Commit**: 
+- **Status / Notes**: 
+- **Verification Proof**: 
+
+#### `[XREQ-004]` "Dictate instead", degraded-draft message and provenance line
+- **Priority**: `P2 (Normal)`
+- **From**: AI (Galib)
+- **To**: Frontend (Minhaz, Arjun)
+- **Status**: `[PENDING]`
+- **Created**: `2026-11-22 22:40 (UTC+6)`
+- **Target Interface / Endpoint**: Foreman record and Briefing screens, Poster voice notice (`frontend/src/ui/v2/screens/foreman/ForemanRecordScreen.tsx`, `community/CommunityScreen.tsx`), shared draft view
+
+**Requirement Details:**
+Part of the free-AI plan ([AI_PLAN.md](contributors/galib/AI_PLAN.md) §2, §8). Proposal: accept, change or reject each item.
+1. **"Dictate instead":** when a voice draft comes back with `needsEdit: true`, or the phone is offline, offer a button that uses the browser's speech recognition (`SpeechRecognition` / `webkitSpeechRecognition`, `lang = 'ja-JP'`) to fill the text box, then send it on the existing text path. Hide the button where the API is missing (Firefox). Support is partial in Chrome and Safari ([caniuse](https://caniuse.com/speech-recognition)), so please try it on the team's phones.
+2. **Degraded drafts:** show `needsEdit` clearly, e.g. "AI unavailable: please check or type the steps" (ja / en / bn), instead of an empty form.
+3. **Provenance line** on AI drafts and approved instructions: "AI draft · checked against back-translation · approved by 山口 · 11/22". `recordedBy` and `approvedAt` are already on `NoteVersion`; `approvedBy` and `needsEdit` are stored in the database (§6) and requested in the Note Version response under XREQ-003 item 6.
+
+**Expected Request (Payload / Query Params / Headers):**
+```json
+POST /api/machines/3/notes   (multipart: text = what the browser heard, Idempotency-Key)
+```
+
+**Expected Response (Status Code + Payload / Error Codes):**
+```json
+{ "success": true, "data": { "id": "57", "status": "draft", "needsEdit": false, "recordedBy": "山口 隆" } }
+```
+No new error codes.
 
 **Fulfillment & Proof (filled by recipient on completion):**
 - **Branch / Commit**: 

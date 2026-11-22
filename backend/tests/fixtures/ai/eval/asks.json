@@ -1,0 +1,12 @@
+{
+  "_comment": "AI eval cases for answer_ask. The model gets the published Notices of notices.json (by id) and the question. expect_covered=false cases must come back not covered after app.domain.grounding.ground(); a covered case must cite expect_sources.",
+  "notices_from": "notices.json",
+  "cases": [
+    {"id": "a01-sodai-en", "lang": "en", "question": "How do I throw away my broken fan?", "expect_covered": true, "expect_sources": ["f01-garbage"]},
+    {"id": "a02-time-bn", "lang": "bn", "question": "ময়লা কয়টার মধ্যে বের করতে হবে?", "expect_covered": true, "expect_sources": ["f01-garbage"]},
+    {"id": "a03-drill-place-en", "lang": "en", "question": "Where do we meet for the disaster drill?", "expect_covered": true, "expect_sources": ["f02-drill"]},
+    {"id": "a04-cleanup-bring-bn", "lang": "bn", "question": "পরিষ্কারের দিনে কী নিয়ে যেতে হবে?", "expect_covered": true, "expect_sources": ["f04-cleanup"]},
+    {"id": "a05-recycle-day-en", "lang": "en", "question": "Which day is recyclables collection?", "expect_covered": false, "expect_sources": [], "_why": "no Notice states a collection day; a guessed weekday is the failure"},
+    {"id": "a06-doctor-bn", "lang": "bn", "question": "রাতে অসুস্থ হলে কোন হাসপাতালে যাব?", "expect_covered": false, "expect_sources": [], "_why": "outside every Notice: must forward to the Senpai, not answer from general knowledge"}
+  ]
+}

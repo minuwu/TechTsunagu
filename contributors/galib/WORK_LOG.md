@@ -7,6 +7,31 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 ## 2026-11-22
 
 ### Completed
+- **WS1 integration plan, for review:** [WS1_INTEGRATION_PLAN.md](WS1_INTEGRATION_PLAN.md). Who builds which pipeline (proposal: I build `app/services/ai_pipelines.py` with `draft_briefing`, `draft_notice`, `answer_ask`, `translate`; Anim's services call them; Asif keeps `notes.py`), the pattern copied from Asif's `notes.py`, function signatures, deadlines (pipelines Mon 10:00, Briefing Mon 18:00, eval Tue 10:00–14:00), the git workflow and "done means". Linked from XREQ-003 item 7; default ownership at Mon 03:00 unless Asif or Anim objects.
+- **Free-AI plan, for review:** [AI_PLAN.md](AI_PLAN.md). The team agreed to use every free AI API; the plan covers which model does what (`dev` and `demo` chains behind `AI_CHAIN`), the fallback ladder (cache → Gemini chain → seeded → Groq Whisper transcript for voice → degraded), per-model budgets (no schema change: `ai_usage` is already per model), privacy (fictional data only on free tiers), the eval and the demo-day quota calendar. Filed **XREQ-003** (Asif: chain, budgets, Whisper, settings, receipts route, `approvedBy`/`needsEdit` in responses) and **XREQ-004** (Minhaz, Arjun: "Dictate instead", degraded-draft message, provenance line). Questions for reviewers in AI_PLAN.md §9.
+- **WS1, the parts that need no WS0** (branch `galib/ws1-ai`). Pure code, no skeleton, no database:
+  - `backend/app/ai/schemas.py`: what each pipeline asks Gemini to return (`NoteDraft`, `BriefingDraft`, `NoticeDraft`, `AskDraft`, `Translation`). Simple schemas only (point 5); icon ids equal the frontend's `IconId`. Shortcut: languages fixed to ja/bn/en until a shop adds more.
+  - `backend/app/domain/ai_checks.py`: the glossary lock exactly as §7.4 (NFKC; a term is in scope by `ja` or `reading`; steps keep `ja`; every language uses the fixed translation, case-insensitive for Latin scripts) and question checks (no two options with the same text in any language, `term_ja` must be a Glossary Term). Returns plain-English problems for the one retry prompt.
+  - `backend/app/prompts/*.v1.md`: `build_note`, `build_briefing`, `build_notice`, `answer_ask`, `translate`. Untrusted text is data (point 6); notices never guess a date or weekday; asks answer only from the given Notices.
+  - `backend/tests/fixtures/ai/`: `glossary.json` (the 15 seeded terms, copied from the frontend mock) and the eval set: 20 Foreman notes covering all 10 Work terms (one spoken only as readings, one with numbers, one prompt injection), 4 notices (the garbage one uses only Anim's verified rules, so the right answer has no Event), 6 asks (2 not covered).
+  - Tests: the plan's three (passing note, missing locked term, two correct options) plus reading-only terms, unknown term, schema limits, eval-set completeness and prompt placeholders. Verified: 106 tests pass (88 before), ruff, `ruff format --check` and pyright strict clean.
+- **WS6 Briefing plan:** [WS6_BRIEFING_PLAN.md](WS6_BRIEFING_PLAN.md). Found a gap: §9 has no route for the Foreman's "understood / opened only / not opened" view; proposed `GET /briefings/{id}/receipts` for Asif to approve.
+- **AI options, all free (proposal for Asif, §10.3/§10.4).** Checked against official pages on 2026-11-22:
+
+  | Option | Free limit | Source | Proposed role |
+  | :--- | :--- | :--- | :--- |
+  | Fake AI + `ai_cache` + seeded results | unlimited | already in the design (§10) | default for all development; filmed takes cached |
+  | `gemini-3.5-flash-lite` (audio, image, JSON) | 500/day, 15/min | [model page](https://ai.google.dev/gemini-api/docs/models/gemini-3.5-flash-lite), AI Studio | prompt work, AI eval, first backup |
+  | `gemini-3.1-flash-lite` (audio, image, JSON) | 500/day | [model page](https://ai.google.dev/gemini-api/docs/models/gemini-3.1-flash-lite), AI Studio | second backup (new) |
+  | `gemini-3.8-flash` (audio, image, JSON) | 20/day, 5/min | [model page](https://ai.google.dev/gemini-api/docs/models/gemini-3.8-flash), AI Studio | filmed takes and live demo only |
+  | `gemini-3.6-flash` | 20/day | AI Studio | demo-day backup for 3.8 (new) |
+  | Browser speech recognition (`ja-JP`) | unlimited | [caniuse](https://caniuse.com/speech-recognition): partial support in Chrome (desktop, Android) and Safari (macOS, iOS); none in Firefox | Foreman voice → text when all AI is down (new, frontend) |
+  | Groq Whisper (transcription only) | 2,000/day, org-wide | [Groq limits](https://console.groq.com/docs/rate-limits) | optional last resort; less accurate on Japanese than Gemini in one third-party benchmark |
+
+  - Not usable or not free: Azure OpenAI on Azure for Students (no quota, per Microsoft Q&A), Google's $300 trial (doesn't cover AI Studio for accounts opened after 2026-03-02), Mistral Voxtral (no free API).
+  - Free-tier inputs are used by Google to improve its products ([pricing page](https://ai.google.dev/gemini-api/docs/pricing)): fine for our fictional demo data, never for real Worker data. Paid tier, if the team chooses it later: $5 minimum prepay, $250/month cap ([billing page](https://ai.google.dev/gemini-api/docs/billing)).
+  - Rules for the free plan: nobody tests on 3.8 Flash; cache each filmed take as soon as it works; a Google project used only for Wakatta?; rehearse on demo day with the cache, not live AI.
+  - Still unmeasured: Bengali quality (no Japanese→Bengali benchmark exists; the AI eval must include a teammate scoring the Bengali) and whether the per-model quotas really add up (seen in AI Studio, not stated in Google's docs). A live test script (audio + JSON, one call per model) is ready and runs as soon as the Wakatta? project key is in `backend/.env`.
 - Researched [Rover Villa](https://rovervilla.space/heroes/phoenix) for ideas we can use: [ROVERVILLA_IDEAS.md](ROVERVILLA_IDEAS.md). My picks: machine photos with tap-the-part Check Questions (understanding checked without depending on translation), a provenance line on every AI output, and a "Veteran's voice outlives the Veteran" beat in the pitch. Proposal only; needs team agreement and an XREQ for the first one.
 - Checked the Gemini open item Asif assigned me ([BACKEND_ARCHITECTURE.md §15](../../docs/BACKEND_ARCHITECTURE.md#15-open-items)): "Confirm the current Gemini Flash model accepts audio input together with a response schema, and its daily limit on our key."
   - **Model:** `gemini-3.8-flash` is the current stable Flash model (updated September 2026). Google's model page lists audio, image, video, PDF and text as inputs and structured outputs as supported, so one call with the Foreman's audio and our JSON schema works. Checked from the docs only; no live call yet.
@@ -56,6 +81,7 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 - WS1 once Asif's WS0 lands the `AiClient` seam: prompts in `backend/app/prompts/`, validators with pytest cases, cache and fallback.
 
 ### Blockers / handoff
+- Asif: please OK the Briefing receipts route ([WS6_BRIEFING_PLAN.md](WS6_BRIEFING_PLAN.md), route 5). WS0's seed should load `backend/tests/fixtures/ai/glossary.json` (or move it into `seed_data/`) so the eval and the demo use the same terms. When step 5 lands, the pipelines plug `app.ai.schemas` and `app.domain.ai_checks` into the `AiClient` seam.
 - Asif: open item in §15 answered above. The model split and review points 2–4 touch your §7 and §9; accept or change them in BACKEND_ARCHITECTURE.md.
 - Minhaz: the Problem wording in the plan is corrected; use the new wording in the proposal and demo caption.
 

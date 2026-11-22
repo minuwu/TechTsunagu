@@ -1,56 +1,6225 @@
-openapi: 3.1.0
-info:
-  title: <Project> API
-  version: 0.1.0
-  description: Machine-readable twin of API_SPEC.md. Change both in the same PR.
-servers:
-  - url: http://localhost:8000
-paths:
-  /api/health:
-    get:
-      operationId: getHealth
-      summary: Liveness check
-      security: []
-      responses:
-        "200":
-          description: Service is up
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/HealthEnvelope"
-              example:
-                success: true
-                data: { status: ok }
-                message: ok
-components:
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-  schemas:
-    Error:
-      type: object
-      required: [code, message, details]
-      properties:
-        code: { type: string }
-        message: { type: string }
-        details: { type: object }
-    ErrorEnvelope:
-      type: object
-      required: [success, error]
-      properties:
-        success: { const: false }
-        error: { $ref: "#/components/schemas/Error" }
-    HealthEnvelope:
-      type: object
-      required: [success, data, message]
-      properties:
-        success: { const: true }
-        data:
-          type: object
-          required: [status]
-          properties:
-            status: { type: string }
-        message: { type: string }
-security:
-  - bearerAuth: []
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Wakatta? API",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/health": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Liveness: the process is up (no database call)",
+        "operationId": "health_api_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Health_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/health/ready": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Readiness: the database answers",
+        "operationId": "ready_api_health_ready_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Health_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/roster": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Names to pick from, for a shop or district code (public, rate-limited)",
+        "operationId": "roster_api_auth_roster_get",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Z0-9]{8}$",
+              "title": "Code"
+            }
+          },
+          {
+            "name": "role",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "enum": [
+                "worker",
+                "foreman",
+                "poster"
+              ],
+              "type": "string",
+              "title": "Role"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_list_RosterEntry__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Name + PIN → Bearer token",
+        "operationId": "login_api_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_LoginOut_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "The signed-in user",
+        "operationId": "me_api_auth_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_UserOut_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/me/pin": {
+      "put": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Change your own PIN; your other sessions are signed out",
+        "operationId": "change_pin_api_auth_me_pin_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PinChangeIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Revoke this session",
+        "operationId": "logout_api_auth_logout_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workers": {
+      "get": {
+        "tags": [
+          "accounts"
+        ],
+        "summary": "Workers of your shop",
+        "operationId": "list_workers_api_workers_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 40
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Page_AccountOut__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "accounts"
+        ],
+        "summary": "Create a worker account",
+        "operationId": "create_workers_api_workers_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccountIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_AccountOut_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workers/{user_id}": {
+      "patch": {
+        "tags": [
+          "accounts"
+        ],
+        "summary": "Rename, reset PIN or deactivate a worker",
+        "operationId": "update_workers_api_workers__user_id__patch",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "User Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccountUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_AccountOut_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/foremen": {
+      "get": {
+        "tags": [
+          "accounts"
+        ],
+        "summary": "Foremans of your shop",
+        "operationId": "list_foremen_api_foremen_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 40
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Page_AccountOut__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "accounts"
+        ],
+        "summary": "Create a foreman account",
+        "operationId": "create_foremen_api_foremen_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccountIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_AccountOut_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/foremen/{user_id}": {
+      "patch": {
+        "tags": [
+          "accounts"
+        ],
+        "summary": "Rename, reset PIN or deactivate a foreman",
+        "operationId": "update_foremen_api_foremen__user_id__patch",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "User Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccountUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_AccountOut_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/machines": {
+      "get": {
+        "tags": [
+          "work"
+        ],
+        "summary": "Machines of your shop",
+        "operationId": "list_machines_api_machines_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 40
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Page_MachineOut__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "work"
+        ],
+        "summary": "Add a Machine",
+        "operationId": "create_machine_api_machines_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MachineIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_MachineOut_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/machines/{machine_id}": {
+      "get": {
+        "tags": [
+          "work"
+        ],
+        "summary": "A Machine and its current Note Version (no answers)",
+        "operationId": "machine_detail_api_machines__machine_id__get",
+        "parameters": [
+          {
+            "name": "machine_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Machine Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_MachineDetail_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/machines/{machine_id}/scan": {
+      "post": {
+        "tags": [
+          "work"
+        ],
+        "summary": "The signed-in Worker is at this Machine (Presence)",
+        "operationId": "scan_api_machines__machine_id__scan_post",
+        "parameters": [
+          {
+            "name": "machine_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Machine Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/machines/{machine_id}/panel": {
+      "get": {
+        "tags": [
+          "work"
+        ],
+        "summary": "Machine Panel state; send If-None-Match to get 304 when unchanged",
+        "operationId": "panel_api_machines__machine_id__panel_get",
+        "parameters": [
+          {
+            "name": "machine_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Machine Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_PanelOut_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/machines/{machine_id}/panel-token": {
+      "post": {
+        "tags": [
+          "work"
+        ],
+        "summary": "Use this device as the Machine's Panel",
+        "operationId": "panel_token_api_machines__machine_id__panel_token_post",
+        "parameters": [
+          {
+            "name": "machine_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Machine Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_PanelToken_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/machines/{machine_id}/notes": {
+      "post": {
+        "tags": [
+          "work"
+        ],
+        "summary": "Record a note → AI draft (never a 500)",
+        "operationId": "record_note_api_machines__machine_id__notes_post",
+        "parameters": [
+          {
+            "name": "machine_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Machine Id"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_record_note_api_machines__machine_id__notes_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoteVersionOut_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/note-versions/{note_id}": {
+      "get": {
+        "tags": [
+          "work"
+        ],
+        "summary": "A Note Version with its answer key (Foreman)",
+        "operationId": "get_note_api_note_versions__note_id__get",
+        "parameters": [
+          {
+            "name": "note_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Note Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoteVersionOut_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "work"
+        ],
+        "summary": "Edit one step of a draft",
+        "operationId": "edit_note_api_note_versions__note_id__patch",
+        "parameters": [
+          {
+            "name": "note_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Note Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StepEdit"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoteVersionOut_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/note-versions/{note_id}/approve": {
+      "post": {
+        "tags": [
+          "work"
+        ],
+        "summary": "Approve: safety change (re-check) or wording change",
+        "operationId": "approve_note_api_note_versions__note_id__approve_post",
+        "parameters": [
+          {
+            "name": "note_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Note Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApproveIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoteVersionOut_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/checks": {
+      "post": {
+        "tags": [
+          "work"
+        ],
+        "summary": "Answer a Note Version's Check; graded on the server",
+        "operationId": "submit_check_api_checks_post",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_CheckResult_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/confusions": {
+      "get": {
+        "tags": [
+          "work"
+        ],
+        "summary": "Confusions, newest first",
+        "operationId": "list_confusions_api_confusions_get",
+        "parameters": [
+          {
+            "name": "open",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Open"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 40
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Page_ConfusionOut__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/confusions/{confusion_id}/ack": {
+      "post": {
+        "tags": [
+          "work"
+        ],
+        "summary": "Acknowledge a Confusion",
+        "operationId": "ack_confusion_api_confusions__confusion_id__ack_post",
+        "parameters": [
+          {
+            "name": "confusion_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Confusion Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_ConfusionOut_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/board": {
+      "get": {
+        "tags": [
+          "work"
+        ],
+        "summary": "Foreman board: every Machine, today's assignments and their Sign-off status",
+        "operationId": "board_api_board_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_BoardOut_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/shift-assignments": {
+      "get": {
+        "tags": [
+          "work"
+        ],
+        "summary": "Shift Assignments of a day (Workers see their own)",
+        "operationId": "list_assignments_api_shift_assignments_get",
+        "parameters": [
+          {
+            "name": "day",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Day"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_list_AssignmentOut__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "work"
+        ],
+        "summary": "Assign a Worker to a Machine and shift, or clear it with workerId null",
+        "operationId": "set_assignment_api_shift_assignments_put",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignmentIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Union_AssignmentOut__NoneType__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/glossary": {
+      "get": {
+        "tags": [
+          "work"
+        ],
+        "summary": "Glossary Terms of your shop",
+        "operationId": "list_glossary_api_glossary_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_list_GlossaryOut__"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "work"
+        ],
+        "summary": "Add a Glossary Term",
+        "operationId": "add_glossary_api_glossary_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GlossaryIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_GlossaryOut_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/posters": {
+      "get": {
+        "tags": [
+          "life"
+        ],
+        "summary": "The signed-in Poster's organisation",
+        "operationId": "list_posters_api_posters_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Page_PosterOut__"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notices": {
+      "post": {
+        "tags": [
+          "life"
+        ],
+        "summary": "Text, voice or flyer photo → AI draft with Events (never a 500)",
+        "operationId": "create_notice_api_notices_post",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_create_notice_api_notices_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoticeForPoster_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "life"
+        ],
+        "summary": "Posters: their own Notices; Workers: the district's published Notices",
+        "operationId": "list_notices_api_notices_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 40
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Union_Page_NoticeForPoster___Page_NoticeForWorker___"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notices/{notice_id}": {
+      "patch": {
+        "tags": [
+          "life"
+        ],
+        "summary": "Edit a draft Notice",
+        "operationId": "update_notice_api_notices__notice_id__patch",
+        "parameters": [
+          {
+            "name": "notice_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Notice Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NoticeUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoticeForPoster_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notices/{notice_id}/events/{event_id}": {
+      "patch": {
+        "tags": [
+          "life"
+        ],
+        "summary": "Confirm or correct an Event of a draft",
+        "operationId": "update_event_api_notices__notice_id__events__event_id__patch",
+        "parameters": [
+          {
+            "name": "notice_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Notice Id"
+            }
+          },
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Event Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EventUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoticeForPoster_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notices/{notice_id}/publish": {
+      "post": {
+        "tags": [
+          "life"
+        ],
+        "summary": "Publish; 409 EVENTS_NOT_CONFIRMED until every date is confirmed",
+        "operationId": "publish_notice_api_notices__notice_id__publish_post",
+        "parameters": [
+          {
+            "name": "notice_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Notice Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoticeForPoster_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notices/{notice_id}/reach": {
+      "get": {
+        "tags": [
+          "life"
+        ],
+        "summary": "How many district Workers opened and understood it (counts only)",
+        "operationId": "notice_reach_api_notices__notice_id__reach_get",
+        "parameters": [
+          {
+            "name": "notice_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Notice Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoticeReach_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events": {
+      "get": {
+        "tags": [
+          "life"
+        ],
+        "summary": "Dates of confirmed district Events in a range (at most 62 days)",
+        "operationId": "list_events_api_events_get",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "From"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "To"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_list_EventOccurrence__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/receipts": {
+      "post": {
+        "tags": [
+          "life"
+        ],
+        "summary": "The Worker opened a Notice (idempotent)",
+        "operationId": "open_receipt_api_receipts_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReceiptIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/blobs/{blob_id}": {
+      "get": {
+        "tags": [
+          "life"
+        ],
+        "summary": "A flyer photo of your district (JPEG, EXIF removed)",
+        "operationId": "get_blob_api_blobs__blob_id__get",
+        "parameters": [
+          {
+            "name": "blob_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Blob Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/asks": {
+      "post": {
+        "tags": [
+          "life"
+        ],
+        "summary": "Ask by text or voice; answered only from published Notices",
+        "operationId": "create_ask_api_asks_post",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_create_ask_api_asks_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_AskOut_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "life"
+        ],
+        "summary": "Your own Asks, newest first",
+        "operationId": "list_asks_api_asks_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 40
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Page_AskOut__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/asks/{ask_id}/forward": {
+      "post": {
+        "tags": [
+          "life"
+        ],
+        "summary": "Send an Ask to your Senpai; 409 NO_ACTIVE_PAIR without one",
+        "operationId": "forward_ask_api_asks__ask_id__forward_post",
+        "parameters": [
+          {
+            "name": "ask_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Ask Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_AskOut_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/senpai-pairs": {
+      "get": {
+        "tags": [
+          "life"
+        ],
+        "summary": "Senpai pairs of your shop",
+        "operationId": "list_pairs_api_senpai_pairs_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 40
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Page_SenpaiPairOut__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "life"
+        ],
+        "summary": "Pair a Worker with a Senpai; the link token is shown once",
+        "operationId": "create_pair_api_senpai_pairs_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SenpaiPairCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_SenpaiPairCreated_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/senpai-pairs/{pair_id}": {
+      "delete": {
+        "tags": [
+          "life"
+        ],
+        "summary": "Revoke a Senpai link",
+        "operationId": "revoke_pair_api_senpai_pairs__pair_id__delete",
+        "parameters": [
+          {
+            "name": "pair_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Pair Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/meetups": {
+      "post": {
+        "tags": [
+          "life"
+        ],
+        "summary": "Log a Meet-up with your Senpai",
+        "operationId": "worker_meetup_api_meetups_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MeetupCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_MeetupOut_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/senpai/{token}": {
+      "get": {
+        "tags": [
+          "life"
+        ],
+        "summary": "The Senpai page: their Worker, forwarded Asks, district dates, Meet-ups",
+        "operationId": "senpai_view_api_senpai__token__get",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 64,
+              "pattern": "^[A-Za-z0-9_-]+$",
+              "title": "Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_SenpaiView_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/senpai/{token}/asks/{ask_id}/reply": {
+      "post": {
+        "tags": [
+          "life"
+        ],
+        "summary": "Answer a forwarded Ask in Japanese",
+        "operationId": "senpai_reply_api_senpai__token__asks__ask_id__reply_post",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 64,
+              "pattern": "^[A-Za-z0-9_-]+$",
+              "title": "Token"
+            }
+          },
+          {
+            "name": "ask_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Ask Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SenpaiReplyIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_ForwardedAsk_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/senpai/{token}/meetups": {
+      "post": {
+        "tags": [
+          "life"
+        ],
+        "summary": "Log a Meet-up as the Senpai",
+        "operationId": "senpai_meetup_api_senpai__token__meetups_post",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 64,
+              "pattern": "^[A-Za-z0-9_-]+$",
+              "title": "Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MeetupCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_MeetupOut_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/support-log.csv": {
+      "get": {
+        "tags": [
+          "life"
+        ],
+        "summary": "Support Log for the 登録支援機関 (CSV, UTF-8 with BOM, not enveloped)",
+        "operationId": "support_log_csv_api_support_log_csv_get",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "From"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "To"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AccountIn": {
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Displayname"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "ja",
+              "bn",
+              "en",
+              "vi",
+              "id",
+              "ne",
+              "my",
+              "tl",
+              "zh"
+            ],
+            "title": "Language"
+          },
+          "pin": {
+            "type": "string",
+            "maxLength": 6,
+            "minLength": 4,
+            "title": "Pin"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "displayName",
+          "language",
+          "pin"
+        ],
+        "title": "AccountIn"
+      },
+      "AccountOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "displayName": {
+            "type": "string",
+            "title": "Displayname"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "foreman",
+              "worker",
+              "poster"
+            ],
+            "title": "Role"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "ja",
+              "bn",
+              "en",
+              "vi",
+              "id",
+              "ne",
+              "my",
+              "tl",
+              "zh"
+            ],
+            "title": "Language"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active"
+          },
+          "mustChangePin": {
+            "type": "boolean",
+            "title": "Mustchangepin"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "displayName",
+          "role",
+          "language",
+          "active",
+          "mustChangePin"
+        ],
+        "title": "AccountOut"
+      },
+      "AccountUpdate": {
+        "properties": {
+          "displayName": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Displayname"
+          },
+          "language": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "ja",
+                  "bn",
+                  "en",
+                  "vi",
+                  "id",
+                  "ne",
+                  "my",
+                  "tl",
+                  "zh"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Language"
+          },
+          "pin": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 6,
+                "minLength": 4
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pin"
+          },
+          "active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Active"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "AccountUpdate"
+      },
+      "ApproveIn": {
+        "properties": {
+          "changeKind": {
+            "type": "string",
+            "enum": [
+              "safety",
+              "wording"
+            ],
+            "title": "Changekind",
+            "default": "safety"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "ApproveIn"
+      },
+      "AskOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "workerId": {
+            "type": "string",
+            "title": "Workerid"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "covered": {
+            "type": "boolean",
+            "title": "Covered"
+          },
+          "answer": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string",
+                  "maxLength": 1000
+                },
+                "propertyNames": {
+                  "enum": [
+                    "ja",
+                    "bn",
+                    "en",
+                    "vi",
+                    "id",
+                    "ne",
+                    "my",
+                    "tl",
+                    "zh"
+                  ]
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answer"
+          },
+          "sourceNoticeIds": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Sourcenoticeids"
+          },
+          "forwarded": {
+            "type": "boolean",
+            "title": "Forwarded"
+          },
+          "senpaiReply": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string",
+                  "maxLength": 1000
+                },
+                "propertyNames": {
+                  "enum": [
+                    "ja",
+                    "bn",
+                    "en",
+                    "vi",
+                    "id",
+                    "ne",
+                    "my",
+                    "tl",
+                    "zh"
+                  ]
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Senpaireply"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "workerId",
+          "text",
+          "covered",
+          "answer",
+          "sourceNoticeIds",
+          "forwarded",
+          "senpaiReply",
+          "createdAt"
+        ],
+        "title": "AskOut"
+      },
+      "AssignmentIn": {
+        "properties": {
+          "machineId": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]{0,18}$",
+            "title": "Machineid"
+          },
+          "shift": {
+            "type": "string",
+            "enum": [
+              "day",
+              "night"
+            ],
+            "title": "Shift"
+          },
+          "date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Date"
+          },
+          "workerId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[1-9][0-9]{0,18}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workerid"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "machineId",
+          "shift",
+          "workerId"
+        ],
+        "title": "AssignmentIn"
+      },
+      "AssignmentOnBoard": {
+        "properties": {
+          "shift": {
+            "type": "string",
+            "enum": [
+              "day",
+              "night"
+            ],
+            "title": "Shift"
+          },
+          "workerId": {
+            "type": "string",
+            "title": "Workerid"
+          },
+          "displayName": {
+            "type": "string",
+            "title": "Displayname"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "valid",
+              "expiring",
+              "expired",
+              "none"
+            ],
+            "title": "Status"
+          },
+          "flag": {
+            "type": "boolean",
+            "title": "Flag"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "shift",
+          "workerId",
+          "displayName",
+          "status",
+          "flag"
+        ],
+        "title": "AssignmentOnBoard"
+      },
+      "AssignmentOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "workerId": {
+            "type": "string",
+            "title": "Workerid"
+          },
+          "machineId": {
+            "type": "string",
+            "title": "Machineid"
+          },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date"
+          },
+          "shift": {
+            "type": "string",
+            "enum": [
+              "day",
+              "night"
+            ],
+            "title": "Shift"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "workerId",
+          "machineId",
+          "date",
+          "shift"
+        ],
+        "title": "AssignmentOut"
+      },
+      "BoardMachine": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "name": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Name"
+          },
+          "versionNo": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Versionno"
+          },
+          "openConfusions": {
+            "type": "integer",
+            "title": "Openconfusions"
+          },
+          "assignments": {
+            "items": {
+              "$ref": "#/components/schemas/AssignmentOnBoard"
+            },
+            "type": "array",
+            "title": "Assignments"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "code",
+          "name",
+          "versionNo",
+          "openConfusions",
+          "assignments"
+        ],
+        "title": "BoardMachine"
+      },
+      "BoardOut": {
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date"
+          },
+          "machines": {
+            "items": {
+              "$ref": "#/components/schemas/BoardMachine"
+            },
+            "type": "array",
+            "title": "Machines"
+          },
+          "openConfusions": {
+            "type": "integer",
+            "title": "Openconfusions"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "date",
+          "machines",
+          "openConfusions"
+        ],
+        "title": "BoardOut"
+      },
+      "Body_create_ask_api_asks_post": {
+        "properties": {
+          "text": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          },
+          "audio": {
+            "anyOf": [
+              {
+                "type": "string",
+                "contentMediaType": "application/octet-stream"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Audio"
+          }
+        },
+        "type": "object",
+        "title": "Body_create_ask_api_asks_post"
+      },
+      "Body_create_notice_api_notices_post": {
+        "properties": {
+          "sourceKind": {
+            "type": "string",
+            "enum": [
+              "text",
+              "voice",
+              "photo"
+            ],
+            "title": "Sourcekind"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 4000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          },
+          "audio": {
+            "anyOf": [
+              {
+                "type": "string",
+                "contentMediaType": "application/octet-stream"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Audio"
+          },
+          "photo": {
+            "anyOf": [
+              {
+                "type": "string",
+                "contentMediaType": "application/octet-stream"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Photo"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sourceKind"
+        ],
+        "title": "Body_create_notice_api_notices_post"
+      },
+      "Body_record_note_api_machines__machine_id__notes_post": {
+        "properties": {
+          "text": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          },
+          "audio": {
+            "anyOf": [
+              {
+                "type": "string",
+                "contentMediaType": "application/octet-stream"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Audio"
+          }
+        },
+        "type": "object",
+        "title": "Body_record_note_api_machines__machine_id__notes_post"
+      },
+      "CheckIn": {
+        "properties": {
+          "target": {
+            "$ref": "#/components/schemas/CheckTarget"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "ja",
+              "bn",
+              "en",
+              "vi",
+              "id",
+              "ne",
+              "my",
+              "tl",
+              "zh"
+            ],
+            "title": "Language"
+          },
+          "answers": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "maxItems": 3,
+            "minItems": 1,
+            "title": "Answers"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "target",
+          "language",
+          "answers"
+        ],
+        "title": "CheckIn"
+      },
+      "CheckQuestion": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^q[0-9]{1,2}$",
+            "title": "Id"
+          },
+          "termId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Termid"
+          },
+          "prompt": {
+            "additionalProperties": {
+              "type": "string",
+              "maxLength": 1000
+            },
+            "propertyNames": {
+              "enum": [
+                "ja",
+                "bn",
+                "en",
+                "vi",
+                "id",
+                "ne",
+                "my",
+                "tl",
+                "zh"
+              ]
+            },
+            "type": "object",
+            "title": "Prompt"
+          },
+          "options": {
+            "items": {
+              "additionalProperties": {
+                "type": "string",
+                "maxLength": 1000
+              },
+              "propertyNames": {
+                "enum": [
+                  "ja",
+                  "bn",
+                  "en",
+                  "vi",
+                  "id",
+                  "ne",
+                  "my",
+                  "tl",
+                  "zh"
+                ]
+              },
+              "type": "object"
+            },
+            "type": "array",
+            "maxItems": 3,
+            "minItems": 3,
+            "title": "Options"
+          },
+          "correctIndex": {
+            "type": "integer",
+            "maximum": 2.0,
+            "minimum": 0.0,
+            "title": "Correctindex"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "termId",
+          "prompt",
+          "options",
+          "correctIndex"
+        ],
+        "title": "CheckQuestion",
+        "description": "Only Foremen and Posters see the answer; Worker responses use CheckQuestionForWorker."
+      },
+      "CheckQuestionForWorker": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^q[0-9]{1,2}$",
+            "title": "Id"
+          },
+          "termId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Termid"
+          },
+          "prompt": {
+            "additionalProperties": {
+              "type": "string",
+              "maxLength": 1000
+            },
+            "propertyNames": {
+              "enum": [
+                "ja",
+                "bn",
+                "en",
+                "vi",
+                "id",
+                "ne",
+                "my",
+                "tl",
+                "zh"
+              ]
+            },
+            "type": "object",
+            "title": "Prompt"
+          },
+          "options": {
+            "items": {
+              "additionalProperties": {
+                "type": "string",
+                "maxLength": 1000
+              },
+              "propertyNames": {
+                "enum": [
+                  "ja",
+                  "bn",
+                  "en",
+                  "vi",
+                  "id",
+                  "ne",
+                  "my",
+                  "tl",
+                  "zh"
+                ]
+              },
+              "type": "object"
+            },
+            "type": "array",
+            "maxItems": 3,
+            "minItems": 3,
+            "title": "Options"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "termId",
+          "prompt",
+          "options"
+        ],
+        "title": "CheckQuestionForWorker"
+      },
+      "CheckResult": {
+        "properties": {
+          "passed": {
+            "type": "boolean",
+            "title": "Passed"
+          },
+          "wrong": {
+            "items": {
+              "$ref": "#/components/schemas/WrongQuestion"
+            },
+            "type": "array",
+            "title": "Wrong"
+          },
+          "signOff": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SignOffOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "passed",
+          "wrong",
+          "signOff"
+        ],
+        "title": "CheckResult"
+      },
+      "CheckTarget": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "note",
+              "briefing",
+              "notice"
+            ],
+            "title": "Kind"
+          },
+          "id": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]{0,18}$",
+            "title": "Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "kind",
+          "id"
+        ],
+        "title": "CheckTarget"
+      },
+      "ConfusionOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "checkId": {
+            "type": "string",
+            "title": "Checkid"
+          },
+          "questionId": {
+            "type": "string",
+            "title": "Questionid"
+          },
+          "termId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Termid"
+          },
+          "machineId": {
+            "type": "string",
+            "title": "Machineid"
+          },
+          "workerId": {
+            "type": "string",
+            "title": "Workerid"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "acknowledgedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Acknowledgedat"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "checkId",
+          "questionId",
+          "termId",
+          "machineId",
+          "workerId",
+          "createdAt",
+          "acknowledgedAt"
+        ],
+        "title": "ConfusionOut"
+      },
+      "Envelope_AccountOut_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/AccountOut"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[AccountOut]"
+      },
+      "Envelope_AskOut_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/AskOut"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[AskOut]"
+      },
+      "Envelope_BoardOut_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/BoardOut"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[BoardOut]"
+      },
+      "Envelope_CheckResult_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/CheckResult"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[CheckResult]"
+      },
+      "Envelope_ConfusionOut_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/ConfusionOut"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[ConfusionOut]"
+      },
+      "Envelope_ForwardedAsk_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/ForwardedAsk"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[ForwardedAsk]"
+      },
+      "Envelope_GlossaryOut_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/GlossaryOut"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[GlossaryOut]"
+      },
+      "Envelope_Health_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/Health"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[Health]"
+      },
+      "Envelope_LoginOut_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/LoginOut"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[LoginOut]"
+      },
+      "Envelope_MachineDetail_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/MachineDetail"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[MachineDetail]"
+      },
+      "Envelope_MachineOut_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/MachineOut"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[MachineOut]"
+      },
+      "Envelope_MeetupOut_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/MeetupOut"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[MeetupOut]"
+      },
+      "Envelope_NoneType_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "type": "null",
+            "title": "Data"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[NoneType]"
+      },
+      "Envelope_NoteVersionOut_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/NoteVersionOut"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[NoteVersionOut]"
+      },
+      "Envelope_NoticeForPoster_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/NoticeForPoster"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[NoticeForPoster]"
+      },
+      "Envelope_NoticeReach_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/NoticeReach"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[NoticeReach]"
+      },
+      "Envelope_Page_AccountOut__": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/Page_AccountOut_"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[Page[AccountOut]]"
+      },
+      "Envelope_Page_AskOut__": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/Page_AskOut_"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[Page[AskOut]]"
+      },
+      "Envelope_Page_ConfusionOut__": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/Page_ConfusionOut_"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[Page[ConfusionOut]]"
+      },
+      "Envelope_Page_MachineOut__": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/Page_MachineOut_"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[Page[MachineOut]]"
+      },
+      "Envelope_Page_PosterOut__": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/Page_PosterOut_"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[Page[PosterOut]]"
+      },
+      "Envelope_Page_SenpaiPairOut__": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/Page_SenpaiPairOut_"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[Page[SenpaiPairOut]]"
+      },
+      "Envelope_PanelOut_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/PanelOut"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[PanelOut]"
+      },
+      "Envelope_PanelToken_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/PanelToken"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[PanelToken]"
+      },
+      "Envelope_SenpaiPairCreated_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/SenpaiPairCreated"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[SenpaiPairCreated]"
+      },
+      "Envelope_SenpaiView_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/SenpaiView"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[SenpaiView]"
+      },
+      "Envelope_Union_AssignmentOut__NoneType__": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AssignmentOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[Union[AssignmentOut, NoneType]]"
+      },
+      "Envelope_Union_Page_NoticeForPoster___Page_NoticeForWorker___": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Page_NoticeForPoster_"
+              },
+              {
+                "$ref": "#/components/schemas/Page_NoticeForWorker_"
+              }
+            ],
+            "title": "Data"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[Union[Page[NoticeForPoster], Page[NoticeForWorker]]]"
+      },
+      "Envelope_UserOut_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/UserOut"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[UserOut]"
+      },
+      "Envelope_list_AssignmentOut__": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/AssignmentOut"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[list[AssignmentOut]]"
+      },
+      "Envelope_list_EventOccurrence__": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/EventOccurrence"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[list[EventOccurrence]]"
+      },
+      "Envelope_list_GlossaryOut__": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/GlossaryOut"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[list[GlossaryOut]]"
+      },
+      "Envelope_list_RosterEntry__": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/RosterEntry"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[list[RosterEntry]]"
+      },
+      "EventOccurrence": {
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "title": "Eventid"
+          },
+          "noticeId": {
+            "type": "string",
+            "title": "Noticeid"
+          },
+          "title": {
+            "additionalProperties": {
+              "type": "string",
+              "maxLength": 1000
+            },
+            "propertyNames": {
+              "enum": [
+                "ja",
+                "bn",
+                "en",
+                "vi",
+                "id",
+                "ne",
+                "my",
+                "tl",
+                "zh"
+              ]
+            },
+            "type": "object",
+            "title": "Title"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "eventId",
+          "noticeId",
+          "title",
+          "at"
+        ],
+        "title": "EventOccurrence"
+      },
+      "EventOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "additionalProperties": {
+              "type": "string",
+              "maxLength": 1000
+            },
+            "propertyNames": {
+              "enum": [
+                "ja",
+                "bn",
+                "en",
+                "vi",
+                "id",
+                "ne",
+                "my",
+                "tl",
+                "zh"
+              ]
+            },
+            "type": "object",
+            "title": "Title"
+          },
+          "startsAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Startsat"
+          },
+          "rrule": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rrule"
+          },
+          "confirmed": {
+            "type": "boolean",
+            "title": "Confirmed"
+          },
+          "nextDates": {
+            "items": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "type": "array",
+            "title": "Nextdates"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "startsAt",
+          "rrule",
+          "confirmed",
+          "nextDates"
+        ],
+        "title": "EventOut"
+      },
+      "EventUpdate": {
+        "properties": {
+          "confirmed": {
+            "type": "boolean",
+            "title": "Confirmed"
+          },
+          "startsAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Startsat"
+          },
+          "rrule": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rrule"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "confirmed"
+        ],
+        "title": "EventUpdate",
+        "description": "PATCH /notices/{id}/events/{eventId}. A field left out keeps its value; `rrule: null` makes the Event\none-off (the service tells them apart with `model_fields_set`). Invalid dates are a 422 with the reason\nfrom app.domain.recurrence."
+      },
+      "ForwardedAsk": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "textJa": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Textja"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "replyJa": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Replyja"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "text",
+          "textJa",
+          "createdAt",
+          "replyJa"
+        ],
+        "title": "ForwardedAsk"
+      },
+      "GlossaryIn": {
+        "properties": {
+          "ja": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Ja"
+          },
+          "reading": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Reading"
+          },
+          "bn": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Bn"
+          },
+          "en": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "En"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "ja",
+          "reading",
+          "bn",
+          "en"
+        ],
+        "title": "GlossaryIn"
+      },
+      "GlossaryOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "ja": {
+            "type": "string",
+            "title": "Ja"
+          },
+          "reading": {
+            "type": "string",
+            "title": "Reading"
+          },
+          "bn": {
+            "type": "string",
+            "title": "Bn"
+          },
+          "en": {
+            "type": "string",
+            "title": "En"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "ja",
+          "reading",
+          "bn",
+          "en"
+        ],
+        "title": "GlossaryOut"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "Health": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "ok",
+            "title": "Status"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "Health"
+      },
+      "LoginIn": {
+        "properties": {
+          "userId": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]{0,18}$",
+            "title": "Userid"
+          },
+          "pin": {
+            "type": "string",
+            "maxLength": 6,
+            "minLength": 4,
+            "title": "Pin"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "userId",
+          "pin"
+        ],
+        "title": "LoginIn"
+      },
+      "LoginOut": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "title": "Token"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expiresat"
+          },
+          "mustChangePin": {
+            "type": "boolean",
+            "title": "Mustchangepin"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserOut"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "token",
+          "expiresAt",
+          "mustChangePin",
+          "user"
+        ],
+        "title": "LoginOut"
+      },
+      "MachineDetail": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "name": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Name"
+          },
+          "currentVersionId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currentversionid"
+          },
+          "activeWorkerId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Activeworkerid"
+          },
+          "current": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NoteForWorker"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "code",
+          "name",
+          "currentVersionId",
+          "activeWorkerId",
+          "current"
+        ],
+        "title": "MachineDetail"
+      },
+      "MachineIn": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]{1,32}$",
+            "title": "Code"
+          },
+          "name": {
+            "additionalProperties": {
+              "type": "string",
+              "maxLength": 1000
+            },
+            "propertyNames": {
+              "enum": [
+                "ja",
+                "bn",
+                "en",
+                "vi",
+                "id",
+                "ne",
+                "my",
+                "tl",
+                "zh"
+              ]
+            },
+            "type": "object",
+            "title": "Name"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "code",
+          "name"
+        ],
+        "title": "MachineIn"
+      },
+      "MachineOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "name": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Name"
+          },
+          "currentVersionId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currentversionid"
+          },
+          "activeWorkerId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Activeworkerid"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "code",
+          "name",
+          "currentVersionId",
+          "activeWorkerId"
+        ],
+        "title": "MachineOut"
+      },
+      "MeetupCreate": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "coffee",
+              "event",
+              "drill",
+              "other"
+            ],
+            "title": "Kind"
+          },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date"
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Note",
+            "default": ""
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "kind",
+          "date"
+        ],
+        "title": "MeetupCreate",
+        "description": "POST /meetups (Worker) and POST /senpai/{token}/meetups. The pair and `loggedBy` come from the caller."
+      },
+      "MeetupOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "pairId": {
+            "type": "string",
+            "title": "Pairid"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "coffee",
+              "event",
+              "drill",
+              "other"
+            ],
+            "title": "Kind"
+          },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note"
+          },
+          "loggedBy": {
+            "type": "string",
+            "enum": [
+              "worker",
+              "senpai"
+            ],
+            "title": "Loggedby"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "pairId",
+          "kind",
+          "date",
+          "note",
+          "loggedBy"
+        ],
+        "title": "MeetupOut"
+      },
+      "NoteForWorker": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "versionNo": {
+            "type": "integer",
+            "title": "Versionno"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/Step"
+            },
+            "type": "array",
+            "title": "Steps"
+          },
+          "questions": {
+            "items": {
+              "$ref": "#/components/schemas/CheckQuestionForWorker"
+            },
+            "type": "array",
+            "title": "Questions"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "versionNo",
+          "steps",
+          "questions"
+        ],
+        "title": "NoteForWorker"
+      },
+      "NoteVersionOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "machineId": {
+            "type": "string",
+            "title": "Machineid"
+          },
+          "versionNo": {
+            "type": "integer",
+            "title": "Versionno"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "approved"
+            ],
+            "title": "Status"
+          },
+          "recordedBy": {
+            "type": "string",
+            "title": "Recordedby"
+          },
+          "transcriptJa": {
+            "type": "string",
+            "title": "Transcriptja"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/Step"
+            },
+            "type": "array",
+            "title": "Steps"
+          },
+          "backTranslation": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Backtranslation"
+          },
+          "questions": {
+            "items": {
+              "$ref": "#/components/schemas/CheckQuestion"
+            },
+            "type": "array",
+            "title": "Questions"
+          },
+          "needsEdit": {
+            "type": "boolean",
+            "title": "Needsedit"
+          },
+          "changeKind": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "safety",
+                  "wording"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Changekind"
+          },
+          "editCount": {
+            "type": "integer",
+            "title": "Editcount"
+          },
+          "aiOutcome": {
+            "type": "string",
+            "title": "Aioutcome"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "approvedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approvedat"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "machineId",
+          "versionNo",
+          "status",
+          "recordedBy",
+          "transcriptJa",
+          "steps",
+          "backTranslation",
+          "questions",
+          "needsEdit",
+          "changeKind",
+          "editCount",
+          "aiOutcome",
+          "createdAt",
+          "approvedAt"
+        ],
+        "title": "NoteVersionOut"
+      },
+      "NoticeForPoster": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "posterId": {
+            "type": "string",
+            "title": "Posterid"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "garbage",
+              "disaster",
+              "event",
+              "duty",
+              "other"
+            ],
+            "title": "Category"
+          },
+          "sourceKind": {
+            "type": "string",
+            "enum": [
+              "text",
+              "voice",
+              "photo"
+            ],
+            "title": "Sourcekind"
+          },
+          "sourceJa": {
+            "type": "string",
+            "title": "Sourceja"
+          },
+          "photo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Photo"
+          },
+          "title": {
+            "additionalProperties": {
+              "type": "string",
+              "maxLength": 1000
+            },
+            "propertyNames": {
+              "enum": [
+                "ja",
+                "bn",
+                "en",
+                "vi",
+                "id",
+                "ne",
+                "my",
+                "tl",
+                "zh"
+              ]
+            },
+            "type": "object",
+            "title": "Title"
+          },
+          "steps": {
+            "items": {
+              "additionalProperties": {
+                "type": "string",
+                "maxLength": 1000
+              },
+              "propertyNames": {
+                "enum": [
+                  "ja",
+                  "bn",
+                  "en",
+                  "vi",
+                  "id",
+                  "ne",
+                  "my",
+                  "tl",
+                  "zh"
+                ]
+              },
+              "type": "object"
+            },
+            "type": "array",
+            "maxItems": 8,
+            "minItems": 1,
+            "title": "Steps"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/EventOut"
+            },
+            "type": "array",
+            "title": "Events"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "published"
+            ],
+            "title": "Status"
+          },
+          "needsEdit": {
+            "type": "boolean",
+            "title": "Needsedit"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "publishedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Publishedat"
+          },
+          "question": {
+            "$ref": "#/components/schemas/CheckQuestion"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "posterId",
+          "category",
+          "sourceKind",
+          "sourceJa",
+          "photo",
+          "title",
+          "steps",
+          "events",
+          "status",
+          "needsEdit",
+          "createdAt",
+          "publishedAt",
+          "question"
+        ],
+        "title": "NoticeForPoster"
+      },
+      "NoticeForWorker": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "posterId": {
+            "type": "string",
+            "title": "Posterid"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "garbage",
+              "disaster",
+              "event",
+              "duty",
+              "other"
+            ],
+            "title": "Category"
+          },
+          "sourceKind": {
+            "type": "string",
+            "enum": [
+              "text",
+              "voice",
+              "photo"
+            ],
+            "title": "Sourcekind"
+          },
+          "sourceJa": {
+            "type": "string",
+            "title": "Sourceja"
+          },
+          "photo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Photo"
+          },
+          "title": {
+            "additionalProperties": {
+              "type": "string",
+              "maxLength": 1000
+            },
+            "propertyNames": {
+              "enum": [
+                "ja",
+                "bn",
+                "en",
+                "vi",
+                "id",
+                "ne",
+                "my",
+                "tl",
+                "zh"
+              ]
+            },
+            "type": "object",
+            "title": "Title"
+          },
+          "steps": {
+            "items": {
+              "additionalProperties": {
+                "type": "string",
+                "maxLength": 1000
+              },
+              "propertyNames": {
+                "enum": [
+                  "ja",
+                  "bn",
+                  "en",
+                  "vi",
+                  "id",
+                  "ne",
+                  "my",
+                  "tl",
+                  "zh"
+                ]
+              },
+              "type": "object"
+            },
+            "type": "array",
+            "maxItems": 8,
+            "minItems": 1,
+            "title": "Steps"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/EventOut"
+            },
+            "type": "array",
+            "title": "Events"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "published"
+            ],
+            "title": "Status"
+          },
+          "needsEdit": {
+            "type": "boolean",
+            "title": "Needsedit"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "publishedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Publishedat"
+          },
+          "question": {
+            "$ref": "#/components/schemas/CheckQuestionForWorker"
+          },
+          "opened": {
+            "type": "boolean",
+            "title": "Opened"
+          },
+          "passed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Passed"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "posterId",
+          "category",
+          "sourceKind",
+          "sourceJa",
+          "photo",
+          "title",
+          "steps",
+          "events",
+          "status",
+          "needsEdit",
+          "createdAt",
+          "publishedAt",
+          "question",
+          "opened",
+          "passed"
+        ],
+        "title": "NoticeForWorker",
+        "description": "GET /notices for a Worker: published Notices of their district, with their own receipt."
+      },
+      "NoticeReach": {
+        "properties": {
+          "workers": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Workers"
+          },
+          "opened": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Opened"
+          },
+          "understood": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Understood"
+          },
+          "notOpened": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Notopened"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "workers",
+          "opened",
+          "understood",
+          "notOpened"
+        ],
+        "title": "NoticeReach",
+        "description": "GET /notices/{id}/reach: counts over all Workers of the district, never names."
+      },
+      "NoticeUpdate": {
+        "properties": {
+          "category": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "garbage",
+                  "disaster",
+                  "event",
+                  "duty",
+                  "other"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string",
+                  "maxLength": 1000
+                },
+                "propertyNames": {
+                  "enum": [
+                    "ja",
+                    "bn",
+                    "en",
+                    "vi",
+                    "id",
+                    "ne",
+                    "my",
+                    "tl",
+                    "zh"
+                  ]
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "steps": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": {
+                    "type": "string",
+                    "maxLength": 1000
+                  },
+                  "propertyNames": {
+                    "enum": [
+                      "ja",
+                      "bn",
+                      "en",
+                      "vi",
+                      "id",
+                      "ne",
+                      "my",
+                      "tl",
+                      "zh"
+                    ]
+                  },
+                  "type": "object"
+                },
+                "type": "array",
+                "maxItems": 8,
+                "minItems": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Steps"
+          },
+          "question": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CheckQuestion"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "NoticeUpdate",
+        "description": "PATCH /notices/{id} on a draft; only the fields sent change."
+      },
+      "Page_AccountOut_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AccountOut"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "nextCursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nextcursor"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "title": "Page[AccountOut]"
+      },
+      "Page_AskOut_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AskOut"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "nextCursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nextcursor"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "title": "Page[AskOut]"
+      },
+      "Page_ConfusionOut_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ConfusionOut"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "nextCursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nextcursor"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "title": "Page[ConfusionOut]"
+      },
+      "Page_MachineOut_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/MachineOut"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "nextCursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nextcursor"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "title": "Page[MachineOut]"
+      },
+      "Page_NoticeForPoster_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/NoticeForPoster"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "nextCursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nextcursor"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "title": "Page[NoticeForPoster]"
+      },
+      "Page_NoticeForWorker_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/NoticeForWorker"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "nextCursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nextcursor"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "title": "Page[NoticeForWorker]"
+      },
+      "Page_PosterOut_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PosterOut"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "nextCursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nextcursor"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "title": "Page[PosterOut]"
+      },
+      "Page_SenpaiPairOut_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SenpaiPairOut"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "nextCursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nextcursor"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "title": "Page[SenpaiPairOut]"
+      },
+      "PanelOut": {
+        "properties": {
+          "state": {
+            "type": "string",
+            "enum": [
+              "idle",
+              "locked",
+              "ready",
+              "override"
+            ],
+            "title": "State"
+          },
+          "worker": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PanelWorker"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "versionNo": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Versionno"
+          },
+          "override": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PanelOverrideOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "state",
+          "worker",
+          "reason",
+          "versionNo",
+          "override"
+        ],
+        "title": "PanelOut"
+      },
+      "PanelOverrideOut": {
+        "properties": {
+          "by": {
+            "type": "string",
+            "title": "By"
+          },
+          "until": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Until"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "by",
+          "until",
+          "reason"
+        ],
+        "title": "PanelOverrideOut"
+      },
+      "PanelToken": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "title": "Token"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expiresat"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "token",
+          "expiresAt"
+        ],
+        "title": "PanelToken"
+      },
+      "PanelWorker": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "displayName": {
+            "type": "string",
+            "title": "Displayname"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "displayName"
+        ],
+        "title": "PanelWorker"
+      },
+      "PinChangeIn": {
+        "properties": {
+          "currentPin": {
+            "type": "string",
+            "maxLength": 6,
+            "minLength": 4,
+            "title": "Currentpin"
+          },
+          "newPin": {
+            "type": "string",
+            "maxLength": 6,
+            "minLength": 4,
+            "title": "Newpin"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "currentPin",
+          "newPin"
+        ],
+        "title": "PinChangeIn"
+      },
+      "PosterOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "jichikai",
+              "city",
+              "employer"
+            ],
+            "title": "Kind"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "kind"
+        ],
+        "title": "PosterOut"
+      },
+      "ReceiptIn": {
+        "properties": {
+          "target": {
+            "$ref": "#/components/schemas/ReceiptTarget"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "target"
+        ],
+        "title": "ReceiptIn",
+        "description": "POST /receipts: the Worker opened a Briefing or Notice (idempotent). The Worker comes from the session."
+      },
+      "ReceiptTarget": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "briefing",
+              "notice"
+            ],
+            "title": "Kind"
+          },
+          "id": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]{0,18}$",
+            "title": "Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "kind",
+          "id"
+        ],
+        "title": "ReceiptTarget"
+      },
+      "RosterEntry": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "displayName": {
+            "type": "string",
+            "title": "Displayname"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "displayName"
+        ],
+        "title": "RosterEntry"
+      },
+      "SenpaiPairCreate": {
+        "properties": {
+          "workerId": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]{0,18}$",
+            "title": "Workerid"
+          },
+          "senpaiName": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Senpainame"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "coworker",
+              "jichikai"
+            ],
+            "title": "Kind"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "workerId",
+          "senpaiName",
+          "kind"
+        ],
+        "title": "SenpaiPairCreate"
+      },
+      "SenpaiPairCreated": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "workerId": {
+            "type": "string",
+            "title": "Workerid"
+          },
+          "senpaiName": {
+            "type": "string",
+            "title": "Senpainame"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "coworker",
+              "jichikai"
+            ],
+            "title": "Kind"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expiresat"
+          },
+          "token": {
+            "type": "string",
+            "title": "Token"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "workerId",
+          "senpaiName",
+          "kind",
+          "createdAt",
+          "expiresAt",
+          "token"
+        ],
+        "title": "SenpaiPairCreated"
+      },
+      "SenpaiPairOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "workerId": {
+            "type": "string",
+            "title": "Workerid"
+          },
+          "senpaiName": {
+            "type": "string",
+            "title": "Senpainame"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "coworker",
+              "jichikai"
+            ],
+            "title": "Kind"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expiresat"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "workerId",
+          "senpaiName",
+          "kind",
+          "createdAt",
+          "expiresAt"
+        ],
+        "title": "SenpaiPairOut",
+        "description": "No token: only its SHA-256 is stored, so the link can be shown once, at creation."
+      },
+      "SenpaiReplyIn": {
+        "properties": {
+          "replyJa": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Replyja"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "replyJa"
+        ],
+        "title": "SenpaiReplyIn",
+        "description": "POST /senpai/{token}/asks/{id}/reply; the backend translates it for the Worker."
+      },
+      "SenpaiView": {
+        "properties": {
+          "senpaiName": {
+            "type": "string",
+            "title": "Senpainame"
+          },
+          "worker": {
+            "$ref": "#/components/schemas/SenpaiWorker"
+          },
+          "asks": {
+            "items": {
+              "$ref": "#/components/schemas/ForwardedAsk"
+            },
+            "type": "array",
+            "title": "Asks"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/EventOccurrence"
+            },
+            "type": "array",
+            "title": "Events"
+          },
+          "meetups": {
+            "items": {
+              "$ref": "#/components/schemas/MeetupOut"
+            },
+            "type": "array",
+            "title": "Meetups"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "senpaiName",
+          "worker",
+          "asks",
+          "events",
+          "meetups"
+        ],
+        "title": "SenpaiView",
+        "description": "GET /senpai/{token}: only this pair's Worker and data; a wrong token is 404."
+      },
+      "SenpaiWorker": {
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "title": "Displayname"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "ja",
+              "bn",
+              "en",
+              "vi",
+              "id",
+              "ne",
+              "my",
+              "tl",
+              "zh"
+            ],
+            "title": "Language"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "displayName",
+          "language"
+        ],
+        "title": "SenpaiWorker"
+      },
+      "SignOffOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "workerId": {
+            "type": "string",
+            "title": "Workerid"
+          },
+          "machineId": {
+            "type": "string",
+            "title": "Machineid"
+          },
+          "noteVersionId": {
+            "type": "string",
+            "title": "Noteversionid"
+          },
+          "passedAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Passedat"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "workerId",
+          "machineId",
+          "noteVersionId",
+          "passedAt"
+        ],
+        "title": "SignOffOut"
+      },
+      "Step": {
+        "properties": {
+          "text": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Text"
+          },
+          "icon": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Icon"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "text",
+          "icon"
+        ],
+        "title": "Step"
+      },
+      "StepEdit": {
+        "properties": {
+          "index": {
+            "type": "integer",
+            "maximum": 11.0,
+            "minimum": 0.0,
+            "title": "Index"
+          },
+          "ja": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Ja"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "index",
+          "ja"
+        ],
+        "title": "StepEdit"
+      },
+      "UserOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "displayName": {
+            "type": "string",
+            "title": "Displayname"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "foreman",
+              "worker",
+              "poster"
+            ],
+            "title": "Role"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "ja",
+              "bn",
+              "en",
+              "vi",
+              "id",
+              "ne",
+              "my",
+              "tl",
+              "zh"
+            ],
+            "title": "Language"
+          },
+          "shopId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shopid"
+          },
+          "districtId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Districtid"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "displayName",
+          "role",
+          "language",
+          "shopId",
+          "districtId"
+        ],
+        "title": "UserOut"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "WrongQuestion": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "termId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Termid"
+          },
+          "prompt": {
+            "additionalProperties": {
+              "type": "string",
+              "maxLength": 1000
+            },
+            "propertyNames": {
+              "enum": [
+                "ja",
+                "bn",
+                "en",
+                "vi",
+                "id",
+                "ne",
+                "my",
+                "tl",
+                "zh"
+              ]
+            },
+            "type": "object",
+            "title": "Prompt"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "termId",
+          "prompt"
+        ],
+        "title": "WrongQuestion"
+      }
+    }
+  }
+}

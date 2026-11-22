@@ -60,6 +60,22 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
   - **登録支援機関:** 11,876 nationwide, **79 in Nagasaki** (register 2026-11-19). **Average fee ¥28,386 per worker per month** (ISA, 2022 data; ~90% ≤ ¥30,000).
   - **Gemini paid prices:** 3.8 Flash $0.75 in / $3.75 out per 1M tokens (doubles 2027-01-01); 3.5 Flash-Lite $0.30 / $2.50; audio 32 tokens/s. Worked example ≈ $0.008 per note, under $2 per factory per month at 200 AI calls (to be replaced by measured tokens).
 - **Backend kickoff prompt** for coworkers: [BACKEND_KICKOFF_PROMPT.md](BACKEND_KICKOFF_PROMPT.md). Paste it into Claude Code; it reads AGENTS.md (XREQ first), BACKEND_PLAN and the architecture, checks whether WS0 is merged (if not: only pure domain rules + tests, no skeleton), and runs every slice through plan → TDD → Postgres skill → context7 → ruff/pyright/import-linter/pytest → `/ponytail-review` → pull → push → WORK_LOG. Set for Anim (WS10/WS11); change two lines for Galib or Member 5.
+- **WS0 step 1 — skeleton** (`33e0cdb`, on `main`): uv project (FastAPI 0.165, Starlette 1.10, pydantic-settings, python-dateutil 4); fail-fast settings; one error envelope (404/405/422 without echoing input/ApiError/500 generic + logged with request id); request id, JSON request logs and security headers as plain ASGI middleware; CORS for the frontend origin only, no credentials; GZip; `GET /api/health`. Test client needs `httpx2` (Starlette 1.10 deprecates `httpx`).
+- **WS0 step 2 — database** (`b371aea`, merged to `main` as `4af31c1`):
+  - Local PostgreSQL 16.16 from the official EDB zip in `E:\tools\pgsql` (no Docker, nothing on C); roles `wakatta_owner` (migrations) and `wakatta_app` (DML only, `statement_timeout` 5 s); databases `wakatta` and `wakatta_test`.
+  - All **26 tables** of architecture §6 as SQLAlchemy 2 typed models (ADR 0007 amended: no SQLModel, it fails pyright strict). Composite `(shop_id, id)` foreign keys, so the database itself refuses cross-shop references; `asks.text_ja` included; `ai_usage.exhausted` added for the no-retry-on-daily-quota rule.
+  - Found and fixed: Alembic silently drops `use_alter` foreign keys from `create_table`, so the Machine → current Note Version key was missing; it is now added explicitly (deferrable). Grants in the migration: app role DML only, `audit_events` insert-only.
+  - Tests rebuild `wakatta_test`, run the migration up → down → up every run, and check isolation, uniqueness, role scope and grants as the app role; every test is rolled back. **95 pass**; ruff and pyright strict clean. `GET /api/health/ready` checks the database.
+  - **Anim:** the models are on `main` (`backend/app/models/`), so you're unblocked. CI and the Life seed loader are yours as agreed; `tests/conftest.py` has the `db` and `client` fixtures and `tests/factories.py` the row builders.
+- **WS0 step 3 — accounts and auth** (`43d7fb6`, on `main`): roster by shop/district code, name + PIN login (argon2id + pepper, `argon2-cffi`), 5 wrong PINs lock 15 min, per-IP limits in Postgres, opaque Bearer sessions (30 days sliding for Workers, 12 h otherwise), first-login PIN change enforced everywhere, logout/revocation, Foremen manage Workers and Foremen of their own shop only, last-Foreman guard, cursor-paged lists. `require(*roles)` is the only way a route learns who is calling.
+- **WS0 step 5 — AI seam** (`141ec58`, on `main`): `app/ai/client.py` (`AiClient`, `Prompt`, `Part`, `AiUnavailable`, `QuotaExhausted`), `GeminiClient` (google-genai 1.x, structured JSON, inline media, timeout, `audio/mp4` → `audio/m4a`, daily-quota 429 mapped), `FakeAiClient`; `services/ai_runner.py` = the ladder: per-scope cache → daily budget (Pacific day, atomic) → limiter (2 at once, 4/min) → call → validate → one retry with the problems → degraded, own short DB sessions. **152 tests pass** (incl. Anim's and Galib's); ruff and pyright strict clean.
+  - **Galib:** plug your pipelines in as `AiRunner.run(AiRequest(pipeline, prompt, parts, schema=NoteDraft, scope, cache_input), validate=lambda d: note_problems(d, glossary, langs), now)`; it returns `AiResult(value | None, outcome)`. Your `GET /briefings/{id}/receipts` is approved (replaces `/receipts?target=` for Briefings); the seed will load your `tests/fixtures/ai/glossary.json`.
+- **P0 demo path (WS2)** (`4baee15`, on `main`): record note (voice/text, Idempotency-Key) → AI draft via the ladder + Galib's `note_problems` (degraded draft, never a 500) → edit step → approve as Safety or Wording Change under the machine row lock; Worker scan (Presence); Worker-safe machine view (no answer key); server-graded Checks → Confusions per Glossary Term + Sign-offs, `VERSION_CHANGED` on stale versions; Panel state with ETag/304; panel device tokens; Foreman board (fixed number of queries); Confusions list/ack; shift assignments; glossary. Found and fixed: the Worker-safe model correctly refused stored questions until `correctIndex` was stripped; "expiring" boundary at exactly 14 days left. **184 tests pass**; ruff and pyright strict clean.
+- **Security review fixes** (`5dbbf6e`): a 10 MB body limit now runs *before* multipart parsing (ASGI middleware, Content-Length + streamed bytes), as §11 specified; a Check's Idempotency-Key reused for another note returns 409 `IDEMPOTENCY_KEY_REUSED` instead of replaying a grade. Regression tests first.
+- **Work demo seed** (`af75e9a`): `python -m app.seed --reset` (owner role; refuses without `--reset` if data exists). District from Anim's `life.json`, shops `SASEBO01` + `ISAHAYA2` (isolation), Foreman 山口 隆 PIN `246810`, Workers PIN `2468`, 4 machines, Galib's glossary (moved to `app/seed_data/glossary.json`, his 2 tests repointed), the 4 approved notes exported from Minhaz's mock seed (live demo = mock demo), Sign-offs valid / expiring / expired relative to the run, today's shifts. Ran it on the local DB. Found and fixed: PowerShell read `seed.ts` as ANSI and garbled the Japanese/Bengali; re-exported as UTF-8. **189 tests pass.**
+- **Contract and layer rules** (`e68e713`): `docs/openapi.yaml` is generated from the code (`cd backend; uv run python -m app.openapi > ../docs/openapi.yaml`); a test fails if it drifts, another proves no Worker schema has `correctIndex`. import-linter: 4 contracts kept (routers → services only, pure domain, AI seam out of data layers, repositories never call upward). **191 tests pass.** Minhaz can regenerate the frontend client from it now.
+- **Anim: your work, start here** → see "For Anim: start here" under Blockers / handoff below.
+- Azure: deploy after development is fine (everything is env + migration + seed); I suggest one test deploy on Mon evening to catch region or connection limits early.
 - The 20-buyer panel is prepared (`founder/customer.json`, `founder/pitch.md`, all guesses) and waits for my check of the buyer profile.
 
 ### Next
@@ -71,6 +87,45 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 - XREQ to Minhaz: Bearer token in `src/services/api.ts`, call `/machines/{id}/presence` after the name pick.
 
 ### Blockers / handoff
+
+#### For Anim: start here (2026-11-23 ~00:30)
+
+WS0 is on `main` and you are unblocked. Everything below is yours (Asif keeps Azure, migrations/schema, and Work P1).
+
+**0. Set up once (about 15 min)**
+- `git pull`, then `cd backend; uv sync`.
+- PostgreSQL 16 locally (no Docker needed): follow `backend/README.md` → "Local PostgreSQL". It creates roles `wakatta_owner` / `wakatta_app` and databases `wakatta` / `wakatta_test`.
+- Copy `backend/.env.example` to `backend/.env` and set your own `PIN_PEPPER` (32+ chars).
+- Check: `uv run pytest` → 196 pass; `uv run ruff check .`, `uv run ruff format --check .`, `uv run pyright`, `uv run lint-imports` → all clean. If not, tell me before you change anything.
+- Demo data: `uv run python -m app.seed --reset` (shop `SASEBO01`, Foreman PIN `246810`, Worker PIN `2468`).
+
+**1. Life seed loader (first, small)**
+- New `app/seed_life.py` with `seed_life(db: Session, refs: Refs, now: datetime) -> Refs`, loading your `app/seed_data/life.json`.
+- `refs` from `seed_work` already has `d-minato` (district), `s-sasebo`, `f-yamaguchi`, `w-rahim`, `w-sadia`, `w-tanvir`, `w-tanaka`, the machine and glossary keys. Do **not** create the district again (seed_work makes it from your life.json).
+- Call it in `app/seed.py` `main()` right after `refs = seed_work(...)`. Posters' accounts: `User(role="poster", district_id=…, poster_id=…, pin_hash=hash_pin(pepper, pin), pin_must_change=False)`.
+- Test like `tests/seed/test_work_seed.py`: Poster can log in by district code `MINATO26`, Notices are published, Senpai pairs exist.
+
+**2. CI (`.github/workflows/backend-ci.yml`)**
+- Postgres 16 service; create the two roles + `wakatta_test` with the SQL in `backend/README.md`; `uv sync`; then `ruff check`, `ruff format --check`, `pyright`, `lint-imports`, `pytest` with `TEST_DATABASE_URL` and `TEST_MIGRATION_DATABASE_URL` set (see `tests/conftest.py`).
+- `tests/test_contract.py` already fails when `docs/openapi.yaml` is stale, so CI covers the contract.
+- Image build is separate (`backend-image.yml`, mine); don't touch it.
+
+**3. Life routes (WS10/WS11, P1), in your cut order: Notices → grounded Asks → Events → Support Log → Senpai → Meet-ups**
+- Paths, roles and bodies: architecture §9.3 "Life flow"; your schemas in `app/schemas/{notices,asks,senpai}.py`; frontend calls in `frontend/src/services/wakatta.ts`.
+- Copy the Work pattern exactly:
+  - router (`app/routers/work.py`): `Annotated[Principal, Depends(require("poster"))]`, `DbSession`, `Paging`, `IdempotencyKey` header on creates, return `Envelope[...]`.
+  - service: scope from the session (`who.district_id` for Posters, `who.shop_id`/`who.district_id` for Workers), `ApiError(404)` for another scope's id, `db.commit()` per write.
+  - repository: every query takes the scope id; nothing unscoped.
+- AI (Notices from text/voice/photo, Asks): end the read transaction (`db.commit()`) **before** the model call, then use the runner like `app/services/notes.py`:
+  `request.app.state.ai.run(AiRequest(pipeline="build_notice", prompt=render("build_notice", 1, glossary=…, today=…), parts=[…], schema=NoticeDraft, scope=f"district:{id}", cache_input=…), validate=…, now)`. It returns `value | None` and an outcome; on `None` build the degraded draft (never a 500). Asks: pass the parsed draft through your `app.domain.grounding.ground()`.
+- Your rules are already done: `app/domain/recurrence.py`, `grounding.py`, `support_log.py`.
+- Tests: `client`, `db` and `fake_ai` fixtures (`fake_ai.queue("build_notice", {...})`); see `tests/api/test_work.py` for the flow style. Add a two-district isolation test.
+- After adding routes: `uv run python -m app.openapi > ../docs/openapi.yaml` and commit it with the routes.
+
+**4. Only if 1–3 are done:** Skill Matrix, Heatmap, Skill Passport (read-only; `repo.newest_sign_offs` already gives the shop-wide data). Tell me first so we don't both build them.
+
+**Rules (same as the kickoff prompt):** schema changes go through me (ask in your log); never hand-edit `docs/openapi.yaml`; small Conventional Commits; `git pull` before every push; push after each finished part; no AI attribution; one line in your WORK_LOG per part.
+
 - **Reply to Anim (2026-11-22 ~21:45):** WS0 starts now on `asif/ws0-foundation`; each step is pushed and merged to `main` as soon as its checks pass, **models + first migration first** so you are unblocked tonight. Accepted: `asks.text_ja text null` (in the architecture and the first migration); `.ics` backend → P2 (plan updated); `python-dateutil` + `types-python-dateutil` go in `pyproject.toml`; your `app/schemas/common.py` stays where it is (WS0 builds on it, no move). After the models land, **CI and the Life seed loader are yours** (OK given here). Your cut order is recorded in BACKEND_PLAN §5. `seed.py` will use your worker keys `w-rahim`, `w-sadia`, `w-tanvir`, `w-tanaka`.
 - Owners updated: Member 5 is Arjun Saha (frontend design), so WS5 → Asif, WS6 → Galib, WS7/WS8 (P2) open.
 - For the team: re-clone the repo and run `scripts/setup.sh` (or `scripts\setup.ps1`) again; don't push from clones made before 2026-11-22.
