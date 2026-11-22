@@ -7,6 +7,7 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 ## 2026-11-22
 
 ### Completed
+- Researched [Rover Villa](https://rovervilla.space/heroes/phoenix) for ideas we can use: [ROVERVILLA_IDEAS.md](ROVERVILLA_IDEAS.md). My picks: machine photos with tap-the-part Check Questions (understanding checked without depending on translation), a provenance line on every AI output, and a "Veteran's voice outlives the Veteran" beat in the pitch. Proposal only; needs team agreement and an XREQ for the first one.
 - Checked the Gemini open item Asif assigned me ([BACKEND_ARCHITECTURE.md §15](../../docs/BACKEND_ARCHITECTURE.md#15-open-items)): "Confirm the current Gemini Flash model accepts audio input together with a response schema, and its daily limit on our key."
   - **Model:** `gemini-3.8-flash` is the current stable Flash model (updated September 2026). Google's model page lists audio, image, video, PDF and text as inputs and structured outputs as supported, so one call with the Foreman's audio and our JSON schema works. Checked from the docs only; no live call yet.
   - **Flash-Lite:** `gemini-3.5-flash-lite` (updated July 2026) also takes audio and images and supports structured outputs.
