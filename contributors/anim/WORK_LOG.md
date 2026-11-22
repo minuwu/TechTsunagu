@@ -4,6 +4,21 @@ Owner: Anim (`anim710`) — Role: Backend (WS10 Notices + Events, WS11 Asks + Se
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-22 (proto → production handoff from Minhaz)
+
+Minhaz mapped the prototype (`prototypes/wakatta/`) and the frontend against `main` (`c07a8fb`). Decisions: the prototype's **Chat is in production scope (WS12, P1)**; Course stays P2 and frontend-only. Read [BACKEND_PLAN.md](../../docs/BACKEND_PLAN.md) decision #8 and the new XREQ cards in [AGENTS.md](../../AGENTS.md) §2.2. Do the items in this order.
+
+### Next (assigned)
+1. **XREQ-005 (WS12 Chat routes)**, after Asif's Chat migration. Before it lands, only pure domain code + tests: answers → Wakatta Status (all right green, none right red, else orange; `-1` = not sure), Follow-up transitions (open → clarified → understood), Task column moves with version check.
+2. Routes in card order: send (voice/text draft → `/send` creates Tasks) → Worker poll with ETag/304 (no `correctIndex`) → answers (Confusion + Follow-up on a wrong term) → Follow-ups → Re-explanation → Nudge → Task Board (`If-Match`, 412). Two-shop isolation test, as in Life.
+3. Call Galib's `draft_message`, `translate`, `reexplain` (XREQ-006) through the runner; until they exist, queue fake outputs with `fake_ai.queue(...)`.
+4. Chat seed: the prototype's `t_line2` thread, messages and tasks `k1`–`k3` on the seeded Workers, with seeded answers for Workers not on a phone in the demo.
+5. Support Log: clarified Follow-ups → item 7. Regenerate `docs/openapi.yaml`.
+6. Then **WS7 Near-miss routes** (P2, now yours; Galib does the translation). The frontend already calls `/api/near-misses` and `/api/near-misses/{id}/ack`.
+
+### Blockers / handoff
+- Needs Asif's Chat migration (XREQ-005 item 1) and Galib's `draft_message` (XREQ-006). Your earlier asks (voice Ask transcript field) are in Galib's list below.
+
 ## 2026-11-22
 
 ### Completed

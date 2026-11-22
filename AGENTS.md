@@ -58,6 +58,8 @@ This file is:
 | `XREQ-002` | P1 | Backend (Anim) | Frontend (Minhaz) | Life contract: Notices, Events, Asks, Senpai, Meet-ups (`backend/app/schemas/`) | `[PENDING]` | 2026-11-22 20:06 |
 | `XREQ-003` | P1 | AI (Galib) | Backend (Asif) | Review the free-AI plan: model chain, budgets, Groq Whisper, settings; Briefing receipts route ([AI_PLAN.md](contributors/galib/AI_PLAN.md)) | `[PENDING]` | 2026-11-22 22:40 |
 | `XREQ-004` | P2 | AI (Galib) | Frontend (Minhaz, Arjun) | "Dictate instead" fallback, degraded-draft message, provenance line ([AI_PLAN.md](contributors/galib/AI_PLAN.md) §2, §8) | `[PENDING]` | 2026-11-22 22:40 |
+| `XREQ-005` | P1 | Frontend (Minhaz) | Backend (Anim, Asif) | Chat API: Threads, Messages (voice/text), Wakatta Status answers, Follow-ups, Re-explanation, Nudge, Tasks + Task Board | `[PENDING]` | 2026-11-22 17:55 |
+| `XREQ-006` | P1 | Frontend (Minhaz) | AI (Galib) | Chat AI: voice → transcript → translation → Check Questions → Task extraction (`build_message`), Worker reply translation, Re-explanation | `[PENDING]` | 2026-11-22 17:55 |
 
 *(When adding a request: append a row above AND add a detailed card in 2.2. Never insert in the middle.)*
 
@@ -204,6 +206,88 @@ POST /api/machines/3/notes   (multipart: text = what the browser heard, Idempote
 { "success": true, "data": { "id": "57", "status": "draft", "needsEdit": false, "recordedBy": "山口 隆" } }
 ```
 No new error codes.
+
+**Fulfillment & Proof (filled by recipient on completion):**
+- **Branch / Commit**: 
+- **Status / Notes**: 
+- **Verification Proof**: 
+
+#### `[XREQ-005]` Chat API: Threads, Messages, Wakatta Status, Follow-ups, Tasks
+- **Priority**: `P1 (High)`
+- **From**: Frontend (Minhaz)
+- **To**: Backend (Anim: routes, services, tests; Asif: tables and migration)
+- **Status**: `[PENDING]`
+- **Created**: `2026-11-22 17:55 (UTC+6)`
+- **Target Interface / Endpoint**: new `routers/chat.py`, `services/chat.py`, `repositories/chat.py`; tables in the next migration
+
+**Requirement Details:**
+Team decision 2026-11-22 (Minhaz): the prototype's Chat loop is **in production scope** (replaces BACKEND_PLAN decision #8). Reference implementation: `prototypes/wakatta/` (`parts/skeleton.html` `DATA` and Bus events, `parts/A.js` chat, `parts/B.js` Task Board). Terms: GLOSSARY.md "Chat" section. The loop is the prototype's `WK_STAGES`: Transcribed → Translated → Check Questions made → Tasks extracted → Sent to Workers → Answers in.
+1. **Tables (Asif, one migration, shop scope + composite FKs like Work):** `threads` (title_ja, kind `group|direct`), `thread_members`, `messages` (thread, from user, kind `voice|text|ask|reexplain`, `text_ja`, `translations` jsonb, audio blob, `ref_message_id`, `to_user_id` for a Re-explanation, `stage` 0–5, `needs_edit`, `sent_at`), `message_checks` (questions in the existing `CheckQuestion` shape, `deadline`), `message_answers` (unique message + user, answers, status `green|orange|red`), `follow_ups` (message, user, `term_ja`, status `open|clarified|understood`, note, resolved_by/at), `tasks` (translated title, column `todo|doing|done`, assignees, `due_at`, machine, `from_message_id`, `version`).
+2. **Foreman sends (voice or text):** `POST /api/threads/{id}/messages` (multipart: `audio` file **or** `text`; `Idempotency-Key`). The AI runs inline (ADR 0007) through Galib's `draft_message` (XREQ-006) and returns the draft at stage 3: transcript, translations, Check Questions and **Task drafts**. `POST /api/messages/{id}/send` (body: the edited text, questions and the Task drafts the Foreman kept) moves it to stage 4 and **creates the Tasks on the Task Board**. The Auto-send Countdown is client-side: the app calls `/send` unless the Foreman cancels. A degraded AI result returns `needsEdit: true` with the transcript only (or empty), never a 500.
+3. **Workers:** `GET /api/threads` (unread, last message), `GET /api/threads/{id}/messages?after=` polled every 2 s with `ETag` / `If-None-Match` → `304`, as the Panel does. No SSE or WebSocket: one replica, sync stack. Worker responses never contain `correctIndex`. A Worker's own message (text, or voice in their language) is translated to Japanese for the Foreman (`translate` pipeline).
+4. **Answers:** `POST /api/messages/{id}/answers {answers:[0,2,-1]}` (`-1` = "not sure"), graded on the server → Wakatta Status. A wrong or "not sure" answer on a question with `termJa` creates a Confusion (existing table and alert) **and** a Follow-up. Idempotent per message + user.
+5. **Foreman tools:** `GET /api/follow-ups?status=`, `PATCH /api/follow-ups/{id}`; `POST /api/messages/{id}/reexplain {userId, termJa}` (AI, sent to that Worker only, one new question; passing it moves the Follow-up to `understood`); `POST /api/messages/{id}/nudge {userId}` (rate-limited, audited).
+6. **Task Board:** `GET /api/tasks`, `POST /api/tasks` (by hand), `PATCH /api/tasks/{id} {column, assigneeIds, dueAt}` with `If-Match: <version>` → `412` on a stale move. The Foreman and every Worker in the shop can move cards. The existing `GET /api/board` stays the **Foreman Board** (machines and Sign-offs).
+7. **Seed:** port the prototype's `t_line2` thread, messages `m1`… and tasks `k1`–`k3` onto the seeded Workers, plus seeded answers for the Workers who are not on a phone in the demo (the prototype simulates Nguyen and Siti).
+8. **Support Log:** clarified Follow-ups count as item 7 (相談・苦情への対応) evidence, like forwarded Asks.
+
+**Expected Request (Payload / Query Params / Headers):**
+```json
+POST /api/threads/7/messages   (multipart: audio=@note.webm, Idempotency-Key: <uuid>)
+POST /api/messages/91/send
+{ "text": {"ja": "…", "bn": "…", "en": "…"}, "questions": [ "…" ],
+  "tasks": [{"title": {"ja": "2号プレス 金型交換", "bn": "…", "en": "Die change · Press #2"}, "assigneeIds": ["12", "13"], "dueAt": "2026-11-23T08:00:00+09:00", "machineId": "2"}] }
+POST /api/messages/91/answers
+{ "answers": [1, 1, -1] }
+```
+
+**Expected Response (Status Code + Payload / Error Codes):**
+```json
+{ "success": true, "data": { "id": "91", "threadId": "7", "stage": 3, "needsEdit": false,
+  "transcriptJa": "明日の朝8時から、2号プレスの金型交換をします。…",
+  "text": { "ja": "…", "bn": "…", "en": "Tomorrow from 8:00 we change the die on Press #2. …" },
+  "questions": [{ "q": {"ja": "明日は何時に集合しますか？", "bn": "…", "en": "What time do you gather tomorrow?"}, "options": ["…"], "correctIndex": 1, "termJa": null }],
+  "taskDrafts": [{ "title": {"ja": "…"}, "assigneeIds": ["12", "13"], "dueAt": "2026-11-23T08:00:00+09:00", "machineId": "2" }] } }
+
+POST /api/messages/91/answers → 200
+{ "success": true, "data": { "status": "orange", "followUpIds": ["4"] } }
+```
+Errors: `403 FORBIDDEN` (not a member of the Thread), `404 NOT_FOUND` (another shop), `409 ALREADY_SENT`, `412 VERSION_CONFLICT` (Task moved by someone else), `422 VALIDATION_ERROR`, `429 RATE_LIMITED` (Nudge).
+
+**Fulfillment & Proof (filled by recipient on completion):**
+- **Branch / Commit**: 
+- **Status / Notes**: 
+- **Verification Proof**: 
+
+#### `[XREQ-006]` Chat AI: transcription, translation, Check Questions, Task extraction
+- **Priority**: `P1 (High)`
+- **From**: Frontend (Minhaz)
+- **To**: AI (Galib)
+- **Status**: `[PENDING]`
+- **Created**: `2026-11-22 17:55 (UTC+6)`
+- **Target Interface / Endpoint**: `app/services/ai_pipelines.py` (`draft_message`, `reexplain`, `translate`), `app/ai/schemas.py`, `app/prompts/build_message.v1.md`, `reexplain.v1.md`
+
+**Requirement Details:**
+The AI half of XREQ-005, in the WS1 pattern ([WS1_INTEGRATION_PLAN.md](contributors/galib/WS1_INTEGRATION_PLAN.md) §2: Anim's service reads and commits, then calls your function; you return a checked result or a degraded one, never raise).
+1. **`draft_message`:** one model call with the Foreman's audio (or text), the shop glossary, the Thread's members (id + display name) and the shop's Machines (id + names), `now` in Asia/Tokyo. Returns `MessageDraft`: `transcriptJa`, `text` in ja + shop languages, 1–3 `questions` (existing `CheckQuestion` shape, `termJa` for Glossary Terms), `tasks` (title in every language, `assigneeIds`, `dueAt` or null, `machineId` or null). Zero Tasks is a valid answer.
+2. **Checks inside (`domain/ai_checks.py`):** the glossary lock on `transcriptJa` and every translation (match by `ja` or `reading`); `question_problems`; every `assigneeId` must be a Thread member and every `machineId` a shop Machine; `dueAt` only when the Foreman said a time ("明日の朝8時" → next day 08:00 JST), **never guessed**: null otherwise. Text inside the transcript is data, never instructions.
+3. **Voice ladder:** cache → Gemini chain (audio + schema in one call; `audio/mp4` → `audio/m4a` is already in the seam) → Groq Whisper transcript, then the text path (XREQ-003) → degraded: transcript only with `needsEdit`, or empty with `needsEdit` when nothing was transcribed. The browser's `SpeechRecognition` ("Dictate instead", XREQ-004) is the frontend's last resort.
+4. **`translate`** for Worker messages (bn/en text or voice → ja) and Senpai replies. **`reexplain`:** a simpler sentence aimed at one missed term, in that Worker's language, plus one new question on that term.
+5. **Eval:** add 10 chat messages to `backend/tests/fixtures/ai/` (spoken style, with times, assignees by name, one with no Task, one injection) and score Task extraction (assignees, due time, machine) in `docs/ai-eval.md`.
+6. **Demo cache:** seed `ai_cache` with the filmed die-change message (the prototype's `DATA.script`) before filming.
+
+**Expected Request (Payload / Query Params / Headers):**
+```python
+draft_message(ai, *, shop_id, terms, members, machines, text=None, audio=None, now) -> AiResult[MessageDraft]
+```
+
+**Expected Response (Status Code + Payload / Error Codes):**
+```json
+{ "transcriptJa": "…", "text": {"ja": "…", "bn": "…", "en": "…"},
+  "questions": [{ "q": {"ja": "…"}, "options": [{"ja": "…"}], "correctIndex": 1, "termJa": "金型交換" }],
+  "tasks": [{ "title": {"ja": "2号プレス 金型交換"}, "assigneeIds": ["12"], "dueAt": "2026-11-23T08:00:00+09:00", "machineId": "2" }] }
+```
+Fallback outcome `degraded`: `{ "transcriptJa": "…" , "needsEdit": true }` (`transcriptJa` may be empty).
 
 **Fulfillment & Proof (filled by recipient on completion):**
 - **Branch / Commit**: 
@@ -379,6 +463,7 @@ flowchart TD
 | **Asif** | `MdAsif-Hossain` | Backend / Services / Database | `asif/*` | `contributors/asif/WORK_LOG.md` |
 | **Anim** | `anim710` | Backend / Services / Database | `anim/*` | `contributors/anim/WORK_LOG.md` |
 | **Galib** | `Ga-lib` | AI / LLM | `galib/*` | `contributors/galib/WORK_LOG.md` |
+| **Arjun** | *TBD* | Frontend design | `arjun/*` | `contributors/arjun/WORK_LOG.md` |
 | *(Next Teammate)* | *TBD* | *Assigned Role* | `<name>/*` | `contributors/<name>/WORK_LOG.md` |
 
 Roles are a starting point; confirm them at kickoff. Per-person setup checklists are in [TEAM_INSTRUCTIONS.md](TEAM_INSTRUCTIONS.md).

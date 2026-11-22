@@ -4,6 +4,22 @@ Owner: Minhaz (`minuwu`) — Role: Frontend / Full-Stack / Architecture
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-22 (proto → production handoff from Minhaz)
+
+Minhaz mapped the prototype (`prototypes/wakatta/`) and the frontend against `main` (`c07a8fb`). Decisions: the prototype's **Chat is in production scope (WS12, P1)**; Course stays P2 and frontend-only. Read [BACKEND_PLAN.md](../../docs/BACKEND_PLAN.md) decision #8 and the new XREQ cards in [AGENTS.md](../../AGENTS.md) §2.2. Do the items in this order.
+
+### Next (assigned)
+1. **XREQ-001:** Bearer token in `services/api.ts`, roster → login → first-login PIN screen (`PUT /api/auth/me/pin`, not `/api/auth/pin`), Foreman account screens, no `workerId` in bodies, `{items, nextCursor}`, `Idempotency-Key`.
+2. **XREQ-002:** Life contract changes (multipart flyer, 409 publish, `needsEdit`, blob fetch with token, Senpai by token, `toIcs` 75-octet folding + `VTIMEZONE`, backend Support Log CSV, recyclables step).
+3. **Chat screens in the React kits** from the prototype (Threads, chat with voice + Auto-send Countdown, Wakatta Status chips, Follow-ups, Re-explanation, Nudge, Task Board, notifications), on mocks that match XREQ-005 exactly, then the real API.
+4. **XREQ-004** with Arjun: "Dictate instead", degraded-draft message, provenance line.
+5. Prototype UX to port: onboarding, notifications, dark mode and large text, analytics.
+6. **Production switch:** e2e against the real API with `VITE_USE_MOCK=false`, then the hosted build Asif deploys (WS9).
+7. P2: Course, frontend-only (local content, localStorage progress).
+
+### Blockers / handoff
+- Filed **XREQ-005** (Chat API → Anim, Asif) and **XREQ-006** (Chat AI → Galib). Handoffs written in each teammate's WORK_LOG, including Arjun's new log.
+
 ## 2026-11-22 (demo frontend)
 
 ### Completed

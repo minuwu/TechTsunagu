@@ -37,7 +37,7 @@ Contents: 1 What the guide requires · 2 Decisions (every open question, closed)
 | 5 | `/presence` or `/scan`? | **`POST /machines/{id}/scan`** | Matches the built frontend. |
 | 6 | snake_case or camelCase? page numbers or cursor? | **camelCase, string ids, cursor lists** | ADR 0011; `API_SPEC.md` §1 updated. |
 | 7 | Galib's proposal to cut WS7 (Near-miss) and WS8 (Library) | **Not cut: built last (tier P2).** If they are not working by the freeze, the proposal lists them under "Planned". | Keeps the team's "keep every feature" decision and the guide's "what works now vs planned" honesty. |
-| 8 | Minhaz's prototype "Chat" terms (Thread, Task, Kanban **Board**, Nudge…) | **Not in the backend scope.** The word **Board** means the Foreman board. | Minhaz confirms whether the prototype is a demo idea; until then no backend work. |
+| 8 | Minhaz's prototype "Chat" (Thread, Wakatta Status, Follow-up, Re-explanation, Nudge, Task, Task Board) | **In scope, P1 (WS12 Chat)**, decided by Minhaz 2026-11-22. Voice → transcript → translation → Check Questions → Task extraction. **Foreman Board** = `/board`, **Task Board** = `/tasks`. Polling with ETag, no SSE. | XREQ-005 (API, Anim + Asif) and XREQ-006 (AI, Galib). Course (Rover Villa spec) stays P2 and frontend-only. |
 | 9 | PIN hashing library | **`argon2-cffi` (Argon2id)** with a server pepper | The engineering manual requires Argon2id or bcrypt; the standard library has neither. Open-source, allowed by the guide. Approving this plan approves this one new dependency. |
 | 10 | Languages | **Backend supports per-shop languages** (bn, en, vi, id, ne, my, tl, zh). **Demo: bn + en now; adding Indonesian is an open team decision (§10)** | In Nagasaki, 特定技能1号 workers are mostly from Indonesia (1,385), the Philippines (915), Vietnam (881) and Myanmar (534); Bangladesh has 31 of 4,276 (ISA, 2026-06-30, [research.md §2](../contributors/asif/founder/research.md)). Nagasaki Prefecture is a judge. More languages are a claim only after one is shown working. |
 | 11 | AI model and quota | `AI_MODE=fake` by default; `gemini-3.5-flash-lite` for prompt work, `gemini-3.8-flash` for filmed takes and the live demo, every filmed take cached | Galib's check (20/day vs 500/day); architecture §10.3. |
@@ -91,6 +91,7 @@ Build top to bottom. A tier is **done** only when every item passes §7 and runs
 | Skill Matrix, Heatmap, Skill Passport | §6.6 | WS5 |
 | Panel Override and Wording Change | §7.1 | WS2 |
 | Briefings: record → draft → publish; Worker read + Check; receipts | §9.3 | WS6 |
+| Chat: Threads, voice/text Messages → transcript, translation, Check Questions, Task extraction; Wakatta Status; Follow-ups, Re-explanation, Nudge; Task Board | XREQ-005, XREQ-006 | WS12 |
 | Glossary and Shift Assignments management | §9.3 | WS5 |
 | AI eval run (`docs/ai-eval.md`) and load test results | §10.6, §8.5 | WS1, WS9 |
 
@@ -117,12 +118,12 @@ Proposed; each person confirms by writing their name in the workstream in the [p
 
 | Person | Backend workstreams | Also |
 | :--- | :--- | :--- |
-| **Asif** (backend lead) | WS0 Foundation, WS2 Notes/Checks/Sign-offs/Lock/Panel/Board, WS5 Skill Matrix / Heatmap / Glossary / Shifts, WS9 Deploy | schema owner (one Alembic head), reviews every backend PR, README "works now" table |
-| **Anim** (backend) | WS10 Notices + Events, WS11 Asks + Senpai + Support Log + Meet-ups; after WS0: CI and the Life seed loader (handed over by Asif) | Life seed data (done), proposal Life section. Cut order if late: Senpai → Meet-ups → reach; Notices and grounded Asks stay |
-| **Galib** (AI) | WS1 AI pipelines, prompts, validators, eval, cost model; WS6 Briefing (backend + AI); AI part of WS7 (Near-miss translation) | Gemini project and key (never in git), cache seeding before filming |
-| **Minhaz** (frontend) | XREQ-001 and XREQ-002, wiring screens to the API | video edit, proposal layout |
+| **Asif** (backend lead) | WS0 Foundation, WS2 Notes/Checks/Sign-offs/Lock/Panel/Board, **WS12 Chat tables + migration (XREQ-005 item 1)**, WS8 Knowledge Library, WS5 Skill Matrix / Heatmap / Glossary / Shifts, WS9 Deploy | schema owner (one Alembic head), reviews every backend PR, README "works now" table |
+| **Anim** (backend) | WS10 Notices + Events, WS11 Asks + Senpai + Support Log + Meet-ups (done); **WS12 Chat routes (XREQ-005)**; then WS7 Near-miss routes | Life seed data (done), proposal Life section. Cut order if late: Senpai → Meet-ups → reach; Notices and grounded Asks stay |
+| **Galib** (AI) | WS1 AI pipelines, prompts, validators, eval, cost model; **WS12 Chat AI (XREQ-006)**; WS6 Briefing (backend + AI); AI part of WS7 (Near-miss translation) | Gemini project and key (never in git), cache seeding before filming |
+| **Minhaz** (frontend) | XREQ-001, 002, 004, wiring screens to the API, Chat screens from the prototype on the real API, Course (P2, frontend-only) | video edit, proposal layout |
 | **Arjun Saha** (frontend design) | v2 UI kit (Nagasaki style), screens | proposal design, presentation slides |
-| *open* | WS7 Near-miss, WS8 Knowledge Library (P2) | whoever finishes their P1 first |
+| *open* | none: WS7 → Anim (routes) + Galib (translation), WS8 → Asif | |
 
 Shared-file rules (from architecture §16): each workstream edits only its own `routers/`, `services/`, `repositories/`, `schemas/`, `tests/` files; schema changes go through Asif; `docs/openapi.yaml` is regenerated, never edited; `seed.py` and `domain/` changes are small reviewed PRs.
 
@@ -205,7 +206,7 @@ An item counts as "works now" only when all of these are true:
 
 | Item | Owner | Needed by |
 | :--- | :--- | :--- |
-| Minhaz confirms XREQ-001 and whether the "Chat" prototype is in scope | Minhaz | Mon 03:00 |
+| ~~Minhaz confirms whether the "Chat" prototype is in scope~~ done: in scope as WS12 (decision #8) | — | — |
 | Arjun's `.claude/settings.json` enables the `unslop@heydamir` plugin for everyone who opens the repo in Claude Code; confirm it is meant to be team-wide | Arjun | Mon 03:00 |
 | Galib's [Rover Villa ideas](../contributors/galib/ROVERVILLA_IDEAS.md) (UX proposal, not agreed) | team | decide after P0 is green; no backend work before then |
 | **Demo language:** keep Rahim (Bengali, the team can check every word) and add one Indonesian Worker so the demo shows Nagasaki's largest group? Needs `Tri` → per-shop languages in the frontend (XREQ-001 item 14) and a native check of the Indonesian text. Recommendation: yes, one Indonesian screen in the breadth montage, Bengali stays the main story. | team (Minhaz, Galib) | Mon 03:00 |

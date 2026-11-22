@@ -141,9 +141,13 @@ _Avoid_: Ping, poke, reminder (reminders belong to Events)
 A piece of work extracted from a Foreman's message (or added by hand) with assignees, due time and Machine, kept on the Board.
 _Avoid_: Ticket, todo, job
 
-**Board**:
-The shared Kanban of Tasks (未着手 / 作業中 / 完了) that the Foreman and every Worker see and move.
-_Avoid_: Tracker, backlog
+**Task Board**:
+The shared Kanban of Tasks (未着手 / 作業中 / 完了) that the Foreman and every Worker see and move (`/api/tasks`).
+_Avoid_: Board (alone), tracker, backlog
+
+**Foreman Board**:
+The Foreman's view of Machines, Sign-offs and open Confusions (`/api/board`).
+_Avoid_: Board (alone), dashboard
 
 ## Life
 

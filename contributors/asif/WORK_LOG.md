@@ -4,6 +4,20 @@ Owner: Asif (`MdAsif-Hossain`) — Role: Backend (lead) / Services / Database
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-22 (proto → production handoff from Minhaz)
+
+Minhaz mapped the prototype (`prototypes/wakatta/`) and the frontend against `main` (`c07a8fb`). Decisions: the prototype's **Chat is in production scope (WS12, P1)**; Course stays P2 and frontend-only. Read [BACKEND_PLAN.md](../../docs/BACKEND_PLAN.md) decision #8 and the new XREQ cards in [AGENTS.md](../../AGENTS.md) §2.2. Do the items in this order.
+
+### Next (assigned)
+1. **XREQ-005 item 1 first (unblocks Anim):** Chat tables in one migration: `threads`, `thread_members`, `messages`, `message_checks`, `message_answers`, `follow_ups`, `tasks` (shop scope, composite FKs, `tasks.version` for `If-Match`). Factories in `tests/factories.py`. Push as soon as up → down → up passes.
+2. **XREQ-003** (Galib, pending): accept or change the model chain, budgets, Groq Whisper step, settings; add `approvedBy` and `needsEdit` to the Note Version response. Chat voice depends on the Whisper step (XREQ-006 item 3).
+3. **Routes the frontend already calls that the backend lacks:** `GET /api/sign-offs`, Panel Override, Skill Matrix / Heatmap / Skill Passport (WS5), Knowledge Library version timeline (WS8, now yours). Also note: the frontend calls `/api/auth/pin`; the backend has `PUT /api/auth/me/pin` (Minhaz changes the frontend under XREQ-001).
+4. **WS9 production switch (Mon evening test deploy):** API on Azure Container Apps + PostgreSQL Flexible Server; `AI_MODE=gemini`, `GEMINI_API_KEY` as a secret (from Galib, never in git); CORS for the frontend's production origin; `alembic upgrade head` then `python -m app.seed --reset`; `/api/health/ready` green; min = max = 1 replica. Frontend hosting with `VITE_USE_MOCK=false` and the API base URL (agree the host with Minhaz).
+5. P2: effort metrics (`GET /metrics/effort`).
+
+### Blockers / handoff
+- Anim waits on item 1 for WS12; Galib waits on item 2 for the Whisper step.
+
 ## 2026-11-22
 
 ### Completed

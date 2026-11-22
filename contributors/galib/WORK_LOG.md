@@ -4,6 +4,23 @@ Owner: Galib (`Ga-lib`) — Role: AI / LLM
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-22 (proto → production handoff from Minhaz)
+
+Minhaz mapped the prototype (`prototypes/wakatta/`) and the frontend against `main` (`c07a8fb`). Decisions: the prototype's **Chat is in production scope (WS12, P1)**; Course stays P2 and frontend-only. Read [BACKEND_PLAN.md](../../docs/BACKEND_PLAN.md) decision #8 and the new XREQ cards in [AGENTS.md](../../AGENTS.md) §2.2. Do the items in this order.
+
+### Next (assigned)
+1. **XREQ-006 (WS12 Chat AI)**: `draft_message` (voice or text → `transcriptJa`, translations, 1–3 Check Questions, **Task extraction**: assignees from Thread members, `dueAt` only when said, Machine from the shop), plus `translate` (Worker message → ja) and `reexplain`. Checks in `domain/ai_checks.py`; degraded result never raises.
+2. **Voice ladder for every voice input (notes, chat, notices, asks, briefings):** cache → Gemini chain → Groq Whisper transcript → text path → degraded `needsEdit`. Needs Asif's answer on XREQ-003.
+3. **Live AI before the switch:** create the Wakatta?-only Google project, give the key to Asif privately for Azure, run one live call per model (audio + schema) and log the result.
+4. **WS6 Briefings** (backend + AI): the frontend calls `POST /api/briefings/draft`, `/api/briefings`; your receipts route is approved.
+5. Anim's open request: a transcript field on `AskDraft` (e.g. `question_text`) so voice Asks store their text.
+6. **Eval** (`python -m app.ai.eval` → `docs/ai-eval.md`): notes, notices, asks, plus the 10 chat messages scoring Task extraction.
+7. **Before filming:** seed `ai_cache` with every filmed take (die-change chat message from the prototype's `DATA.script`, flyer, Ask, Foreman note). Flyer fixture: recyclables as a step without an Event (XREQ-002 item 12).
+8. WS7: Near-miss translation for Anim's routes (P2).
+
+### Blockers / handoff
+- Item 2 waits on Asif's XREQ-003 decision. Anim builds the Chat service on top of your functions; agree the `draft_message` signature with him first (card XREQ-006).
+
 ## 2026-11-22
 
 ### Completed
