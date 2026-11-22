@@ -1,0 +1,36 @@
+{
+  "business": "Wakatta? (multilingual machine instructions with a quiz-gated machine panel, for factories employing foreign workers)",
+  "target": "Owners and plant managers of small and mid-sized manufacturers in Nagasaki and Kyushu who employ 特定技能 or 技能実習 workers",
+  "where": "Nagasaki and Kyushu, Japan",
+  "age": [40, 68],
+  "segments": [
+    {"name": "Owner-president of a small job shop (10 to 49 staff)", "share": 0.45, "income": [60000, 140000]},
+    {"name": "Plant manager at a mid-size manufacturer (50 to 299 staff)", "share": 0.40, "income": [55000, 110000]},
+    {"name": "Owner of a family firm that hired its first foreign workers this year (under 10 staff)", "share": 0.15, "income": [40000, 90000]}
+  ],
+  "behaviours": [
+    {"name": "Safety-first", "share": 0.20, "how": "Has seen a near-miss involving a foreign worker and looks for anything that prevents the next one."},
+    {"name": "Paper and trust", "share": 0.20, "how": "Runs the shop on paper manuals, the senior worker's word and the morning meeting; distrusts new software."},
+    {"name": "Leaves it to the support organisation", "share": 0.15, "how": "Already pays a 登録支援機関 to handle 特定技能 support and expects them to deal with anything about it."},
+    {"name": "Cost-cutter", "share": 0.15, "how": "Approves only tools that cost nothing or save money they can see this quarter."},
+    {"name": "Already on a tool", "share": 0.10, "how": "Already uses a video-manual or checklist tool such as tebiki, Teachme Biz or カミナシ."},
+    {"name": "Follows the prefecture", "share": 0.10, "how": "Joins Nagasaki Prefecture or chamber of commerce programmes for foreign talent and trusts what they recommend."},
+    {"name": "Lets the foremen decide", "share": 0.10, "how": "Leaves floor tools to the 班長 and adopts what the foremen ask for."}
+  ],
+  "objections": [
+    "A tablet that locks a machine will stop production when we are busy",
+    "My foremen will not record voice notes on top of their real work",
+    "Is the Bengali or English actually right, and who is responsible if it is wrong?",
+    "Most of my foreign workers are Vietnamese or Indonesian, not Bangladeshi",
+    "We already have manuals and a support organisation for this",
+    "Free software disappears; who will support it next year?",
+    "Workers' phones, gloves and the Wi-Fi on the floor",
+    "Who sees the data about my workers' mistakes?"
+  ],
+  "habits": [
+    "you run the 朝礼 (morning meeting) yourself every day at 8:00",
+    "your 登録支援機関 visits once a quarter and leaves a report",
+    "you have six foreign workers and two Japanese foremen over 55",
+    "you sign the monthly safety report yourself"
+  ]
+}
