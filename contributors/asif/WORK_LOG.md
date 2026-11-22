@@ -17,10 +17,11 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
   3. Nothing is cut. Risk control instead: WS0 lands all tables and typed route stubs first, so five people never edit the same migration or contract file.
   4. Fact I verify: Azure for Students covers PostgreSQL Flexible Server B1ms free for 12 months and Container Apps has a monthly free grant (Microsoft's Azure for Students and PostgreSQL pages); still to check: allowed regions for our subscription.
 
-- Evaluated the alternative idea **Matte** (bank-transfer fraud circuit breaker): checked 18 claims of spec v2 against sources, judged it winnable, and wrote a system and team plan: [MATTE_EVALUATION_AND_PLAN.md](MATTE_EVALUATION_AND_PLAN.md). Team decision on switching is pending.
+- Evaluated the alternative idea **Matte** (bank-transfer fraud circuit breaker): checked 18 claims of spec v2 against sources, judged it winnable, and wrote a system and team plan: [MATTE_EVALUATION_AND_PLAN.md](MATTE_EVALUATION_AND_PLAN.md).
+- **Team decision: we stay with Wakatta?.** Matte is shelved; its plan stays in my folder for reference only.
 
 ### Next
-- Team decides Wakatta? vs Matte. If Matte: apply the spec fixes in the plan, then WS0.
+- Accept or change Galib's Gemini review points (his [WORK_LOG.md](../galib/WORK_LOG.md)) in BACKEND_ARCHITECTURE.md §7 and §9.
 - Team reads BACKEND_ARCHITECTURE.md; then WS0 on `asif/ws0-foundation`: skeleton, all tables in the first migration, typed route stubs, generated openapi.yaml, AI seam with fake, seed, CI.
 - Hello-world API on Azure Container Apps today.
 - XREQ to Minhaz: Bearer token in `src/services/api.ts`, call `/machines/{id}/presence` after the name pick.
