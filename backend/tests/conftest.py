@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from app.config import Settings
 from app.main import create_app
+from tests.factories import TEST_PEPPER
 
 FRONTEND = "http://localhost:3000"
 APP_URL = os.environ.get(
@@ -74,7 +75,12 @@ def db(app_engine: Engine) -> Iterator[Session]:
 
 @pytest.fixture
 def settings() -> Settings:
-    return Settings(frontend_origin=FRONTEND, database_url=APP_URL, _env_file=None)  # pyright: ignore[reportCallIssue]
+    return Settings(
+        frontend_origin=FRONTEND,
+        database_url=APP_URL,
+        pin_pepper=TEST_PEPPER,  # pyright: ignore[reportArgumentType]  # pydantic converts str to SecretStr
+        _env_file=None,  # pyright: ignore[reportCallIssue]
+    )
 
 
 @pytest.fixture

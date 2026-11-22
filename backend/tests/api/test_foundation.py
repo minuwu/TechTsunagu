@@ -139,6 +139,16 @@ def test_settings_fail_fast_without_frontend_origin(monkeypatch: pytest.MonkeyPa
         Settings(_env_file=None)  # pyright: ignore[reportCallIssue]
 
 
+def test_settings_refuse_a_short_pin_pepper(settings: Settings) -> None:
+    with pytest.raises(ValueError, match="pin_pepper"):
+        Settings(
+            frontend_origin=FRONTEND,
+            database_url=settings.database_url,
+            pin_pepper="too-short",  # pyright: ignore[reportArgumentType]
+            _env_file=None,  # pyright: ignore[reportCallIssue]
+        )
+
+
 @pytest.mark.parametrize("origin", ["http://localhost:3000/", "*", "localhost:3000"])
 def test_settings_reject_an_origin_that_is_not_exact(origin: str) -> None:
     with pytest.raises(ValueError, match="frontend_origin"):
