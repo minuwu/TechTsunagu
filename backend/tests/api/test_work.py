@@ -249,6 +249,36 @@ def test_the_board_flags_an_assigned_worker_without_a_sign_off(client: TestClien
     assert row["assignments"][0]["flag"] is True
 
 
+def test_reusing_a_check_key_for_another_note_is_refused(client: TestClient, fake_ai: FakeAiClient, shop: Shop) -> None:
+    v1 = _record(client, fake_ai, shop)
+    _approve(client, shop, v1["id"])
+    draft = _record(client, fake_ai, shop)  # never approved: must not be gradeable through a replayed key
+    key = str(uuid.uuid4())
+    body = {"language": "bn", "answers": [0, 0]}
+
+    first = client.post(
+        "/api/checks", headers=_auth(shop.worker, key), json={**body, "target": {"kind": "note", "id": str(v1["id"])}}
+    )
+    replay = client.post(
+        "/api/checks",
+        headers=_auth(shop.worker, key),
+        json={**body, "target": {"kind": "note", "id": str(draft["id"])}},
+    )
+
+    assert first.status_code == 200
+    assert replay.status_code == 409
+    assert replay.json()["error"]["code"] == "IDEMPOTENCY_KEY_REUSED"
+
+
+def test_an_oversized_body_is_refused_before_it_is_parsed(client: TestClient) -> None:
+    big = b'{"userId": "1", "pin": "' + b"1" * (11 * 1024 * 1024) + b'"}'
+
+    res = client.post("/api/auth/login", content=big, headers={"Content-Type": "application/json"})
+
+    assert res.status_code == 413
+    assert res.json()["error"]["code"] == "PAYLOAD_TOO_LARGE"
+
+
 def test_a_worker_cannot_record_or_approve(client: TestClient, shop: Shop) -> None:
     res = client.post(
         f"/api/machines/{shop.machine.id}/notes", headers=_auth(shop.worker, str(uuid.uuid4())), data={"text": "x"}
