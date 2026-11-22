@@ -519,7 +519,7 @@ Roles: F Foreman · W Worker · P Poster · D Panel device · S Senpai link · p
 | GET | `/senpai/{token}` | S | their Worker (display name, language), forwarded Asks, district Events, Meet-ups |
 | POST | `/senpai/{token}/asks/{id}/reply` | S | `{replyJa}` → translated for the Worker |
 | POST | `/senpai/{token}/meetups` | S | `{kind, date, note}` |
-| GET | `/support-log.csv?from=&to=` | F | not enveloped; UTF-8 BOM; one row per Worker per Meet-up, Notice Check or Panel Override in the range, for the shop; columns follow the support-record fields in [research.md](../contributors/asif/founder/research.md) once confirmed |
+| GET | `/support-log.csv?from=&to=` | F | not enveloped; UTF-8 BOM; one row per Worker per supported event in the range, for the shop, grouped by the official support item it evidences ([research.md §1](../contributors/asif/founder/research.md)): **item 7 相談・苦情への対応** ← forwarded Asks and Senpai replies (date, what was asked, how it was answered; the on-site consultation record, 参考様式5-4号); **item 8 日本人との交流促進** ← Meet-ups (date, kind, with whom); **生活オリエンテーション / information** ← Notices opened and understood (date, Notice, passed); plus Panel Overrides (date, Machine, Foreman, reason) for the safety record. Not covered and stated in the export: item 10 定期的な面談 (every 3 months) and the yearly report form 参考様式第3-6号, which asks for counts, not these details |
 
 **Demo**
 
@@ -593,7 +593,7 @@ Each pipeline owns: cache lookup → limiter → model call → schema parse →
   - for Asks, grounding precision (a not-covered Ask must return `covered=false`)
   - median latency
 - **Use:** that file is the number we show judges instead of claiming accuracy. Galib owns it in WS1, and it is re-run after every prompt change.
-- **Cost model:** `docs/ai-eval.md` also records the median input and output tokens per pipeline. Monthly AI cost per factory = Σ pipelines (calls per month × tokens × the model's paid price per token). The prices and the audio token rate come from Google's pricing page ([research](../contributors/asif/founder/research.md)), never from memory.
+- **Cost model:** `docs/ai-eval.md` also records the median input and output tokens per pipeline. Monthly AI cost per factory = Σ pipelines (calls per month × tokens × the model's paid price per token). The prices and the audio token rate come from Google's pricing page ([research.md §5](../contributors/asif/founder/research.md)), never from memory. As read on 2026-11-22: `gemini-3.8-flash` $0.75 input / $3.75 output per 1M tokens (doubling on 2027-01-01), `gemini-3.5-flash-lite` $0.30 / $2.50, audio 32 tokens per second. Worked example, to be replaced by measured tokens: one 20-second note ≈ 640 audio + about 2,000 prompt tokens in and about 1,500 out ≈ $0.008 on 3.8 Flash, so even 200 notes, notices and asks a month is under $2 per factory at today's price.
 
 ---
 
@@ -622,7 +622,7 @@ A 10 MB body limit applies before multipart parsing. Pillow's decompression-bomb
 | Headers | `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`, `Cache-Control: no-store` on authenticated JSON. |
 | Database role | the app connects as `wakatta_app`. It has DML on the app tables, no DDL, and only `insert, select` on `audit_events`. Migrations run as `wakatta_owner`. The `public` schema is revoked from `PUBLIC`. |
 | Secrets | env only (`DATABASE_URL`, `MIGRATION_DATABASE_URL`, `PIN_PEPPER`, `GEMINI_API_KEY`); `.env.example` lists every variable with a dummy value; gitleaks in CI (G-37). |
-| Personal data (APPI) | names, language, Check results, Asks. Audio is never stored. Photos have EXIF removed. No PII, Ask text, prompts or answers in logs. Deactivating a Worker keeps their Sign-off history (safety record) but ends their sessions. |
+| Personal data (APPI) | names, language, Check results, Asks. Audio is never stored. Photos have EXIF removed. No PII, Ask text, prompts or answers in logs. Deactivating a Worker keeps their Sign-off history (safety record) but ends their sessions. **Retention:** support records (Asks forwarded, Senpai replies, Meet-ups, Notice receipts) must be kept at least 1 year after the Worker's 特定技能 employment contract ends (特定技能基準省令 第2条第2項第3号, [research.md §1.2](../contributors/asif/founder/research.md)), so nothing tied to a Worker is deleted before that; a deletion job after that is post-hackathon. |
 | AI input | untrusted text is delimited as data (§10.5); AI output is validated and only creates drafts. |
 
 ---

@@ -39,12 +39,12 @@ Contents: 1 What the guide requires · 2 Decisions (every open question, closed)
 | 7 | Galib's proposal to cut WS7 (Near-miss) and WS8 (Library) | **Not cut: built last (tier P2).** If they are not working by the freeze, the proposal lists them under "Planned". | Keeps the team's "keep every feature" decision and the guide's "what works now vs planned" honesty. |
 | 8 | Minhaz's prototype "Chat" terms (Thread, Task, Kanban **Board**, Nudge…) | **Not in the backend scope.** The word **Board** means the Foreman board. | Minhaz confirms whether the prototype is a demo idea; until then no backend work. |
 | 9 | PIN hashing library | **`argon2-cffi` (Argon2id)** with a server pepper | The engineering manual requires Argon2id or bcrypt; the standard library has neither. Open-source, allowed by the guide. Approving this plan approves this one new dependency. |
-| 10 | Languages | **Backend supports per-shop languages** (bn, en, vi, id, ne, my, tl, zh); **the demo uses bn + en** | Architecture §6.1. More languages are a claim only after one is shown working. |
+| 10 | Languages | **Backend supports per-shop languages** (bn, en, vi, id, ne, my, tl, zh). **Demo: bn + en now; adding Indonesian is an open team decision (§10)** | In Nagasaki, 特定技能1号 workers are mostly from Indonesia (1,385), the Philippines (915), Vietnam (881) and Myanmar (534); Bangladesh has 31 of 4,276 (ISA, 2026-06-30, [research.md §2](../contributors/asif/founder/research.md)). Nagasaki Prefecture is a judge. More languages are a claim only after one is shown working. |
 | 11 | AI model and quota | `AI_MODE=fake` by default; `gemini-3.5-flash-lite` for prompt work, `gemini-3.8-flash` for filmed takes and the live demo, every filmed take cached | Galib's check (20/day vs 500/day); architecture §10.3. |
 | 12 | How many API replicas? | **Exactly 1**, min = max = 1 from Nov 24 to Nov 26 | In-memory AI limiter; no cold start on stage. |
 | 13 | Is the Lock hardware? | **No, software only**, with a named, time-limited Foreman override | ADR 0003; architecture §7.1. Say so in the proposal. |
 | 14 | What makes us different (proposal "Originality") | The **machine gate**, the **term-level alert to the Foreman**, and the **support record** for the 登録支援機関. **Not** Bengali, **not** quizzes (カミナシ has both) | Sourced competitor check of 22 products ([competitors.md](../contributors/asif/founder/competitors.md)). |
-| 15 | Who pays? | Free for employers and Workers; **登録支援機関 pay**; price **not set** (say "next step", never a number) | Team answer; founder board flagged it as unproven. |
+| 15 | Who pays? | Free for employers and Workers; **登録支援機関 pay**; price **not set** (say "next step", never a number) | Team answer; founder board flagged it as unproven. Context we can cite: employers pay a 登録支援機関 ¥28,386 per worker per month on average (ISA, Sept 2022 data); 79 登録支援機関 are registered in Nagasaki (register of 2026-11-19); AI cost is about $0.008 per note (architecture §10.6). |
 
 ---
 
@@ -206,6 +206,7 @@ An item counts as "works now" only when all of these are true:
 | Minhaz confirms XREQ-001 and whether the "Chat" prototype is in scope | Minhaz | Mon 03:00 |
 | Member 5 confirms WS5–WS8 | Member 5 | Mon 03:00 |
 | Galib's [Rover Villa ideas](../contributors/galib/ROVERVILLA_IDEAS.md) (UX proposal, not agreed) | team | decide after P0 is green; no backend work before then |
-| Support Log columns mapped to the official support-record fields (research running: `contributors/asif/founder/research.md`) | Asif, Anim | P1 |
-| Gemini paid prices for the cost model (same research) | Galib | Tue 10:00 |
+| **Demo language:** keep Rahim (Bengali, the team can check every word) and add one Indonesian Worker so the demo shows Nagasaki's largest group? Needs `Tri` → per-shop languages in the frontend (XREQ-001 item 14) and a native check of the Indonesian text. Recommendation: yes, one Indonesian screen in the breadth montage, Bengali stays the main story. | team (Minhaz, Galib) | Mon 03:00 |
+| ~~Support Log mapped to official support records~~ done: architecture §9.3 (items 7, 8, orientation; item 10 not covered) | — | — |
+| ~~Gemini paid prices~~ done: architecture §10.6; Galib replaces the worked example with measured tokens | Galib | Tue 10:00 |
 | Azure region allowed by the student subscription; database `max_connections` | Asif | Mon 06:00 |
