@@ -9,8 +9,10 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 ### Completed
 - Moved to the recreated repo (same URL, `minuwu/TechTsunagu`, fresh history from Minhaz's `init`). Dropped my old local history and merged my copy into the new `main`; the only change carried over is this log entry. Commit hashes in the 2026-11-21 entry refer to the old, deleted history.
 
+- Reviewed the Wakatta? plan on `minhaz/wakatta-plan` (backend focus: data model, API, Sign-off/Lock rules, hosting). Verdict: strong idea, scope too large for the time left; proposed a backend MVP cut (about 10 tables, about 15 endpoints) and simpler hosting.
+
 ### Next
-- Hour-0 backend scaffold (see the 2026-11-21 "Next" list).
+- Agree the MVP cut with the team, then start WS0 (backend scaffold, models, seed).
 
 ### Blockers / handoff
 - For the team: re-clone the repo and run `scripts/setup.sh` (or `scripts\setup.ps1`) again; don't push from clones made before 2026-11-22.
