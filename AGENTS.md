@@ -158,6 +158,7 @@ The team agreed to use every free AI API, so the demo does not hang on one model
 4. Settings: `GROQ_API_KEY` (optional; empty disables the Whisper step) and `AI_CHAIN` in `.env.example`; `httpx` as a runtime dependency for Groq.
 5. From [WS6_BRIEFING_PLAN.md](contributors/galib/WS6_BRIEFING_PLAN.md) (branch `galib/ws1-ai`): OK `GET /briefings/{id}/receipts` for the Foreman's "understood / opened only / not opened" view, and seed shop A's Glossary from `backend/tests/fixtures/ai/glossary.json` (or move that file into `seed_data/`).
 6. For XREQ-004's provenance line: include `approvedBy` (display name) and `needsEdit` in the Note Version response; both columns already exist (§6).
+7. **Ownership of the remaining pipelines (Asif and Anim, by Mon 03:00 BST):** [WS1_INTEGRATION_PLAN.md](contributors/galib/WS1_INTEGRATION_PLAN.md) §1. Proposal: Galib builds `app/services/ai_pipelines.py` (`draft_briefing`, `draft_notice`, `answer_ask`, `translate`) by Mon 10:00; Anim's services call them; Asif keeps `notes.py`. If nobody objects by Mon 03:00, I build to it.
 
 **Expected Request (Payload / Query Params / Headers):**
 ```json
