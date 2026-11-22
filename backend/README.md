@@ -38,6 +38,8 @@ CREATE DATABASE wakatta_test OWNER wakatta_owner;
 REVOKE ALL ON SCHEMA public FROM PUBLIC; ALTER SCHEMA public OWNER TO wakatta_owner; GRANT USAGE ON SCHEMA public TO wakatta_app;
 ```
 
+Demo data: `uv run python -m app.seed --reset` (needs `MIGRATION_DATABASE_URL` and `PIN_PEPPER`). Demo accounts (fictional, never reuse these PINs): shop code `SASEBO01`, Foreman 山口 隆 PIN `246810`, Workers (Rahim, Sadia, Tanvir, 田中) PIN `2468`; a second shop `ISAHAYA2` (Foreman PIN `135790`) shows isolation.
+
 Migrations: `uv run alembic upgrade head` (uses `MIGRATION_DATABASE_URL`, the owner). The test suite rebuilds `wakatta_test` itself and runs the migration up, down and up again.
 
 Conventions (AGENTS.md §4.2, §4.3):
