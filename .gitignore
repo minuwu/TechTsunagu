@@ -105,3 +105,9 @@ scratch/
 frontend/test-results/
 frontend/playwright-report/
 frontend/coverage/
+
+# taste-skill: 37 MB of stock assets; install locally from github.com/leonxlnx/taste-skill
+.claude/skills/taste-skill/
+
+# paraglide inlang cache
+frontend/project.inlang/cache/
