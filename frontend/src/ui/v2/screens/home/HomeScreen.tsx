@@ -148,6 +148,14 @@ export function HomeScreen() {
           </Link>
         </Card>
 
+        <Card title={m.course_nav()} id="hub-course" className="lg:col-span-4">
+          <p className="mb-4 text-muted-foreground">{m.course_sub()}</p>
+          <Link to="/course" className={row}>
+            {m.course_open()}
+            <Mark id="arrow" className={arrow} />
+          </Link>
+        </Card>
+
         <Card
           title={m.hub_senpai()}
           id="hub-senpai"

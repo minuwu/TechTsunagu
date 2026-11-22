@@ -87,6 +87,13 @@ export function HomeScreen() {
           </Link>
         </Card>
 
+        <Card title={m.course_nav()} id="hub-course">
+          <p className="mb-3 text-muted-foreground">{m.course_sub()}</p>
+          <Link to="/course" className={tile}>
+            {m.course_open()}
+          </Link>
+        </Card>
+
         <Card title={m.hub_senpai()} id="hub-senpai" tone="life">
           <p className="mb-3 text-muted-foreground">{m.hub_senpai_body()}</p>
           <ul className="space-y-2">

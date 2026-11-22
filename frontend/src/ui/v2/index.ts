@@ -22,6 +22,7 @@ import {
 } from './screens/foreman/ForemanOpsScreens'
 import { CommunityScreen } from './screens/community/CommunityScreen'
 import { SenpaiScreen } from './screens/senpai/SenpaiScreen'
+import { CourseScreen } from './screens/course/CourseScreen'
 import { NotFoundScreen } from './screens/not-found/NotFoundScreen'
 
 export default {
@@ -45,6 +46,7 @@ export default {
     foremanSenpai: ForemanSenpaiScreen,
     community: CommunityScreen,
     senpai: SenpaiScreen,
+    course: CourseScreen,
     notFound: NotFoundScreen,
   },
 } satisfies UiKit

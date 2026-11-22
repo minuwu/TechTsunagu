@@ -20,6 +20,7 @@ export type ScreenId =
   | 'foremanSenpai'
   | 'community'
   | 'senpai'
+  | 'course'
 // one per route; extend when a screen is added (A-03)
 
 export interface UiKit {
