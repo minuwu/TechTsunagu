@@ -274,5 +274,15 @@
   "senpai_sub": "Questions from {worker} that no posted notice answers.",
   "forwarded_asks": "Questions for you",
   "no_asks": "No questions right now.",
-  "free_reply": "Reply in Japanese"
+  "free_reply": "Reply in Japanese",
+  "footer_made_by": "Made by Team TechTsunagu",
+  "hub_lead": "A foreman's know-how, pinned to each machine in the worker's own language. The machine unlocks only once the worker shows they understood.",
+  "cancel": "Cancel",
+  "close": "Close",
+  "steps_label": "Progress",
+  "step_read": "Read",
+  "step_check": "Check",
+  "step_done": "Done",
+  "reset_confirm_title": "Reset the demo?",
+  "reset_confirm_body": "Every Check, Sign-off, notice and report made in this demo is cleared, and the seeded shop comes back."
 }

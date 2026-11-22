@@ -8,6 +8,12 @@ test('passing the Check unlocks the Machine Panel', async ({
 }) => {
   await page.goto('/')
   await page.getByRole('button', { name: 'Reset demo' }).click()
+  // Kits that confirm a destructive action (F-30) open a dialog; confirm it there
+  const confirm = page
+    .getByRole('dialog')
+    .getByRole('button', { name: 'Reset demo' })
+  await expect(confirm.or(page.getByText('Demo data reset.'))).toBeVisible()
+  if (await confirm.isVisible()) await confirm.click()
   await expect(page.getByText('Demo data reset.')).toBeVisible()
 
   await page.goto('/m/m-press')
@@ -51,6 +57,8 @@ const ROUTES = [
 
 // Every screen renders a heading, no broken text, no axe violations
 test('every demo screen renders cleanly', async ({ page }) => {
+  // 16 full-page axe scans in one test: well past the 30 s default
+  test.setTimeout(120_000)
   for (const [path, pin] of [
     ['/foreman', '1234'],
     ['/community', '5678'],

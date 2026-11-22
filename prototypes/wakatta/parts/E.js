@@ -3,7 +3,7 @@
 (() => {
 'use strict';
 const FM = ROLE === 'foreman';
-const t = (ja, en) => FM ? ja : en;
+const t = __tr;
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
@@ -24,7 +24,7 @@ function applySettings() {
   const h = document.documentElement;
   h.dataset.theme = S.dark ? 'dark' : 'light';
   if (S.largeText) h.dataset.large = '1'; else delete h.dataset.large;
-  const m = $('meta[name="theme-color"]'); if (m) m.content = S.dark ? '#141218' : '#fef7ff';
+  const m = $('meta[name="theme-color"]'); if (m) m.content = S.dark ? '#0c1626' : '#e4effb';
 }
 applySettings();   // synchronous and DOM-only: no flash of the wrong theme
 window.uxSettings = S;
