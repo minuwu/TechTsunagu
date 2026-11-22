@@ -17,6 +17,9 @@ class FakeAiClient:
         self.calls = 0
         self.last_prompt_text = ""
 
+    def queue(self, pipeline: str, answer: Scripted) -> None:
+        self._script.setdefault(pipeline, deque()).append(answer)
+
     def generate(self, prompt: Prompt, parts: list[Part], schema: type[object]) -> str:
         self.calls += 1
         self.last_prompt_text = "\n".join([prompt.text, *(p.text_value or "" for p in parts)])

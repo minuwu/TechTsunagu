@@ -8,19 +8,36 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from sqlalchemy.orm import Session, sessionmaker
 
+from app.ai.client import AiClient
+from app.ai.fake import FakeAiClient
+from app.ai.gemini import GeminiClient
 from app.api.context import RequestContextMiddleware, configure_logging
 from app.api.errors import install_error_handlers
 from app.config import Settings
 from app.db import make_engine, make_session_factory
-from app.routers import auth, health, users
+from app.routers import auth, health, users, work
+from app.services.ai_runner import AiLimits, AiRunner
 
 
-def create_app(settings: Settings | None = None, session_factory: sessionmaker[Session] | None = None) -> FastAPI:
-    """`session_factory` is injected by tests (bound to a rolled-back transaction); production builds its own pool."""
+def _ai_client(settings: Settings) -> AiClient:
+    if settings.ai_mode == "gemini" and settings.gemini_api_key is not None:
+        key = settings.gemini_api_key.get_secret_value()
+        return GeminiClient(key, settings.gemini_model, settings.ai_timeout_seconds)
+    return FakeAiClient()  # development: nothing scripted, so every AI step takes the fallback path
+
+
+def create_app(
+    settings: Settings | None = None,
+    session_factory: sessionmaker[Session] | None = None,
+    ai_client: AiClient | None = None,
+) -> FastAPI:
+    """Tests inject a session factory bound to a rolled-back transaction and a scripted AI client."""
     settings = settings or Settings()  # pyright: ignore[reportCallIssue]  # values come from the environment
     configure_logging(settings.log_level)
     engine = None if session_factory else make_engine(settings.database_url)
     factory = session_factory or make_session_factory(engine)  # pyright: ignore[reportArgumentType]
+    limits = AiLimits(settings.ai_max_concurrent, settings.ai_per_minute, settings.ai_daily_budget, wait_seconds=10)
+    runner = AiRunner(ai_client or _ai_client(settings), factory, limits)
 
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncGenerator[None]:
@@ -38,8 +55,9 @@ def create_app(settings: Settings | None = None, session_factory: sessionmaker[S
     )
     app.state.settings = settings
     app.state.session_factory = factory
+    app.state.ai = runner
     install_error_handlers(app)
-    for module in (health, auth, users):
+    for module in (health, auth, users, work):
         app.include_router(module.router)
 
     # Added last = runs first: the request context wraps CORS, which wraps GZip.
