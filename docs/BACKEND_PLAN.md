@@ -85,7 +85,7 @@ Build top to bottom. A tier is **done** only when every item passes §7 and runs
 | Item | Architecture | Workstream |
 | :--- | :--- | :--- |
 | Notices: flyer photo / text / voice → draft with Events → confirm → publish; Worker feed + receipts | §7.5, §9.3 | WS10 |
-| Upcoming Events and `.ics` calendar | §9.3 | WS10 |
+| Upcoming Events (backend-expanded `nextDates`) | §9.3 | WS10 |
 | Asks grounded in Notices; forward to Senpai; Senpai link view and reply | §7.6, §9.3 | WS11 |
 | Senpai pairs (create, revoke) and Support Log CSV | §9.3 | WS11 |
 | Skill Matrix, Heatmap, Skill Passport | §6.6 | WS5 |
@@ -103,6 +103,7 @@ Build top to bottom. A tier is **done** only when every item passes §7 and runs
 | Meet-ups logged by Worker or Senpai | WS11 |
 | Effort metrics endpoint | WS2 |
 | Notice reach counts | WS10 |
+| Backend `.ics` export (the browser already builds it) | WS10 |
 | Foreman / Worker deactivate and PIN reset screens wired (endpoints are P0) | WS0 |
 
 ### Not built in the hackathon (proposal "Planned")
@@ -116,11 +117,12 @@ Proposed; each person confirms by writing their name in the workstream in the [p
 
 | Person | Backend workstreams | Also |
 | :--- | :--- | :--- |
-| **Asif** (backend lead) | WS0 Foundation, WS2 Notes/Checks/Sign-offs/Lock/Panel/Board, WS9 Deploy | schema owner (one Alembic head), reviews every backend PR, README "works now" table |
-| **Anim** (backend) | WS10 Notices + Events, WS11 Asks + Senpai + Support Log + Meet-ups | Life seed data |
-| **Galib** (AI) | WS1 AI pipelines, prompts, validators, eval, cost model; AI parts of WS6 (Briefing) and WS7 (Near-miss translation) | Gemini project and key (never in git), cache seeding before filming |
-| **Minhaz** (frontend) | XREQ-001 (Bearer, roster/login, PIN change, cursor lists, Idempotency-Key, ETag), wiring screens to the API | video edit, proposal layout |
-| **Member 5** | WS5 Skill Matrix / Heatmap / Glossary / Shifts, WS6 Briefing, WS7, WS8 (backend routes on top of WS0) | proposal text, presentation slides |
+| **Asif** (backend lead) | WS0 Foundation, WS2 Notes/Checks/Sign-offs/Lock/Panel/Board, WS5 Skill Matrix / Heatmap / Glossary / Shifts, WS9 Deploy | schema owner (one Alembic head), reviews every backend PR, README "works now" table |
+| **Anim** (backend) | WS10 Notices + Events, WS11 Asks + Senpai + Support Log + Meet-ups; after WS0: CI and the Life seed loader (handed over by Asif) | Life seed data (done), proposal Life section. Cut order if late: Senpai → Meet-ups → reach; Notices and grounded Asks stay |
+| **Galib** (AI) | WS1 AI pipelines, prompts, validators, eval, cost model; WS6 Briefing (backend + AI); AI part of WS7 (Near-miss translation) | Gemini project and key (never in git), cache seeding before filming |
+| **Minhaz** (frontend) | XREQ-001 and XREQ-002, wiring screens to the API | video edit, proposal layout |
+| **Arjun Saha** (frontend design) | v2 UI kit (Nagasaki style), screens | proposal design, presentation slides |
+| *open* | WS7 Near-miss, WS8 Knowledge Library (P2) | whoever finishes their P1 first |
 
 Shared-file rules (from architecture §16): each workstream edits only its own `routers/`, `services/`, `repositories/`, `schemas/`, `tests/` files; schema changes go through Asif; `docs/openapi.yaml` is regenerated, never edited; `seed.py` and `domain/` changes are small reviewed PRs.
 
@@ -204,7 +206,7 @@ An item counts as "works now" only when all of these are true:
 | Item | Owner | Needed by |
 | :--- | :--- | :--- |
 | Minhaz confirms XREQ-001 and whether the "Chat" prototype is in scope | Minhaz | Mon 03:00 |
-| Member 5 confirms WS5–WS8 | Member 5 | Mon 03:00 |
+| Arjun's `.claude/settings.json` enables the `unslop@heydamir` plugin for everyone who opens the repo in Claude Code; confirm it is meant to be team-wide | Arjun | Mon 03:00 |
 | Galib's [Rover Villa ideas](../contributors/galib/ROVERVILLA_IDEAS.md) (UX proposal, not agreed) | team | decide after P0 is green; no backend work before then |
 | **Demo language:** keep Rahim (Bengali, the team can check every word) and add one Indonesian Worker so the demo shows Nagasaki's largest group? Needs `Tri` → per-shop languages in the frontend (XREQ-001 item 14) and a native check of the Indonesian text. Recommendation: yes, one Indonesian screen in the breadth montage, Bengali stays the main story. | team (Minhaz, Galib) | Mon 03:00 |
 | ~~Support Log mapped to official support records~~ done: architecture §9.3 (items 7, 8, orientation; item 10 not covered) | — | — |

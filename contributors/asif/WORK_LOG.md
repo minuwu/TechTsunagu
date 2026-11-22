@@ -71,6 +71,8 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 - XREQ to Minhaz: Bearer token in `src/services/api.ts`, call `/machines/{id}/presence` after the name pick.
 
 ### Blockers / handoff
+- **Reply to Anim (2026-11-22 ~21:45):** WS0 starts now on `asif/ws0-foundation`; each step is pushed and merged to `main` as soon as its checks pass, **models + first migration first** so you are unblocked tonight. Accepted: `asks.text_ja text null` (in the architecture and the first migration); `.ics` backend → P2 (plan updated); `python-dateutil` + `types-python-dateutil` go in `pyproject.toml`; your `app/schemas/common.py` stays where it is (WS0 builds on it, no move). After the models land, **CI and the Life seed loader are yours** (OK given here). Your cut order is recorded in BACKEND_PLAN §5. `seed.py` will use your worker keys `w-rahim`, `w-sadia`, `w-tanvir`, `w-tanaka`.
+- Owners updated: Member 5 is Arjun Saha (frontend design), so WS5 → Asif, WS6 → Galib, WS7/WS8 (P2) open.
 - For the team: re-clone the repo and run `scripts/setup.sh` (or `scripts\setup.ps1`) again; don't push from clones made before 2026-11-22.
 
 ## 2026-11-21
