@@ -19,7 +19,7 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 
 ### Blockers / handoff
 - **Asif (WS0), most urgent:** please push a partial `asif/ws0-foundation` branch with the models as soon as they exist, so Life services can be written against the real tables instead of guessed ones. `seed.py` should load `app/seed_data/life.json`, and the Work seed must use the worker keys `w-rahim`, `w-sadia`, `w-tanvir`, `w-tanaka` that the Life seed points to.
-- Not verified: the flyer's garbage rules in the demo (burnable Mon/Thu before 8:00, recyclables Wed) come from the frontend mock, not from the official 佐世保市 page; days differ by district (plan, "Facts to verify").
+- Minhaz and Galib: the demo flyer's recyclables Event is wrong. 佐世保市 collects cans, bottles and PET twice a month, not weekly; burnable (twice a week, designated bag, by 8:00) and oversized-item rules are right. XREQ-002 item 12; sources in the plan's "Facts to verify".
 - **Schema request for Asif (needs a migration):** `asks` has no column for the Japanese translation of the Worker's question, but the plan forwards the Ask "translated to Japanese" to the Senpai (a 自治会 volunteer like 森 早苗 cannot read Bengali). Please add `asks.text_ja text null`, filled when the Ask is forwarded; the contract already has `ForwardedAsk.textJa`.
 - Asif (WS0): `app/schemas/common.py` holds `CamelModel`, `Translated`, `IdIn`, `CheckQuestion`, `DateRange`; move them into `app/api/` if you prefer, and the Life schemas follow. They need `fastapi`, `pydantic` and `python-multipart` in `pyproject.toml`.
 - Galib (WS1): `answer_ask` should pass its parsed output through `app.domain.grounding.ground()` (with the ids of the Notices it sent) before the service writes the Ask.
@@ -34,3 +34,4 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 - `65464cc` feat(domain): add support log CSV rendering
 - `5415fc5` feat(seed): add Life demo seed data
 - `b4c3882` chore(xreq): XREQ-002 items 9–11 (ics folding, backend support log, notice termId)
+- `fbea045` docs(plan): checked Sasebo garbage rules; XREQ-002 item 12
