@@ -129,6 +129,25 @@ def scan(machine_id: Id, me: Annotated[Principal, Depends(require(Role.WORKER))]
 - Every repository method takes the `Principal` (or its scope id) as its first argument and adds `where shop_id = :shop` itself. There is no unscoped query method; `import-linter` forbids services from building queries outside `repositories/`.
 - **Guard test:** a test walks `app.routes`, and for each route checks 401 without a token, 403 for every role outside its allow list, and 404 when the id belongs to the other seeded shop. A new route cannot ship without passing it.
 
+### 3.4 Account lifecycle (Workers and Foremen)
+
+Every Worker and every Foreman (the manager, 班長) has their own account. Nobody shares a login.
+
+| Event | Who acts | What happens |
+| :--- | :--- | :--- |
+| New shop | operator, CLI | `create-shop` (also sets the shop's default district), then `create-user --role foreman` for the first Foreman |
+| New Foreman | a Foreman of the shop | `POST /foremen {displayName, language, pin}` |
+| New Worker | a Foreman | `POST /workers {displayName, language, pin}`. The Foreman hands over the first PIN on paper. The Worker's district defaults to the shop's. |
+| First sign-in | the new user | login returns `mustChangePin: true`; every other route returns 403 `PIN_CHANGE_REQUIRED` until `PUT /auth/me/pin` is done, so the Foreman never knows a Worker's working PIN |
+| Change own PIN | the user | `PUT /auth/me/pin {currentPin, newPin}`; their other sessions are revoked |
+| Forgotten PIN, lost or shared phone | a Foreman | `PATCH /workers/{id} {pin}` or `PATCH /foremen/{id} {pin}`: sets a new first PIN, `mustChangePin`, revokes every session of that user, clears a lockout, writes `audit_events` |
+| Locked after 5 wrong PINs | — | unlocks by itself after 15 min, or at once by a Foreman's reset |
+| Leaves the company | a Foreman | `active: false`: sessions revoked, removed from the roster, history (Checks, Sign-offs) kept as the safety record |
+| Last Foreman | — | the last active Foreman of a shop cannot be deactivated (409), so a shop is never locked out; the CLI `reset-pin` is the last resort |
+| Community Poster | operator, CLI | `create-user --role poster --district … --poster …` (district onboarding is out of scope) |
+
+Rules: display names are unique per shop among active users (the roster shows names). A user cannot change their own role or active flag. PIN rules: digits only, exact length per role, and not all the same digit or a straight run (`0000`, `1234`).
+
 ---
 
 ## 4. Code layout and module rules
@@ -209,10 +228,10 @@ Conventions:
 
 | Table | Columns (constraints) | Indexes |
 | :--- | :--- | :--- |
-| `shops` | id, code text not null unique check `^[A-Z0-9]{8}$`, name text not null, timezone text not null default `'Asia/Tokyo'`, created_at | |
+| `shops` | id, code text not null unique check `^[A-Z0-9]{8}$`, name text not null, timezone text not null default `'Asia/Tokyo'`, default_district_id fk districts not null, created_at | |
 | `districts` | id, code text not null unique (same check), name text not null, prefecture text not null, municipality text not null, created_at | |
 | `posters` | id, district_id fk, name text not null, kind text check in (`jichikai`,`city`,`employer`); unique (district_id, id) | district_id |
-| `users` | id, role text not null check in (`foreman`,`worker`,`poster`), display_name text not null check (length 1–40), language text not null check in (`ja`,`bn`,`en`), shop_id null fk, district_id null fk, poster_id null, pin_hash text not null, pin_failed_count smallint not null default 0, pin_locked_until timestamptz null, active bool not null default true, created_at; **check**: foreman → shop_id not null; worker → shop_id and district_id not null; poster → district_id and poster_id not null, shop_id null; unique (shop_id, id); unique (district_id, id); fk (district_id, poster_id) → posters | unique (shop_id, display_name) where active and shop_id is not null; unique (district_id, display_name) where active and role = 'poster'; district_id |
+| `users` | id, role text not null check in (`foreman`,`worker`,`poster`), display_name text not null check (length 1–40), language text not null check in (`ja`,`bn`,`en`), shop_id null fk, district_id null fk, poster_id null, pin_hash text not null, pin_must_change bool not null default true, pin_failed_count smallint not null default 0, pin_locked_until timestamptz null, active bool not null default true, created_at; **check**: foreman → shop_id not null; worker → shop_id and district_id not null; poster → district_id and poster_id not null, shop_id null; unique (shop_id, id); unique (district_id, id); fk (district_id, poster_id) → posters | unique (shop_id, display_name) where active and shop_id is not null; unique (district_id, display_name) where active and role = 'poster'; district_id |
 | `sessions` | token_hash bytea pk, kind text check in (`user`,`panel`), user_id null fk, machine_id null, shop_id null, created_at, expires_at not null, last_seen_at, revoked_at null; check (kind = 'user') = (user_id is not null); check (kind = 'panel') = (machine_id is not null and shop_id is not null) | user_id; expires_at |
 | `audit_events` | id, shop_id null, district_id null, actor_user_id null fk, action text not null (`login`, `login_failed`, `pin_reset`, `note_approved`, `pair_created`, `pair_revoked`, `panel_token_issued`, `demo_reset`), subject_id bigint null, at timestamptz not null default now() | (shop_id, at desc); (district_id, at desc) |
 
@@ -386,7 +405,7 @@ Every create that can be retried (Checks, Note/Briefing/Notice drafts, Asks, Nea
 | :--- | :--- | :--- |
 | 400 | `BAD_REQUEST` | parseable input the schema cannot express |
 | 401 | `UNAUTHORIZED` | no, expired or revoked token; wrong PIN |
-| 403 | `FORBIDDEN` | wrong role |
+| 403 | `FORBIDDEN`, `PIN_CHANGE_REQUIRED` | wrong role; first-login PIN not yet changed (§3.4) |
 | 404 | `NOT_FOUND` | unknown id, id of another shop or district, wrong Senpai token |
 | 409 | `CONFLICT`, `VERSION_CHANGED`, `EVENTS_NOT_CONFIRMED`, `NO_ACTIVE_PAIR` | state does not allow the action |
 | 413 | `PAYLOAD_TOO_LARGE` | upload over its limit |
@@ -409,8 +428,9 @@ Roles: F Foreman · W Worker · P Poster · D Panel device · S Senpai link · p
 | :--- | :--- | :--- | :--- |
 | GET | `/health`, `/health/ready` | pub | liveness; readiness checks the DB |
 | GET | `/auth/roster?code=&role=` | pub | `[{id, displayName}]` active users of that shop or district and role; 20/min per IP |
-| POST | `/auth/login` | pub | `{userId, pin}` → `{token, expiresAt, user: {id, displayName, role, language, shopId, districtId}}` |
+| POST | `/auth/login` | pub | `{userId, pin}` → `{token, expiresAt, mustChangePin, user: {id, displayName, role, language, shopId, districtId}}` |
 | GET | `/auth/me` | F W P | the user above |
+| PUT | `/auth/me/pin` | F W P | `{currentPin, newPin}`; clears `mustChangePin`, revokes the user's other sessions |
 | POST | `/auth/logout` | any | revokes the session |
 
 **People and setup (Foreman)**
@@ -419,7 +439,9 @@ Roles: F Foreman · W Worker · P Poster · D Panel device · S Senpai link · p
 | :--- | :--- | :--- | :--- |
 | GET | `/workers` | F | paged Workers of the shop |
 | POST | `/workers` | F | `{displayName, language, pin}` → Worker |
-| PATCH | `/workers/{id}` | F | `{displayName?, language?, pin?, active?}`; a PIN reset revokes that Worker's sessions |
+| PATCH | `/workers/{id}` | F | `{displayName?, language?, pin?, active?}`; a PIN reset revokes that Worker's sessions (§3.4) |
+| GET / POST | `/foremen` | F | Foremen of the shop; create `{displayName, language, pin}` |
+| PATCH | `/foremen/{id}` | F | `{displayName?, language?, pin?, active?}`; not on yourself for `active`; never the last active Foreman |
 | GET / POST | `/machines` | F (GET also W) | Machines; create `{code, name}` |
 | POST | `/machines/{id}/panel-token` | F | → `{token, expiresAt}` (kind `panel`) |
 | GET / POST / PATCH | `/glossary`, `/glossary/{id}` | F (GET also W) | Glossary Terms |
@@ -462,8 +484,10 @@ Roles: F Foreman · W Worker · P Poster · D Panel device · S Senpai link · p
 | PATCH | `/notices/{id}` | P | edit a draft (title, steps, category, question) |
 | PATCH | `/notices/{id}/events/{eventId}` | P | `{confirmed, startsAt?, rrule?}` |
 | POST | `/notices/{id}/publish` | P | 409 `EVENTS_NOT_CONFIRMED` if any Event is unconfirmed or invalid |
-| GET | `/notices` | P (own), W (district, published) | paged, newest first |
-| GET | `/workers/{id}/calendar.ics` | W (self) | not enveloped; confirmed Events of the district |
+| GET | `/notices` | P (own), W (district, published) | paged, newest first; for W each item carries `opened` and `passed` from the Worker's receipt |
+| GET | `/notices/{id}/reach` | P (own) | `{workers, opened, understood, notOpened}`: counts over all Workers of the district, across shops; counts only, never names |
+| GET | `/events?from=&to=` | W | expanded occurrences of confirmed district Events in the range (max 62 days), for "today / tomorrow" |
+| GET | `/workers/{id}/calendar.ics` | W (self) | not enveloped; confirmed Events of the district, RRULE kept |
 | POST | `/asks` | W | multipart `text` or `audio`, `Idempotency-Key` → Ask |
 | GET | `/asks` | W (own) | paged |
 | POST | `/asks/{id}/forward` | W | 409 `NO_ACTIVE_PAIR` without a Senpai |
@@ -473,7 +497,7 @@ Roles: F Foreman · W Worker · P Poster · D Panel device · S Senpai link · p
 | GET | `/senpai/{token}` | S | their Worker (display name, language), forwarded Asks, district Events, Meet-ups |
 | POST | `/senpai/{token}/asks/{id}/reply` | S | `{replyJa}` → translated for the Worker |
 | POST | `/senpai/{token}/meetups` | S | `{kind, date, note}` |
-| GET | `/support-log.csv` | F | not enveloped; UTF-8 BOM; Meet-ups + Notice Check results for the shop |
+| GET | `/support-log.csv?from=&to=` | F | not enveloped; UTF-8 BOM; one row per Worker per Meet-up or Notice Check in the range, for the shop |
 
 **Demo**
 
@@ -626,7 +650,7 @@ WS0 (Asif) lands on `asif/ws0-foundation` and merges to `main` before other back
 | :--- | :--- | :--- |
 | 1 | Skeleton: config (fail fast), envelope, error handlers, request id, CORS, `/api/health`, `/api/health/ready` | `curl` both; test for an unknown env var at startup |
 | 2 | First migration: **all** tables of §6, roles and grants | `alembic upgrade head` then `downgrade base` on a fresh DB; composite-FK test rejects a cross-shop row |
-| 3 | Auth: roster, login, lockout, sessions, `require()`, `Principal` | login/lockout tests; guard test on a sample route |
+| 3 | Auth and accounts (§3.4): roster, login, lockout, first-login PIN change, sessions, `require()`, `Principal`, Workers and Foremen create/reset/deactivate | tests for login, lockout, `PIN_CHANGE_REQUIRED`, reset revokes sessions, last-Foreman 409; guard test on a sample route |
 | 4 | Repository base with scope + every route as a typed stub; generated `docs/openapi.yaml` | guard test over all routes; openapi diff in CI |
 | 5 | AI seam: `FakeAiClient`, fixtures, limiter, budget; Gemini adapter behind `AI_MODE` | `tests/ai` green |
 | 6 | Seed: 2 shops, 1 shared district, the plan's story in shop A, a small shop B for isolation | `python -m app.seed --reset` twice (idempotent); isolation suite green |
@@ -650,7 +674,7 @@ Tracked as `XREQ-001` in [AGENTS.md](../AGENTS.md#2-active-cross-functional-requ
 | # | Frontend today | Backend contract |
 | :--- | :--- | :--- |
 | 1 | `credentials: 'include'`, PIN unlock stored as `'1'` | Bearer token from `POST /auth/login`, sent as `Authorization: Bearer`; the stored flag is only a UI hint |
-| 2 | `verifyPin(role, pin)` → `{ok}` | roster → pick name → `POST /auth/login {userId, pin}` → `{token, expiresAt, user}` |
+| 2 | `verifyPin(role, pin)` → `{ok}` | roster → pick name → `POST /auth/login {userId, pin}` → `{token, expiresAt, mustChangePin, user}`; when `mustChangePin`, show a "choose your PIN" screen (`PUT /auth/me/pin`) before anything else |
 | 3 | `workerId` in bodies (`scan`, `checks`, `receipts`, `near-misses`, `asks`, `meetups`) | removed; the Worker comes from the token |
 | 4 | `list(key)` expects an array | `{items, nextCursor}` |
 | 5 | `POST /briefings` with the whole Briefing object | `POST /briefings/draft` → `PATCH /briefings/{id}` → `POST /briefings/{id}/publish` |
