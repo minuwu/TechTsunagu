@@ -1,0 +1,21 @@
+# Anim's Work Log
+
+Owner: Anim (`anim710`) — Role: Backend (WS10 Notices + Events, WS11 Asks + Senpai + Support Log + Meet-ups)
+
+Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
+
+## 2026-11-22
+
+### Completed
+- Event recurrence rules (architecture §7.5): `backend/app/domain/recurrence.py` with `validate_event` and `occurrences_between`. Only `FREQ=WEEKLY;BYDAY=…` with optional `COUNT` or UTC `UNTIL` is accepted, in the exact shape the frontend can expand (dateutil alone also accepts `1MO`, lowercase days, an `RRULE:` prefix and `COUNT` with `UNTIL`). Rules always expand in Asia/Tokyo, so a UTC start keeps its Japan weekday. Rejects past one-off Events and Events with no date in the next 366 days. Verified: 24 tests in `backend/tests/domain/test_recurrence.py` pass; ruff (architecture rule set) and pyright strict clean. Run without a project file until WS0 lands: `cd backend; uv run --no-project --with pytest --with python-dateutil python -m pytest tests/domain -q`.
+
+### Next
+- Ask grounding rule (architecture §7.6): `backend/app/domain/grounding.py` and its tests.
+- Then WS10/WS11 routes once WS0 is merged on `main`.
+
+### Blockers / handoff
+- WS0 (Asif): the domain files use implicit namespace packages (no `__init__.py`), so they merge cleanly into your skeleton. Please add `python-dateutil` and `types-python-dateutil` (dev) to `pyproject.toml`.
+- Minhaz (FYI, no XREQ needed yet): `frontend/src/domain/calendar.ts` `nextOccurrences` ignores `COUNT` and `UNTIL`, so a rule that has ended still shows dates in the preview. The backend accepts both, as the architecture specifies.
+
+### Related issues / commits / PRs
+- `c6939ba` feat(domain): add event recurrence rules (branch `anim/ws10-notices`)
