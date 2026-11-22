@@ -3,7 +3,7 @@
 (() => {
   const $ = (s, r) => (r || document).querySelector(s);
   const esc = s => String(s).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
-  const T = (ja, en) => ROLE === 'foreman' ? ja : en;
+  const T = __tr;
   const P = {
     mic: 'M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z',
     check: 'M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z',
@@ -35,7 +35,7 @@
   const JA_ING = ['文字起こし中', '英語に翻訳中', '確認質問を作成中', 'タスクを抽出中', '作業員へ送信中', '回答を待っています'];
   const JA_STEP = ['文字起こし', '英語に翻訳', '確認質問を作成', 'タスクを抽出', '作業員へ送信', '回答が届く'];
   const ST_JA = {green: 'わかった', orange: '要確認', red: '未理解', wait: '回答待ち'};
-  const stLabel = s => ROLE === 'foreman' ? ST_JA[s] : STATUS[s];
+  const stLabel = s => LANG === 'ja' ? ST_JA[s] : STATUS[s];
   const CIRC = 188.5;
 
   /* ---------------- seed data (owned by part A) ---------------- */
@@ -126,7 +126,7 @@
   const hhmm = (ms) => { const d = new Date(Date.now() + (ms || 0)); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
   const first = id => nameOf(id).split(' ')[0];
   const topicOf = qq => qq.term || qq.topic || (qq.qJa || qq.q).slice(0, 10);
-  const topicLabel = t => ROLE === 'worker' ? (TOPIC_EN[t] ? TOPIC_EN[t] + (/[^\x00-\x7f]/.test(t) && t !== '3号機オイル' ? ' (' + t + ')' : '') : t) : t;
+  const topicLabel = t => LANG !== 'ja' ? (TOPIC_EN[t] ? TOPIC_EN[t] + (/[^\x00-\x7f]/.test(t) && t !== '3号機オイル' ? ' (' + t + ')' : '') : t) : t;
   const wrongQs = (m, u) => { const r = m.wk.results[u] || {}; return m.wk.questions.filter((qq, i) => (r.answers || [])[i] !== qq.answer); };
   const rxp = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 

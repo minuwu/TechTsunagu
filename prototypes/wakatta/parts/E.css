@@ -4,16 +4,17 @@
 :root{--ux-onbad:#fff}
 :root[data-theme=dark]{
   color-scheme:dark;
-  --bg:#141218;--surface:#141218;--surface-1:#1d1b20;--surface-2:#211f26;--surface-3:#2b2930;
-  --on:#e6e0e9;--on-2:#cac4d0;--outline:#938f99;--outline-2:#49454f;
-  --primary:#d0bcff;--on-primary:#381e72;--primary-c:#4f378b;--on-primary-c:#eaddff;
+  --bg:#0c1626;--surface:#0c1626;--surface-1:#13203a;--surface-2:#172745;--surface-3:#1e3154;
+  --on:#e6eef8;--on-2:#b4c3d9;--outline:#7d8ea9;--outline-2:#33476a;
+  --primary:#9fc6f2;--on-primary:#0b2a52;--primary-c:#1d4b85;--on-primary-c:#d8e8fa;
+  --card-bg:#13203a;--card-hover:#1a2d50;--card-line:#2b4470;--card-line-hover:#5f8cc8;
   --error:#f2b8b5;--scrim:rgba(0,0,0,.6);
   --ok:#5bbd78;--ok-c:#17402a;--warn:#f0a030;--warn-c:#4a3410;--bad:#ef7b72;--bad-c:#5a201c;--wait:#9aa0a6;
   --b-ok-t:#a8dfb8;--b-warn-t:#f8d38a;--b-bad-t:#f7b8b2;--ux-onbad:#2b0a08;
 }
 :root[data-theme=dark] body{background:#0c0b0f}
-:root[data-theme=dark] .snackbar{background:#e6e0e9;color:#322f35}
-:root[data-theme=dark] .snackbar .btn.text{color:#6750a4!important}
+:root[data-theme=dark] .snackbar{background:#e6eef8;color:#14213d}
+:root[data-theme=dark] .snackbar .btn.text{color:#1f63b5!important}
 /* part A hard-codes dark text on the light pastel status backgrounds: keep it readable on the dark ones */
 :root[data-theme=dark] :is(.ch-op.ok,.ch-st.green,.ch-or.ok,.ch-res.green){color:var(--b-ok-t)}
 :root[data-theme=dark] :is(.ch-st.orange,.ch-res.orange){color:var(--b-warn-t)}

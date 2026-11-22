@@ -4,24 +4,28 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-<meta name="theme-color" content="#fef7ff">
+<meta name="theme-color" content="#e4effb">
 <title>Wakatta? — workplace chat</title>
 <style>
 /* ===== Tokens ===== */
 :root{
-  --bg:#fef7ff;--surface:#fef7ff;--surface-1:#f7f2fa;--surface-2:#f3edf7;--surface-3:#ece6f0;
-  --on:#1d1b20;--on-2:#49454f;--outline:#79747e;--outline-2:#cac4d0;
-  --primary:#6750a4;--on-primary:#fff;--primary-c:#eaddff;--on-primary-c:#21005d;
+  /* Nagasaki palette (matches the web app's v2 kit): harbour navy, ocean blue, light blue + white */
+  --bg:#e4effb;--surface:#e4effb;--surface-1:#dceaf9;--surface-2:#d3e4f6;--surface-3:#c7dcf2;
+  --on:#14213d;--on-2:#4a5a78;--outline:#6f7f9c;--outline-2:#bcd0e8;
+  --primary:#1f63b5;--on-primary:#fff;--primary-c:#d8e8fa;--on-primary-c:#0e2e5c;
+  --navy:#14213d;--teal:#2a8a8f;--card-bg:#f4f8fd;--card-hover:#dbe9f9;--card-line:#c4d7ee;--card-line-hover:#7fa6d6;
+  --shadow-sm:0 1px 2px rgba(20,33,61,.06),0 2px 8px -2px rgba(20,33,61,.08);
+  --shadow-md:0 2px 4px rgba(20,33,61,.06),0 10px 24px -8px rgba(20,33,61,.18);
   --error:#b3261e;--scrim:rgba(0,0,0,.32);
-  --font:Roboto,"Google Sans",system-ui,sans-serif;
+  --font:Roboto,"Noto Sans JP","Noto Sans Bengali","Google Sans",system-ui,sans-serif;
   --r-s:8px;--r-m:12px;--r-l:16px;--r-xl:28px;
   --ease:cubic-bezier(.2,0,0,1);--ease-out:cubic-bezier(.05,.7,.1,1);--dur:400ms;
   --status-h:36px;--nav-h:24px;
 }
 [data-platform=ios]{
-  --bg:#f2f2f7;--surface:#fff;--surface-1:#fff;--surface-2:#fff;--surface-3:#e5e5ea;
-  --on:#000;--on-2:#8e8e93;--outline:#c6c6c8;--outline-2:#e5e5ea;
-  --primary:#007aff;--on-primary:#fff;--primary-c:#e5f0ff;--on-primary-c:#007aff;
+  --bg:#e4effb;--surface:#fff;--surface-1:#fff;--surface-2:#fff;--surface-3:#dfe9f5;
+  --on:#14213d;--on-2:#6b7a93;--outline:#c3d0e0;--outline-2:#dfe9f5;
+  --primary:#1f63b5;--on-primary:#fff;--primary-c:#e1edfb;--on-primary-c:#1f63b5;
   --error:#ff3b30;--scrim:rgba(0,0,0,.4);
   --font:-apple-system,"SF Pro Text",system-ui,sans-serif;
   --r-s:8px;--r-m:10px;--r-l:12px;--r-xl:14px;
@@ -30,7 +34,7 @@
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%}
-body{display:grid;place-items:center;background:#e4e4e7;font:16px/1.4 var(--font);color:var(--on);user-select:none;-webkit-user-select:none}
+body{display:grid;place-items:center;background:linear-gradient(180deg,#d6e8f8 0,#f2f7fc 60%) fixed;font:16px/1.4 var(--font);color:var(--on);user-select:none;-webkit-user-select:none}
 button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:pointer}
 input,textarea{font:inherit;color:inherit;user-select:text}
 
@@ -82,10 +86,15 @@ input,textarea{font:inherit;color:inherit;user-select:text}
 [data-platform=ios] .btn{height:50px;border-radius:var(--r-m);font-size:17px;font-weight:600}
 .fab{position:absolute;right:16px;bottom:calc(16px + var(--nav-h));z-index:5;width:56px;height:56px;border-radius:16px;display:grid;place-items:center;background:var(--primary-c);color:var(--on-primary-c);box-shadow:0 3px 8px rgba(0,0,0,.18);overflow:hidden}
 .screen[data-root] .fab{bottom:calc(96px + var(--nav-h))}
-.card{background:var(--surface-1);border-radius:var(--r-m);overflow:hidden;position:relative}
-.card.outlined{background:var(--surface);box-shadow:inset 0 0 0 1px var(--outline-2)}
+.card{background:var(--card-bg);border:1px solid var(--card-line);border-radius:14px;overflow:hidden;position:relative;box-shadow:var(--shadow-sm);transition:background-color .2s var(--ease),border-color .2s var(--ease),box-shadow .2s var(--ease),transform .2s var(--ease)}
+.card.outlined{background:#fff}
+.card:hover{background:var(--card-hover);border-color:var(--card-line-hover);box-shadow:var(--shadow-md);transform:translateY(-2px)}
+.card:is(button,a,[role=button],[onclick],[data-go],[data-open]),.card:has(> button:only-child){cursor:pointer}
+.card:active{transform:translateY(0);box-shadow:var(--shadow-sm)}
 .list{margin:0;padding:0;list-style:none}
-.list-item{display:flex;align-items:center;gap:16px;min-height:56px;padding:8px 16px;position:relative;overflow:hidden}
+.list-item{display:flex;align-items:center;gap:16px;min-height:56px;padding:8px 16px;position:relative;overflow:hidden;transition:background-color .2s var(--ease)}
+.list-item:is(button,a,[role=button],[onclick],[data-go],[data-open]){cursor:pointer}
+.list-item:is(button,a,[role=button],[onclick],[data-go],[data-open]):hover{background:var(--card-hover)}
 .list-item .grow{flex:1;min-width:0}
 .list-item .sub{font-size:14px;color:var(--on-2)}
 [data-platform=ios] .list{background:var(--surface);border-radius:var(--r-m);margin:0 16px}
@@ -111,6 +120,15 @@ input,textarea{font:inherit;color:inherit;user-select:text}
 [data-platform=ios] .switch:checked{background:#34c759}
 [data-platform=ios] .switch:checked::after{left:22px;top:2px;width:27px;height:27px}
 .skeleton{background:linear-gradient(90deg,var(--surface-3) 0,var(--surface-1) 50%,var(--surface-3) 100%);background-size:200% 100%;animation:shimmer 1.2s linear infinite;border-radius:var(--r-s)}
+/* Splash: the Megane-bridge mark draws on navy, then fades (same as the web app) */
+.splash{position:absolute;inset:0;z-index:950;display:grid;place-items:center;background:var(--navy);color:#f5f8fc;pointer-events:none;animation:splash-out .36s .9s var(--ease) forwards}
+.splash svg{width:96px;fill:none;stroke:currentColor;stroke-width:2.25;stroke-linecap:round}
+.splash .arc{stroke-dasharray:1;animation:arc-draw .7s var(--ease-out) both}
+.splash .arc.late{animation-delay:.18s;opacity:.45}
+.splash b{display:block;margin-top:14px;font-size:24px;letter-spacing:.02em;text-align:center}
+@keyframes splash-out{to{opacity:0;visibility:hidden}}
+@keyframes arc-draw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+@media (prefers-reduced-motion:reduce){.splash{animation-delay:0s;animation-duration:.01s}.card,.card:hover{transition:none;transform:none}}
 @keyframes shimmer{to{background-position:-200% 0}}
 .spinner{width:28px;height:28px;border-radius:50%;border:3px solid var(--primary-c);border-top-color:var(--primary);animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -152,7 +170,7 @@ input,textarea{font:inherit;color:inherit;user-select:text}
 [data-platform=ios] .dialog .actions{margin:20px -16px 0;gap:0;border-top:.5px solid var(--outline)}
 [data-platform=ios] .dialog .actions .btn{flex:1;background:none;color:var(--primary);font-weight:400;height:44px;border-radius:0}
 [data-platform=ios] .dialog .actions .btn+.btn{border-left:.5px solid var(--outline);font-weight:600}
-.snackbar{position:absolute;left:16px;right:16px;bottom:calc(16px + var(--nav-h));z-index:800;min-height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 8px 0 16px;border-radius:4px;background:#322f35;color:#f5eff7;font-size:14px;transform:translateY(24px);opacity:0;pointer-events:none;transition:transform .3s var(--ease-out),opacity .2s}
+.snackbar{position:absolute;left:16px;right:16px;bottom:calc(16px + var(--nav-h));z-index:800;min-height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 8px 0 16px;border-radius:10px;background:var(--navy);color:#f5eff7;font-size:14px;transform:translateY(24px);opacity:0;pointer-events:none;transition:transform .3s var(--ease-out),opacity .2s}
 .snackbar.on{transform:none;opacity:1;pointer-events:auto}
 .has-tabs .snackbar{bottom:calc(96px + var(--nav-h))}
 [data-platform=ios] .snackbar{top:calc(var(--status-h) + 8px);bottom:auto;border-radius:24px;justify-content:center;background:rgba(30,30,30,.9);transform:translateY(-120%)}
@@ -167,6 +185,13 @@ html.embed{--status-h:36px;--nav-h:24px}
 html.embed body{background:transparent}
 html.embed .device{width:100vw;height:100vh;border:0;border-radius:0;box-shadow:none}
 html.embed .statusbar{display:flex!important}
+/* Language switch in the app bar, right before the notifications bell: JA / EN / BN */
+.langbar{display:flex;flex-shrink:0;gap:1px;padding:2px;margin-right:2px;border-radius:999px;background:var(--surface-3);box-shadow:inset 0 0 0 1px var(--outline-2)}
+.langbar button{min-width:30px;height:28px;padding:0 6px;border-radius:999px;font-size:11.5px;font-weight:700;letter-spacing:.02em;color:var(--on-2);transition:background-color .2s var(--ease),color .2s var(--ease)}
+.langbar button:hover{color:var(--on)}
+.langbar button[aria-pressed=true]{background:var(--navy);color:#fff;box-shadow:var(--shadow-sm)}
+.langbar button:focus-visible{outline:2px solid var(--primary);outline-offset:1px}
+:root[data-theme=dark] .langbar button[aria-pressed=true]{background:#e6eef8;color:#14213d}
 /* ===== Wakatta status colors ===== */
 :root{--ok:#1e8e3e;--ok-c:#ceead6;--warn:#e37400;--warn-c:#feefc3;--bad:#d93025;--bad-c:#fad2cf;--wait:#9aa0a6}
 /* PART:A:CSS */
@@ -179,6 +204,7 @@ html.embed .statusbar{display:flex!important}
 </head>
 <body>
 <div class="device has-tabs" id="device">
+  <div class="splash" aria-hidden="true"><div><svg viewBox="0 0 48 28"><path class="arc" pathLength="1" d="M5 14a9 9 0 0 1 18 0M25 14a9 9 0 0 1 18 0"/><path class="arc late" pathLength="1" d="M5 14a9 9 0 0 0 18 0M25 14a9 9 0 0 0 18 0"/><path d="M1.5 14h45" stroke-width="1.5" opacity=".7"/></svg><b>Wakatta?</b></div></div>
   <div class="statusbar"><span>9:41</span><span>&#9679;&#9679;&#9679; &#9646;</span></div>
 
   <div class="stage" id="stage">
@@ -215,6 +241,12 @@ html.embed .statusbar{display:flex!important}
 /* ===== Role: ?role=foreman (Japanese, default) | ?role=worker (English). ?embed=1 when inside index.html ===== */
 const QS = new URLSearchParams(location.search);
 const ROLE = QS.get('role') === 'worker' ? 'worker' : 'foreman';
+// UI language, separate from role: ?lang=ja|en|bn (default follows the role)
+const LANG = ['ja', 'en', 'bn'].includes(QS.get('lang')) ? QS.get('lang') : (ROLE === 'foreman' ? 'ja' : 'en');
+document.documentElement.lang = LANG;
+// Bengali covers navigation and short labels; longer text falls back to English
+const BN = {"(message)": "(বার্তা)", "2w ago": "২ সপ্তাহ আগে", "3w ago": "৩ সপ্তাহ আগে", "Add &amp; pin": "যোগ করে পিন করুন", "Add a comment…": "মন্তব্য লিখুন…", "Add task": "কাজ যোগ করুন", "Analytics": "বিশ্লেষণ", "Assign Check": "যাচাই দিন", "Assigned to": "দায়িত্বে", "Assignees": "দায়িত্বপ্রাপ্ত", "Back": "পিছনে", "Board": "বোর্ড", "Chats": "চ্যাট", "Close": "বন্ধ", "Coming soon": "শীঘ্রই আসছে", "Comments": "মন্তব্য", "Confusion heatmap": "বিভ্রান্তির হিটম্যাপ", "Current gaps": "বর্তমান ঘাটতি", "Dark mode": "ডার্ক মোড", "Date": "তারিখ", "Dates": "তারিখ", "Day streak": "টানা দিন", "Due": "শেষ সময়", "Employer": "নিয়োগকর্তা", "English": "English", "Expires": "মেয়াদ শেষ", "Expiring soon": "শীঘ্রই মেয়াদ শেষ", "Explained": "ব্যাখ্যা করা হয়েছে", "Filter": "ফিল্টার", "Fixed shop term": "নির্ধারিত কারখানার শব্দ", "Flyer photo": "লিফলেটের ছবি", "Follow-up": "ফলো-আপ", "Follow-ups": "ফলো-আপ", "From chat": "চ্যাট থেকে", "Gap": "ঘাটতি", "Hide original": "মূল লেখা লুকান", "Home": "হোম", "In glossary": "শব্দকোষে আছে", "Kind": "ধরন", "Language": "ভাষা", "Large text": "বড় লেখা", "Last wk": "গত সপ্তাহ", "Learned the term": "শব্দটি শিখেছেন", "Life": "জীবন", "Life & notices": "জীবন ও নোটিশ", "Locked": "লক", "Log a meet-up": "সাক্ষাৎ লিখে রাখুন", "Loop funnel": "লুপ ফানেল", "Machine": "মেশিন", "Machine Panel": "মেশিন প্যানেল", "Machine QR": "মেশিন QR", "Machines": "মেশিন", "Mark all read": "সব পড়া হয়েছে", "Me": "আমি", "Meet-up logged": "সাক্ষাৎ লেখা হয়েছে", "Message": "বার্তা", "Messages & tasks": "বার্তা ও কাজ", "Missing": "নেই", "My Senpai": "আমার সেনপাই", "Near-miss": "প্রায়-দুর্ঘটনা", "Near-miss reports": "প্রায়-দুর্ঘটনার রিপোর্ট", "Neighborhood association": "পাড়ার সমিতি", "New task": "নতুন কাজ", "Next": "পরবর্তী", "Next: ": "পরবর্তী: ", "No confusion here": "এখানে কোনো বিভ্রান্তি নেই", "No messages yet": "এখনো কোনো বার্তা নেই", "No notifications": "কোনো বিজ্ঞপ্তি নেই", "No open reports": "খোলা কোনো রিপোর্ট নেই", "No tasks yet": "এখনো কোনো কাজ নেই", "None": "কিছু নেই", "Note": "নোট", "Nothing here yet": "এখনো কিছু নেই", "Nothing seen yet": "এখনো কেউ দেখেনি", "Notice": "নোটিশ", "Notice not found": "নোটিশ পাওয়া যায়নি", "Notification preferences": "বিজ্ঞপ্তির পছন্দ", "Notifications": "বিজ্ঞপ্তি", "Open": "খুলুন", "Open Machine Panel": "মেশিন প্যানেল খুলুন", "Open chat": "চ্যাট খুলুন", "Open in chat": "চ্যাটে খুলুন", "Original": "মূল লেখা", "Per-worker status": "কর্মীভিত্তিক অবস্থা", "Print QR": "QR প্রিন্ট করুন", "Re-understood": "আবার বুঝেছেন", "Re: ": "উত্তর: ", "Read aloud": "জোরে পড়ুন", "Read: ": "পড়েছেন: ", "Ready": "প্রস্তুত", "Reminder": "রিমাইন্ডার", "Reminder removed": "রিমাইন্ডার সরানো হয়েছে", "Reminder set": "রিমাইন্ডার দেওয়া হয়েছে", "Replay onboarding": "শুরুর পরিচিতি আবার দেখুন", "Reply by ": "উত্তর দিন ", "Report not found": "রিপোর্ট পাওয়া যায়নি", "Review": "পর্যালোচনা", "Rework avoided": "পুনরায় কাজ এড়ানো গেছে", "Safe-use Note": "নিরাপদ ব্যবহারের নোট", "Save": "সংরক্ষণ", "Scan machine": "মেশিন স্ক্যান করুন", "Search": "খুঁজুন", "Seen": "দেখেছেন", "Seen ": "দেখেছেন ", "Seen by Tanaka": "তানাকা দেখেছেন", "Sent": "পাঠানো হয়েছে", "Settings": "সেটিংস", "Show original (日本語)": "মূল লেখা দেখুন (日本語)", "Sign-off date": "সাইন-অফের তারিখ", "Simulate offline": "অফলাইন অবস্থা দেখুন", "Skill Matrix": "দক্ষতা তালিকা", "Skip": "এড়িয়ে যান", "Source message": "মূল বার্তা", "Start": "শুরু", "Suggested next meet-up": "পরবর্তী সাক্ষাতের প্রস্তাব", "Supervisor": "সুপারভাইজার", "Switch role": "ভূমিকা বদলান", "Task": "কাজ", "Task added": "কাজ যোগ হয়েছে", "Text": "লেখা", "This wk": "এই সপ্তাহ", "Time saved": "বাঁচানো সময়", "Timeline": "সময়রেখা", "Title": "শিরোনাম", "Today ": "আজ ", "Torch": "টর্চ", "Understanding per worker": "কর্মীভিত্তিক বোঝাপড়া", "Understanding trend": "বোঝাপড়ার প্রবণতা", "Understood": "বুঝেছেন", "Updated": "হালনাগাদ", "Valid": "বৈধ", "Version": "সংস্করণ", "View learning history": "শেখার ইতিহাস দেখুন", "Visual only": "শুধু ছবি", "Vocabulary insights": "শব্দভান্ডারের তথ্য", "Voice input": "কণ্ঠে লিখুন", "Voice memo": "ভয়েস মেমো", "What to do": "কী করতে হবে", "Words I mastered": "যে শব্দগুলো শিখেছি", "Worker": "কর্মী", "Workers": "কর্মী", "Wrong": "ভুল", "Yesterday ": "গতকাল ", "You: ": "আপনি: ", "cases": "টি ঘটনা", "h/week": "ঘণ্টা/সপ্তাহ", "just now": "এইমাত্র", "reminded": "মনে করানো হয়েছে", "you": "আপনি", "×": "×"};
+const __tr = (ja, en) => LANG === 'ja' ? ja : LANG === 'bn' ? (BN[en] ?? en) : en;
 const ME = ROLE === 'foreman' ? 'u_tanaka' : 'u_rahim';
 if (QS.has('embed')) document.documentElement.classList.add('embed');
 document.documentElement.dataset.role = ROLE;
@@ -245,7 +277,7 @@ const STATUS = {green: 'Wakatta', orange: 'Needs clarifying', red: 'Not understo
 
 const DATA = {
   users: {
-    u_tanaka: {name: '田中 健一', en: 'Tanaka Kenichi', role: 'foreman', initials: '田', color: '#6750a4'},
+    u_tanaka: {name: '田中 健一', en: 'Tanaka Kenichi', role: 'foreman', initials: '田', color: '#1f63b5'},
     u_rahim:  {name: 'Rahim Uddin', role: 'worker', initials: 'R', color: '#00897b'},
     u_nguyen: {name: 'Nguyen Van An', role: 'worker', initials: 'N', color: '#e65100'},
     u_siti:   {name: 'Siti Rahma', role: 'worker', initials: 'S', color: '#1565c0'},
@@ -300,8 +332,8 @@ const DATA = {
     simulated: {u_nguyen: {after: 3500, answers: [1, 1, 2]}, u_siti: {after: 6000, answers: [1, 0, 2]}},
   },
 };
-const nameOf = id => ROLE === 'worker' && DATA.users[id].en ? DATA.users[id].en : DATA.users[id].name;
-const textOf = m => ROLE === 'worker' ? m.en : m.ja;
+const nameOf = id => LANG !== 'ja' && DATA.users[id].en ? DATA.users[id].en : DATA.users[id].name;
+const textOf = m => LANG === 'ja' ? m.ja : m.en;
 // status from answers: all right = green, all wrong = red, else orange
 const statusOf = (qs, ans) => { const ok = ans.filter((a, i) => a === qs[i].answer).length; return ok === qs.length ? 'green' : ok === 0 ? 'red' : 'orange'; };
 console.assert(statusOf([{answer: 1}, {answer: 0}], [1, 0]) === 'green' && statusOf([{answer: 1}], [0]) === 'red' && statusOf([{answer: 1}, {answer: 0}], [1, 1]) === 'orange', 'statusOf');
@@ -447,7 +479,7 @@ const App = (() => {
   /* ---- snackbar / toast ---- */
   let snackTimer;
   function toast(msg, action) {
-    snack.innerHTML = `<span>${msg}</span>` + (action ? `<button class="btn text" style="color:#d0bcff">${action.label}</button>` : '');
+    snack.innerHTML = `<span>${msg}</span>` + (action ? `<button class="btn text" style="color:#9fc6f2">${action.label}</button>` : '');
     if (action) snack.querySelector('button').onclick = () => { action.run(); snack.classList.remove('on'); };
     snack.classList.add('on'); clearTimeout(snackTimer);
     snackTimer = setTimeout(() => snack.classList.remove('on'), 2800);
@@ -577,6 +609,86 @@ const App = (() => {
 // PART:C:INIT
 // PART:D:INIT
 // PART:E:INIT
+
+
+const I18N = [["読み上げ", "Read aloud", "জোরে পড়ুন"], ["引用 ·", "Re:", "Re:"], ["回答期限", "Reply by", "Reply by"], ["原文を隠す", "Hide original", "মূল লেখা লুকান"], ["原文を見る (English)", "Show original (日本語)", "মূল লেখা দেখুন (日本語)"], ["この端末では読み上げできません", "Read aloud is not available on this device", "Read aloud is not available on this device"], ["固定用語 · AIは訳を変えません", "Fixed shop term", "নির্ধারিত কারখানার শব্দ"], ["ボードは別画面です", "Board not in this build", "Board not in this build"], ["メッセージ・マイクで話す", "Message", "বার্তা"], ["音声入力", "Voice input", "কণ্ঠে লিখুন"], ["開く", "Open", "খুলুন"], ["タスクを追加", "New task", "নতুন কাজ"], ["タイトル", "Title", "শিরোনাম"], ["担当", "Assignees", "দায়িত্বপ্রাপ্ত"], ["期限", "Due", "শেষ সময়"], ["追加", "Add task", "কাজ যোগ করুন"], ["タイトルを入力してください", "Enter a title first", "Enter a title first"], ["タスクを追加しました", "Task added", "কাজ যোগ হয়েছে"], ["使用可", "Ready", "প্রস্তুত"], ["ロック中", "Locked", "লক"], ["戻る", "Back", "পিছনে"], ["通知", "Notifications", "বিজ্ঞপ্তি"], ["この画面はまだ準備中です", "Coming soon", "শীঘ্রই আসছে"], ["あなた:", "You:", "You:"], ["メッセージはまだありません", "No messages yet", "এখনো কোনো বার্তা নেই"], ["チャットから", "From chat", "চ্যাট থেকে"], ["ボード", "Board", "বোর্ড"], ["フィルターはプロトタイプでは未対応", "Filters are not in the prototype", "Filters are not in the prototype"], ["絞り込み", "Filter", "ফিল্টার"], ["タスクを追加", "Add task", "কাজ যোগ করুন"], ["タスクなし · ここにドロップ", "No tasks · drop here", "No tasks · drop here"], ["担当", "Assigned to", "দায়িত্বে"], ["機械", "Machine", "মেশিন"], ["元のメッセージ", "Source message", "মূল বার্তা"], ["チャットで開く", "Open in chat", "চ্যাটে খুলুন"], ["コメント", "Comments", "মন্তব্য"], ["コメントはプロトタイプでは未対応", "Comments are not in the prototype", "Comments are not in the prototype"], ["コメントを書く…", "Add a comment…", "মন্তব্য লিখুন…"], ["作業者の状態", "Workers", "কর্মী"], ["あなた", "you", "আপনি"], ["マシンパネルを開く", "Open Machine Panel", "মেশিন প্যানেল খুলুন"], ["機械QR", "Machine QR", "মেশিন QR"], ["機械に貼って、スキャンでチェックと承認を開始", "Stick it on the machine. Scan to start the Check and sign-off.", "Stick it on the machine. Scan to start the Check and sign-off."], ["QRの印刷はプロトタイプでは未対応", "Printing is not in the prototype", "Printing is not in the prototype"], ["QRを印刷", "Print QR", "QR প্রিন্ট করুন"], ["この機械のタスク", "Recent tasks on this machine", "Recent tasks on this machine"], ["タスクなし", "No tasks yet", "এখনো কোনো কাজ নেই"], ["ロールを切り替え", "Switch role", "ভূমিকা বদলান"], ["チャット", "Chats", "চ্যাট"], ["検索はプロトタイプでは未対応", "Search is not in the prototype", "Search is not in the prototype"], ["検索", "Search", "খুঁজুন"], ["機械", "Machines", "মেশিন"], ["機械をスキャン", "Scan machine", "মেশিন স্ক্যান করুন"], ["自分", "Me", "আমি"], ["タスク", "Task", "কাজ"], ["今日", "Today", "Today"], ["昨日", "Yesterday", "Yesterday"], ["閉じる", "Close", "বন্ধ"], ["機械のQRをスキャン", "Scan the machine QR", "Scan the machine QR"], ["ライト", "Torch", "টর্চ"], ["機械のQRコードを枠に合わせてください", "Point the camera at the QR on the machine", "Point the camera at the QR on the machine"], ["機械をタップして、スキャンを再現します", "Tap a machine to simulate a scan", "Tap a machine to simulate a scan"], ["読み取りました:", "Read:", "Read:"], ["機械パネル", "Machine Panel", "মেশিন প্যানেল"], ["にリマインドしました", "reminded", "মনে করানো হয়েছে"], ["作業員ごとの状態", "Per-worker status", "কর্মীভিত্তিক অবস্থা"], ["ノート", "Note", "নোট"], ["この機械のノートはまだありません", "No Note for this machine yet", "No Note for this machine yet"], ["現場ノート", "Safe-use Note", "নিরাপদ ব্যবহারের নোট"], ["更新", "Updated", "হালনাগাদ"], ["現場の写真", "Photo of the spot", "Photo of the spot"], ["ヒヤリハット", "Near-miss reports", "প্রায়-দুর্ঘটনার রিপোর্ট"], ["未対応", "Open", "খুলুন"], ["対応済", "Seen", "দেখেছেন"], ["未対応の報告はありません", "No open reports", "খোলা কোনো রিপোর্ট নেই"], ["対応済の報告はまだありません", "Nothing seen yet", "এখনো কেউ দেখেনি"], ["ヒヤリハット", "Near-miss", "প্রায়-দুর্ঘটনা"], ["報告が見つかりません", "Report not found", "রিপোর্ট পাওয়া যায়নি"], ["対応済", "Seen by Tanaka", "তানাকা দেখেছেন"], ["未対応", "Sent", "পাঠানো হয়েছে"], ["確認", "Seen", "দেখেছেন"], ["チラシの写真", "Flyer photo", "লিফলেটের ছবি"], ["テキスト", "Text", "লেখা"], ["音声メモ", "Voice memo", "ভয়েস মেমো"], ["自治会", "Neighborhood association", "পাড়ার সমিতি"], ["この画面は職長用です", "This screen is for the foreman", "This screen is for the foreman"], ["リマインダー", "Reminder", "রিমাইন্ডার"], ["私の先輩", "My Senpai", "আমার সেনপাই"], ["次:", "Next:", "Next:"], ["チラシの写真", "Photo of the flyer", "Photo of the flyer"], ["お知らせが見つかりません", "Notice not found", "নোটিশ পাওয়া যায়নি"], ["やること", "What to do", "কী করতে হবে"], ["日程", "Dates", "তারিখ"], ["元のお知らせ", "Original", "মূল লেখা"], ["このブラウザは読み上げに未対応です", "Read-aloud is not supported in this browser", "Read-aloud is not supported in this browser"], ["コーヒーに誘う", "Invite them for coffee", "Invite them for coffee"], ["次のおすすめ面談", "Suggested next meet-up", "পরবর্তী সাক্ষাতের প্রস্তাব"], ["面談を記録", "Log a meet-up", "সাক্ষাৎ লিখে রাখুন"], ["種類", "Kind", "ধরন"], ["日付", "Date", "তারিখ"], ["メモ", "Note", "নোট"], ["話したこと", "What did you talk about?", "What did you talk about?"], ["保存", "Save", "সংরক্ষণ"], ["面談を記録しました", "Meet-up logged", "সাক্ষাৎ লেখা হয়েছে"], ["くらし", "Life", "জীবন"], ["お知らせ", "Notice", "নোটিশ"], ["先輩", "My Senpai", "আমার সেনপাই"], ["リマインダーを設定しました", "Reminder set", "রিমাইন্ডার দেওয়া হয়েছে"], ["リマインダーを解除しました", "Reminder removed", "রিমাইন্ডার সরানো হয়েছে"], ["たった今", "just now", "এইমাত্র"], ["通知はありません", "No notifications", "কোনো বিজ্ঞপ্তি নেই"], ["新しいお知らせがここに表示されます", "New updates will show up here", "New updates will show up here"], ["設定", "Settings", "সেটিংস"], ["言語", "Language", "ভাষা"], ["日本語", "English", "English"], ["ダークモード", "Dark mode", "ডার্ক মোড"], ["大きい文字", "Large text", "বড় লেখা"], ["オフラインを試す", "Simulate offline", "অফলাইন অবস্থা দেখুন"], ["表示のみ", "Visual only", "শুধু ছবি"], ["通知設定", "Notification preferences", "বিজ্ঞপ্তির পছন্দ"], ["メッセージ・タスク", "Messages & tasks", "বার্তা ও কাজ"], ["安全・朝礼・機械", "Safety, briefings & machines", "Safety, briefings & machines"], ["生活・お知らせ", "Life & notices", "জীবন ও নোটিশ"], ["オンボーディングをもう一度", "Replay onboarding", "শুরুর পরিচিতি আবার দেখুন"], ["オフライン · オンラインに戻るとメッセージを送信します", "Offline · messages will send when back online", "Offline · messages will send when back online"], ["オンラインに戻りました · 2件送信しました", "Back online · 2 sent", "Back online · 2 sent"], ["スキップ", "Skip", "এড়িয়ে যান"], ["はじめる", "Start", "শুরু"], ["次へ", "Next", "পরবর্তী"], ["1つの指示がもたらす価値", "One instruction, three wins", "One instruction, three wins"], ["作業者", "Worker", "কর্মী"], ["言葉を理解できた", "Learned the term", "শব্দটি শিখেছেন"], ["職長", "Supervisor", "সুপারভাইজার"], ["穴を発見し解消", "Gap found and fixed", "Gap found and fixed"], ["会社", "Employer", "নিয়োগকর্তা"], ["ミス削減・研修記録", "Fewer errors, training on record", "Fewer errors, training on record"], ["3週前", "3w ago", "৩ সপ্তাহ আগে"], ["2週前", "2w ago", "২ সপ্তাহ আগে"], ["先週", "Last wk", "গত সপ্তাহ"], ["今週", "This wk", "এই সপ্তাহ"], ["理解度の推移", "Understanding trend", "বোঝাপড়ার প্রবণতা"], ["用語集済", "In glossary", "শব্দকোষে আছে"], ["用語集に追加・固定", "Add &amp; pin", "যোগ করে পিন করুন"], ["まだ混乱は記録されていません", "No confusion recorded yet", "No confusion recorded yet"], ["セルをタップすると原因のメッセージを表示します", "Tap a cell to see the messages that caused it", "Tap a cell to see the messages that caused it"], ["回", "×", "×"], ["(メッセージ)", "(message)", "(বার্তা)"], ["チャットを開く", "Open chat", "চ্যাট খুলুন"], ["つまずきはありません", "No confusion here", "এখানে কোনো বিভ্রান্তি নেই"], ["指示", "Sent", "পাঠানো হয়েছে"], ["理解", "Understood", "বুঝেছেন"], ["要フォロー", "Follow-up", "ফলো-আপ"], ["説明済", "Explained", "ব্যাখ্যা করা হয়েছে"], ["理解 (再確認)", "Re-understood", "আবার বুঝেছেন"], ["節約した時間", "Time saved", "বাঁচানো সময়"], ["時間/週", "h/week", "ঘণ্টা/সপ্তাহ"], ["手戻り防止", "Rework avoided", "পুনরায় কাজ এড়ানো গেছে"], ["件", "cases", "টি ঘটনা"], ["理解度の推移 (4週間)", "Understanding rate, 4 weeks", "Understanding rate, 4 weeks"], ["ループの流れ", "Loop funnel", "লুপ ফানেল"], ["作業者ごとの理解", "Understanding per worker", "কর্মীভিত্তিক বোঝাপড়া"], ["つまずきやすい用語", "Vocabulary insights", "শব্দভান্ডারের তথ্য"], ["混乱ヒートマップ", "Confusion heatmap", "বিভ্রান্তির হিটম্যাপ"], ["未", "None", "কিছু নেই"], ["有効", "Valid", "বৈধ"], ["14日以内に失効", "Expiring in 14 days", "Expiring in 14 days"], ["未取得", "Missing", "নেই"], ["セルをタップして詳細とチェックの割り当て", "Tap a cell for details and to assign a Check", "Tap a cell for details and to assign a Check"], ["まもなく失効", "Expiring soon", "শীঘ্রই মেয়াদ শেষ"], ["サインオフ日", "Sign-off date", "সাইন-অফের তারিখ"], ["なし", "None", "কিছু নেই"], ["バージョン", "Version", "সংস্করণ"], ["有効期限", "Expires", "মেয়াদ শেষ"], ["チェックを割り当て", "Assign Check", "যাচাই দিন"], ["学習履歴を見る", "View learning history", "শেখার ইতিহাস দেখুন"], ["誤答", "Wrong", "ভুল"], ["要フォロー", "Gap", "ঘাটতি"], ["復習", "Review", "পর্যালোচনা"], ["習得した言葉", "Words I mastered", "যে শব্দগুলো শিখেছি"], ["いまの課題", "Current gaps", "বর্তমান ঘাটতি"], ["連続日数", "Day streak", "টানা দিন"], ["課題はありません", "No gaps right now", "No gaps right now"], ["学習の記録", "Timeline", "সময়রেখা"], ["まだ記録がありません", "Nothing here yet", "এখনো কিছু নেই"], ["すべて既読", "Mark all read", "সব পড়া হয়েছে"], ["理解度分析", "Analytics", "বিশ্লেষণ"], ["力量表", "Skill Matrix", "দক্ষতা তালিকা"], ["フォローアップ", "Follow-ups", "ফলো-আপ"], ["職長 · 第2工場", "Worker · Plant 2", "Worker · Plant 2"], ["ロック中", "LOCKED", "LOCKED"], ["使用可", "READY", "READY"], ["チェック結果", "Check", "Check"], ["質問（佐藤さん宛）", "Ask", "Ask"], ["金型交換", "die change", "die change"], ["段取り", "setup", "setup"], ["玉掛け", "slinging", "slinging"], ["治具", "jig", "jig"], ["切粉", "chips", "chips"], ["集合は 7時45分 です。8時 ではありません。8時に 仕事が はじまる ので、その 前に ここに 来て ください。", "Gather at 7:45, not 8:00. The work starts at 8:00, so be at Press #2 before that.", "Gather at 7:45, not 8:00. The work starts at 8:00, so be at Press #2 before that."], ["ロックアウトは、でんげんを きって、自分の かぎを かける ことです。だれも スイッチを いれられません。金型交換の 前に かならず します。", "Lockout: switch the power off and put your own lock on it, so nobody can turn it on. Always do it before the die change.", "Lockout: switch the power off and put your own lock on it, so nobody can turn it on. Always do it before the die change."], ["金型（かながた）は、プレスに つける 「かた」です。金型交換は、その かたを べつの かたに かえる しごとです。", "The die is the shaped tool on the press. A die change means we swap it for another die.", "The die is the shaped tool on the press. A die change means we swap it for another die."], ["きょうは まず 3ごうきの オイルを みます。オイルが すくない ときは、わたしに いって ください。", "Check the oil on Machine 3 first today. If the oil is low, tell me.", "Check the oil on Machine 3 first today. If the oil is low, tell me."], ["7時45分に集合です。8時ではありません。気をつけてね。", "We gather at 7:45, not 8:00. Please be careful.", "We gather at 7:45, not 8:00. Please be careful."], ["電源を切って、自分の鍵をかけることです。交換の前に必ずやってください。", "Switch the power off and put your own lock on it. Always do this before the change.", "Switch the power off and put your own lock on it. Always do this before the change."], ["金型はプレスにつける型です。それを別の型に替える作業のことです。", "The die is the shaped tool on the press. It means swapping it for another die.", "The die is the shaped tool on the press. It means swapping it for another die."], ["3号機の油圧オイルです。タンクの横のゲージを見てください。", "The hydraulic oil on Machine 3. Look at the gauge beside the tank.", "The hydraulic oil on Machine 3. Look at the gauge beside the tank."], ["もう一度ゆっくり説明します。あとで現場で一緒に見ましょう。", "I will explain it again slowly. Let us look at it together on the floor later.", "I will explain it again slowly. Let us look at it together on the floor later."], ["もう一度、ゆっくり 言います。むずかしい ところを、かんたんな ことばで せつめい します。", "In simple words:", "In simple words:"], ["おはようございます。今日の安全の重点は、プレスでの手の挟まれ防止です。作業の前に、必ず安全カバーが閉まっているか確認してください。変更が一つあります。2号プレスの金型交換は午後に行います。午前中は使えません。", "Good morning. Today’s safety focus is keeping your hands from getting caught in the press. Before you start work, always check that the safety guard is closed. One change: the die on Press #2 will be changed this afternoon. You cannot use it this morning.", "Good morning. Today’s safety focus is keeping your hands from getting caught in the press. Before you start work, always check that the safety guard is closed. One change: the die on Press #2 will be changed this afternoon. You cannot use it this morning."], ["昨日の朝礼: 3号機のノズルは高温です。ドアは完全に止まってから開けてください。", "Yesterday’s briefing: the nozzle on Machine 3 is very hot. Open the door only after it has fully stopped.", "Yesterday’s briefing: the nozzle on Machine 3 is very hot. Open the door only after it has fully stopped."], ["コーヒー", "Coffee", "Coffee"], ["防災訓練をいっしょに", "Drill together", "Drill together"], ["お祭り", "Festival", "Festival"], ["その他", "Other", "Other"], ["いい質問ですね。明日の昼休みに、いっしょに調べましょう。", "Good question. Let us look it up together at lunch tomorrow.", "Good question. Let us look it up together at lunch tomorrow."], ["市役所の窓口で聞くといいですよ。私もついて行きます。", "It is best to ask at the city office. I will go with you.", "It is best to ask at the city office. I will go with you."], ["今度の土曜日に、いっしょに行きましょう。", "Let us go together this Saturday.", "Let us go together this Saturday."], ["今日は3号機の油の点検を先にしてください。オイルが少ないときは、私に言ってください。", "Today, check the oil on Machine 3 first. If the oil is low, tell me.", "Today, check the oil on Machine 3 first. If the oil is low, tell me."], ["機械3のオイル、少ないです。", "Machine 3 oil is low.", "Machine 3 oil is low."], ["明日の点検表、ありがとう。", "Thanks for tomorrow’s inspection sheet.", "Thanks for tomorrow’s inspection sheet."], ["明日の朝8時から、2号プレスの金型交換をします。ラヒムさんとグエンさんは、7時45分に集合してください。交換の前に、必ず電源をロックアウトして、安全靴と手袋をつけてください。終わったら点検表を書いて、私に報告してください。", "Tomorrow from 8:00 we change the die on Press #2. Rahim and Nguyen, gather at 7:45. Before the change, always lock out the power and wear safety shoes and gloves. When you finish, fill in the inspection sheet and report to me.", "Tomorrow from 8:00 we change the die on Press #2. Rahim and Nguyen, gather at 7:45. Before the change, always lock out the power and wear safety shoes and gloves. When you finish, fill in the inspection sheet and report to me."], ["すみません、明日は何時に集合ですか？聞き取れませんでした。", "Sorry, what time do we gather tomorrow? I did not catch it.", "Sorry, what time do we gather tomorrow? I did not catch it."], ["「ロックアウト」とはどういう意味ですか？何をすればいいですか？", "What does \"lock out\" mean? What should I do?", "What does \"lock out\" mean? What should I do?"], ["「金型交換」とは何ですか？この言葉がわかりません。", "What is \"die change\"? I do not know this word.", "What is \"die change\"? I do not know this word."], ["どのオイルをどこで点検しますか？もう一度教えてください。", "Which oil do I check, and where? Please tell me again.", "Which oil do I check, and where? Please tell me again."], ["すみません、よくわかりません。もう一度説明してください。", "Sorry, I did not understand this. Can you explain it again, please?", "Sorry, I did not understand this. Can you explain it again, please?"], ["ドアを早く開けすぎて、ノズルから熱い樹脂が飛び散りました。", "Hot resin splashed from the nozzle when I opened the door too early.", "Hot resin splashed from the nozzle when I opened the door too early."], ["切粉がトレーから落ちていて、滑りそうになりました。", "A metal chip fell from the tray and I almost slipped on it.", "A metal chip fell from the tray and I almost slipped on it."], ["チャックのカバーを開けたとき、切粉が飛び出しました。目の数センチ横を通りました。", "A metal chip flew out when I opened the chuck cover. It missed my eye by a few centimeters.", "A metal chip flew out when I opened the chuck cover. It missed my eye by a few centimeters."], ["詰まりを取ろうと手を入れたとき、安全カバーが開いていました。手袋が金型の間に挟まれそうになりました。", "The safety guard was open when I reached in to clear a jam. My glove almost got caught between the dies.", "The safety guard was open when I reached in to clear a jam. My glove almost got caught between the dies."], ["ホーム", "Home", "হোম"], ["軽微", "Low", "Low"], ["中程度", "Medium", "Medium"], ["重大", "High", "High"], ["はい", "いいえ", "いいえ"], ["要フォロー", "Open", "খুলুন"]];
+
+/* ===== Whole-app language: every visible string follows LANG (ja / en / bn) =====
+   I18N holds [ja, en, bn] triples. Any variant found on screen is swapped for the chosen language,
+   so text written in one language inside the parts (role branches, templates, data) follows too.
+   Numbers are matched as # and put back, so "要フォロー 1件" and "要フォロー 2件" share one entry. */
+const I18N_IDX = (() => {
+  const idx = new Map();
+  const k = s => s.replace(/\s+/g, ' ').trim().replace(/\d+/g, '#');
+  for (const row of I18N) for (const v of row) if (v && !idx.has(k(v))) idx.set(k(v), row);
+  return {key: k, idx};
+})();
+const I18N_COL = {ja: 0, en: 1, bn: 2}[LANG];
+function trText(s) {
+  if (!s || !/[A-Za-z぀-ヿ一-鿿ঀ-৿]/.test(s)) return null;
+  const core = s.trim();
+  const row = I18N_IDX.idx.get(I18N_IDX.key(core));
+  if (!row) return null;
+  let out = row[I18N_COL] || row[1];
+  const nums = core.match(/\d+/g) || [];
+  let i = 0;
+  out = out.replace(/#/g, () => (i < nums.length ? nums[i++] : '#'));
+  if (out === core) return null;
+  const lead = s.match(/^\s*/)[0], tail = s.match(/\s*$/)[0];
+  return lead + out + tail;
+}
+const I18N_ATTRS = ['aria-label', 'placeholder', 'title', 'data-toast'];
+function trTree(root) {
+  if (root.nodeType === 3) { const v = trText(root.nodeValue); if (v != null) root.nodeValue = v; return; }
+  if (root.nodeType !== 1 || root.closest('script,style,.langbar')) return;
+  const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  let n;
+  while ((n = w.nextNode())) {
+    if (n.parentElement && n.parentElement.closest('script,style,.langbar')) continue;
+    const v = trText(n.nodeValue);
+    if (v != null) n.nodeValue = v;
+  }
+  const els = [root, ...root.querySelectorAll('[aria-label],[placeholder],[title],[data-toast]')];
+  for (const e of els) for (const a of I18N_ATTRS) {
+    if (e.closest && e.closest('.langbar')) continue;
+    const cur = e.getAttribute && e.getAttribute(a);
+    if (cur) { const v = trText(cur); if (v != null) e.setAttribute(a, v); }
+  }
+}
+// Language switch: sits right before the notifications bell; short labels JA / EN / BN
+const LANG_SHORT = [['ja', 'JA', '日本語'], ['en', 'EN', 'English'], ['bn', 'BN', 'বাংলা']];
+function langSwitchEl() {
+  const g = document.createElement('div');
+  g.className = 'langbar'; g.setAttribute('role', 'group'); g.setAttribute('aria-label', 'Language / 言語 / ভাষা');
+  g.innerHTML = LANG_SHORT.map(([c, s, full]) => `<button type="button" data-lang="${c}" lang="${c}" aria-label="${full}" aria-pressed="${c === LANG}">${s}</button>`).join('');
+  return g;
+}
+function placeSwitches(root) {
+  const bells = root.nodeType === 1 ? [...(root.matches && root.matches('.ux-bell') ? [root] : []), ...root.querySelectorAll('.ux-bell')] : [];
+  for (const b of bells) {
+    if (b.previousElementSibling && b.previousElementSibling.classList.contains('langbar')) continue;
+    b.before(langSwitchEl());
+  }
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('.langbar [data-lang]');
+  if (!b) return;
+  e.preventDefault(); e.stopPropagation();
+  if (b.dataset.lang === LANG) return;
+  const u = new URL(location.href); u.searchParams.set('lang', b.dataset.lang); location.replace(u.href);
+}, true);
+(function watch() {
+  const dev = document.getElementById('device') || document.body;
+  const run = node => { placeSwitches(node); if (LANG) trTree(node); };
+  run(dev);
+  new MutationObserver(list => {
+    for (const m of list) {
+      if (m.type === 'childList') m.addedNodes.forEach(run);
+      else if (m.type === 'characterData') { const v = trText(m.target.nodeValue); if (v != null) m.target.nodeValue = v; }
+      else if (m.type === 'attributes') { if (m.target.closest('.langbar')) continue; const cur = m.target.getAttribute(m.attributeName); const v = cur && trText(cur); if (v != null) m.target.setAttribute(m.attributeName, v); }
+    }
+  }).observe(dev, {subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: I18N_ATTRS});
+})();
 </script>
 </body>
 </html>

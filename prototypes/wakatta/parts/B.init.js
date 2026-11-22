@@ -1,6 +1,6 @@
 /* ===== Part B init: runs after App exists ===== */
 (() => {
-const FM = ROLE === 'foreman', t = (ja, en) => FM ? ja : en;
+const FM = ROLE === 'foreman', t = __tr;
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
 const body = document.getElementById('bd-sheet-body');
 const workers = Object.keys(DATA.users).filter(u => DATA.users[u].role === 'worker');
