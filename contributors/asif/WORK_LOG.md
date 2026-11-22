@@ -44,7 +44,12 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
   - **Effort metrics** (`GET /metrics/effort`: time to approve, edits per draft, clean AI drafts, first-time passes) and an **AI eval** (`python -m app.ai.eval` → `docs/ai-eval.md`, Galib) plus a cost-per-factory formula.
   - **Performance budgets** (§8.5): Panel poll p95 50 ms with `ETag`/`304`, board 200 ms, `statement_timeout` 5 s, GZip, load test `tests/load/poll.py` (30 Panels + 5 boards + 2 AI drafts).
   - XREQ items 12–15 added to §17 (override state, approve choice, languages, `If-None-Match`).
-- Running when this entry was written: the founder competitor scout (`founder/competitors.md`) and a sourced research pass (`founder/research.md`: 特定技能 support duties and the periodic report, Nagasaki worker numbers and nationalities, 登録支援機関 counts and fees, Gemini paid prices). The 20-buyer panel is prepared (`founder/customer.json`, `founder/pitch.md`, all guesses) and waits for my check of the buyer profile.
+- **Founder competitor map** ([competitors.md](founder/competitors.md), `c68a7ec`): 22 sourced competitors in Japan (7 direct, 10 indirect, 5 substitutes).
+  - **Gap holds:** no product gates a specific machine on a passed quiz, alerts the foreman with the exact misunderstood term, or writes it into the 登録支援機関's record. No public review asks for it either, so demand is unproven.
+  - **Corrections to our claim:** tebiki has translation and a skill map but no test feature found; カミナシ already has tests in 18 languages and Bengali in its worker app. Bengali and quizzes are not our difference; the gate, the term alert and the support record are. Plan line fixed.
+  - **Biggest threat:** カミナシ (tests + per-learner results + shared tablets + equipment records + Bengali); linking them is a feature release for them.
+  - Prices: most direct tools are quote-only; 3 public prices for factory manual SaaS, ¥34,000–¥89,800 per month.
+- Running when this entry was written: a sourced research pass (`founder/research.md`: 特定技能 support duties and the periodic report, Nagasaki worker numbers and nationalities, 登録支援機関 counts and fees, Gemini paid prices). The 20-buyer panel is prepared (`founder/customer.json`, `founder/pitch.md`, all guesses) and waits for my check of the buyer profile.
 
 ### Next
 - Read the competitor and research results; map the Support Log columns to the real support-record fields; put the Gemini prices into the cost model; then run the quick buyer panel.
