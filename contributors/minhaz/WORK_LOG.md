@@ -4,6 +4,19 @@ Owner: Minhaz (`minuwu`) — Role: Frontend / Full-Stack / Architecture
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-23 (course library)
+
+### Completed
+- Course library: 18 courses in `frontend/src/domain/courses/` (core 雇入れ時教育 set, trades, Japanese-for-work), each with comic, handbook, reel, drills, inspect items, quiz and glossary in ja / en / bn. Drafted with Gemini workers and spot-checked by hand; numbers marked `// verify:` still need a primary source.
+- Library screen, per-course progress (`rv:course_progress:v1:<id>`), quiz Door and glossary in the v2 and v3 kits; v1 shows progress only.
+- Fixed `pick()` so furigana braces (`漢字{よみ}`) never show in plain Japanese text.
+
+### Next
+- v4 UI kit (Poster Modernist: cream / cobalt / black, 12-column grid, flat, 0px corners) with SVG art: course illustrations, JIS/ISO pictograms, equipment drawings for Inspect, icon set. Presentation only (A-01…A-09). It overlaps Arjun's desktop-layout and `Icon.tsx` SVG items; v4 is a separate kit so no file clash, but agree before either of us ports the other's work.
+
+### Blockers / handoff
+- `vitest` fails to start in this checkout (missing `vitest.setup.ts`; the old tests fail the same way), so the course checks ran as a plain Node script.
+
 ## 2026-11-22 (proto → production handoff from Minhaz)
 
 Minhaz mapped the prototype (`prototypes/wakatta/`) and the frontend against `main` (`c07a8fb`). Decisions: the prototype's **Chat is in production scope (WS12, P1)**; Course stays P2 and frontend-only. Read [BACKEND_PLAN.md](../../docs/BACKEND_PLAN.md) decision #8 and the new XREQ cards in [AGENTS.md](../../AGENTS.md) §2.2. Do the items in this order.

@@ -14,12 +14,14 @@ export interface Progress {
   watch: boolean
   inspect: boolean
   drills: string[] // ids of passed drills
+  quiz: number // best score; the quiz is extra and does not gate the passport
 }
 export const emptyProgress: Progress = {
   read: false,
   watch: false,
   inspect: false,
   drills: [],
+  quiz: 0,
 }
 
 export const PROGRESS_KEY = 'rv:course_progress:v1'
@@ -35,6 +37,7 @@ export function parseProgress(raw: string | null): Progress {
       drills: Array.isArray(p.drills)
         ? p.drills.filter((d) => typeof d === 'string')
         : [],
+      quiz: typeof p.quiz === 'number' && p.quiz > 0 ? Math.floor(p.quiz) : 0,
     }
   } catch {
     return emptyProgress

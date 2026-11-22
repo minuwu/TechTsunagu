@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { DOORS, PLAY_NEEDED, type Door } from '@/domain/course'
-import { COURSE } from '@/domain/courseContent'
+import { COURSES, courseById } from '@/domain/courses'
+import type { CourseData } from '@/domain/courses/types'
 import { pick } from '@/domain/wakatta'
 import { useCourse } from '@/features/course'
 import { m } from '@/i18n/paraglide/messages'
@@ -8,7 +9,7 @@ import { Card, PageTitle } from '@/ui/v2/components/Card'
 import { Button } from '@/ui/v2/components/ui/button'
 import { uiLang } from '@/ui/v2/lib/format'
 import { cn } from '@/ui/v2/lib/utils'
-import { InspectDoor, ReadDoor, WatchDoor } from './Doors'
+import { InspectDoor, QuizDoor, ReadDoor, WatchDoor } from './Doors'
 import { PlayDoor } from './Drills'
 
 const NAME: Record<Door, () => string> = {
@@ -25,42 +26,65 @@ const SUB: Record<Door, () => string> = {
 }
 
 /** One Safety Skill, four Doors; four done earns the Skill Passport stamp. */
-export function CourseScreen() {
+function CoursePlayer({
+  course,
+  onExit,
+}: {
+  course: CourseData
+  onExit: () => void
+}) {
   const lang = uiLang()
-  const c = useCourse()
-  const [door, setDoor] = useState<Door | null>(null)
+  const c = useCourse(course.id)
+  const [door, setDoor] = useState<Door | 'quiz' | null>(null)
 
   return (
     <>
-      <PageTitle sub={m.course_sub()}>{pick(COURSE.title, lang)}</PageTitle>
+      <PageTitle sub={pick(course.sub, lang)}>
+        {pick(course.title, lang)}
+      </PageTitle>
+      <Button variant="ghost" onClick={onExit}>
+        {m.course_all()}
+      </Button>
 
       {door ? (
         <div className="space-y-4">
           <Button variant="ghost" onClick={() => setDoor(null)}>
             {m.course_back()}
           </Button>
-          <h2 className="display text-2xl">{NAME[door]()}</h2>
+          <h2 className="display text-2xl">
+            {door === 'quiz' ? m.course_door_quiz() : NAME[door]()}
+          </h2>
           {door === 'read' && (
             <ReadDoor
+              course={course}
               done={c.progress.read}
               onFinish={() => c.finish('read')}
             />
           )}
           {door === 'watch' && (
             <WatchDoor
+              course={course}
               done={c.progress.watch}
               onFinish={() => c.finish('watch')}
             />
           )}
           {door === 'play' && (
             <PlayDoor
+              drills={course.drills}
               passed={c.progress.drills}
               need={PLAY_NEEDED}
               onPass={c.passDrill}
             />
           )}
+          {door === 'quiz' && (
+            <QuizDoor
+              course={course}
+              best={c.progress.quiz}
+              onScore={c.saveQuiz}
+            />
+          )}
           {door === 'inspect' && (
-            <InspectDoor onFinish={() => c.finish('inspect')} />
+            <InspectDoor course={course} onFinish={() => c.finish('inspect')} />
           )}
         </div>
       ) : (
@@ -84,6 +108,23 @@ export function CourseScreen() {
               </li>
             ))}
           </ul>
+          <button
+            type="button"
+            onClick={() => setDoor('quiz')}
+            className="tile flex min-h-16 w-full items-center justify-between px-5 py-3 text-left"
+          >
+            <span className="display text-lg">
+              {m.course_door_quiz()}
+              <span className="ml-3 text-sm font-normal text-muted-foreground">
+                {m.course_door_quiz_sub()}
+              </span>
+            </span>
+            {c.progress.quiz > 0 && (
+              <span className="text-success">
+                {m.course_quiz_best({ n: c.progress.quiz })}
+              </span>
+            )}
+          </button>
           <Card
             title={m.course_passport_title()}
             id="passport"
@@ -106,5 +147,64 @@ export function CourseScreen() {
         </div>
       )}
     </>
+  )
+}
+
+const CATS = ['core', 'trade', 'language'] as const
+const CAT_NAME: Record<(typeof CATS)[number], () => string> = {
+  core: m.course_cat_core,
+  trade: m.course_cat_trade,
+  language: m.course_cat_language,
+}
+
+/** The course library: every course, grouped by category. */
+function CourseLibrary({ onOpen }: { onOpen: (id: string) => void }) {
+  const lang = uiLang()
+  return (
+    <>
+      <PageTitle sub={m.course_library_sub()}>
+        {m.course_library_title()}
+      </PageTitle>
+      <div className="space-y-8">
+        {CATS.map((cat) => (
+          <section key={cat} className="space-y-3">
+            <h2 className="display text-xl">{CAT_NAME[cat]()}</h2>
+            <ul className="grid gap-3 sm:grid-cols-2">
+              {COURSES.filter((c) => c.category === cat).map((c) => (
+                <li key={c.id}>
+                  <button
+                    type="button"
+                    onClick={() => onOpen(c.id)}
+                    className="tile flex min-h-24 w-full flex-col gap-1 px-5 py-4 text-left"
+                  >
+                    <span className="display text-lg">
+                      {pick(c.title, lang)}
+                    </span>
+                    <span className="text-muted-foreground">
+                      {pick(c.sub, lang)}
+                    </span>
+                    <span className="text-sm text-muted-foreground">
+                      {m.course_level({ n: c.level })} ·{' '}
+                      {m.course_minutes({ n: c.minutes })}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
+      </div>
+    </>
+  )
+}
+
+/** Library first; opening a course shows its four Doors. The id lives in the URL hash-free state only. */
+export function CourseScreen() {
+  const [id, setId] = useState<string | null>(null)
+  const course = courseById(id)
+  return course ? (
+    <CoursePlayer course={course} onExit={() => setId(null)} />
+  ) : (
+    <CourseLibrary onOpen={setId} />
   )
 }

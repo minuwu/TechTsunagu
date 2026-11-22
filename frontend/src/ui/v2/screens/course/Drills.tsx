@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { REFLEX_MS, RING_HZ, slingTension, type Drill } from '@/domain/course'
-import { DRILLS } from '@/domain/courseContent'
 import { pick } from '@/domain/wakatta'
 import { useReflex, useSpot } from '@/features/course'
 import { m } from '@/i18n/paraglide/messages'
@@ -314,10 +313,12 @@ function Engine({ drill, onPass }: { drill: Drill; onPass: () => void }) {
 
 /** Door 3: the nine drills. */
 export function PlayDoor({
+  drills: DRILLS,
   passed,
   need,
   onPass,
 }: {
+  drills: Drill[]
   passed: string[]
   need: number
   onPass: (id: string) => void
