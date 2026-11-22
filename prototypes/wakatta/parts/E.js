@@ -106,11 +106,17 @@ function ago(at) {
 }
 // per-term stats: count, workers affected, trend (later half vs earlier half of the rows, ordered as stored)
 function termStats() {
-  const rows = CF(), by = {};
+  const rows = CF().slice().sort((a, b) => (days(b.at) == null || days(a.at) == null) ? 0 : days(b.at) - days(a.at)), by = {};   // oldest first when dates parse
   rows.forEach((r, i) => { const o = by[r.term] = by[r.term] || {term: r.term, n: 0, users: new Set(), early: 0, late: 0, rows: []}; o.n++; o.users.add(r.user); o.rows.push(r); (i < rows.length / 2 ? o.early++ : o.late++); });
   return Object.values(by).map(o => Object.assign(o, {users: [...o.users], trend: o.late - o.early})).sort((a, b) => b.n - a.n);
 }
-const msgText = id => { const m = findMsg(id); return m ? (FM ? m.ja : m.en) : ''; };
+// part C stores machine-Check confusions with msgId 'note:<machineId>': those link to the Machine Note, not to a chat message
+const isNote = id => String(id || '').startsWith('note:');
+const srcGo = (msgId, thread, machine) => isNote(msgId) ? ['note', {machine: machine || msgId.slice(5)}] : ['chat', {thread: thread || (findMsg(baseId(msgId)) || {}).thread || 't_line2', msg: baseId(msgId)}];
+const goAttr = g => `data-go="${g[0]}" ${param(g[1])}`;
+const noteName = (id, machine) => { const m = mcOf(machine || String(id).slice(5)); return m ? t('マシンノート: ', 'Machine Note: ') + mcN(m) : t('マシンノート', 'Machine Note'); };
+const baseId = id => String(id || '').replace(/~re$/, '');   // part A: '<id>~re' is a miss on a re-explained message
+const msgText = id => { const m = findMsg(baseId(id)); return m ? (FM ? m.ja : m.en) : ''; };
 
 /* ===================================================================
    Notification centre + heads-up banner
@@ -323,7 +329,7 @@ function trendSvg(vals) {
 }
 function placeTip(el) {
   const vals = BASE.trend.concat(anNums().pct), i = Math.min(AN.pt, vals.length - 1), tip = $('#ux-tip', el); if (!tip) return;
-  tip.style.left = (cx(i) / CH.W * 100) + '%'; tip.style.top = (cy(vals[i]) / CH.H * 100) + '%';
+  tip.style.left = Math.min(88, Math.max(12, cx(i) / CH.W * 100)) + '%'; tip.style.top = (cy(vals[i]) / CH.H * 100) + '%';
   tip.textContent = vals[i] + '%'; $$('.ux-pt', el).forEach(c => c.classList.toggle('sel', +c.dataset.i === i));
 }
 function countUp(node, to, dec) {
@@ -347,8 +353,8 @@ function heatDetail() {
   if (!AN.cell) return `<div class="ux-hint2">${t('セルをタップすると原因のメッセージを表示します', 'Tap a cell to see the messages that caused it')}</div>`;
   const [term, u] = AN.cell.split('|'), rows = CF().filter(r => r.term === term && r.user === u);
   return `<div class="ux-det"><div class="ux-dh">${av(u, 'sm')}<b>${esc(nameOf(u))}</b> · ${esc(term)} <span class="hm-st" data-s="${rows.length > 1 ? 'red' : rows.length ? 'orange' : 'green'}">${rows.length}${t('回', '×')}</span></div>
-    ${rows.length ? rows.map(r => { const m = findMsg(r.msgId), th = (m && m.thread) || 't_line2'; return `<div class="ux-dr"><div class="grow"><div class="ux-dq">${esc(msgText(r.msgId) || t('(メッセージ)', '(message)'))}</div><small>${esc(ago(r.at))}</small></div>
-      <button class="btn tonal ux-open" data-go="chat" ${param({thread: th, msg: r.msgId})}>${t('チャットを開く', 'Open chat')}</button></div>`; }).join('')
+    ${rows.length ? rows.map(r => `<div class="ux-dr"><div class="grow"><div class="ux-dq">${esc(isNote(r.msgId) ? noteName(r.msgId, r.machine) : msgText(r.msgId) || t(`「${term}」を含む指示`, `Instruction that included ${term}`))}</div><small>${esc(ago(r.at))}</small></div>
+      <button class="btn tonal ux-open" ${goAttr(srcGo(r.msgId, null, r.machine))}>${isNote(r.msgId) ? t('ノートを開く', 'Open Note') : t('チャットを開く', 'Open chat')}</button></div>`).join('')
     : `<div class="hm-empty"><span>${t('つまずきはありません', 'No confusion here')}</span></div>`}
     ${valueCard()}</div>`;
 }
@@ -400,12 +406,13 @@ function anClick(el, e) {
    =================================================================== */
 // shortcut: seeded sign-off ages in days (valid 365 days); real dates come from DATA.signoffs when part C emits them
 const AGE = {'u_rahim|mc1': 120, 'u_rahim|mc3': 40, 'u_nguyen|mc1': 200, 'u_nguyen|mc2': 356, 'u_nguyen|mc3': 15, 'u_siti|mc3': 60};
-const VALID = 365, SOON = 14;
+const VALID = 365, SOON = 14, EXPIRING = {'u_nguyen|mc1': 356};
 function cellInfo(u, m) {
   if (!m.ready[u]) return {k: 'missing'};
   const so = (DATA.signoffs || []).filter(x => x.user === u && x.machine === m.id).pop();
   let age = AGE[u + '|' + m.id] != null ? AGE[u + '|' + m.id] : 30, ver = 'v1';
   if (so) { const d = days(so.at); age = d == null ? 0 : Math.max(0, d); if (so.version) ver = String(so.version).replace(/^(\d)/, 'v$1'); }
+  if (EXPIRING[u + '|' + m.id] != null) age = EXPIRING[u + '|' + m.id];   // shortcut: one seeded expiring cell so the demo shows all three states
   const left = Math.round(VALID - age), at = new Date(Date.now() - age * 864e5), exp = new Date(Date.now() + left * 864e5);
   return {k: left <= SOON ? 'expiring' : 'valid', left, at, exp, ver};
 }
@@ -451,7 +458,7 @@ function renderFollowups() {
   const el = elF; if (!el || !el.firstElementChild) return;
   const fu = FU(), cnt = k => fu.filter(f => f.status === k).length, list = fu.filter(f => f.status === FUS.f);
   $('.content', el).innerHTML = `<div class="pad"><div class="ux-chips" role="tablist">${['open', 'clarified', 'understood'].map(k => `<button class="ux-fc${FUS.f === k ? ' on' : ''}" data-ux-f="${k}" role="tab" aria-selected="${FUS.f === k}">${FU_ST[k][0]}<b>${cnt(k)}</b></button>`).join('')}</div>
-    <div class="ux-fl">${list.length ? list.map(f => `<button class="ux-fi" data-go="chat" ${param({thread: f.thread, msg: f.msgId})}>${av(f.user)}
+    <div class="ux-fl">${list.length ? list.map(f => `<button class="ux-fi" ${goAttr(srcGo(f.msgId, f.thread, f.machine))}>${av(f.user)}
       <div class="ux-fm"><div class="ux-ft2"><b>${esc(f.term)}</b><small>${esc(termEn(f.term))}</small></div><div class="ux-fq">${esc(f.question || '')}</div>
       ${f.wrong ? `<span class="ux-wr">${t('誤答', 'Wrong')}: ${esc(f.wrong)}</span>` : ''}</div>
       <div class="ux-fr2"><span class="hm-st" data-s="${f.status === 'open' ? 'red' : f.status === 'clarified' ? 'orange' : 'green'}">${FU_ST[f.status] ? FU_ST[f.status][0] : esc(f.status)}</span><small>${esc(ago(f.at))}</small></div></button>`).join('')
@@ -468,7 +475,7 @@ const LR = {user: ME};
 let elL = null;
 function learnData(u) {
   const terms = {};
-  CF().filter(r => r.user === u).forEach((r, i) => { const o = terms[r.term] = terms[r.term] || {term: r.term, missed: 0, i, status: 'understood', msgId: r.msgId, at: r.at}; o.missed++; o.i = i; o.msgId = r.msgId; o.at = r.at; });
+  CF().filter(r => r.user === u).forEach((r, i) => { const o = terms[r.term] = terms[r.term] || {term: r.term, missed: 0, i, status: 'understood', msgId: r.msgId, at: r.at}; o.missed++; o.i = i; o.msgId = r.msgId; o.at = r.at; o.machine = r.machine; });
   FU().filter(f => f.user === u).forEach((f, i) => { const o = terms[f.term] = terms[f.term] || {term: f.term, missed: 0, i: 100 + i, status: 'understood', msgId: f.msgId, at: f.at};
     o.status = f.status; o.thread = f.thread; o.msgId = f.msgId; o.question = f.question; o.at = f.at; o.i = Math.max(o.i, 100 + i); o.missed = Math.max(o.missed, 1); });
   const all = Object.values(terms).sort((a, b) => b.i - a.i);
@@ -478,9 +485,9 @@ function renderLearning() {
   const el = elL; if (!el || !el.firstElementChild) return;
   const u = LR.user, d = learnData(u), thr = o => o.thread || ((findMsg(o.msgId) || {}).thread) || 't_line2';
   const st = o => o.status === 'understood' ? ['green', t('理解', 'Understood')] : o.status === 'clarified' ? ['orange', t('説明済', 'Explained')] : ['red', t('要フォロー', 'Gap')];
-  const row = o => { const [k, lbl] = st(o); return `<li class="ux-tl" data-s="${k}"><i class="ux-td"></i><div class="ux-tb"><div class="ux-tt"><b>${esc(o.term)}</b><small>${esc(termEn(o.term))}</small><span class="hm-st" data-s="${k}">${lbl}</span></div>
+  const row = o => { const [k, lbl] = st(o); return `<li class="ux-tl" data-s="${k}"><i class="ux-td"></i><div class="ux-tb"><div class="ux-tt"><b>${esc(o.term)}</b>${FM ? `<small>${esc(termEn(o.term))}</small>` : ''}<span class="hm-st" data-s="${k}">${lbl}</span></div>
     <div class="ux-ts">${o.missed ? t(`${o.missed}回つまずきました`, `Missed ${o.missed}×`) : ''}${o.at != null && ago(o.at) ? ' · ' + esc(ago(o.at)) : ''}</div>
-    ${o.status !== 'understood' ? `<button class="btn tonal ux-open" data-go="chat" ${param({thread: thr(o), msg: o.msgId})}>${t('復習', 'Review')}</button>` : ''}</div></li>`; };
+    ${o.status !== 'understood' ? `<button class="btn tonal ux-open" ${goAttr(srcGo(o.msgId, o.thread, o.machine))}>${t('復習', 'Review')}</button>` : ''}</div></li>`; };
   $('.content', el).innerHTML = `<div class="pad">
     ${FM ? `<div class="ux-lwho">${av(u, 'md')}<b>${esc(nameOf(u))}</b></div>` : ''}
     <div class="ux-lstats"><div class="card"><span class="ux-vi">${ic('verified')}</span><b>${d.mastered}</b><small>${t('習得した言葉', 'Words I mastered')}</small></div>
@@ -533,13 +540,14 @@ Object.assign(SCREENS, {
 
 /* ---------- loop events: keep every E screen and the bell live ---------- */
 const FSEEN = new Set();
-function refreshLoop() { renderAnalytics(); renderFollowups(); renderLearning(); if (window.__wkB && window.__wkB.refresh) window.__wkB.refresh(); }
+window.uxRefresh = () => { renderAnalytics(); renderFollowups(); renderLearning(); renderSkills(); };   // called by part B's refresh(), which part C also calls on signoff
+function refreshLoop() { if (window.__wkB && window.__wkB.refresh) window.__wkB.refresh(); else window.uxRefresh(); }
 Bus.on('followup:new', f => {
   later(refreshLoop);
   // notify once, on the foreman phone only (the event also reaches the worker phone)
   if (FM && f && !FSEEN.has(f.id)) { FSEEN.add(f.id); later(() => notify({to: 'foreman', title: `${first(f.user)}さんが「${f.term}」を理解していません`, body: f.question || '要フォローです', push: ['followups']}), 0); }
 });
-['followup:resolve', 'check:answer', 'wk:stage', 'signoff', 'glossary:add'].forEach(ev => Bus.on(ev, () => later(refreshLoop)));
+['followup:resolve', 'confusion:new', 'check:answer', 'wk:stage', 'signoff', 'glossary:add'].forEach(ev => Bus.on(ev, () => later(refreshLoop)));
 window.uxBoot = () => { badges(); if (S.offline) showOffline(true, true); };
 window.uxOpenOnboarding = () => { obReset(); go('onboarding'); };
 })();

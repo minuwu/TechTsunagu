@@ -1,0 +1,33 @@
+/* ===== Part F: safety course (prefix cs-) ===== */
+.cs-c{padding:0 16px 88px;display:flex;flex-direction:column;gap:12px}
+.cs-sub{margin:0;color:var(--on-2)}
+.cs-h2{margin:0;font-size:20px;font-weight:500}
+.cs-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.cs-pad{padding:16px;display:flex;flex-direction:column;gap:12px}
+.cs-door,.cs-tile{display:flex;width:100%;min-height:56px;padding:14px 16px;text-align:left;align-items:center;justify-content:space-between;gap:12px;font:inherit;color:var(--on)}
+.cs-door{flex-direction:column;align-items:flex-start;justify-content:center;gap:2px;position:relative}
+.cs-door b{font-size:20px;font-weight:500}.cs-door span{color:var(--on-2)}
+.cs-door em{position:absolute;top:14px;right:16px;font-style:normal;font-weight:700;color:var(--ok)}
+.cs-tile{font-weight:600}
+.cs-tile .grow{flex:1}
+.cs-tile.good{box-shadow:inset 0 0 0 2px var(--ok);background:var(--ok-c)}
+.cs-tile.miss{box-shadow:inset 0 0 0 2px var(--bad);background:var(--bad-c)}
+.cs-tile:disabled{opacity:1}
+.cs-n{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--surface-3);font-size:14px;flex-shrink:0}
+.cs-grid{display:grid;gap:8px}
+.cs-line{padding:14px 16px}
+.cs-line.worker{margin-left:32px}.cs-line.foreman{margin-right:32px}
+.cs-ja{font-size:20px;font-weight:600;line-height:2}.cs-ja.big{font-size:24px}
+.cs-tr{color:var(--on-2);font-size:16px}
+.cs-stage{padding:20px 16px;min-height:112px}
+.cs-dots{display:flex;gap:6px}.cs-dots i{flex:1;height:8px;border-radius:4px;background:var(--surface-3)}.cs-dots i.on{background:var(--primary)}
+.cs-ok{color:var(--ok)}.cs-bad{color:var(--bad)}
+.cs-res{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:12px}
+.cs-lab{display:flex;flex-direction:column;gap:8px}.cs-lab input{width:100%}
+.cs-estop{width:100%;min-height:128px;border-radius:16px;font:inherit;font-size:30px;font-weight:900;color:#fff;background:var(--outline);transition:background-color .15s}
+.cs-estop.go{background:var(--bad)}.cs-estop small{display:block;font-size:16px;font-weight:500}
+.cs-svg{position:relative}.cs-svg svg{width:100%;display:block}
+.cs-spot{position:absolute;width:48px;height:48px;margin:-24px 0 0 -24px;border-radius:50%;background:transparent}
+.cs-spot::after{content:"";position:absolute;inset:14px;border-radius:50%;border:2px solid var(--primary);background:var(--primary-c)}
+.cs-spot.seen::after{background:var(--primary)}
+.cs-pp.on{box-shadow:inset 0 0 0 2px var(--ok);background:var(--ok-c)}

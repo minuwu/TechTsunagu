@@ -224,13 +224,13 @@ html.embed .statusbar{display:flex!important}
 .ch-bars i{width:2px;border-radius:1px;background:currentColor;height:var(--h);opacity:.8}
 .ch-orig-b{align-self:flex-start;min-height:36px;margin:2px 0 0 4px;padding:0 4px;font-size:13px;color:var(--primary);position:relative}
 .ch-orig-b::after{content:"";position:absolute;inset:-6px -8px}
-.ch-orig{margin-top:2px;padding:8px 12px;border-radius:12px;background:var(--primary-c);color:var(--on-primary-c);font-size:15px;line-height:1.5}
+.ch-orig{margin-top:2px;padding:8px 14px;border-radius:20px;border-top-left-radius:6px;width:fit-content;max-width:calc(100% - 38px);background:var(--primary-c);color:var(--on-primary-c);font-size:15px;line-height:1.5}
 .ch-fold{display:grid;grid-template-rows:0fr;transition:grid-template-rows .32s var(--ease);width:100%}
 .ch-fold.open{grid-template-rows:1fr}
 .ch-fold>div{overflow:hidden;min-height:0}
 
 /* --- Wakatta card (foreman) --- */
-.ch-wk{width:100%;margin-top:6px;border-radius:20px;background:var(--surface-2);box-shadow:inset 0 0 0 1px var(--outline-2);overflow:hidden}
+.ch-wk{width:calc(100% - 38px);margin-top:6px;border-radius:20px;background:var(--surface-2);box-shadow:inset 0 0 0 1px var(--outline-2);overflow:hidden}
 .ch-pill{display:flex;align-items:center;gap:10px;width:100%;min-height:48px;padding:0 10px 0 14px;position:relative;overflow:hidden;font-size:13.5px;color:var(--on-2);text-align:left;transition:background .15s}
 .ch-pill:active{background:var(--surface-3)}
 .ch-pt{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -509,6 +509,10 @@ input.ch-in+input.ch-in{margin-top:6px}
 .ch-vmic .ic{width:28px;height:28px}
 .ch-vbox[data-st=listen]~.ch-foot .ch-vmic{background:var(--bad)}
 .ch-vbox[data-st=done]~.ch-foot .ch-vmic{background:var(--outline)}
+.ch-comp[data-st=count] .ch-dict{-webkit-mask-image:linear-gradient(#000 82%,transparent);mask-image:linear-gradient(#000 82%,transparent);padding-top:14px}
+
+.ch-bub>.ch-meta{margin:2px 0 0;justify-content:flex-end;color:inherit;opacity:.8}
+.own .ch-bub>.ch-meta .ch-due{background:rgba(255,255,255,.18);color:inherit}
 
 /* ===== Part B: shell, home, chats, board, machines, me ===== */
 :root{--b-ok-t:#0d652d;--b-warn-t:#8a4b00;--b-bad-t:#a50e0e}
@@ -944,6 +948,7 @@ html[data-role=foreman]{--font:"Noto Sans JP","Hiragino Sans","Yu Gothic UI",Rob
 .sf-eq i:nth-child(2){animation-delay:.15s}.sf-eq i:nth-child(3){animation-delay:.3s}
 .sf-read[aria-pressed=true] .sf-eq{display:inline-flex}
 .sf-bcq{display:flex;flex-direction:column;gap:8px}
+.sf-foot .btn{height:56px;border-radius:28px;font-size:16px;white-space:nowrap}
 
 /* ===== Part D: life outside work (prefix lf-) ===== */
 .lf-i{width:20px;height:20px;fill:currentColor;flex-shrink:0}
@@ -1440,6 +1445,40 @@ html[data-large="1"] .snackbar{font-size:16px}
 .ux-ts{font-size:13px;color:var(--on-2);margin-top:4px}
 .ux-tb .ux-open{margin-top:8px}
 
+/* ===== Part F: safety course (prefix cs-) ===== */
+.cs-c{padding:0 16px 88px;display:flex;flex-direction:column;gap:12px}
+.cs-sub{margin:0;color:var(--on-2)}
+.cs-h2{margin:0;font-size:20px;font-weight:500}
+.cs-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.cs-pad{padding:16px;display:flex;flex-direction:column;gap:12px}
+.cs-door,.cs-tile{display:flex;width:100%;min-height:56px;padding:14px 16px;text-align:left;align-items:center;justify-content:space-between;gap:12px;font:inherit;color:var(--on)}
+.cs-door{flex-direction:column;align-items:flex-start;justify-content:center;gap:2px;position:relative}
+.cs-door b{font-size:20px;font-weight:500}.cs-door span{color:var(--on-2)}
+.cs-door em{position:absolute;top:14px;right:16px;font-style:normal;font-weight:700;color:var(--ok)}
+.cs-tile{font-weight:600}
+.cs-tile .grow{flex:1}
+.cs-tile.good{box-shadow:inset 0 0 0 2px var(--ok);background:var(--ok-c)}
+.cs-tile.miss{box-shadow:inset 0 0 0 2px var(--bad);background:var(--bad-c)}
+.cs-tile:disabled{opacity:1}
+.cs-n{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--surface-3);font-size:14px;flex-shrink:0}
+.cs-grid{display:grid;gap:8px}
+.cs-line{padding:14px 16px}
+.cs-line.worker{margin-left:32px}.cs-line.foreman{margin-right:32px}
+.cs-ja{font-size:20px;font-weight:600;line-height:2}.cs-ja.big{font-size:24px}
+.cs-tr{color:var(--on-2);font-size:16px}
+.cs-stage{padding:20px 16px;min-height:112px}
+.cs-dots{display:flex;gap:6px}.cs-dots i{flex:1;height:8px;border-radius:4px;background:var(--surface-3)}.cs-dots i.on{background:var(--primary)}
+.cs-ok{color:var(--ok)}.cs-bad{color:var(--bad)}
+.cs-res{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:12px}
+.cs-lab{display:flex;flex-direction:column;gap:8px}.cs-lab input{width:100%}
+.cs-estop{width:100%;min-height:128px;border-radius:16px;font:inherit;font-size:30px;font-weight:900;color:#fff;background:var(--outline);transition:background-color .15s}
+.cs-estop.go{background:var(--bad)}.cs-estop small{display:block;font-size:16px;font-weight:500}
+.cs-svg{position:relative}.cs-svg svg{width:100%;display:block}
+.cs-spot{position:absolute;width:48px;height:48px;margin:-24px 0 0 -24px;border-radius:50%;background:transparent}
+.cs-spot::after{content:"";position:absolute;inset:14px;border-radius:50%;border:2px solid var(--primary);background:var(--primary-c)}
+.cs-spot.seen::after{background:var(--primary)}
+.cs-pp.on{box-shadow:inset 0 0 0 2px var(--ok);background:var(--ok-c)}
+
 @media (prefers-reduced-motion:reduce){*{animation-duration:1ms!important;transition-duration:1ms!important}}
 </style>
 </head>
@@ -1516,6 +1555,9 @@ html[data-large="1"] .snackbar{font-size:16px}
 <section class="screen" data-screen="followups"></section>
 <section class="screen" data-screen="learning"></section>
 
+<!-- Part F: safety course. Body is rendered by the SCREENS hook in F.js -->
+<section class="screen" data-screen="course"></section>
+
   </div>
 
   <!-- ===== Bottom navigation: shown on data-root screens ===== -->
@@ -1526,6 +1568,7 @@ html[data-large="1"] .snackbar{font-size:16px}
     <button class="tab" data-tab="board" aria-label="Board"><span class="pill"><svg class="ic" viewBox="0 0 24 24"><path d="M4 4h4v16H4V4zm6 0h4v10h-4V4zm6 0h4v13h-4V4z"/></svg></span><span data-lbl="board">Board</span></button>
     <button class="tab" data-tab="machines" aria-label="Machines"><span class="pill"><svg class="ic" viewBox="0 0 24 24"><path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/></svg></span><span data-lbl="machines">Machines</span></button>
     <button class="tab" data-tab="me" aria-label="Me"><span class="pill"><svg class="ic" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></span><span data-lbl="me">Me</span></button>
+
 
 
 
@@ -1552,6 +1595,7 @@ html[data-large="1"] .snackbar{font-size:16px}
   <div class="sheet" data-sheet="ux-skill"><div class="grip"></div><div class="body" id="ux-skill-body"></div></div>
   <div class="ux-heads" id="ux-heads" role="alert"></div>
   <div class="ux-off" id="ux-off" role="status" aria-live="polite"><span id="ux-off-t"></span></div>
+
 
 
   <div class="snackbar" id="snackbar"><span></span></div>
@@ -1618,7 +1662,12 @@ const DATA = {
          {q: 'What do you check first today?', qJa: '今日最初に何を点検しますか？', options: ['Oil on Machine 3', 'Air on Machine 2', 'Safety shoes'], optionsJa: ['3号機のオイル', '2号機のエア', '安全靴'], answer: 0},
        ], results: {u_rahim: {status: 'green', answers: [0]}, u_nguyen: {status: 'green', answers: [0]}, u_siti: {status: 'orange', answers: [1]}}},
        tasks: ['k1']},
+      {id: 'm1a', thread: 't_line2', from: 'u_siti', at: '08:06', kind: 'ask', ja: 'どのオイルをどこで点検しますか？もう一度教えてください。', en: 'Which oil do I check, and where? Please tell me again.',
+       ask: {ref: 'm1', topic: '3号機オイル', reply: {ja: '3号機の油圧オイルです。タンクの横のゲージを見てください。', en: 'The hydraulic oil on Machine 3. Look at the gauge beside the tank.', at: '08:08'}}},
       {id: 'm2', thread: 't_line2', from: 'u_siti', at: '08:15', kind: 'text', ja: '機械3のオイル、少ないです。', en: 'Machine 3 oil is low.'},
+      {id: 'm2a', thread: 't_line2', from: 'u_tanaka', at: '08:17', kind: 'text', ja: 'ありがとう、シティさん。すぐに補充してください。終わったら教えてね。', en: 'Thank you, Siti. Please refill it right away. Tell me when you are done.'},
+      {id: 'm2b', thread: 't_line2', from: 'u_siti', at: '08:31', kind: 'text', ja: '補充しました。ゲージは真ん中です。', en: 'I refilled it. The gauge is in the middle.'},
+      {id: 'm2c', thread: 't_line2', from: 'u_tanaka', at: '08:33', kind: 'text', ja: '確認しました。ありがとう。', en: 'Checked. Thank you.'},
     ],
     t_rahim: [
       {id: 'm3', thread: 't_rahim', from: 'u_tanaka', at: '昨日', kind: 'text', ja: '明日の点検表、ありがとう。', en: 'Thanks for tomorrow’s inspection sheet.'},
@@ -1837,20 +1886,20 @@ const SCREENS = {};
     n.className = 'ch-m ' + (mine ? 'own' : 'oth');
     n.dataset.id = m.id;
     const vt = m.kind === 'voice' ? `<div class="ch-vt">${svg('mic')}<span class="ch-bars">${bars(m.id.length)}</span><span>0:${String(Math.max(4, Math.round(m.ja.length / 5))).padStart(2, '0')}</span></div>` : '';
-    const bub = `<div class="ch-bub">${vt}${m.ask ? askQuote(m) : ''}<div class="ch-tx">${hl(textOf(m), ROLE === 'worker')}</div></div>`;
-    const row = `<div class="ch-brow">${mine ? spkBtn() + bub : bub + spkBtn()}</div>`;
     const due = m.wk && m.wk.due ? `<span class="ch-due">${svg('clock')}${T('回答期限 ', 'Reply by ')}${esc(m.wk.due)}</span>` : '';
     const meta = `<div class="ch-meta">${esc(m.at)}${due}</div>`;
+    const bub = `<div class="ch-bub">${vt}${m.ask ? askQuote(m) : ''}<div class="ch-tx">${hl(textOf(m), ROLE === 'worker')}</div>${meta}</div>`;
+    const row = `<div class="ch-brow">${mine ? spkBtn() + bub : bub + spkBtn()}</div>`;
     const ar = m.ask ? '<div class="ch-ar"></div>' : '';
     if (mine) {
       const wk = m.wk && ROLE === 'foreman' ? '<div class="ch-wk"><button class="ch-pill" data-act="wk" aria-expanded="false"></button><div class="ch-fold"><div><div class="ch-bd"></div></div></div></div>' : '';
-      n.innerHTML = row + meta + wk + ar;
+      n.innerHTML = row + wk + ar;
     } else {
       const o = ROLE === 'worker' ? m.ja : m.en, open = S.orig[m.id];
       const lab = open ? T('原文を隠す', 'Hide original') : T('原文を見る (English)', 'Show original (日本語)');
       const orig = o ? `<button class="ch-orig-b" data-act="orig">${lab}</button><div class="ch-fold${open ? ' open' : ''}"><div><div class="ch-orig">${hl(o, ROLE === 'foreman')}</div></div></div>` : '';
       const chk = m.wk && ROLE === 'worker' ? '<div class="ch-chk"></div>' : '';
-      n.innerHTML = `<div class="ch-av avatar" style="background:${u.color}">${esc(u.initials)}</div><div class="ch-col"><div class="ch-nm">${esc(nameOf(m.from))}</div>${row}${orig}${meta}${chk}${ar}</div>`;
+      n.innerHTML = `<div class="ch-av avatar" style="background:${u.color}">${esc(u.initials)}</div><div class="ch-col"><div class="ch-nm">${esc(nameOf(m.from))}</div>${row}${orig}${chk}${ar}</div>`;
     }
     return n;
   }
@@ -1925,9 +1974,12 @@ const SCREENS = {};
     const prev = JSON.parse(w.dataset.prev || '{}');
     const cur = {}; ids.forEach(u => cur[u] = wk.results[u].status);
     w.dataset.prev = JSON.stringify(cur);
+    // keep the pop class for ~700ms so a second refresh right after (followup, read) does not cut the animation
+    const chg = w._chg || (w._chg = {}); ids.forEach(u => { if (prev[u] && prev[u] !== cur[u]) chg[u] = Date.now() + 700; });
+    const pop = u => chg[u] > Date.now();
     const pct = (st + 1) / 6, prevPct = w.dataset.pct || '0';
     const head = done
-      ? `<span class="ch-dots">${ids.map(u => `<i class="ch-dot ${cur[u]}${prev[u] && prev[u] !== cur[u] ? ' pop' : ''}"></i>`).join('')}</span><span class="ch-pt">${summary(wk, ids)}</span>`
+      ? `<span class="ch-dots">${ids.map(u => `<i class="ch-dot ${cur[u]}${pop(u) ? ' pop' : ''}"></i>`).join('')}</span><span class="ch-pt">${summary(wk, ids)}</span>`
       : `<span class="spinner ch-spin"></span><span class="ch-pt">${JA_ING[st + 1]}… ${st + 2}/6</span>`;
     const pill = head + `<span class="ch-chev">${svg('more')}</span>` + (done ? '' : `<i class="ch-prog" style="transform:scaleX(${prevPct})"></i>`);
     const pb = $('.ch-pill', w);
@@ -1956,7 +2008,7 @@ const SCREENS = {};
       } else if (s === 'wait' && done) {
         act = nd ? `<div class="ch-ract">${svg('bell')}催促済み · ${esc(nd)}</div>` : `<button class="btn tonal ch-again" data-act="nudge" data-u="${u}">${svg('bell')}催促</button>`;
       }
-      return `<div class="ch-wr"><span class="avatar" style="background:${usr.color}">${esc(usr.initials)}</span><div class="nm">${esc(nameOf(u))}<div class="ch-mks">${marks(wk, u)}${rdh}${tag}</div></div><span class="ch-st ${s}${prev[u] && prev[u] !== s ? ' pop' : ''}">${ST_JA[s]}</span></div>` + (act ? `<div class="ch-wa">${act}</div>` : '');
+      return `<div class="ch-wr"><span class="avatar" style="background:${usr.color}">${esc(usr.initials)}</span><div class="nm">${esc(nameOf(u))}<div class="ch-mks">${marks(wk, u)}${rdh}${tag}</div></div><span class="ch-st ${s}${pop(u) ? ' pop' : ''}">${ST_JA[s]}</span></div>` + (act ? `<div class="ch-wa">${act}</div>` : '');
     }).join('');
     const nt = DATA.tasks.filter(t => t.from === m.id).length;
     const due = wk.due ? `<div class="ch-dl">${svg('clock')}回答期限 ${esc(wk.due)}</div>` : '';
@@ -2053,7 +2105,7 @@ const SCREENS = {};
       return `<button class="ch-or${cls}" data-act="rpick" data-i="${j}">${esc(o)}${ic}</button>`;
     }).join('');
     const h = `<div class="ch-rxt">${svg('redo')}<b>Explained again, just for you</b></div>` +
-      `<div class="ch-bub ch-rxbub"><div class="ch-tx">${hl(R.en, true)}</div><div class="ch-rjp" lang="ja">${esc(R.ja)}</div><div class="ch-pics">${picHTML(R.pics)}</div>${spkBtn(R.en)}</div>` +
+      `<div class="ch-bub ch-rxbub"><div class="ch-tx">${hl(R.en, true)}</div><div class="ch-rjp" lang="ja" translate="no">${esc(R.ja)}</div><div class="ch-pics">${picHTML(R.pics)}</div>${spkBtn(R.en)}</div>` +
       `<div class="ch-rck${done ? ' fb' : ''}"><div class="ch-cqn">New question</div><div class="ch-cqt">${esc(qq.q)}</div>${opts}` +
       (done ? `<div class="ch-fbt ${ok ? 'ok' : 'bad'}">${svg(ok ? 'okc' : 'bad')}${ok ? 'Wakatta! Tanaka can see you understood.' : 'Not quite · answer: ' + esc(qq.options[qq.answer]) + '. Tanaka will help you in person.'}</div>` : '') + '</div>' +
       `<div class="ch-meta">${esc(R.at)}</div>`;
@@ -2379,8 +2431,8 @@ const SCREENS = {};
       const a = fakeAI(m, u); X.q = a.q; X.pics = a.pics; X.topics = a.topics;
       b.innerHTML = `<div class="ch-sh-h"><b>${esc(first(u))}さんへ 再説明</b><span class="ch-ai">${svg('spark')}AI作成 · 編集できます</span></div>` +
         `<div class="ch-sh-s">間違えた用語 ${a.topics.map(t => `<span class="ch-tchip">${esc(t)}</span>`).join('')}</div>` +
-        `<label class="ch-lb" for="ch-rx-ja">やさしい日本語</label><textarea class="ch-in" id="ch-rx-ja" rows="3">${esc(a.ja)}</textarea>` +
-        `<label class="ch-lb" for="ch-rx-en">English (${esc(first(u))}さんに表示)</label><textarea class="ch-in" id="ch-rx-en" rows="3">${esc(a.en)}</textarea>` +
+        `<label class="ch-lb" for="ch-rx-ja">やさしい日本語</label><textarea class="ch-in" id="ch-rx-ja" rows="5">${esc(a.ja)}</textarea>` +
+        `<label class="ch-lb" for="ch-rx-en">英語 (${esc(first(u))}さんの画面に表示)</label><textarea class="ch-in" id="ch-rx-en" rows="4">${esc(a.en)}</textarea>` +
         `<div class="ch-lb">ピクトグラム</div><div class="ch-pics">${picHTML(a.pics)}</div>` +
         `<div class="ch-lb">新しい確認質問 (1問)</div><input class="ch-in" id="ch-rx-qja" value="${esc(a.q.qJa || '')}" aria-label="質問 日本語"><input class="ch-in" id="ch-rx-qen" value="${esc(a.q.q)}" aria-label="Question English">` +
         `<div class="ch-opts">${a.q.options.map((o, j) => `<span class="ch-op${j === a.q.answer ? ' ok' : ''}">${j === a.q.answer ? svg('check') : ''}${esc((a.q.optionsJa || a.q.options)[j])}</span>`).join('')}</div>` +
@@ -2464,7 +2516,7 @@ const SCREENS = {};
     SH('ch-gl-b').innerHTML = `<div class="ch-sh-h"><b>用語集に追加</b><span class="ch-ai">${svg('lock')}固定用語</span></div>` +
       '<p class="ch-sh-p">AIは固定用語の訳を変えません。両方の画面で下線が付き、タップで意味が見られます。</p>' +
       `<label class="ch-lb" for="ch-gl-ja">日本語</label><input class="ch-in" id="ch-gl-ja" value="${esc(pre.ja || '')}" autocomplete="off">` +
-      `<label class="ch-lb" for="ch-gl-en">English</label><input class="ch-in" id="ch-gl-en" value="${esc(g ? g.en : sg.en || '')}" autocomplete="off">` +
+      `<label class="ch-lb" for="ch-gl-en">英語の訳</label><input class="ch-in" id="ch-gl-en" value="${esc(g ? g.en : sg.en || '')}" autocomplete="off">` +
       `<label class="ch-lb" for="ch-gl-rd">よみがな</label><input class="ch-in" id="ch-gl-rd" value="${esc(g ? g.reading : sg.reading || '')}" autocomplete="off">` +
       `<div class="ch-gprev" id="ch-gl-pv"></div><div class="ch-foot"><button class="btn block ch-go" data-act="glsave">${svg('add')}用語集に追加</button></div>`;
     glPreview(); App.open('ch-gl');
@@ -2741,9 +2793,9 @@ const hello = () => `<div class="hm-hello"><h2>${FM ? 'おはようございま�
 
 
 /* quick actions (entry points to parts C and D screens). Schemas of DATA.nearmisses / DATA.briefings belong to part C: read defensively. */
-const nmUnacked = () => (DATA.nearmisses || []).filter(n => !(n.ack || n.acked || n.acknowledged || n.ackBy || n.ackAt || n.status === 'ack' || n.status === 'acknowledged')).length;
-const answeredBy = (b, u) => { const a = b.answers || b.results || b.answered || b.responses; return Array.isArray(a) ? a.some(x => x === u || (x && x.user === u)) : !!(a && a[u]); };
-const briefingToday = () => (DATA.briefings || []).filter(b => !answeredBy(b, ME)).pop();
+const nmUnacked = () => window.sfOpenNearmisses ? window.sfOpenNearmisses() : (DATA.nearmisses || []).filter(n => n.status !== 'ack').length;
+const answeredBy = (b, u) => { const r = b.results && b.results[u]; return !!r && r.status !== 'wait'; };
+const briefingToday = () => { const l = window.sfLatestBriefing ? window.sfLatestBriefing() : (DATA.briefings || []).slice().sort((x, y) => x.at < y.at ? 1 : -1)[0]; return l && !answeredBy(l, ME) ? l : null; };
 const qa = (id, icon, label, badge, p) => `<button class="hm-qa" data-go="${id}"${p ? ' ' + param(p) : ''}><span class="hm-qi">${ic(icon, 'ic')}${badge ? `<i class="hm-qb">${badge}</i>` : ''}</span><span class="hm-ql">${label}</span></button>`;
 
 const fuOpen = () => (DATA.followups || []).filter(f => f.status === 'open');
@@ -2781,16 +2833,16 @@ function homeForeman(anim) {
 }
 function homeWorker(anim) {
   const pend = pending(), mine = openTasks().filter(k => k.assignees.includes(ME)), br = briefingToday();
-  const brT = br && (br.titleEn || br.title || br.en || br.ja || 'Today’s briefing');
+  const brT = br && (br.focusEn || br.en || 'Today’s briefing');
   return `<div class="pad${stag(anim)}" style="padding-bottom:88px">
     ${hello()}
-    ${br ? `<button class="card hm-brief" data-go="briefing" ${param({id: br.id})}><span class="hm-qi">${ic('camp', 'ic')}</span><div class="grow"><div class="from">Today’s briefing</div><div class="q hm-clamp">${esc(brT)}</div></div><span class="btn tonal">Open</span></button>` : ''}
+    ${br ? `<button class="card hm-brief" data-go="briefing-card" ${param({id: br.id})}><span class="hm-qi">${ic('camp', 'ic')}</span><div class="grow"><div class="from">Today’s briefing</div><div class="q hm-clamp">${esc(brT)}</div></div><span class="btn tonal">Open</span></button>` : ''}
     <div><div class="hm-h">Checks waiting for you</div>${pend.map(m => `<button class="card hm-chk" data-push="chat" ${param({thread: m.thread, msg: m.id})}>
         <div class="from">From ${esc(nameOf(m.from))} · ${esc(m.at)}</div><div class="q hm-clamp">${esc(textOf(m))}</div>
         <div class="foot">${stChip('wait')}<span class="btn tonal">Answer now</span></div></button>`).join('')
       || `<div class="card"><div class="hm-empty">${ic('check')}<span>You're all caught up</span></div></div>`}</div>
     <div><div class="hm-h">Quick actions</div><div class="hm-qgrid">
-      ${qa('nearmiss', 'warn', 'Report near-miss')}${qa('life', 'groups', 'Life &amp; notices')}${qa('ask', 'help', 'Ask')}</div></div>
+      ${qa('nearmiss', 'warn', 'Report near-miss')}${qa('life', 'groups', 'Life &amp; notices', (window.lfPending && window.lfPending(ME)) || '')}${qa('ask', 'help', 'Ask')}${qa('course', 'book', 'Safety course')}</div></div>
     <button class="card hm-learn" data-go="learning" ${param({user: ME})} style="margin-top:12px"><span class="hm-qi">${ic('book', 'ic')}</span><div class="grow"><div>My learning</div><small>Words you learned and gaps to review</small></div>${ic('next', 'ic')}</button>
     <div><div class="hm-h">My tasks</div><div class="card">${mine.map(k => `<div class="list-item" data-tap data-push="task" ${param({id: k.id})}>
       <div class="grow"><div class="hm-ell">${esc(ttl(k))}</div><div class="sub">${esc(dueT(k.due))}</div></div>${ic('next')}</div>`).join('')
@@ -2907,19 +2959,33 @@ function setupBoard(el) {
     if (commit && task && col && task.col !== col) { Bus.emit('task:update', {task: {...task, col}}); scrollToCol(col); }
     else { if (pendBoard) { pendBoard = false; renderBoard(el); } if (col) scrollToCol(col); }
   };
+  // Mouse: drag empty space or a card sideways to pan; touch pans natively. Shift+wheel (or a sideways wheel) scrolls the strip.
+  let pan = null;
+  strip.addEventListener('wheel', e => {
+    const dx = e.deltaX || (e.shiftKey ? e.deltaY : 0);
+    if (!dx) return;
+    e.preventDefault(); strip.scrollBy({left: dx});
+  }, {passive: false});
   strip.addEventListener('pointerdown', e => {
+    if (e.pointerType === 'mouse' && e.button === 0 && !e.target.closest('[data-push]')) pan = {x0: e.clientX, y0: e.clientY, sl: strip.scrollLeft, list: e.target.closest('.bd-list'), st0: e.target.closest('.bd-list') ? e.target.closest('.bd-list').scrollTop : 0, on: false};
     const c = e.target.closest('.bd-card');
     if (!c || (e.pointerType === 'mouse' && e.button !== 0) || e.target.closest('[data-push]')) return;
     st = {card: c, id: c.dataset.id, x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY, lifted: false};
     st.timer = setTimeout(lift, 250);
   });
   addEventListener('pointermove', e => {
+    if (pan && !(st && st.lifted)) {
+      const dx = e.clientX - pan.x0, dy = e.clientY - pan.y0;
+      if (!pan.on && Math.hypot(dx, dy) > 10) { pan.on = true; strip.classList.add('bd-dragging'); strip.style.userSelect = 'none'; if (st) { clearTimeout(st.timer); st = null; } }
+      if (pan.on) { strip.scrollLeft = pan.sl - dx / scale(); if (pan.list) pan.list.scrollTop = pan.st0 - dy / scale(); }
+    }
     if (!st) return;
     st.x = e.clientX; st.y = e.clientY;
     if (!st.lifted && Math.hypot(st.x - st.x0, st.y - st.y0) > 10) { clearTimeout(st.timer); st = null; }
   });
-  addEventListener('pointerup', () => end(true));
-  addEventListener('pointercancel', () => end(false));
+  const endPan = () => { if (!pan) return; if (pan.on) { suppress = Date.now() + 150; strip.classList.remove('bd-dragging'); strip.style.userSelect = ''; } pan = null; };
+  addEventListener('pointerup', () => { end(true); endPan(); });
+  addEventListener('pointercancel', () => { end(false); endPan(); });
   strip.addEventListener('touchmove', e => { if (st && st.lifted && e.cancelable) e.preventDefault(); }, {passive: false});
   strip.addEventListener('contextmenu', e => e.preventDefault());
   el.addEventListener('click', e => {
@@ -2942,6 +3008,7 @@ function renderTask(el) {
     <div class="bd-nm">${k.assignees.map(u => `<span>${av(u, 'sm')}${esc(nameOf(u))}</span>`).join('')}</div>
     <div class="card" style="margin-top:16px"><div class="list-item bd-row">${ic('clock', 'lead')}<div class="grow"><div class="sub">${t('期限', 'Due')}</div><div>${esc(dueT(k.due) || '-')}</div></div></div>
       ${m ? `<div class="list-item bd-row" data-tap data-push="machine" ${param({id: m.id})}>${ic('build', 'lead')}<div class="grow"><div class="sub">${t('機械', 'Machine')}</div><div>${esc(mcName(m))}</div></div>${ic('next')}</div>` : ''}</div>
+    ${k.nm ? `<div class="card" style="margin-top:12px"><button class="list-item bd-row" data-tap data-go="nearmiss-detail" ${param({id: k.nm})} style="width:100%;text-align:left">${ic('warn', 'lead')}<div class="grow"><div class="sub">${t('元の報告', 'Source')}</div><div>${t('ヒヤリハット報告から', 'From near-miss report')}</div></div>${ic('next')}</button></div>` : ''}
     ${src ? `<div class="hm-h">${t('元のメッセージ', 'Source message')}</div>
       <blockquote class="bd-q"><div class="who">${av(src.from, 'sm')}<span>${esc(nameOf(src.from))} · ${esc(src.at)}</span></div><div class="txt">${esc(textOf(src))}</div></blockquote>
       <button class="btn tonal block" style="margin-top:12px;height:48px;border-radius:24px" data-push="chat" ${param({thread: src.thread, msg: src.id})}>${ic('chat')}${t('チャットで開く', 'Open in chat')}</button>` : ''}
@@ -3068,11 +3135,12 @@ function refresh() {
   if (curTask && (e = built('task'))) renderTask(e);
   if (curMc && (e = built('machine'))) renderMachine(e);
   badge();
+  if (window.uxRefresh) window.uxRefresh();
 }
 Bus.on('msg:new', ({thread, msg}) => { bump[thread] = Date.now(); refresh(); setTimeout(refresh, 60); });
 Bus.on('wk:stage', () => refresh());
 // part C / D data changed: their own handlers run in the same tick, so re-render after them
-['followup:new', 'followup:resolve', 'signoff', 'nearmiss:new', 'nearmiss:ack', 'briefing:new', 'briefing:answer', 'notice:new', 'ask:new'].forEach(ev => Bus.on(ev, () => setTimeout(refresh, 50)));
+['followup:new', 'followup:resolve', 'signoff', 'nearmiss:new', 'nearmiss:ack', 'briefing:new', 'briefing:answer', 'confusion:new', 'notice:new', 'notice:answer', 'ask:new', 'ask:reply'].forEach(ev => Bus.on(ev, () => setTimeout(refresh, 50)));
 Bus.on('check:answer', ({msgId, user, status}) => { (ov[msgId] = ov[msgId] || {})[user] = status; refresh(); });
 Bus.on('task:update', ({task}) => {
   if (!task || !task.id) return;
@@ -3149,6 +3217,7 @@ const P = {
   retry: 'M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z',
   task: 'M19 3h-4.18C14.4 1.84 13.3 1 12 1s-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm-2 14-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z',
   next: 'M10 6 8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z',
+  clock: 'M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z',
   eye: 'M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z',
   bell: 'M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z',
   camp: 'M18 11v2h4v-2h-4zm-2 6.61c.96.71 2.21 1.65 3.2 2.39.4-.53.8-1.07 1.2-1.6-.99-.74-2.24-1.68-3.2-2.4-.4.54-.8 1.08-1.2 1.61zM20.4 5.6c-.4-.53-.8-1.07-1.2-1.6-.99.74-2.24 1.68-3.2 2.4.4.53.8 1.07 1.2 1.6.96-.72 2.21-1.65 3.2-2.4zM4 9c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2h1v4h2v-4h1l5 3V6L8 9H4zm11.5 3c0-1.33-.58-2.53-1.5-3.35v6.69c.92-.81 1.5-2.01 1.5-3.34z',
@@ -3335,7 +3404,7 @@ function fillPanel(el) {
     sub.textContent = r ? `Signed off · Note ${n ? n.version : ''}` : `No sign-off for Note ${n ? n.version : ''} yet`;
     sheet.innerHTML = `<div class="sf-pres">${avatar(ME, 'lg')}<div class="grow"><b>${esc(nameOf(ME))}</b><div class="sub"><span class="sf-live"></span>Presence: at this machine</div></div>${r ? chip('green', 'Ready') : `<span class="sf-st sf-lk" data-s="wait">${svg('lock', 's')}Locked</span>`}</div>` +
       (r ? `<div class="sf-signed">${svg('okc')}<div><b>Signed off on Note ${esc(so ? so.version : (n ? n.version : ''))}</b><div class="sub">${so ? esc(fmtAt(so.at)) : ''}</div></div></div>
-        <div class="sf-two"><button class="btn tonal" data-push="note" ${param({machine: m.id})}>${svg('task')}Read the Note</button><button class="btn outlined" data-push="nearmiss" ${param({machine: m.id})}>${svg('warn')}Report a near-miss</button></div>`
+        <div class="sf-two"><button class="btn tonal" data-push="note" ${param({machine: m.id})}>${svg('task')}Read the Note</button><button class="btn outlined" data-push="nearmiss" ${param({machine: m.id})}>${svg('warn')}Near-miss</button></div>`
         : `<p class="sf-hint">You cannot use this machine until you read the Note and pass the Check.</p>
         <button class="btn block sf-big" data-push="note" ${param({machine: m.id})}>${svg('lock')}Take the Check to unlock</button>`);
   }
@@ -3435,7 +3504,7 @@ const DICT = {
   mc2: {en: 'The safety guard was open when I reached in to clear a jam. My glove almost got caught between the dies.', ja: '詰まりを取ろうと手を入れたとき、安全カバーが開いていました。手袋が金型の間に挟まれそうになりました。'},
   mc3: {en: 'Hot resin splashed from the nozzle when I opened the door too early.', ja: 'ドアを早く開けすぎて、ノズルから熱い樹脂が飛び散りました。'},
 };
-const toJa = (mid, text) => { const d = DICT[mid]; return d && d.en === text ? d.ja : '(自動翻訳) ' + text; };
+const toJa = (mid, text) => { const d = DICT[mid]; return d && d.en.startsWith(text.trim()) ? d.ja : '(自動翻訳) ' + text; };   // shortcut: fake MT, a dictation prefix maps to the canned translation
 const photoUrl = mid => `https://picsum.photos/seed/nearmiss-${mid}/600/400`;
 const NM = {el: null, mid: null, text: '', photo: false, mark: {x: 56, y: 46}, sev: 'mid', rec: false, wi: 0, tm: 0, sent: false};
 const sevChip = s => `<span class="sf-sev" data-sv="${s}">${t(SEV[s][0], SEV[s][1])}</span>`;
@@ -3560,7 +3629,7 @@ function renderDetail() {
   el.innerHTML = bar(t('ヒヤリハット', 'Near-miss'), backBtn) + `<div class="content"><div class="pad sf-stack">
     ${x.photo ? photoBox(x.photo, x.mark, 'big') : ''}
     <div class="row sf-wrapr">${sevChip(x.severity)}${ack ? chip('green', t('対応済', 'Seen by Tanaka')) : chip('orange', t('未対応', 'Sent'))}</div>
-    <div class="card sf-meta"><div>${svg('lock', 's')}<span>${esc(mcName(m))}</span></div><div>${avatar(x.user, 'sm')}<span>${esc(nameOf(x.user))}</span></div><div>${svg('next', 's')}<span>${esc(fmtAt(x.at))}</span></div></div>
+    <div class="card sf-meta"><div>${svg('lock', 's')}<span>${esc(mcName(m))}</span></div><div>${avatar(x.user, 'sm')}<span>${esc(nameOf(x.user))}</span></div><div>${svg('clock', 's')}<span>${esc(fmtAt(x.at))}</span></div></div>
     ${FM ? `<div class="sf-sh-h">日本語訳</div><div class="card sf-big-t">${esc(x.ja)}</div><div class="sf-sh-h">原文 (English)</div><div class="sf-orig">${esc(x.en)}</div>`
           : `<div class="sf-sh-h">What you said</div><div class="card sf-big-t">${esc(x.en)}</div><div class="sf-sh-h">What Tanaka reads (日本語)</div><div class="sf-orig">${esc(x.ja)}</div>`}
     ${ack && x.ackAt ? `<div class="sub">${t('確認 ', 'Seen ')}${esc(fmtAt(x.ackAt))}</div>` : ''}
@@ -4587,11 +4656,17 @@ function ago(at) {
 }
 // per-term stats: count, workers affected, trend (later half vs earlier half of the rows, ordered as stored)
 function termStats() {
-  const rows = CF(), by = {};
+  const rows = CF().slice().sort((a, b) => (days(b.at) == null || days(a.at) == null) ? 0 : days(b.at) - days(a.at)), by = {};   // oldest first when dates parse
   rows.forEach((r, i) => { const o = by[r.term] = by[r.term] || {term: r.term, n: 0, users: new Set(), early: 0, late: 0, rows: []}; o.n++; o.users.add(r.user); o.rows.push(r); (i < rows.length / 2 ? o.early++ : o.late++); });
   return Object.values(by).map(o => Object.assign(o, {users: [...o.users], trend: o.late - o.early})).sort((a, b) => b.n - a.n);
 }
-const msgText = id => { const m = findMsg(id); return m ? (FM ? m.ja : m.en) : ''; };
+// part C stores machine-Check confusions with msgId 'note:<machineId>': those link to the Machine Note, not to a chat message
+const isNote = id => String(id || '').startsWith('note:');
+const srcGo = (msgId, thread, machine) => isNote(msgId) ? ['note', {machine: machine || msgId.slice(5)}] : ['chat', {thread: thread || (findMsg(baseId(msgId)) || {}).thread || 't_line2', msg: baseId(msgId)}];
+const goAttr = g => `data-go="${g[0]}" ${param(g[1])}`;
+const noteName = (id, machine) => { const m = mcOf(machine || String(id).slice(5)); return m ? t('マシンノート: ', 'Machine Note: ') + mcN(m) : t('マシンノート', 'Machine Note'); };
+const baseId = id => String(id || '').replace(/~re$/, '');   // part A: '<id>~re' is a miss on a re-explained message
+const msgText = id => { const m = findMsg(baseId(id)); return m ? (FM ? m.ja : m.en) : ''; };
 
 /* ===================================================================
    Notification centre + heads-up banner
@@ -4804,7 +4879,7 @@ function trendSvg(vals) {
 }
 function placeTip(el) {
   const vals = BASE.trend.concat(anNums().pct), i = Math.min(AN.pt, vals.length - 1), tip = $('#ux-tip', el); if (!tip) return;
-  tip.style.left = (cx(i) / CH.W * 100) + '%'; tip.style.top = (cy(vals[i]) / CH.H * 100) + '%';
+  tip.style.left = Math.min(88, Math.max(12, cx(i) / CH.W * 100)) + '%'; tip.style.top = (cy(vals[i]) / CH.H * 100) + '%';
   tip.textContent = vals[i] + '%'; $$('.ux-pt', el).forEach(c => c.classList.toggle('sel', +c.dataset.i === i));
 }
 function countUp(node, to, dec) {
@@ -4828,8 +4903,8 @@ function heatDetail() {
   if (!AN.cell) return `<div class="ux-hint2">${t('セルをタップすると原因のメッセージを表示します', 'Tap a cell to see the messages that caused it')}</div>`;
   const [term, u] = AN.cell.split('|'), rows = CF().filter(r => r.term === term && r.user === u);
   return `<div class="ux-det"><div class="ux-dh">${av(u, 'sm')}<b>${esc(nameOf(u))}</b> · ${esc(term)} <span class="hm-st" data-s="${rows.length > 1 ? 'red' : rows.length ? 'orange' : 'green'}">${rows.length}${t('回', '×')}</span></div>
-    ${rows.length ? rows.map(r => { const m = findMsg(r.msgId), th = (m && m.thread) || 't_line2'; return `<div class="ux-dr"><div class="grow"><div class="ux-dq">${esc(msgText(r.msgId) || t('(メッセージ)', '(message)'))}</div><small>${esc(ago(r.at))}</small></div>
-      <button class="btn tonal ux-open" data-go="chat" ${param({thread: th, msg: r.msgId})}>${t('チャットを開く', 'Open chat')}</button></div>`; }).join('')
+    ${rows.length ? rows.map(r => `<div class="ux-dr"><div class="grow"><div class="ux-dq">${esc(isNote(r.msgId) ? noteName(r.msgId, r.machine) : msgText(r.msgId) || t(`「${term}」を含む指示`, `Instruction that included ${term}`))}</div><small>${esc(ago(r.at))}</small></div>
+      <button class="btn tonal ux-open" ${goAttr(srcGo(r.msgId, null, r.machine))}>${isNote(r.msgId) ? t('ノートを開く', 'Open Note') : t('チャットを開く', 'Open chat')}</button></div>`).join('')
     : `<div class="hm-empty"><span>${t('つまずきはありません', 'No confusion here')}</span></div>`}
     ${valueCard()}</div>`;
 }
@@ -4881,12 +4956,13 @@ function anClick(el, e) {
    =================================================================== */
 // shortcut: seeded sign-off ages in days (valid 365 days); real dates come from DATA.signoffs when part C emits them
 const AGE = {'u_rahim|mc1': 120, 'u_rahim|mc3': 40, 'u_nguyen|mc1': 200, 'u_nguyen|mc2': 356, 'u_nguyen|mc3': 15, 'u_siti|mc3': 60};
-const VALID = 365, SOON = 14;
+const VALID = 365, SOON = 14, EXPIRING = {'u_nguyen|mc1': 356};
 function cellInfo(u, m) {
   if (!m.ready[u]) return {k: 'missing'};
   const so = (DATA.signoffs || []).filter(x => x.user === u && x.machine === m.id).pop();
   let age = AGE[u + '|' + m.id] != null ? AGE[u + '|' + m.id] : 30, ver = 'v1';
   if (so) { const d = days(so.at); age = d == null ? 0 : Math.max(0, d); if (so.version) ver = String(so.version).replace(/^(\d)/, 'v$1'); }
+  if (EXPIRING[u + '|' + m.id] != null) age = EXPIRING[u + '|' + m.id];   // shortcut: one seeded expiring cell so the demo shows all three states
   const left = Math.round(VALID - age), at = new Date(Date.now() - age * 864e5), exp = new Date(Date.now() + left * 864e5);
   return {k: left <= SOON ? 'expiring' : 'valid', left, at, exp, ver};
 }
@@ -4932,7 +5008,7 @@ function renderFollowups() {
   const el = elF; if (!el || !el.firstElementChild) return;
   const fu = FU(), cnt = k => fu.filter(f => f.status === k).length, list = fu.filter(f => f.status === FUS.f);
   $('.content', el).innerHTML = `<div class="pad"><div class="ux-chips" role="tablist">${['open', 'clarified', 'understood'].map(k => `<button class="ux-fc${FUS.f === k ? ' on' : ''}" data-ux-f="${k}" role="tab" aria-selected="${FUS.f === k}">${FU_ST[k][0]}<b>${cnt(k)}</b></button>`).join('')}</div>
-    <div class="ux-fl">${list.length ? list.map(f => `<button class="ux-fi" data-go="chat" ${param({thread: f.thread, msg: f.msgId})}>${av(f.user)}
+    <div class="ux-fl">${list.length ? list.map(f => `<button class="ux-fi" ${goAttr(srcGo(f.msgId, f.thread, f.machine))}>${av(f.user)}
       <div class="ux-fm"><div class="ux-ft2"><b>${esc(f.term)}</b><small>${esc(termEn(f.term))}</small></div><div class="ux-fq">${esc(f.question || '')}</div>
       ${f.wrong ? `<span class="ux-wr">${t('誤答', 'Wrong')}: ${esc(f.wrong)}</span>` : ''}</div>
       <div class="ux-fr2"><span class="hm-st" data-s="${f.status === 'open' ? 'red' : f.status === 'clarified' ? 'orange' : 'green'}">${FU_ST[f.status] ? FU_ST[f.status][0] : esc(f.status)}</span><small>${esc(ago(f.at))}</small></div></button>`).join('')
@@ -4949,7 +5025,7 @@ const LR = {user: ME};
 let elL = null;
 function learnData(u) {
   const terms = {};
-  CF().filter(r => r.user === u).forEach((r, i) => { const o = terms[r.term] = terms[r.term] || {term: r.term, missed: 0, i, status: 'understood', msgId: r.msgId, at: r.at}; o.missed++; o.i = i; o.msgId = r.msgId; o.at = r.at; });
+  CF().filter(r => r.user === u).forEach((r, i) => { const o = terms[r.term] = terms[r.term] || {term: r.term, missed: 0, i, status: 'understood', msgId: r.msgId, at: r.at}; o.missed++; o.i = i; o.msgId = r.msgId; o.at = r.at; o.machine = r.machine; });
   FU().filter(f => f.user === u).forEach((f, i) => { const o = terms[f.term] = terms[f.term] || {term: f.term, missed: 0, i: 100 + i, status: 'understood', msgId: f.msgId, at: f.at};
     o.status = f.status; o.thread = f.thread; o.msgId = f.msgId; o.question = f.question; o.at = f.at; o.i = Math.max(o.i, 100 + i); o.missed = Math.max(o.missed, 1); });
   const all = Object.values(terms).sort((a, b) => b.i - a.i);
@@ -4959,9 +5035,9 @@ function renderLearning() {
   const el = elL; if (!el || !el.firstElementChild) return;
   const u = LR.user, d = learnData(u), thr = o => o.thread || ((findMsg(o.msgId) || {}).thread) || 't_line2';
   const st = o => o.status === 'understood' ? ['green', t('理解', 'Understood')] : o.status === 'clarified' ? ['orange', t('説明済', 'Explained')] : ['red', t('要フォロー', 'Gap')];
-  const row = o => { const [k, lbl] = st(o); return `<li class="ux-tl" data-s="${k}"><i class="ux-td"></i><div class="ux-tb"><div class="ux-tt"><b>${esc(o.term)}</b><small>${esc(termEn(o.term))}</small><span class="hm-st" data-s="${k}">${lbl}</span></div>
+  const row = o => { const [k, lbl] = st(o); return `<li class="ux-tl" data-s="${k}"><i class="ux-td"></i><div class="ux-tb"><div class="ux-tt"><b>${esc(o.term)}</b>${FM ? `<small>${esc(termEn(o.term))}</small>` : ''}<span class="hm-st" data-s="${k}">${lbl}</span></div>
     <div class="ux-ts">${o.missed ? t(`${o.missed}回つまずきました`, `Missed ${o.missed}×`) : ''}${o.at != null && ago(o.at) ? ' · ' + esc(ago(o.at)) : ''}</div>
-    ${o.status !== 'understood' ? `<button class="btn tonal ux-open" data-go="chat" ${param({thread: thr(o), msg: o.msgId})}>${t('復習', 'Review')}</button>` : ''}</div></li>`; };
+    ${o.status !== 'understood' ? `<button class="btn tonal ux-open" ${goAttr(srcGo(o.msgId, o.thread, o.machine))}>${t('復習', 'Review')}</button>` : ''}</div></li>`; };
   $('.content', el).innerHTML = `<div class="pad">
     ${FM ? `<div class="ux-lwho">${av(u, 'md')}<b>${esc(nameOf(u))}</b></div>` : ''}
     <div class="ux-lstats"><div class="card"><span class="ux-vi">${ic('verified')}</span><b>${d.mastered}</b><small>${t('習得した言葉', 'Words I mastered')}</small></div>
@@ -5014,15 +5090,256 @@ Object.assign(SCREENS, {
 
 /* ---------- loop events: keep every E screen and the bell live ---------- */
 const FSEEN = new Set();
-function refreshLoop() { renderAnalytics(); renderFollowups(); renderLearning(); if (window.__wkB && window.__wkB.refresh) window.__wkB.refresh(); }
+window.uxRefresh = () => { renderAnalytics(); renderFollowups(); renderLearning(); renderSkills(); };   // called by part B's refresh(), which part C also calls on signoff
+function refreshLoop() { if (window.__wkB && window.__wkB.refresh) window.__wkB.refresh(); else window.uxRefresh(); }
 Bus.on('followup:new', f => {
   later(refreshLoop);
   // notify once, on the foreman phone only (the event also reaches the worker phone)
   if (FM && f && !FSEEN.has(f.id)) { FSEEN.add(f.id); later(() => notify({to: 'foreman', title: `${first(f.user)}さんが「${f.term}」を理解していません`, body: f.question || '要フォローです', push: ['followups']}), 0); }
 });
-['followup:resolve', 'check:answer', 'wk:stage', 'signoff', 'glossary:add'].forEach(ev => Bus.on(ev, () => later(refreshLoop)));
+['followup:resolve', 'confusion:new', 'check:answer', 'wk:stage', 'signoff', 'glossary:add'].forEach(ev => Bus.on(ev, () => later(refreshLoop)));
 window.uxBoot = () => { badges(); if (S.offline) showOffline(true, true); };
 window.uxOpenOnboarding = () => { obReset(); go('onboarding'); };
+})();
+
+/* ===== Part F: safety course, Rover Villa "four doors" (prefix cs-) =====
+   Screen: course. Progress: localStorage rv:course_progress:v1 (same key as the React app).
+   Content and strings below are generated from frontend/src/domain/courseContent.ts and src/i18n (course_*). */
+(() => {
+'use strict';
+const D = {"course":{"title":{"ja":"玉掛け","en":"Crane slinging","bn":"ক্রেনে স্লিং বাঁধা"},"sub":{"ja":"吊り荷を安全に掛けて、合図して、吊る。","en":"Rig a load, signal, and lift it safely.","bn":"মাল নিরাপদে বাঁধা, ইশারা দেওয়া ও তোলা।"}},"panels":[{"who":"foreman","text":{"ja":"吊{つ}り荷{に}の下{した}に入{はい}るな！","en":"Never stand under a hanging load!","bn":"ঝুলন্ত মালের নিচে কখনো দাঁড়াবে না!"}},{"who":"worker","text":{"ja":"…わかりました。でも、ワイヤーの角度{かくど}は？","en":"…Understood. But what about the wire angle?","bn":"…বুঝেছি। কিন্তু তারের কোণ কত হবে?"}},{"who":"foreman","text":{"ja":"60度以内{どいない}。広{ひろ}げるほど、ワイヤーに力{ちから}がかかる。","en":"Within 60°. The wider it opens, the more force on the wire.","bn":"৬০° এর মধ্যে। যত বেশি ফাঁক, তারে তত বেশি টান।"}}],"handbook":[{"ja":"玉掛{たまが}けは、決{き}められた資格{しかく}のある人{ひと}だけが行{おこな}う。","en":"Only a qualified person may sling loads.","bn":"শুধু যোগ্যতাপ্রাপ্ত ব্যক্তি স্লিং বাঁধতে পারবেন।"},{"ja":"吊{つ}り荷{に}の下{した}への立入{たちいり}は禁止{きんし}。","en":"Entering the area under a suspended load is prohibited.","bn":"ঝুলন্ত মালের নিচে ঢোকা নিষেধ।"},{"ja":"使用前{しようまえ}にワイヤーロープを点検{てんけん}する。","en":"Inspect the wire rope before every use.","bn":"প্রতিবার ব্যবহারের আগে ওয়্যার রোপ পরীক্ষা করবে।"}],"reel":[{"ja":"主電源{しゅでんげん}、OFF、ヨシ！","en":"Main switch OFF, yoshi!","bn":"মেইন সুইচ বন্ধ, ঠিক আছে!"},{"ja":"ワイヤー、傷{きず}なし、ヨシ！","en":"Wire, no damage, yoshi!","bn":"তার অক্ষত, ঠিক আছে!"},{"ja":"吊{つ}り角度{かくど}、60度以内{どいない}、ヨシ！","en":"Sling angle within 60°, yoshi!","bn":"কোণ ৬০° এর মধ্যে, ঠিক আছে!"},{"ja":"吊{つ}り荷{に}の下{した}、人{ひと}なし、ヨシ！","en":"Nobody under the load, yoshi!","bn":"মালের নিচে কেউ নেই, ঠিক আছে!"},{"ja":"合図{あいず}、巻上{まきあ}げ、ヨシ！","en":"Signal, hoist, yoshi!","bn":"ইশারা, তোলো, ঠিক আছে!"}],"drills":[{"id":"kyt","kind":"spot","secs":30,"need":4,"name":{"ja":"危険予知（KYT）","en":"Hazard spotting (KYT)","bn":"ঝুঁকি চেনা (KYT)"},"goal":{"ja":"30秒で危険を4つ見つける。","en":"Find 4 hazards in 30 seconds.","bn":"৩০ সেকেন্ডে ৪টি বিপদ খুঁজে বের করো।"},"items":[{"hazard":true,"label":{"ja":"床の油","en":"Oil on the floor","bn":"মেঝেতে তেল"}},{"hazard":false,"label":{"ja":"消火器","en":"Fire extinguisher","bn":"অগ্নিনির্বাপক"}},{"hazard":true,"label":{"ja":"通路のケーブル","en":"Cable across the walkway","bn":"পথে ছড়ানো তার"}},{"hazard":false,"label":{"ja":"工具棚","en":"Tool rack","bn":"টুল র‍্যাক"}},{"hazard":true,"label":{"ja":"カバーのない回転部","en":"Moving part with no guard","bn":"গার্ডহীন ঘূর্ণায়মান অংশ"}},{"hazard":false,"label":{"ja":"きれいな通路","en":"Clear walkway","bn":"পরিষ্কার পথ"}},{"hazard":true,"label":{"ja":"吊り荷の下の人","en":"Person under a hanging load","bn":"ঝুলন্ত মালের নিচে মানুষ"}},{"hazard":true,"label":{"ja":"ヘルメットなし","en":"No helmet","bn":"হেলমেট নেই"}}]},{"id":"sling","kind":"sling","loadKg":1000,"wllKg":600,"name":{"ja":"吊り角度と張力","en":"Sling angle and tension","bn":"স্লিং কোণ ও টান"},"goal":{"ja":"ワイヤー1本の限度（600kgf）を超えない角度にする。","en":"Keep each wire under its 600 kgf limit.","bn":"প্রতিটি তারের সীমা (৬০০ কেজি-বল) পার না করে কোণ ঠিক করো।"}},{"id":"estop","kind":"reflex","name":{"ja":"非常停止の反射","en":"E-stop reflex","bn":"ইমার্জেন্সি স্টপ রিফ্লেক্স"},"goal":{"ja":"巻き込まれ！0.4秒以内に非常停止を押す。","en":"Entanglement! Hit E-stop within 0.4 s.","bn":"জড়িয়ে যাচ্ছে! ০.৪ সেকেন্ডের মধ্যে ই-স্টপ চাপো।"}},{"id":"ring","kind":"ring","wheels":[true,false,true],"name":{"ja":"砥石の打音点検","en":"Grinder wheel ring test","bn":"গ্রাইন্ডার হুইলের শব্দ পরীক্ষা"},"goal":{"ja":"叩いて音を聞く。澄んだ音は良品、鈍い音はひび割れ。","en":"Tap and listen. A clear ring is sound; a dull thud is cracked.","bn":"টোকা দিয়ে শোনো। পরিষ্কার শব্দ ভালো, ভোঁতা শব্দ মানে ফাটা।"}},{"id":"ppe","name":{"ja":"保護具の装着","en":"PPE checklist","bn":"পিপিই চেকলিস্ট"},"goal":{"ja":"正しい順番で装着する。","en":"Put on in the right order.","bn":"সঠিক ক্রমে পরো।"},"kind":"seq","steps":[{"ja":"ヘルメット、あごひも","en":"Helmet, chin strap","bn":"হেলমেট, চিনস্ট্র্যাপ"},{"ja":"安全帯のバックル確認","en":"Harness, check buckles","bn":"হারনেসের বাকল পরীক্ষা"},{"ja":"安全靴","en":"Safety shoes","bn":"সেফটি জুতা"},{"ja":"手袋","en":"Gloves","bn":"গ্লাভস"}]},{"id":"confined","name":{"ja":"酸素濃度とロックアウト","en":"Confined space: O2 and LOTO","bn":"বদ্ধ স্থান: অক্সিজেন ও লক-আউট"},"goal":{"ja":"入る前の手順を正しい順番で。","en":"Do the pre-entry steps in order.","bn":"ঢোকার আগের ধাপগুলো ক্রমে করো।"},"kind":"seq","steps":[{"ja":"バルブをロックアウト・タグアウト","en":"Lock out and tag out the valve","bn":"ভাল্ব লক-আউট ও ট্যাগ-আউট"},{"ja":"ガス検知器を校正","en":"Calibrate the gas detector","bn":"গ্যাস ডিটেক্টর ক্যালিব্রেট"},{"ja":"換気する","en":"Ventilate","bn":"বাতাস চলাচল করাও"},{"ja":"酸素18%以上を確認","en":"Confirm oxygen is 18% or more","bn":"অক্সিজেন ১৮% বা বেশি নিশ্চিত করো"}]},{"id":"scaffold","name":{"ja":"移動式足場の設置","en":"Rolling scaffold setup","bn":"চলমান স্ক্যাফোল্ড স্থাপন"},"goal":{"ja":"登る前の手順を正しい順番で。","en":"Do the steps before climbing, in order.","bn":"ওঠার আগের ধাপগুলো ক্রমে করো।"},"kind":"seq","steps":[{"ja":"地面が平らか確認","en":"Check the ground is level","bn":"মাটি সমতল কিনা দেখো"},{"ja":"キャスターのブレーキをかける","en":"Lock the caster brakes","bn":"চাকার ব্রেক লাগাও"},{"ja":"アウトリガーを張り出す","en":"Extend the outriggers","bn":"আউটট্রিগার বের করো"},{"ja":"手すりを確認して登る","en":"Check handrails, then climb","bn":"হ্যান্ডরেল দেখে তারপর ওঠো"}]},{"id":"welder","name":{"ja":"アーク溶接のアース","en":"Arc welder grounding","bn":"আর্ক ওয়েল্ডার আর্থিং"},"goal":{"ja":"溶接前の手順を正しい順番で。","en":"Do the steps before welding, in order.","bn":"ওয়েল্ডিংয়ের আগের ধাপগুলো ক্রমে করো।"},"kind":"seq","steps":[{"ja":"電源OFFを確認","en":"Confirm power is OFF","bn":"পাওয়ার বন্ধ নিশ্চিত করো"},{"ja":"アースを母材にしっかり接続","en":"Clamp the earth firmly to the workpiece","bn":"আর্থ ক্ল্যাম্প ওয়ার্কপিসে শক্ত করে লাগাও"},{"ja":"ケーブルの傷を点検","en":"Inspect the cable for damage","bn":"ক্যাবলে ক্ষত আছে কিনা দেখো"},{"ja":"電源ON","en":"Switch power ON","bn":"পাওয়ার চালু করো"}]},{"id":"evac","name":{"ja":"津波・火災の避難","en":"Tsunami / fire evacuation","bn":"সুনামি / আগুনে সরে যাওয়া"},"goal":{"ja":"警報から集合までを正しい順番で。","en":"From alarm to rally point, in order.","bn":"অ্যালার্ম থেকে জমায়েত পর্যন্ত ক্রমে।"},"kind":"seq","steps":[{"ja":"機械を止める","en":"Stop the machine","bn":"মেশিন বন্ধ করো"},{"ja":"荷物を持たず出口へ","en":"Leave belongings, go to the exit","bn":"জিনিস ফেলে বের হও"},{"ja":"高台へ向かう","en":"Move to high ground","bn":"উঁচু জায়গায় যাও"},{"ja":"集合場所で点呼","en":"Roll call at the rally point","bn":"জমায়েত স্থানে হাজিরা"}]}],"inspect":[{"id":"harness","defective":false,"name":{"ja":"安全帯","en":"Full-body harness","bn":"ফুল-বডি হারনেস"},"spots":[{"x":22,"y":30,"check":{"ja":"ベルトのほつれ・切れ","en":"Frayed or cut webbing","bn":"ফিতা ছেঁড়া বা কাটা"}},{"x":74,"y":30,"check":{"ja":"バックルの動き・変形","en":"Buckle moves freely, not bent","bn":"বাকল স্বাভাবিক, বাঁকা নয়"}}]},{"id":"wheel","defective":true,"name":{"ja":"研削砥石","en":"Grinder wheel","bn":"গ্রাইন্ডার হুইল"},"spots":[{"x":38,"y":24,"check":{"ja":"ひび・欠け","en":"Cracks or chips","bn":"ফাটল বা ভাঙা অংশ"}},{"x":66,"y":36,"check":{"ja":"フランジの締まり","en":"Flange tight and flat","bn":"ফ্ল্যাঞ্জ শক্ত ও সমতল"}}]},{"id":"clamp","defective":true,"name":{"ja":"足場用クランプ","en":"Scaffold clamp","bn":"স্ক্যাফোল্ড ক্ল্যাম্প"},"spots":[{"x":30,"y":30,"check":{"ja":"ボルトの曲がり","en":"Bolt straight, not bent","bn":"বোল্ট সোজা, বাঁকা নয়"}},{"x":70,"y":30,"check":{"ja":"本体の変形・さび","en":"Body not deformed or rusted","bn":"বডি বিকৃত বা মরচে ধরা নয়"}}]}],"tx":{"course_nav":{"en":"Safety course","ja":"安全コース","bn":"নিরাপত্তা কোর্স"},"course_sub":{"en":"One safety skill, four doors. Finish all four to earn your passport stamp.","ja":"安全スキルを4つの入口で学びます。4つ終えるとパスポートにスタンプ。","bn":"একটি নিরাপত্তা দক্ষতা, চারটি দরজা। চারটি শেষ করলে পাসপোর্টে স্ট্যাম্প।"},"course_door_read":{"en":"Read","ja":"読む","bn":"পড়ো"},"course_door_watch":{"en":"Watch","ja":"見る","bn":"দেখো"},"course_door_play":{"en":"Play","ja":"練習","bn":"খেলো"},"course_door_inspect":{"en":"Inspect","ja":"点検","bn":"পরীক্ষা"},"course_door_read_sub":{"en":"Comic story or handbook","ja":"マンガまたはハンドブック","bn":"কমিক গল্প বা হ্যান্ডবুক"},"course_door_watch_sub":{"en":"Pointing-and-calling reel","ja":"指差呼称のリール","bn":"আঙুল দেখিয়ে বলার রিল"},"course_door_play_sub":{"en":"Nine short drills","ja":"9つの短い練習","bn":"নয়টি ছোট অনুশীলন"},"course_door_inspect_sub":{"en":"Check equipment, then pass or reject","ja":"道具を見て、良品か不良品か判断","bn":"সরঞ্জাম দেখে পাস বা রিজেক্ট"},"course_open":{"en":"Open","ja":"開く","bn":"খোলো"},"course_back":{"en":"Back to the course","ja":"コースに戻る","bn":"কোর্সে ফিরে যাও"},"course_done":{"en":"Done","ja":"完了","bn":"শেষ"},"course_passport_title":{"en":"Skill Passport","ja":"スキルパスポート","bn":"স্কিল পাসপোর্ট"},"course_passport_earned":{"en":"Stamped: you finished all four doors.","ja":"スタンプ済み：4つすべて完了しました。","bn":"স্ট্যাম্প পেয়েছ: চারটি দরজাই শেষ।"},"course_passport_locked":{"en":"Finish all four doors to earn the stamp.","ja":"4つすべて終えるとスタンプがもらえます。","bn":"চারটি দরজা শেষ করলে স্ট্যাম্প পাবে।"},"course_reset":{"en":"Start over","ja":"最初からやり直す","bn":"আবার শুরু করো"},"course_mode_comic":{"en":"Comic","ja":"マンガ","bn":"কমিক"},"course_mode_handbook":{"en":"Handbook","ja":"ハンドブック","bn":"হ্যান্ডবুক"},"course_furigana":{"en":"Furigana","ja":"ふりがな","bn":"ফুরিগানা"},"course_translation":{"en":"Translation","ja":"翻訳","bn":"অনুবাদ"},"course_finish_read":{"en":"I read it","ja":"読みました","bn":"পড়া হয়েছে"},"course_speed":{"en":"Slow (0.75×)","ja":"ゆっくり（0.75×）","bn":"ধীরে (০.৭৫×)"},"course_play":{"en":"Play","ja":"再生","bn":"চালাও"},"course_pause":{"en":"Pause","ja":"一時停止","bn":"থামাও"},"course_replay":{"en":"Replay","ja":"もう一度","bn":"আবার চালাও"},"course_watch_hint":{"en":"Say each line aloud and point, like in the reel.","ja":"動画のように、声に出して指差しましょう。","bn":"রিলের মতো জোরে বলো ও আঙুল দেখাও।"},"course_drills_passed":{"en":"{n} of {total} drills passed (need {need})","ja":"{total}個中{n}個合格（必要：{need}個）","bn":"{total}টির মধ্যে {n}টি পাস ({need}টি দরকার)"},"course_drill_pass":{"en":"Passed","ja":"合格","bn":"পাস"},"course_drill_fail":{"en":"Not yet","ja":"もう少し","bn":"এখনও না"},"course_retry":{"en":"Try again","ja":"もう一度","bn":"আবার চেষ্টা করো"},"course_start":{"en":"Start","ja":"開始","bn":"শুরু"},"course_check":{"en":"Check","ja":"確認","bn":"যাচাই"},"course_time_left":{"en":"{n} s left","ja":"残り{n}秒","bn":"{n} সেকেন্ড বাকি"},"course_spot_found":{"en":"Hazards found: {n}","ja":"見つけた危険：{n}","bn":"পাওয়া বিপদ: {n}"},"course_reflex_idle":{"en":"Wait for the alarm, then hit E-stop.","ja":"警報が鳴ったら非常停止を押す。","bn":"অ্যালার্ম বাজলে ই-স্টপ চাপো।"},"course_reflex_wait":{"en":"Wait…","ja":"待って…","bn":"অপেক্ষা করো…"},"course_reflex_go":{"en":"NOW!","ja":"今！","bn":"এখনই!"},"course_reflex_early":{"en":"Too early. Wait for the alarm.","ja":"早すぎ。警報を待って。","bn":"বড্ড আগে। অ্যালার্মের জন্য অপেক্ষা করো।"},"course_reflex_result":{"en":"{ms} ms (limit {limit} ms)","ja":"{ms}ミリ秒（基準{limit}ミリ秒）","bn":"{ms} মি.সে. (সীমা {limit} মি.সে.)"},"course_estop":{"en":"E-STOP","ja":"非常停止","bn":"ই-স্টপ"},"course_sling_angle":{"en":"Angle between wires: {deg}°","ja":"ワイヤーの角度：{deg}°","bn":"তারের মধ্যে কোণ: {deg}°"},"course_sling_tension":{"en":"Tension per wire: {kg} kgf","ja":"ワイヤー1本の張力：{kg}kgf","bn":"প্রতি তারে টান: {kg} কেজি-বল"},"course_sling_limit":{"en":"Limit {kg} kgf","ja":"限度 {kg}kgf","bn":"সীমা {kg} কেজি-বল"},"course_sling_lift":{"en":"Lift","ja":"吊る","bn":"তোলো"},"course_sling_ok":{"en":"Safe lift.","ja":"安全に吊れます。","bn":"নিরাপদে তোলা গেছে।"},"course_sling_bad":{"en":"Over the limit: the wire could snap.","ja":"限度超え：ワイヤーが切れるおそれ。","bn":"সীমা ছাড়িয়েছে: তার ছিঁড়ে যেতে পারে।"},"course_ring_tap":{"en":"Tap wheel {n}","ja":"砥石{n}を叩く","bn":"হুইল {n} এ টোকা দাও"},"course_ring_ok":{"en":"Sound","ja":"良品","bn":"ভালো"},"course_ring_reject":{"en":"Cracked","ja":"ひび割れ","bn":"ফাটা"},"course_sound_note":{"en":"Turn the sound on.","ja":"音をオンにしてください。","bn":"শব্দ চালু করো।"},"course_seq_hint":{"en":"Tap the steps in the right order.","ja":"正しい順番でタップ。","bn":"সঠিক ক্রমে ট্যাপ করো।"},"course_mistakes":{"en":"Mistakes: {n}","ja":"まちがい：{n}","bn":"ভুল: {n}"},"course_inspect_explode":{"en":"Exploded view","ja":"分解表示","bn":"খুলে দেখা"},"course_inspect_tap":{"en":"Tap each dot to check that point.","ja":"各点をタップして確認。","bn":"প্রতিটি বিন্দুতে ট্যাপ করে দেখো।"},"course_inspect_checked":{"en":"Checked {n} of {total} points","ja":"{total}点中{n}点を確認","bn":"{total}টির মধ্যে {n}টি দেখা হয়েছে"},"course_inspect_pass":{"en":"Pass","ja":"良品","bn":"পাস"},"course_inspect_reject":{"en":"Reject","ja":"不良品","bn":"রিজেক্ট"},"course_inspect_right":{"en":"Correct.","ja":"正解です。","bn":"ঠিক আছে।"},"course_inspect_wrong":{"en":"Not correct. Look again.","ja":"違います。もう一度見て。","bn":"ঠিক নয়। আবার দেখো।"}}};
+const L = o => o[LANG] || o.ja;
+const tx = (k, v = {}) => (D.tx['course_' + k][LANG] || D.tx['course_' + k].en).replace(/\{(\w+)\}/g, (_, n) => v[n]);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
+const plain = s => s.replace(/\{[^}]*\}/g, '');
+const ruby = (s, on) => s.split(/([一-鿿々]+\{[^}]+\})/).filter(Boolean).map(p => {
+  const r = /^(.+)\{(.+)\}$/.exec(p);
+  return r ? (on ? `<ruby>${esc(r[1])}<rt>${esc(r[2])}</rt></ruby>` : esc(r[1])) : esc(p);
+}).join('');
+const KEY = 'rv:course_progress:v1', NEED = 3, REFLEX_MS = 400, HZ = {intact: 1200, cracked: 320};
+const DOORS = ['read', 'watch', 'play', 'inspect'];
+const EMPTY = () => ({read: false, watch: false, inspect: false, drills: []});
+const load = () => { try { const p = JSON.parse(localStorage.getItem(KEY)); return {read: p.read === true, watch: p.watch === true, inspect: p.inspect === true, drills: Array.isArray(p.drills) ? p.drills.filter(x => typeof x === 'string') : []}; } catch (e) { return EMPTY(); } };
+const save = p => localStorage.setItem(KEY, JSON.stringify(p));
+const done = (p, d) => d === 'play' ? p.drills.length >= NEED : p[d];
+const passport = p => DOORS.every(d => done(p, d));
+const tension = (kg, deg) => kg / 2 / Math.cos(deg * Math.PI / 360);
+const shuf = n => [...Array(n).keys()].sort(() => Math.random() - .5);
+// shortcut: Web Audio chime/thud, no sound files; needs a user gesture and sound on
+let AC; const tone = (hz, secs, gain = .25) => { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); AC.resume(); const o = AC.createOscillator(), g = AC.createGain(); o.frequency.value = hz; g.gain.setValueAtTime(gain, AC.currentTime); g.gain.exponentialRampToValueAtTime(.001, AC.currentTime + secs); o.connect(g).connect(AC.destination); o.start(); o.stop(AC.currentTime + secs); };
+const SHAPES = {
+  harness: {body: 'M10 8h20l20 32 20-32h20v6H74L50 52 26 14H10z', cap: 'M42 26h16v10H42z', bad: ''},
+  wheel: {body: 'M50 10a22 22 0 1 0 .01 0zM50 26a6 6 0 1 1-.01 0z', cap: 'M38 6h24v5H38z', bad: 'M44 14l6 10-4 6 8 12'},
+  clamp: {body: 'M18 24h64v16H18z', cap: 'M46 6h8v18h-8z', bad: 'M44 8l12 6-12 6 12 6'},
+};
+
+let EL = null, S = {};
+const reset = () => { S = {door: null, drill: null, mode: 'comic', furi: true, trans: true, reel: {i: 0, playing: false, slow: false}, insp: {i: 0, gap: 0, seen: {}, right: {}, wrong: false}, d: null}; };
+reset();
+let timer = 0;
+const stop = () => { clearTimeout(timer); timer = 0; S.reel.playing = false; try { speechSynthesis.cancel(); } catch (e) {} };
+const visible = () => EL && EL.offsetParent !== null;
+const btn = (on, a, v, label) => `<button class="btn${on ? '' : ' outlined'}" data-cs="${a}" data-a="${v}" aria-pressed="${!!on}">${label}</button>`;
+const act = (a, label, cls = '', extra = '') => `<button class="btn ${cls}" data-cs="${a}" ${extra}>${label}</button>`;
+const result = (ok, retry) => `<div class="cs-res" role="status"><b class="${ok ? 'cs-ok' : 'cs-bad'}">${tx(ok ? 'drill_pass' : 'drill_fail')}</b><button class="btn outlined" data-cs="${retry}">${tx('retry')}</button></div>`;
+
+/* ---------- Door 1: Read ---------- */
+const lineHtml = (t, big) => `<div class="cs-ja${big ? ' big' : ''}" lang="ja">${ruby(t.ja, S.furi)}</div>${S.trans && LANG !== 'ja' ? `<div class="cs-tr">${esc(L(t))}</div>` : ''}`;
+function readDoor(p) {
+  const lines = S.mode === 'comic' ? D.panels.map(x => x.text) : D.handbook;
+  return `<div class="cs-row">${btn(S.mode === 'comic', 'mode', 'comic', tx('mode_comic'))}${btn(S.mode === 'handbook', 'mode', 'handbook', tx('mode_handbook'))}${btn(S.furi, 'furi', '', tx('furigana'))}${btn(S.trans, 'trans', '', tx('translation'))}</div>
+  ${lines.map((t, i) => `<div class="card cs-line${S.mode === 'comic' ? ' ' + D.panels[i].who : ''}">${lineHtml(t)}</div>`).join('')}
+  ${act('finish', p.read ? tx('done') : tx('finish_read'), '', p.read ? 'disabled' : '')}`;
+}
+
+/* ---------- Door 2: Watch ---------- */
+const REEL_JA = D.reel.map(r => plain(r.ja));
+function reelTick() {
+  const r = S.reel;
+  if (!r.playing) return;
+  if (!visible()) { stop(); return; }
+  try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(REEL_JA[r.i]); u.lang = 'ja-JP'; u.rate = r.slow ? .75 : 1; speechSynthesis.speak(u); } catch (e) {}
+  timer = setTimeout(() => {
+    if (r.i < D.reel.length - 1) { r.i++; draw(); reelTick(); }
+    else { stop(); const p = load(); p.watch = true; save(p); draw(); }
+  }, 2600 / (r.slow ? .75 : 1));
+}
+function watchDoor(p) {
+  const r = S.reel;
+  return `<p class="cs-sub">${tx('watch_hint')}</p>
+  <div class="card cs-stage" aria-live="polite">${lineHtml(D.reel[r.i], true)}</div>
+  <div class="cs-dots" aria-hidden="true">${D.reel.map((_, i) => `<i class="${i <= r.i && (r.playing || p.watch) ? 'on' : ''}"></i>`).join('')}</div>
+  <div class="cs-row">${act('toggle', r.playing ? tx('pause') : tx('play'))}${act('replay', tx('replay'), 'outlined')}${btn(r.slow, 'slow', '', tx('speed'))}${p.watch ? `<b class="cs-ok">${tx('done')}</b>` : ''}</div>`;
+}
+
+/* ---------- Door 3: Play (nine drills, five engines) ---------- */
+const DR = id => D.drills.find(x => x.id === id);
+const pass = id => { const p = load(); if (!p.drills.includes(id)) { p.drills.push(id); save(p); } };
+function playDoor(p) {
+  const dr = S.drill && DR(S.drill);
+  if (!dr) return `<p><b>${tx('drills_passed', {n: p.drills.length, total: D.drills.length, need: NEED})}</b></p>
+    ${D.drills.map(d => `<button class="card cs-tile" data-cs="open" data-a="${d.id}"><span>${esc(L(d.name))}</span>${p.drills.includes(d.id) ? `<b class="cs-ok">${tx('drill_pass')}</b>` : ''}</button>`).join('')}`;
+  return `<div class="card cs-pad"><h2 class="cs-h2">${esc(L(dr.name))}</h2><p class="cs-sub">${esc(L(dr.goal))}</p>${engine(dr)}</div>`;
+}
+function engine(dr) {
+  const d = S.d;
+  if (dr.kind === 'spot') {
+    const found = Object.values(d.taps).filter(Boolean).length;
+    if (d.phase === 'idle') return act('spotstart', tx('start'));
+    return `<p><b>${tx('time_left', {n: d.left})} · ${tx('spot_found', {n: found})}</b></p>
+      <div class="cs-grid">${dr.items.map((it, i) => `<button class="card cs-tile ${d.taps[i] === true ? 'good' : d.taps[i] === false ? 'miss' : ''}" data-cs="spottap" data-a="${i}" ${d.phase !== 'run' ? 'disabled' : ''}>${esc(L(it.label))}</button>`).join('')}</div>
+      ${d.phase === 'end' ? result(found >= dr.need, 'spotstart') : ''}`;
+  }
+  if (dr.kind === 'sling') {
+    const kg = Math.round(tension(dr.loadKg, d.deg)), ok = kg <= dr.wllKg;
+    return `<label class="cs-lab"><b id="cs-deg">${tx('sling_angle', {deg: d.deg})}</b><input type="range" min="0" max="120" step="5" value="${d.deg}" data-cs-range="sling"></label>
+      <p id="cs-kg">${tx('sling_tension', {kg})} · ${tx('sling_limit', {kg: dr.wllKg})}</p>
+      <meter id="cs-meter" min="0" max="${dr.loadKg}" high="${dr.wllKg}" value="${kg}" style="width:100%;height:16px"></meter>
+      ${act('lift', tx('sling_lift'))}
+      ${d.lifted ? `<p role="status" class="${ok ? 'cs-ok' : 'cs-bad'}"><b>${tx(ok ? 'sling_ok' : 'sling_bad')}</b></p>` : ''}`;
+  }
+  if (dr.kind === 'reflex') {
+    const ok = d.st === 'done' && d.ms < REFLEX_MS;
+    return `<p>${tx('reflex_idle')}</p>
+      ${['idle', 'early', 'done'].includes(d.st) ? act('rstart', d.st === 'idle' ? tx('start') : tx('retry')) : `<button class="cs-estop ${d.st}" data-cs="rhit">${tx(d.st === 'go' ? 'reflex_go' : 'reflex_wait')}<small>${tx('estop')}</small></button>`}
+      ${d.st === 'early' ? `<p role="alert" class="cs-bad"><b>${tx('reflex_early')}</b></p>` : ''}
+      ${d.st === 'done' ? `<p role="status" class="${ok ? 'cs-ok' : 'cs-bad'}"><b>${tx('reflex_result', {ms: d.ms, limit: REFLEX_MS})} · ${tx(ok ? 'drill_pass' : 'drill_fail')}</b></p>` : ''}`;
+  }
+  if (dr.kind === 'ring') {
+    const ok = d.order.every(w => d.said[w] === dr.wheels[w]);
+    return `<p class="cs-sub">${tx('sound_note')}</p>
+      ${d.order.map((w, n) => `<div class="card cs-pad cs-row"><button class="btn outlined" data-cs="tap" data-a="${w}">${tx('ring_tap', {n: n + 1})}</button>
+        ${btn(d.said[w] === true, 'say', w + ':1', tx('ring_ok'))}${btn(d.said[w] === false, 'say', w + ':0', tx('ring_reject'))}</div>`).join('')}
+      ${act('check', tx('check'), '', Object.keys(d.said).length < d.order.length ? 'disabled' : '')}
+      ${d.checked ? result(ok, 'restart') : ''}`;
+  }
+  const fin = d.picked.length === dr.steps.length, ok = fin && d.mistakes <= 1;
+  return `<p class="cs-sub">${tx('seq_hint')}</p>
+    ${d.order.map(i => { const at = d.picked.indexOf(i); return `<button class="card cs-tile ${at >= 0 ? 'good' : ''}" data-cs="step" data-a="${i}" ${at >= 0 || fin ? 'disabled' : ''}><span class="cs-n">${at >= 0 ? at + 1 : ''}</span><span class="grow">${esc(L(dr.steps[i]))}</span></button>`; }).join('')}
+    <p aria-live="polite">${tx('mistakes', {n: d.mistakes})}</p>${fin ? result(ok, 'restart') : ''}`;
+}
+function initDrill(dr) {
+  S.d = dr.kind === 'spot' ? {phase: 'idle', left: dr.secs, taps: {}} : dr.kind === 'sling' ? {deg: 100, lifted: false}
+    : dr.kind === 'reflex' ? {st: 'idle', ms: 0} : dr.kind === 'ring' ? {order: shuf(dr.wheels.length), said: {}, checked: false}
+    : {order: shuf(dr.steps.length), picked: [], mistakes: 0};
+}
+function spotTick() {
+  clearTimeout(timer);
+  timer = setTimeout(() => {
+    const d = S.d; if (!d || d.phase !== 'run') return;
+    d.left--;
+    if (d.left <= 0) { d.phase = 'end'; draw(); return; }
+    draw(); spotTick();
+  }, 1000);
+}
+
+/* ---------- Door 4: Inspect (SVG, exploded view, pass/reject) ---------- */
+function inspectDoor() {
+  const q = S.insp, item = D.inspect[q.i], sh = SHAPES[item.id], seen = q.seen[item.id] || [], sp = item.spots;
+  const lock = seen.length < sp.length || q.right[item.id] ? 'disabled' : '';
+  return `<div class="cs-row">${D.inspect.map((x, n) => btn(n === q.i, 'item', n, (q.right[x.id] ? '✓ ' : '') + esc(L(x.name)))).join('')}</div>
+  <div class="card cs-pad"><h2 class="cs-h2">${esc(L(item.name))}</h2>
+    <div class="cs-svg"><svg viewBox="0 0 100 60" role="img" aria-label="${esc(L(item.name))}">
+      <g id="cs-body" transform="translate(0 ${q.gap / 4})" fill="var(--surface-3)" stroke="var(--on)" stroke-width=".8" fill-rule="evenodd"><path d="${sh.body}"/></g>
+      <g id="cs-cap" transform="translate(0 ${-q.gap / 2})" fill="var(--surface)" stroke="var(--on)" stroke-width=".8"><path d="${sh.cap}"/></g>
+      ${item.defective ? `<path d="${sh.bad}" fill="none" stroke="var(--bad)" stroke-width="1.6"/>` : ''}</svg>
+      ${sp.map((s, n) => `<button class="cs-spot${seen.includes(n) ? ' seen' : ''}" style="left:${s.x}%;top:${s.y / 60 * 100}%" data-cs="spot" data-a="${n}" aria-label="${esc(L(s.check))}"></button>`).join('')}</div>
+    <label class="cs-lab">${tx('inspect_explode')}<input type="range" min="0" max="20" value="${q.gap}" data-cs-range="gap"></label>
+    <p class="cs-sub">${tx('inspect_tap')}</p><p>${tx('inspect_checked', {n: seen.length, total: sp.length})}</p>
+    <ul>${seen.map(n => `<li><b>${esc(L(sp[n].check))}</b></li>`).join('')}</ul>
+    <div class="cs-row">${act('judge', tx('inspect_pass'), '', `data-a="0" ${lock}`)}${act('judge', tx('inspect_reject'), 'outlined', `data-a="1" ${lock}`)}
+    ${q.right[item.id] ? `<b class="cs-ok">${tx('inspect_right')}</b>` : ''}${q.wrong ? `<b role="alert" class="cs-bad">${tx('inspect_wrong')}</b>` : ''}</div></div>`;
+}
+
+/* ---------- screen ---------- */
+function draw() {
+  if (!EL) return;
+  const p = load();
+  const name = d => tx('door_' + d);
+  let body;
+  if (!S.door) body = `${DOORS.map(d => `<button class="card cs-door" data-cs="door" data-a="${d}"><b>${name(d)}</b><span>${tx('door_' + d + '_sub')}</span>${done(p, d) ? `<em>${tx('done')}</em>` : ''}</button>`).join('')}
+    <div class="card cs-pad cs-pp${passport(p) ? ' on' : ''}"><h2 class="cs-h2">${tx('passport_title')}</h2><p><b>${tx(passport(p) ? 'passport_earned' : 'passport_locked')}</b></p><button class="btn text" data-cs="wipe">${tx('reset')}</button></div>`;
+  else body = `${act('home', tx('back'), 'text')}<h2 class="cs-h2">${name(S.door)}</h2>${{read: readDoor, watch: watchDoor, play: playDoor, inspect: inspectDoor}[S.door](p)}`;
+  const old = EL.querySelector('.content'), y = old ? old.scrollTop : 0;
+  EL.innerHTML = `<header class="appbar"><button class="icon-btn" data-back aria-label="${tx('back')}"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></button><h1>${esc(L(D.course.title))}</h1></header>
+    <div class="content cs-c">${S.door ? '' : `<p class="cs-sub">${tx('sub')}</p>`}${body}</div>`;
+  const c = EL.querySelector('.content'); if (c) c.scrollTop = y;
+}
+
+function onClick(e) {
+  const b = e.target.closest('[data-cs]'); if (!b || !EL.contains(b)) return;
+  const a = b.dataset.cs, v = b.dataset.a, dr = S.drill && DR(S.drill), d = S.d, p = load();
+  switch (a) {
+    case 'door': S.door = v; S.drill = null; break;
+    case 'home': stop(); S.door = null; S.drill = null; break;
+    case 'wipe': localStorage.removeItem(KEY); stop(); reset(); break;
+    case 'mode': S.mode = v; break;
+    case 'furi': S.furi = !S.furi; break;
+    case 'trans': S.trans = !S.trans; break;
+    case 'finish': p.read = true; save(p); break;
+    case 'toggle': if (S.reel.playing) stop(); else { S.reel.playing = true; reelTick(); } break;
+    case 'replay': stop(); S.reel.i = 0; S.reel.playing = true; reelTick(); break;
+    case 'slow': S.reel.slow = !S.reel.slow; break;
+    case 'open': S.drill = v; initDrill(DR(v)); break;
+    case 'restart': initDrill(dr); break;
+    case 'spotstart': S.d = {phase: 'run', left: dr.secs, taps: {}}; spotTick(); break;
+    case 'spottap': {
+      if (d.phase !== 'run' || d.taps[v] !== undefined) break;
+      d.taps[v] = dr.items[v].hazard;
+      const found = Object.values(d.taps).filter(Boolean).length;
+      if (found >= dr.items.filter(x => x.hazard).length) { d.phase = 'end'; clearTimeout(timer); }
+      if (d.phase === 'end' && found >= dr.need) pass(dr.id);
+      break;
+    }
+    case 'lift': d.lifted = true; if (tension(dr.loadKg, d.deg) <= dr.wllKg) pass(dr.id); break;
+    case 'rstart': d.st = 'wait'; timer = setTimeout(() => { d.t0 = performance.now(); tone(110, .5, .3); d.st = 'go'; draw(); }, 1000 + Math.random() * 2000); break;
+    case 'rhit':
+      if (d.st === 'wait') { clearTimeout(timer); d.st = 'early'; }
+      else if (d.st === 'go') { d.ms = Math.round(performance.now() - d.t0); d.st = 'done'; if (d.ms < REFLEX_MS) pass(dr.id); }
+      break;
+    case 'tap': tone(dr.wheels[v] ? HZ.intact : HZ.cracked, dr.wheels[v] ? 1.2 : .15); return;
+    case 'say': { const [w, ok] = v.split(':'); d.said[w] = ok === '1'; break; }
+    case 'check': d.checked = true; if (d.order.every(w => d.said[w] === dr.wheels[w])) pass(dr.id); break;
+    case 'step': {
+      const i = +v;
+      if (i === d.picked.length) { d.picked.push(i); if (d.picked.length === dr.steps.length && d.mistakes <= 1) pass(dr.id); } else d.mistakes++;
+      break;
+    }
+    case 'item': S.insp.i = +v; S.insp.gap = 0; S.insp.wrong = false; break;
+    case 'spot': { const id = D.inspect[S.insp.i].id, s = S.insp.seen[id] || []; S.insp.seen[id] = [...new Set([...s, +v])]; break; }
+    case 'judge': {
+      const item = D.inspect[S.insp.i], ok = (v === '1') === item.defective;
+      S.insp.wrong = !ok;
+      if (ok) { S.insp.right[item.id] = true; if (D.inspect.every(x => S.insp.right[x.id])) { p.inspect = true; save(p); } }
+      break;
+    }
+  }
+  draw();
+}
+// range inputs update the DOM in place so dragging is not interrupted
+function onInput(e) {
+  const r = e.target.dataset.csRange; if (!r) return;
+  const v = +e.target.value;
+  if (r === 'sling') {
+    const dr = DR(S.drill), kg = Math.round(tension(dr.loadKg, v));
+    S.d.deg = v; S.d.lifted = false;
+    EL.querySelector('#cs-deg').textContent = tx('sling_angle', {deg: v});
+    EL.querySelector('#cs-kg').textContent = tx('sling_tension', {kg}) + ' · ' + tx('sling_limit', {kg: dr.wllKg});
+    EL.querySelector('#cs-meter').value = kg;
+  } else {
+    S.insp.gap = v;
+    EL.querySelector('#cs-body').setAttribute('transform', `translate(0 ${v / 4})`);
+    EL.querySelector('#cs-cap').setAttribute('transform', `translate(0 ${-v / 2})`);
+  }
+}
+
+Object.assign(SCREENS, {
+  course(el) {
+    EL = el;
+    if (!el._cs) { el._cs = 1; el.addEventListener('click', onClick); el.addEventListener('input', onInput); }
+    stop(); reset(); draw();
+  },
+});
 })();
 
 
@@ -5290,7 +5607,7 @@ function build() {
   body.innerHTML = `<div class="bd-sheet"><h2 class="bd-sh">${t('タスクを追加', 'New task')}</h2>
     <input class="field" id="bd-title" autocomplete="off" placeholder="${t('タイトル', 'Title')}" aria-label="${t('タイトル', 'Title')}">
     <div class="bd-lbl">${t('担当', 'Assignees')}</div>
-    <div class="row bd-wrap" id="bd-asg">${Object.keys(DATA.users).map(u => `<button class="chip" data-u="${u}">${esc(nameOf(u).split(' ')[0])}</button>`).join('')}</div>
+    <div class="row bd-wrap" id="bd-asg">${Object.keys(DATA.users).filter(u => DATA.users[u].role === 'worker' || DATA.users[u].role === 'foreman').map(u => `<button class="chip" data-u="${u}">${esc(nameOf(u).split(' ')[0])}</button>`).join('')}</div>
     <div class="bd-lbl">${t('期限', 'Due')}</div>
     <div class="row bd-wrap" id="bd-due">${DUES.map(([v, ja, en], i) => `<button class="chip${i ? '' : ' on'}" data-chip data-due="${v}">${t(ja, en)}</button>`).join('')}</div>
     <button class="btn block" id="bd-save">${t('追加', 'Add task')}</button></div>`;
@@ -5337,7 +5654,8 @@ if (QS.has('onboard')) setTimeout(() => window.uxOpenOnboarding && window.uxOpen
 
 
 
-const I18N = [["読み上げ", "Read aloud", "জোরে পড়ুন"], ["引用 ·", "Re:", "Re:"], ["回答期限", "Reply by", "Reply by"], ["原文を隠す", "Hide original", "মূল লেখা লুকান"], ["原文を見る (English)", "Show original (日本語)", "মূল লেখা দেখুন (日本語)"], ["この端末では読み上げできません", "Read aloud is not available on this device", "Read aloud is not available on this device"], ["固定用語 · AIは訳を変えません", "Fixed shop term", "নির্ধারিত কারখানার শব্দ"], ["ボードは別画面です", "Board not in this build", "Board not in this build"], ["メッセージ・マイクで話す", "Message", "বার্তা"], ["音声入力", "Voice input", "কণ্ঠে লিখুন"], ["開く", "Open", "খুলুন"], ["タスクを追加", "New task", "নতুন কাজ"], ["タイトル", "Title", "শিরোনাম"], ["担当", "Assignees", "দায়িত্বপ্রাপ্ত"], ["期限", "Due", "শেষ সময়"], ["追加", "Add task", "কাজ যোগ করুন"], ["タイトルを入力してください", "Enter a title first", "Enter a title first"], ["タスクを追加しました", "Task added", "কাজ যোগ হয়েছে"], ["使用可", "Ready", "প্রস্তুত"], ["ロック中", "Locked", "লক"], ["戻る", "Back", "পিছনে"], ["通知", "Notifications", "বিজ্ঞপ্তি"], ["この画面はまだ準備中です", "Coming soon", "শীঘ্রই আসছে"], ["あなた:", "You:", "You:"], ["メッセージはまだありません", "No messages yet", "এখনো কোনো বার্তা নেই"], ["チャットから", "From chat", "চ্যাট থেকে"], ["ボード", "Board", "বোর্ড"], ["フィルターはプロトタイプでは未対応", "Filters are not in the prototype", "Filters are not in the prototype"], ["絞り込み", "Filter", "ফিল্টার"], ["タスクを追加", "Add task", "কাজ যোগ করুন"], ["タスクなし · ここにドロップ", "No tasks · drop here", "No tasks · drop here"], ["担当", "Assigned to", "দায়িত্বে"], ["機械", "Machine", "মেশিন"], ["元のメッセージ", "Source message", "মূল বার্তা"], ["チャットで開く", "Open in chat", "চ্যাটে খুলুন"], ["コメント", "Comments", "মন্তব্য"], ["コメントはプロトタイプでは未対応", "Comments are not in the prototype", "Comments are not in the prototype"], ["コメントを書く…", "Add a comment…", "মন্তব্য লিখুন…"], ["作業者の状態", "Workers", "কর্মী"], ["あなた", "you", "আপনি"], ["マシンパネルを開く", "Open Machine Panel", "মেশিন প্যানেল খুলুন"], ["機械QR", "Machine QR", "মেশিন QR"], ["機械に貼って、スキャンでチェックと承認を開始", "Stick it on the machine. Scan to start the Check and sign-off.", "Stick it on the machine. Scan to start the Check and sign-off."], ["QRの印刷はプロトタイプでは未対応", "Printing is not in the prototype", "Printing is not in the prototype"], ["QRを印刷", "Print QR", "QR প্রিন্ট করুন"], ["この機械のタスク", "Recent tasks on this machine", "Recent tasks on this machine"], ["タスクなし", "No tasks yet", "এখনো কোনো কাজ নেই"], ["ロールを切り替え", "Switch role", "ভূমিকা বদলান"], ["チャット", "Chats", "চ্যাট"], ["検索はプロトタイプでは未対応", "Search is not in the prototype", "Search is not in the prototype"], ["検索", "Search", "খুঁজুন"], ["機械", "Machines", "মেশিন"], ["機械をスキャン", "Scan machine", "মেশিন স্ক্যান করুন"], ["自分", "Me", "আমি"], ["タスク", "Task", "কাজ"], ["今日", "Today", "Today"], ["昨日", "Yesterday", "Yesterday"], ["閉じる", "Close", "বন্ধ"], ["機械のQRをスキャン", "Scan the machine QR", "Scan the machine QR"], ["ライト", "Torch", "টর্চ"], ["機械のQRコードを枠に合わせてください", "Point the camera at the QR on the machine", "Point the camera at the QR on the machine"], ["機械をタップして、スキャンを再現します", "Tap a machine to simulate a scan", "Tap a machine to simulate a scan"], ["読み取りました:", "Read:", "Read:"], ["機械パネル", "Machine Panel", "মেশিন প্যানেল"], ["にリマインドしました", "reminded", "মনে করানো হয়েছে"], ["作業員ごとの状態", "Per-worker status", "কর্মীভিত্তিক অবস্থা"], ["ノート", "Note", "নোট"], ["この機械のノートはまだありません", "No Note for this machine yet", "No Note for this machine yet"], ["現場ノート", "Safe-use Note", "নিরাপদ ব্যবহারের নোট"], ["更新", "Updated", "হালনাগাদ"], ["現場の写真", "Photo of the spot", "Photo of the spot"], ["ヒヤリハット", "Near-miss reports", "প্রায়-দুর্ঘটনার রিপোর্ট"], ["未対応", "Open", "খুলুন"], ["対応済", "Seen", "দেখেছেন"], ["未対応の報告はありません", "No open reports", "খোলা কোনো রিপোর্ট নেই"], ["対応済の報告はまだありません", "Nothing seen yet", "এখনো কেউ দেখেনি"], ["ヒヤリハット", "Near-miss", "প্রায়-দুর্ঘটনা"], ["報告が見つかりません", "Report not found", "রিপোর্ট পাওয়া যায়নি"], ["対応済", "Seen by Tanaka", "তানাকা দেখেছেন"], ["未対応", "Sent", "পাঠানো হয়েছে"], ["確認", "Seen", "দেখেছেন"], ["チラシの写真", "Flyer photo", "লিফলেটের ছবি"], ["テキスト", "Text", "লেখা"], ["音声メモ", "Voice memo", "ভয়েস মেমো"], ["自治会", "Neighborhood association", "পাড়ার সমিতি"], ["この画面は職長用です", "This screen is for the foreman", "This screen is for the foreman"], ["リマインダー", "Reminder", "রিমাইন্ডার"], ["私の先輩", "My Senpai", "আমার সেনপাই"], ["次:", "Next:", "Next:"], ["チラシの写真", "Photo of the flyer", "Photo of the flyer"], ["お知らせが見つかりません", "Notice not found", "নোটিশ পাওয়া যায়নি"], ["やること", "What to do", "কী করতে হবে"], ["日程", "Dates", "তারিখ"], ["元のお知らせ", "Original", "মূল লেখা"], ["このブラウザは読み上げに未対応です", "Read-aloud is not supported in this browser", "Read-aloud is not supported in this browser"], ["コーヒーに誘う", "Invite them for coffee", "Invite them for coffee"], ["次のおすすめ面談", "Suggested next meet-up", "পরবর্তী সাক্ষাতের প্রস্তাব"], ["面談を記録", "Log a meet-up", "সাক্ষাৎ লিখে রাখুন"], ["種類", "Kind", "ধরন"], ["日付", "Date", "তারিখ"], ["メモ", "Note", "নোট"], ["話したこと", "What did you talk about?", "What did you talk about?"], ["保存", "Save", "সংরক্ষণ"], ["面談を記録しました", "Meet-up logged", "সাক্ষাৎ লেখা হয়েছে"], ["くらし", "Life", "জীবন"], ["お知らせ", "Notice", "নোটিশ"], ["先輩", "My Senpai", "আমার সেনপাই"], ["リマインダーを設定しました", "Reminder set", "রিমাইন্ডার দেওয়া হয়েছে"], ["リマインダーを解除しました", "Reminder removed", "রিমাইন্ডার সরানো হয়েছে"], ["たった今", "just now", "এইমাত্র"], ["通知はありません", "No notifications", "কোনো বিজ্ঞপ্তি নেই"], ["新しいお知らせがここに表示されます", "New updates will show up here", "New updates will show up here"], ["設定", "Settings", "সেটিংস"], ["言語", "Language", "ভাষা"], ["日本語", "English", "English"], ["ダークモード", "Dark mode", "ডার্ক মোড"], ["大きい文字", "Large text", "বড় লেখা"], ["オフラインを試す", "Simulate offline", "অফলাইন অবস্থা দেখুন"], ["表示のみ", "Visual only", "শুধু ছবি"], ["通知設定", "Notification preferences", "বিজ্ঞপ্তির পছন্দ"], ["メッセージ・タスク", "Messages & tasks", "বার্তা ও কাজ"], ["安全・朝礼・機械", "Safety, briefings & machines", "Safety, briefings & machines"], ["生活・お知らせ", "Life & notices", "জীবন ও নোটিশ"], ["オンボーディングをもう一度", "Replay onboarding", "শুরুর পরিচিতি আবার দেখুন"], ["オフライン · オンラインに戻るとメッセージを送信します", "Offline · messages will send when back online", "Offline · messages will send when back online"], ["オンラインに戻りました · 2件送信しました", "Back online · 2 sent", "Back online · 2 sent"], ["スキップ", "Skip", "এড়িয়ে যান"], ["はじめる", "Start", "শুরু"], ["次へ", "Next", "পরবর্তী"], ["1つの指示がもたらす価値", "One instruction, three wins", "One instruction, three wins"], ["作業者", "Worker", "কর্মী"], ["言葉を理解できた", "Learned the term", "শব্দটি শিখেছেন"], ["職長", "Supervisor", "সুপারভাইজার"], ["穴を発見し解消", "Gap found and fixed", "Gap found and fixed"], ["会社", "Employer", "নিয়োগকর্তা"], ["ミス削減・研修記録", "Fewer errors, training on record", "Fewer errors, training on record"], ["3週前", "3w ago", "৩ সপ্তাহ আগে"], ["2週前", "2w ago", "২ সপ্তাহ আগে"], ["先週", "Last wk", "গত সপ্তাহ"], ["今週", "This wk", "এই সপ্তাহ"], ["理解度の推移", "Understanding trend", "বোঝাপড়ার প্রবণতা"], ["用語集済", "In glossary", "শব্দকোষে আছে"], ["用語集に追加・固定", "Add &amp; pin", "যোগ করে পিন করুন"], ["まだ混乱は記録されていません", "No confusion recorded yet", "No confusion recorded yet"], ["セルをタップすると原因のメッセージを表示します", "Tap a cell to see the messages that caused it", "Tap a cell to see the messages that caused it"], ["回", "×", "×"], ["(メッセージ)", "(message)", "(বার্তা)"], ["チャットを開く", "Open chat", "চ্যাট খুলুন"], ["つまずきはありません", "No confusion here", "এখানে কোনো বিভ্রান্তি নেই"], ["指示", "Sent", "পাঠানো হয়েছে"], ["理解", "Understood", "বুঝেছেন"], ["要フォロー", "Follow-up", "ফলো-আপ"], ["説明済", "Explained", "ব্যাখ্যা করা হয়েছে"], ["理解 (再確認)", "Re-understood", "আবার বুঝেছেন"], ["節約した時間", "Time saved", "বাঁচানো সময়"], ["時間/週", "h/week", "ঘণ্টা/সপ্তাহ"], ["手戻り防止", "Rework avoided", "পুনরায় কাজ এড়ানো গেছে"], ["件", "cases", "টি ঘটনা"], ["理解度の推移 (4週間)", "Understanding rate, 4 weeks", "Understanding rate, 4 weeks"], ["ループの流れ", "Loop funnel", "লুপ ফানেল"], ["作業者ごとの理解", "Understanding per worker", "কর্মীভিত্তিক বোঝাপড়া"], ["つまずきやすい用語", "Vocabulary insights", "শব্দভান্ডারের তথ্য"], ["混乱ヒートマップ", "Confusion heatmap", "বিভ্রান্তির হিটম্যাপ"], ["未", "None", "কিছু নেই"], ["有効", "Valid", "বৈধ"], ["14日以内に失効", "Expiring in 14 days", "Expiring in 14 days"], ["未取得", "Missing", "নেই"], ["セルをタップして詳細とチェックの割り当て", "Tap a cell for details and to assign a Check", "Tap a cell for details and to assign a Check"], ["まもなく失効", "Expiring soon", "শীঘ্রই মেয়াদ শেষ"], ["サインオフ日", "Sign-off date", "সাইন-অফের তারিখ"], ["なし", "None", "কিছু নেই"], ["バージョン", "Version", "সংস্করণ"], ["有効期限", "Expires", "মেয়াদ শেষ"], ["チェックを割り当て", "Assign Check", "যাচাই দিন"], ["学習履歴を見る", "View learning history", "শেখার ইতিহাস দেখুন"], ["誤答", "Wrong", "ভুল"], ["要フォロー", "Gap", "ঘাটতি"], ["復習", "Review", "পর্যালোচনা"], ["習得した言葉", "Words I mastered", "যে শব্দগুলো শিখেছি"], ["いまの課題", "Current gaps", "বর্তমান ঘাটতি"], ["連続日数", "Day streak", "টানা দিন"], ["課題はありません", "No gaps right now", "No gaps right now"], ["学習の記録", "Timeline", "সময়রেখা"], ["まだ記録がありません", "Nothing here yet", "এখনো কিছু নেই"], ["すべて既読", "Mark all read", "সব পড়া হয়েছে"], ["理解度分析", "Analytics", "বিশ্লেষণ"], ["力量表", "Skill Matrix", "দক্ষতা তালিকা"], ["フォローアップ", "Follow-ups", "ফলো-আপ"], ["職長 · 第2工場", "Worker · Plant 2", "Worker · Plant 2"], ["ロック中", "LOCKED", "LOCKED"], ["使用可", "READY", "READY"], ["チェック結果", "Check", "Check"], ["質問（佐藤さん宛）", "Ask", "Ask"], ["金型交換", "die change", "die change"], ["段取り", "setup", "setup"], ["玉掛け", "slinging", "slinging"], ["治具", "jig", "jig"], ["切粉", "chips", "chips"], ["集合は 7時45分 です。8時 ではありません。8時に 仕事が はじまる ので、その 前に ここに 来て ください。", "Gather at 7:45, not 8:00. The work starts at 8:00, so be at Press #2 before that.", "Gather at 7:45, not 8:00. The work starts at 8:00, so be at Press #2 before that."], ["ロックアウトは、でんげんを きって、自分の かぎを かける ことです。だれも スイッチを いれられません。金型交換の 前に かならず します。", "Lockout: switch the power off and put your own lock on it, so nobody can turn it on. Always do it before the die change.", "Lockout: switch the power off and put your own lock on it, so nobody can turn it on. Always do it before the die change."], ["金型（かながた）は、プレスに つける 「かた」です。金型交換は、その かたを べつの かたに かえる しごとです。", "The die is the shaped tool on the press. A die change means we swap it for another die.", "The die is the shaped tool on the press. A die change means we swap it for another die."], ["きょうは まず 3ごうきの オイルを みます。オイルが すくない ときは、わたしに いって ください。", "Check the oil on Machine 3 first today. If the oil is low, tell me.", "Check the oil on Machine 3 first today. If the oil is low, tell me."], ["7時45分に集合です。8時ではありません。気をつけてね。", "We gather at 7:45, not 8:00. Please be careful.", "We gather at 7:45, not 8:00. Please be careful."], ["電源を切って、自分の鍵をかけることです。交換の前に必ずやってください。", "Switch the power off and put your own lock on it. Always do this before the change.", "Switch the power off and put your own lock on it. Always do this before the change."], ["金型はプレスにつける型です。それを別の型に替える作業のことです。", "The die is the shaped tool on the press. It means swapping it for another die.", "The die is the shaped tool on the press. It means swapping it for another die."], ["3号機の油圧オイルです。タンクの横のゲージを見てください。", "The hydraulic oil on Machine 3. Look at the gauge beside the tank.", "The hydraulic oil on Machine 3. Look at the gauge beside the tank."], ["もう一度ゆっくり説明します。あとで現場で一緒に見ましょう。", "I will explain it again slowly. Let us look at it together on the floor later.", "I will explain it again slowly. Let us look at it together on the floor later."], ["もう一度、ゆっくり 言います。むずかしい ところを、かんたんな ことばで せつめい します。", "In simple words:", "In simple words:"], ["おはようございます。今日の安全の重点は、プレスでの手の挟まれ防止です。作業の前に、必ず安全カバーが閉まっているか確認してください。変更が一つあります。2号プレスの金型交換は午後に行います。午前中は使えません。", "Good morning. Today’s safety focus is keeping your hands from getting caught in the press. Before you start work, always check that the safety guard is closed. One change: the die on Press #2 will be changed this afternoon. You cannot use it this morning.", "Good morning. Today’s safety focus is keeping your hands from getting caught in the press. Before you start work, always check that the safety guard is closed. One change: the die on Press #2 will be changed this afternoon. You cannot use it this morning."], ["昨日の朝礼: 3号機のノズルは高温です。ドアは完全に止まってから開けてください。", "Yesterday’s briefing: the nozzle on Machine 3 is very hot. Open the door only after it has fully stopped.", "Yesterday’s briefing: the nozzle on Machine 3 is very hot. Open the door only after it has fully stopped."], ["コーヒー", "Coffee", "Coffee"], ["防災訓練をいっしょに", "Drill together", "Drill together"], ["お祭り", "Festival", "Festival"], ["その他", "Other", "Other"], ["いい質問ですね。明日の昼休みに、いっしょに調べましょう。", "Good question. Let us look it up together at lunch tomorrow.", "Good question. Let us look it up together at lunch tomorrow."], ["市役所の窓口で聞くといいですよ。私もついて行きます。", "It is best to ask at the city office. I will go with you.", "It is best to ask at the city office. I will go with you."], ["今度の土曜日に、いっしょに行きましょう。", "Let us go together this Saturday.", "Let us go together this Saturday."], ["今日は3号機の油の点検を先にしてください。オイルが少ないときは、私に言ってください。", "Today, check the oil on Machine 3 first. If the oil is low, tell me.", "Today, check the oil on Machine 3 first. If the oil is low, tell me."], ["機械3のオイル、少ないです。", "Machine 3 oil is low.", "Machine 3 oil is low."], ["明日の点検表、ありがとう。", "Thanks for tomorrow’s inspection sheet.", "Thanks for tomorrow’s inspection sheet."], ["明日の朝8時から、2号プレスの金型交換をします。ラヒムさんとグエンさんは、7時45分に集合してください。交換の前に、必ず電源をロックアウトして、安全靴と手袋をつけてください。終わったら点検表を書いて、私に報告してください。", "Tomorrow from 8:00 we change the die on Press #2. Rahim and Nguyen, gather at 7:45. Before the change, always lock out the power and wear safety shoes and gloves. When you finish, fill in the inspection sheet and report to me.", "Tomorrow from 8:00 we change the die on Press #2. Rahim and Nguyen, gather at 7:45. Before the change, always lock out the power and wear safety shoes and gloves. When you finish, fill in the inspection sheet and report to me."], ["すみません、明日は何時に集合ですか？聞き取れませんでした。", "Sorry, what time do we gather tomorrow? I did not catch it.", "Sorry, what time do we gather tomorrow? I did not catch it."], ["「ロックアウト」とはどういう意味ですか？何をすればいいですか？", "What does \"lock out\" mean? What should I do?", "What does \"lock out\" mean? What should I do?"], ["「金型交換」とは何ですか？この言葉がわかりません。", "What is \"die change\"? I do not know this word.", "What is \"die change\"? I do not know this word."], ["どのオイルをどこで点検しますか？もう一度教えてください。", "Which oil do I check, and where? Please tell me again.", "Which oil do I check, and where? Please tell me again."], ["すみません、よくわかりません。もう一度説明してください。", "Sorry, I did not understand this. Can you explain it again, please?", "Sorry, I did not understand this. Can you explain it again, please?"], ["ドアを早く開けすぎて、ノズルから熱い樹脂が飛び散りました。", "Hot resin splashed from the nozzle when I opened the door too early.", "Hot resin splashed from the nozzle when I opened the door too early."], ["切粉がトレーから落ちていて、滑りそうになりました。", "A metal chip fell from the tray and I almost slipped on it.", "A metal chip fell from the tray and I almost slipped on it."], ["チャックのカバーを開けたとき、切粉が飛び出しました。目の数センチ横を通りました。", "A metal chip flew out when I opened the chuck cover. It missed my eye by a few centimeters.", "A metal chip flew out when I opened the chuck cover. It missed my eye by a few centimeters."], ["詰まりを取ろうと手を入れたとき、安全カバーが開いていました。手袋が金型の間に挟まれそうになりました。", "The safety guard was open when I reached in to clear a jam. My glove almost got caught between the dies.", "The safety guard was open when I reached in to clear a jam. My glove almost got caught between the dies."], ["ホーム", "Home", "হোম"], ["軽微", "Low", "Low"], ["中程度", "Medium", "Medium"], ["重大", "High", "High"], ["はい", "いいえ", "いいえ"], ["要フォロー", "Open", "খুলুন"]];
+
+const I18N = [["読み上げ", "Read aloud", "জোরে পড়ুন"], ["引用 ·", "Re:", "Re:"], ["回答期限", "Reply by", "Reply by"], ["原文を隠す", "Hide original", "মূল লেখা লুকান"], ["原文を見る (English)", "Show original (日本語)", "মূল লেখা দেখুন (日本語)"], ["この端末では読み上げできません", "Read aloud is not available on this device", "Read aloud is not available on this device"], ["固定用語 · AIは訳を変えません", "Fixed shop term", "নির্ধারিত কারখানার শব্দ"], ["ボードは別画面です", "Board not in this build", "Board not in this build"], ["メッセージ・マイクで話す", "Message", "বার্তা"], ["音声入力", "Voice input", "কণ্ঠে লিখুন"], ["開く", "Open", "খুলুন"], ["タスクを追加", "New task", "নতুন কাজ"], ["タイトル", "Title", "শিরোনাম"], ["担当", "Assignees", "দায়িত্বপ্রাপ্ত"], ["期限", "Due", "শেষ সময়"], ["追加", "Add task", "কাজ যোগ করুন"], ["タイトルを入力してください", "Enter a title first", "Enter a title first"], ["タスクを追加しました", "Task added", "কাজ যোগ হয়েছে"], ["使用可", "Ready", "প্রস্তুত"], ["ロック中", "Locked", "লক"], ["戻る", "Back", "পিছনে"], ["通知", "Notifications", "বিজ্ঞপ্তি"], ["この画面はまだ準備中です", "Coming soon", "শীঘ্রই আসছে"], ["あなた:", "You:", "You:"], ["メッセージはまだありません", "No messages yet", "এখনো কোনো বার্তা নেই"], ["チャットから", "From chat", "চ্যাট থেকে"], ["ボード", "Board", "বোর্ড"], ["フィルターはプロトタイプでは未対応", "Filters are not in the prototype", "Filters are not in the prototype"], ["絞り込み", "Filter", "ফিল্টার"], ["タスクを追加", "Add task", "কাজ যোগ করুন"], ["タスクなし · ここにドロップ", "No tasks · drop here", "No tasks · drop here"], ["担当", "Assigned to", "দায়িত্বে"], ["機械", "Machine", "মেশিন"], ["元のメッセージ", "Source message", "মূল বার্তা"], ["チャットで開く", "Open in chat", "চ্যাটে খুলুন"], ["コメント", "Comments", "মন্তব্য"], ["コメントはプロトタイプでは未対応", "Comments are not in the prototype", "Comments are not in the prototype"], ["コメントを書く…", "Add a comment…", "মন্তব্য লিখুন…"], ["作業者の状態", "Workers", "কর্মী"], ["あなた", "you", "আপনি"], ["マシンパネルを開く", "Open Machine Panel", "মেশিন প্যানেল খুলুন"], ["機械QR", "Machine QR", "মেশিন QR"], ["機械に貼って、スキャンでチェックと承認を開始", "Stick it on the machine. Scan to start the Check and sign-off.", "Stick it on the machine. Scan to start the Check and sign-off."], ["QRの印刷はプロトタイプでは未対応", "Printing is not in the prototype", "Printing is not in the prototype"], ["QRを印刷", "Print QR", "QR প্রিন্ট করুন"], ["この機械のタスク", "Recent tasks on this machine", "Recent tasks on this machine"], ["タスクなし", "No tasks yet", "এখনো কোনো কাজ নেই"], ["ロールを切り替え", "Switch role", "ভূমিকা বদলান"], ["チャット", "Chats", "চ্যাট"], ["検索はプロトタイプでは未対応", "Search is not in the prototype", "Search is not in the prototype"], ["検索", "Search", "খুঁজুন"], ["機械", "Machines", "মেশিন"], ["機械をスキャン", "Scan machine", "মেশিন স্ক্যান করুন"], ["自分", "Me", "আমি"], ["タスク", "Task", "কাজ"], ["今日", "Today", "Today"], ["昨日", "Yesterday", "Yesterday"], ["閉じる", "Close", "বন্ধ"], ["機械のQRをスキャン", "Scan the machine QR", "Scan the machine QR"], ["ライト", "Torch", "টর্চ"], ["機械のQRコードを枠に合わせてください", "Point the camera at the QR on the machine", "Point the camera at the QR on the machine"], ["機械をタップして、スキャンを再現します", "Tap a machine to simulate a scan", "Tap a machine to simulate a scan"], ["読み取りました:", "Read:", "Read:"], ["機械パネル", "Machine Panel", "মেশিন প্যানেল"], ["にリマインドしました", "reminded", "মনে করানো হয়েছে"], ["作業員ごとの状態", "Per-worker status", "কর্মীভিত্তিক অবস্থা"], ["ノート", "Note", "নোট"], ["この機械のノートはまだありません", "No Note for this machine yet", "No Note for this machine yet"], ["現場ノート", "Safe-use Note", "নিরাপদ ব্যবহারের নোট"], ["更新", "Updated", "হালনাগাদ"], ["現場の写真", "Photo of the spot", "Photo of the spot"], ["ヒヤリハット", "Near-miss reports", "প্রায়-দুর্ঘটনার রিপোর্ট"], ["未対応", "Open", "খুলুন"], ["対応済", "Seen", "দেখেছেন"], ["未対応の報告はありません", "No open reports", "খোলা কোনো রিপোর্ট নেই"], ["対応済の報告はまだありません", "Nothing seen yet", "এখনো কেউ দেখেনি"], ["ヒヤリハット", "Near-miss", "প্রায়-দুর্ঘটনা"], ["報告が見つかりません", "Report not found", "রিপোর্ট পাওয়া যায়নি"], ["対応済", "Seen by Tanaka", "তানাকা দেখেছেন"], ["未対応", "Sent", "পাঠানো হয়েছে"], ["確認", "Seen", "দেখেছেন"], ["チラシの写真", "Flyer photo", "লিফলেটের ছবি"], ["テキスト", "Text", "লেখা"], ["音声メモ", "Voice memo", "ভয়েস মেমো"], ["自治会", "Neighborhood association", "পাড়ার সমিতি"], ["この画面は職長用です", "This screen is for the foreman", "This screen is for the foreman"], ["リマインダー", "Reminder", "রিমাইন্ডার"], ["私の先輩", "My Senpai", "আমার সেনপাই"], ["次:", "Next:", "Next:"], ["チラシの写真", "Photo of the flyer", "Photo of the flyer"], ["お知らせが見つかりません", "Notice not found", "নোটিশ পাওয়া যায়নি"], ["やること", "What to do", "কী করতে হবে"], ["日程", "Dates", "তারিখ"], ["元のお知らせ", "Original", "মূল লেখা"], ["このブラウザは読み上げに未対応です", "Read-aloud is not supported in this browser", "Read-aloud is not supported in this browser"], ["コーヒーに誘う", "Invite them for coffee", "Invite them for coffee"], ["次のおすすめ面談", "Suggested next meet-up", "পরবর্তী সাক্ষাতের প্রস্তাব"], ["面談を記録", "Log a meet-up", "সাক্ষাৎ লিখে রাখুন"], ["種類", "Kind", "ধরন"], ["日付", "Date", "তারিখ"], ["メモ", "Note", "নোট"], ["話したこと", "What did you talk about?", "What did you talk about?"], ["保存", "Save", "সংরক্ষণ"], ["面談を記録しました", "Meet-up logged", "সাক্ষাৎ লেখা হয়েছে"], ["くらし", "Life", "জীবন"], ["お知らせ", "Notice", "নোটিশ"], ["先輩", "My Senpai", "আমার সেনপাই"], ["リマインダーを設定しました", "Reminder set", "রিমাইন্ডার দেওয়া হয়েছে"], ["リマインダーを解除しました", "Reminder removed", "রিমাইন্ডার সরানো হয়েছে"], ["たった今", "just now", "এইমাত্র"], ["通知はありません", "No notifications", "কোনো বিজ্ঞপ্তি নেই"], ["新しいお知らせがここに表示されます", "New updates will show up here", "New updates will show up here"], ["設定", "Settings", "সেটিংস"], ["言語", "Language", "ভাষা"], ["日本語", "English", "English"], ["ダークモード", "Dark mode", "ডার্ক মোড"], ["大きい文字", "Large text", "বড় লেখা"], ["オフラインを試す", "Simulate offline", "অফলাইন অবস্থা দেখুন"], ["表示のみ", "Visual only", "শুধু ছবি"], ["通知設定", "Notification preferences", "বিজ্ঞপ্তির পছন্দ"], ["メッセージ・タスク", "Messages & tasks", "বার্তা ও কাজ"], ["安全・朝礼・機械", "Safety, briefings & machines", "Safety, briefings & machines"], ["生活・お知らせ", "Life & notices", "জীবন ও নোটিশ"], ["オンボーディングをもう一度", "Replay onboarding", "শুরুর পরিচিতি আবার দেখুন"], ["オフライン · オンラインに戻るとメッセージを送信します", "Offline · messages will send when back online", "Offline · messages will send when back online"], ["オンラインに戻りました · 2件送信しました", "Back online · 2 sent", "Back online · 2 sent"], ["スキップ", "Skip", "এড়িয়ে যান"], ["はじめる", "Start", "শুরু"], ["次へ", "Next", "পরবর্তী"], ["1つの指示がもたらす価値", "One instruction, three wins", "One instruction, three wins"], ["作業者", "Worker", "কর্মী"], ["言葉を理解できた", "Learned the term", "শব্দটি শিখেছেন"], ["職長", "Supervisor", "সুপারভাইজার"], ["穴を発見し解消", "Gap found and fixed", "Gap found and fixed"], ["会社", "Employer", "নিয়োগকর্তা"], ["ミス削減・研修記録", "Fewer errors, training on record", "Fewer errors, training on record"], ["3週前", "3w ago", "৩ সপ্তাহ আগে"], ["2週前", "2w ago", "২ সপ্তাহ আগে"], ["先週", "Last wk", "গত সপ্তাহ"], ["今週", "This wk", "এই সপ্তাহ"], ["理解度の推移", "Understanding trend", "বোঝাপড়ার প্রবণতা"], ["用語集済", "In glossary", "শব্দকোষে আছে"], ["用語集に追加・固定", "Add &amp; pin", "যোগ করে পিন করুন"], ["まだ混乱は記録されていません", "No confusion recorded yet", "No confusion recorded yet"], ["セルをタップすると原因のメッセージを表示します", "Tap a cell to see the messages that caused it", "Tap a cell to see the messages that caused it"], ["回", "×", "×"], ["(メッセージ)", "(message)", "(বার্তা)"], ["チャットを開く", "Open chat", "চ্যাট খুলুন"], ["つまずきはありません", "No confusion here", "এখানে কোনো বিভ্রান্তি নেই"], ["指示", "Sent", "পাঠানো হয়েছে"], ["理解", "Understood", "বুঝেছেন"], ["要フォロー", "Follow-up", "ফলো-আপ"], ["説明済", "Explained", "ব্যাখ্যা করা হয়েছে"], ["理解 (再確認)", "Re-understood", "আবার বুঝেছেন"], ["節約した時間", "Time saved", "বাঁচানো সময়"], ["時間/週", "h/week", "ঘণ্টা/সপ্তাহ"], ["手戻り防止", "Rework avoided", "পুনরায় কাজ এড়ানো গেছে"], ["件", "cases", "টি ঘটনা"], ["理解度の推移 (4週間)", "Understanding rate, 4 weeks", "Understanding rate, 4 weeks"], ["ループの流れ", "Loop funnel", "লুপ ফানেল"], ["作業者ごとの理解", "Understanding per worker", "কর্মীভিত্তিক বোঝাপড়া"], ["つまずきやすい用語", "Vocabulary insights", "শব্দভান্ডারের তথ্য"], ["混乱ヒートマップ", "Confusion heatmap", "বিভ্রান্তির হিটম্যাপ"], ["未", "None", "কিছু নেই"], ["有効", "Valid", "বৈধ"], ["14日以内に失効", "Expiring in 14 days", "Expiring in 14 days"], ["未取得", "Missing", "নেই"], ["セルをタップして詳細とチェックの割り当て", "Tap a cell for details and to assign a Check", "Tap a cell for details and to assign a Check"], ["まもなく失効", "Expiring soon", "শীঘ্রই মেয়াদ শেষ"], ["サインオフ日", "Sign-off date", "সাইন-অফের তারিখ"], ["なし", "None", "কিছু নেই"], ["バージョン", "Version", "সংস্করণ"], ["有効期限", "Expires", "মেয়াদ শেষ"], ["チェックを割り当て", "Assign Check", "যাচাই দিন"], ["学習履歴を見る", "View learning history", "শেখার ইতিহাস দেখুন"], ["誤答", "Wrong", "ভুল"], ["要フォロー", "Gap", "ঘাটতি"], ["復習", "Review", "পর্যালোচনা"], ["習得した言葉", "Words I mastered", "যে শব্দগুলো শিখেছি"], ["いまの課題", "Current gaps", "বর্তমান ঘাটতি"], ["連続日数", "Day streak", "টানা দিন"], ["課題はありません", "No gaps right now", "No gaps right now"], ["学習の記録", "Timeline", "সময়রেখা"], ["まだ記録がありません", "Nothing here yet", "এখনো কিছু নেই"], ["すべて既読", "Mark all read", "সব পড়া হয়েছে"], ["理解度分析", "Analytics", "বিশ্লেষণ"], ["力量表", "Skill Matrix", "দক্ষতা তালিকা"], ["フォローアップ", "Follow-ups", "ফলো-আপ"], ["職長 · 第2工場", "Worker · Plant 2", "Worker · Plant 2"], ["ロック中", "LOCKED", "LOCKED"], ["使用可", "READY", "READY"], ["チェック結果", "Check", "Check"], ["質問（佐藤さん宛）", "Ask", "Ask"], ["金型交換", "die change", "die change"], ["段取り", "setup", "setup"], ["玉掛け", "slinging", "slinging"], ["治具", "jig", "jig"], ["切粉", "chips", "chips"], ["集合は 7時45分 です。8時 ではありません。8時に 仕事が はじまる ので、その 前に ここに 来て ください。", "Gather at 7:45, not 8:00. The work starts at 8:00, so be at Press #2 before that.", "Gather at 7:45, not 8:00. The work starts at 8:00, so be at Press #2 before that."], ["ロックアウトは、でんげんを きって、自分の かぎを かける ことです。だれも スイッチを いれられません。金型交換の 前に かならず します。", "Lockout: switch the power off and put your own lock on it, so nobody can turn it on. Always do it before the die change.", "Lockout: switch the power off and put your own lock on it, so nobody can turn it on. Always do it before the die change."], ["金型（かながた）は、プレスに つける 「かた」です。金型交換は、その かたを べつの かたに かえる しごとです。", "The die is the shaped tool on the press. A die change means we swap it for another die.", "The die is the shaped tool on the press. A die change means we swap it for another die."], ["きょうは まず 3ごうきの オイルを みます。オイルが すくない ときは、わたしに いって ください。", "Check the oil on Machine 3 first today. If the oil is low, tell me.", "Check the oil on Machine 3 first today. If the oil is low, tell me."], ["7時45分に集合です。8時ではありません。気をつけてね。", "We gather at 7:45, not 8:00. Please be careful.", "We gather at 7:45, not 8:00. Please be careful."], ["電源を切って、自分の鍵をかけることです。交換の前に必ずやってください。", "Switch the power off and put your own lock on it. Always do this before the change.", "Switch the power off and put your own lock on it. Always do this before the change."], ["金型はプレスにつける型です。それを別の型に替える作業のことです。", "The die is the shaped tool on the press. It means swapping it for another die.", "The die is the shaped tool on the press. It means swapping it for another die."], ["3号機の油圧オイルです。タンクの横のゲージを見てください。", "The hydraulic oil on Machine 3. Look at the gauge beside the tank.", "The hydraulic oil on Machine 3. Look at the gauge beside the tank."], ["もう一度ゆっくり説明します。あとで現場で一緒に見ましょう。", "I will explain it again slowly. Let us look at it together on the floor later.", "I will explain it again slowly. Let us look at it together on the floor later."], ["もう一度、ゆっくり 言います。むずかしい ところを、かんたんな ことばで せつめい します。", "In simple words:", "In simple words:"], ["おはようございます。今日の安全の重点は、プレスでの手の挟まれ防止です。作業の前に、必ず安全カバーが閉まっているか確認してください。変更が一つあります。2号プレスの金型交換は午後に行います。午前中は使えません。", "Good morning. Today’s safety focus is keeping your hands from getting caught in the press. Before you start work, always check that the safety guard is closed. One change: the die on Press #2 will be changed this afternoon. You cannot use it this morning.", "Good morning. Today’s safety focus is keeping your hands from getting caught in the press. Before you start work, always check that the safety guard is closed. One change: the die on Press #2 will be changed this afternoon. You cannot use it this morning."], ["昨日の朝礼: 3号機のノズルは高温です。ドアは完全に止まってから開けてください。", "Yesterday’s briefing: the nozzle on Machine 3 is very hot. Open the door only after it has fully stopped.", "Yesterday’s briefing: the nozzle on Machine 3 is very hot. Open the door only after it has fully stopped."], ["コーヒー", "Coffee", "Coffee"], ["防災訓練をいっしょに", "Drill together", "Drill together"], ["お祭り", "Festival", "Festival"], ["その他", "Other", "Other"], ["いい質問ですね。明日の昼休みに、いっしょに調べましょう。", "Good question. Let us look it up together at lunch tomorrow.", "Good question. Let us look it up together at lunch tomorrow."], ["市役所の窓口で聞くといいですよ。私もついて行きます。", "It is best to ask at the city office. I will go with you.", "It is best to ask at the city office. I will go with you."], ["今度の土曜日に、いっしょに行きましょう。", "Let us go together this Saturday.", "Let us go together this Saturday."], ["今日は3号機の油の点検を先にしてください。オイルが少ないときは、私に言ってください。", "Today, check the oil on Machine 3 first. If the oil is low, tell me.", "Today, check the oil on Machine 3 first. If the oil is low, tell me."], ["機械3のオイル、少ないです。", "Machine 3 oil is low.", "Machine 3 oil is low."], ["明日の点検表、ありがとう。", "Thanks for tomorrow’s inspection sheet.", "Thanks for tomorrow’s inspection sheet."], ["明日の朝8時から、2号プレスの金型交換をします。ラヒムさんとグエンさんは、7時45分に集合してください。交換の前に、必ず電源をロックアウトして、安全靴と手袋をつけてください。終わったら点検表を書いて、私に報告してください。", "Tomorrow from 8:00 we change the die on Press #2. Rahim and Nguyen, gather at 7:45. Before the change, always lock out the power and wear safety shoes and gloves. When you finish, fill in the inspection sheet and report to me.", "Tomorrow from 8:00 we change the die on Press #2. Rahim and Nguyen, gather at 7:45. Before the change, always lock out the power and wear safety shoes and gloves. When you finish, fill in the inspection sheet and report to me."], ["すみません、明日は何時に集合ですか？聞き取れませんでした。", "Sorry, what time do we gather tomorrow? I did not catch it.", "Sorry, what time do we gather tomorrow? I did not catch it."], ["「ロックアウト」とはどういう意味ですか？何をすればいいですか？", "What does \"lock out\" mean? What should I do?", "What does \"lock out\" mean? What should I do?"], ["「金型交換」とは何ですか？この言葉がわかりません。", "What is \"die change\"? I do not know this word.", "What is \"die change\"? I do not know this word."], ["どのオイルをどこで点検しますか？もう一度教えてください。", "Which oil do I check, and where? Please tell me again.", "Which oil do I check, and where? Please tell me again."], ["すみません、よくわかりません。もう一度説明してください。", "Sorry, I did not understand this. Can you explain it again, please?", "Sorry, I did not understand this. Can you explain it again, please?"], ["ドアを早く開けすぎて、ノズルから熱い樹脂が飛び散りました。", "Hot resin splashed from the nozzle when I opened the door too early.", "Hot resin splashed from the nozzle when I opened the door too early."], ["切粉がトレーから落ちていて、滑りそうになりました。", "A metal chip fell from the tray and I almost slipped on it.", "A metal chip fell from the tray and I almost slipped on it."], ["チャックのカバーを開けたとき、切粉が飛び出しました。目の数センチ横を通りました。", "A metal chip flew out when I opened the chuck cover. It missed my eye by a few centimeters.", "A metal chip flew out when I opened the chuck cover. It missed my eye by a few centimeters."], ["詰まりを取ろうと手を入れたとき、安全カバーが開いていました。手袋が金型の間に挟まれそうになりました。", "The safety guard was open when I reached in to clear a jam. My glove almost got caught between the dies.", "The safety guard was open when I reached in to clear a jam. My glove almost got caught between the dies."], ["ホーム", "Home", "হোম"], ["軽微", "Low", "Low"], ["中程度", "Medium", "Medium"], ["重大", "High", "High"], ["集合時間", "Gather time", "জমায়েতের সময়"], ["ロックアウト", "Lockout", "লকআউট"], ["3号機オイル", "Machine 3 oil", "মেশিন ৩-এর তেল"], ["はい", "Yes", "হ্যাঁ"], ["いいえ", "No", "না"], ["要フォロー", "Open", "খুলুন"]];
 
 /* ===== Whole-app language: every visible string follows LANG (ja / en / bn) =====
    I18N holds [ja, en, bn] triples. Any variant found on screen is swapped for the chosen language,
@@ -5365,12 +5683,12 @@ function trText(s) {
 }
 const I18N_ATTRS = ['aria-label', 'placeholder', 'title', 'data-toast'];
 function trTree(root) {
-  if (root.nodeType === 3) { const v = trText(root.nodeValue); if (v != null) root.nodeValue = v; return; }
-  if (root.nodeType !== 1 || root.closest('script,style,.langbar')) return;
+  if (root.nodeType === 3) { if (root.parentElement && root.parentElement.closest('script,style,.langbar,[translate=no]')) return; const v = trText(root.nodeValue); if (v != null) root.nodeValue = v; return; }
+  if (root.nodeType !== 1 || root.closest('script,style,.langbar,[translate=no]')) return;
   const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
   let n;
   while ((n = w.nextNode())) {
-    if (n.parentElement && n.parentElement.closest('script,style,.langbar')) continue;
+    if (n.parentElement && n.parentElement.closest('script,style,.langbar,[translate=no]')) continue;
     const v = trText(n.nodeValue);
     if (v != null) n.nodeValue = v;
   }

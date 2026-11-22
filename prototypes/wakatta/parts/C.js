@@ -43,6 +43,7 @@ const P = {
   retry: 'M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z',
   task: 'M19 3h-4.18C14.4 1.84 13.3 1 12 1s-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm-2 14-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z',
   next: 'M10 6 8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z',
+  clock: 'M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z',
   eye: 'M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z',
   bell: 'M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z',
   camp: 'M18 11v2h4v-2h-4zm-2 6.61c.96.71 2.21 1.65 3.2 2.39.4-.53.8-1.07 1.2-1.6-.99-.74-2.24-1.68-3.2-2.4-.4.54-.8 1.08-1.2 1.61zM20.4 5.6c-.4-.53-.8-1.07-1.2-1.6-.99.74-2.24 1.68-3.2 2.4.4.53.8 1.07 1.2 1.6.96-.72 2.21-1.65 3.2-2.4zM4 9c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2h1v4h2v-4h1l5 3V6L8 9H4zm11.5 3c0-1.33-.58-2.53-1.5-3.35v6.69c.92-.81 1.5-2.01 1.5-3.34z',
@@ -229,7 +230,7 @@ function fillPanel(el) {
     sub.textContent = r ? `Signed off · Note ${n ? n.version : ''}` : `No sign-off for Note ${n ? n.version : ''} yet`;
     sheet.innerHTML = `<div class="sf-pres">${avatar(ME, 'lg')}<div class="grow"><b>${esc(nameOf(ME))}</b><div class="sub"><span class="sf-live"></span>Presence: at this machine</div></div>${r ? chip('green', 'Ready') : `<span class="sf-st sf-lk" data-s="wait">${svg('lock', 's')}Locked</span>`}</div>` +
       (r ? `<div class="sf-signed">${svg('okc')}<div><b>Signed off on Note ${esc(so ? so.version : (n ? n.version : ''))}</b><div class="sub">${so ? esc(fmtAt(so.at)) : ''}</div></div></div>
-        <div class="sf-two"><button class="btn tonal" data-push="note" ${param({machine: m.id})}>${svg('task')}Read the Note</button><button class="btn outlined" data-push="nearmiss" ${param({machine: m.id})}>${svg('warn')}Report a near-miss</button></div>`
+        <div class="sf-two"><button class="btn tonal" data-push="note" ${param({machine: m.id})}>${svg('task')}Read the Note</button><button class="btn outlined" data-push="nearmiss" ${param({machine: m.id})}>${svg('warn')}Near-miss</button></div>`
         : `<p class="sf-hint">You cannot use this machine until you read the Note and pass the Check.</p>
         <button class="btn block sf-big" data-push="note" ${param({machine: m.id})}>${svg('lock')}Take the Check to unlock</button>`);
   }
@@ -329,7 +330,7 @@ const DICT = {
   mc2: {en: 'The safety guard was open when I reached in to clear a jam. My glove almost got caught between the dies.', ja: '詰まりを取ろうと手を入れたとき、安全カバーが開いていました。手袋が金型の間に挟まれそうになりました。'},
   mc3: {en: 'Hot resin splashed from the nozzle when I opened the door too early.', ja: 'ドアを早く開けすぎて、ノズルから熱い樹脂が飛び散りました。'},
 };
-const toJa = (mid, text) => { const d = DICT[mid]; return d && d.en === text ? d.ja : '(自動翻訳) ' + text; };
+const toJa = (mid, text) => { const d = DICT[mid]; return d && d.en.startsWith(text.trim()) ? d.ja : '(自動翻訳) ' + text; };   // shortcut: fake MT, a dictation prefix maps to the canned translation
 const photoUrl = mid => `https://picsum.photos/seed/nearmiss-${mid}/600/400`;
 const NM = {el: null, mid: null, text: '', photo: false, mark: {x: 56, y: 46}, sev: 'mid', rec: false, wi: 0, tm: 0, sent: false};
 const sevChip = s => `<span class="sf-sev" data-sv="${s}">${t(SEV[s][0], SEV[s][1])}</span>`;
@@ -454,7 +455,7 @@ function renderDetail() {
   el.innerHTML = bar(t('ヒヤリハット', 'Near-miss'), backBtn) + `<div class="content"><div class="pad sf-stack">
     ${x.photo ? photoBox(x.photo, x.mark, 'big') : ''}
     <div class="row sf-wrapr">${sevChip(x.severity)}${ack ? chip('green', t('対応済', 'Seen by Tanaka')) : chip('orange', t('未対応', 'Sent'))}</div>
-    <div class="card sf-meta"><div>${svg('lock', 's')}<span>${esc(mcName(m))}</span></div><div>${avatar(x.user, 'sm')}<span>${esc(nameOf(x.user))}</span></div><div>${svg('next', 's')}<span>${esc(fmtAt(x.at))}</span></div></div>
+    <div class="card sf-meta"><div>${svg('lock', 's')}<span>${esc(mcName(m))}</span></div><div>${avatar(x.user, 'sm')}<span>${esc(nameOf(x.user))}</span></div><div>${svg('clock', 's')}<span>${esc(fmtAt(x.at))}</span></div></div>
     ${FM ? `<div class="sf-sh-h">日本語訳</div><div class="card sf-big-t">${esc(x.ja)}</div><div class="sf-sh-h">原文 (English)</div><div class="sf-orig">${esc(x.en)}</div>`
           : `<div class="sf-sh-h">What you said</div><div class="card sf-big-t">${esc(x.en)}</div><div class="sf-sh-h">What Tanaka reads (日本語)</div><div class="sf-orig">${esc(x.ja)}</div>`}
     ${ack && x.ackAt ? `<div class="sub">${t('確認 ', 'Seen ')}${esc(fmtAt(x.ackAt))}</div>` : ''}

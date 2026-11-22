@@ -1,14 +1,14 @@
 """Merge part fragments into the app skeleton.
 
 usage: python merge.py [--only A|B] [--out FILE]
-Reads parts/<P>.css (P in A..E), <P>.screens.html, <P>.tabs.html, <P>.overlays.html, <P>.js, <P>.init.js (missing files are skipped)
+Reads parts/<P>.css (P in A..F), <P>.screens.html, <P>.tabs.html, <P>.overlays.html, <P>.js, <P>.init.js (missing files are skipped)
 and replaces the PART:<P>:<SLOT> markers in skeleton.html. Default output: ../app.html
 """
 import argparse
 import pathlib
 
 HERE = pathlib.Path(__file__).parent
-PARTS = 'ABCDE'
+PARTS = 'ABCDEF'
 SLOTS = {  # slot -> (file suffix, marker template)
     'CSS': ('.css', '/* PART:{p}:CSS */'),
     'SCREENS': ('.screens.html', '<!-- PART:{p}:SCREENS -->'),

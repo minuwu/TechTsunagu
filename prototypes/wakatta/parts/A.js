@@ -167,20 +167,20 @@
     n.className = 'ch-m ' + (mine ? 'own' : 'oth');
     n.dataset.id = m.id;
     const vt = m.kind === 'voice' ? `<div class="ch-vt">${svg('mic')}<span class="ch-bars">${bars(m.id.length)}</span><span>0:${String(Math.max(4, Math.round(m.ja.length / 5))).padStart(2, '0')}</span></div>` : '';
-    const bub = `<div class="ch-bub">${vt}${m.ask ? askQuote(m) : ''}<div class="ch-tx">${hl(textOf(m), ROLE === 'worker')}</div></div>`;
-    const row = `<div class="ch-brow">${mine ? spkBtn() + bub : bub + spkBtn()}</div>`;
     const due = m.wk && m.wk.due ? `<span class="ch-due">${svg('clock')}${T('回答期限 ', 'Reply by ')}${esc(m.wk.due)}</span>` : '';
     const meta = `<div class="ch-meta">${esc(m.at)}${due}</div>`;
+    const bub = `<div class="ch-bub">${vt}${m.ask ? askQuote(m) : ''}<div class="ch-tx">${hl(textOf(m), ROLE === 'worker')}</div>${meta}</div>`;
+    const row = `<div class="ch-brow">${mine ? spkBtn() + bub : bub + spkBtn()}</div>`;
     const ar = m.ask ? '<div class="ch-ar"></div>' : '';
     if (mine) {
       const wk = m.wk && ROLE === 'foreman' ? '<div class="ch-wk"><button class="ch-pill" data-act="wk" aria-expanded="false"></button><div class="ch-fold"><div><div class="ch-bd"></div></div></div></div>' : '';
-      n.innerHTML = row + meta + wk + ar;
+      n.innerHTML = row + wk + ar;
     } else {
       const o = ROLE === 'worker' ? m.ja : m.en, open = S.orig[m.id];
       const lab = open ? T('原文を隠す', 'Hide original') : T('原文を見る (English)', 'Show original (日本語)');
       const orig = o ? `<button class="ch-orig-b" data-act="orig">${lab}</button><div class="ch-fold${open ? ' open' : ''}"><div><div class="ch-orig">${hl(o, ROLE === 'foreman')}</div></div></div>` : '';
       const chk = m.wk && ROLE === 'worker' ? '<div class="ch-chk"></div>' : '';
-      n.innerHTML = `<div class="ch-av avatar" style="background:${u.color}">${esc(u.initials)}</div><div class="ch-col"><div class="ch-nm">${esc(nameOf(m.from))}</div>${row}${orig}${meta}${chk}${ar}</div>`;
+      n.innerHTML = `<div class="ch-av avatar" style="background:${u.color}">${esc(u.initials)}</div><div class="ch-col"><div class="ch-nm">${esc(nameOf(m.from))}</div>${row}${orig}${chk}${ar}</div>`;
     }
     return n;
   }
@@ -255,9 +255,12 @@
     const prev = JSON.parse(w.dataset.prev || '{}');
     const cur = {}; ids.forEach(u => cur[u] = wk.results[u].status);
     w.dataset.prev = JSON.stringify(cur);
+    // keep the pop class for ~700ms so a second refresh right after (followup, read) does not cut the animation
+    const chg = w._chg || (w._chg = {}); ids.forEach(u => { if (prev[u] && prev[u] !== cur[u]) chg[u] = Date.now() + 700; });
+    const pop = u => chg[u] > Date.now();
     const pct = (st + 1) / 6, prevPct = w.dataset.pct || '0';
     const head = done
-      ? `<span class="ch-dots">${ids.map(u => `<i class="ch-dot ${cur[u]}${prev[u] && prev[u] !== cur[u] ? ' pop' : ''}"></i>`).join('')}</span><span class="ch-pt">${summary(wk, ids)}</span>`
+      ? `<span class="ch-dots">${ids.map(u => `<i class="ch-dot ${cur[u]}${pop(u) ? ' pop' : ''}"></i>`).join('')}</span><span class="ch-pt">${summary(wk, ids)}</span>`
       : `<span class="spinner ch-spin"></span><span class="ch-pt">${JA_ING[st + 1]}… ${st + 2}/6</span>`;
     const pill = head + `<span class="ch-chev">${svg('more')}</span>` + (done ? '' : `<i class="ch-prog" style="transform:scaleX(${prevPct})"></i>`);
     const pb = $('.ch-pill', w);
@@ -286,7 +289,7 @@
       } else if (s === 'wait' && done) {
         act = nd ? `<div class="ch-ract">${svg('bell')}催促済み · ${esc(nd)}</div>` : `<button class="btn tonal ch-again" data-act="nudge" data-u="${u}">${svg('bell')}催促</button>`;
       }
-      return `<div class="ch-wr"><span class="avatar" style="background:${usr.color}">${esc(usr.initials)}</span><div class="nm">${esc(nameOf(u))}<div class="ch-mks">${marks(wk, u)}${rdh}${tag}</div></div><span class="ch-st ${s}${prev[u] && prev[u] !== s ? ' pop' : ''}">${ST_JA[s]}</span></div>` + (act ? `<div class="ch-wa">${act}</div>` : '');
+      return `<div class="ch-wr"><span class="avatar" style="background:${usr.color}">${esc(usr.initials)}</span><div class="nm">${esc(nameOf(u))}<div class="ch-mks">${marks(wk, u)}${rdh}${tag}</div></div><span class="ch-st ${s}${pop(u) ? ' pop' : ''}">${ST_JA[s]}</span></div>` + (act ? `<div class="ch-wa">${act}</div>` : '');
     }).join('');
     const nt = DATA.tasks.filter(t => t.from === m.id).length;
     const due = wk.due ? `<div class="ch-dl">${svg('clock')}回答期限 ${esc(wk.due)}</div>` : '';
@@ -383,7 +386,7 @@
       return `<button class="ch-or${cls}" data-act="rpick" data-i="${j}">${esc(o)}${ic}</button>`;
     }).join('');
     const h = `<div class="ch-rxt">${svg('redo')}<b>Explained again, just for you</b></div>` +
-      `<div class="ch-bub ch-rxbub"><div class="ch-tx">${hl(R.en, true)}</div><div class="ch-rjp" lang="ja">${esc(R.ja)}</div><div class="ch-pics">${picHTML(R.pics)}</div>${spkBtn(R.en)}</div>` +
+      `<div class="ch-bub ch-rxbub"><div class="ch-tx">${hl(R.en, true)}</div><div class="ch-rjp" lang="ja" translate="no">${esc(R.ja)}</div><div class="ch-pics">${picHTML(R.pics)}</div>${spkBtn(R.en)}</div>` +
       `<div class="ch-rck${done ? ' fb' : ''}"><div class="ch-cqn">New question</div><div class="ch-cqt">${esc(qq.q)}</div>${opts}` +
       (done ? `<div class="ch-fbt ${ok ? 'ok' : 'bad'}">${svg(ok ? 'okc' : 'bad')}${ok ? 'Wakatta! Tanaka can see you understood.' : 'Not quite · answer: ' + esc(qq.options[qq.answer]) + '. Tanaka will help you in person.'}</div>` : '') + '</div>' +
       `<div class="ch-meta">${esc(R.at)}</div>`;
@@ -709,8 +712,8 @@
       const a = fakeAI(m, u); X.q = a.q; X.pics = a.pics; X.topics = a.topics;
       b.innerHTML = `<div class="ch-sh-h"><b>${esc(first(u))}さんへ 再説明</b><span class="ch-ai">${svg('spark')}AI作成 · 編集できます</span></div>` +
         `<div class="ch-sh-s">間違えた用語 ${a.topics.map(t => `<span class="ch-tchip">${esc(t)}</span>`).join('')}</div>` +
-        `<label class="ch-lb" for="ch-rx-ja">やさしい日本語</label><textarea class="ch-in" id="ch-rx-ja" rows="3">${esc(a.ja)}</textarea>` +
-        `<label class="ch-lb" for="ch-rx-en">English (${esc(first(u))}さんに表示)</label><textarea class="ch-in" id="ch-rx-en" rows="3">${esc(a.en)}</textarea>` +
+        `<label class="ch-lb" for="ch-rx-ja">やさしい日本語</label><textarea class="ch-in" id="ch-rx-ja" rows="5">${esc(a.ja)}</textarea>` +
+        `<label class="ch-lb" for="ch-rx-en">英語 (${esc(first(u))}さんの画面に表示)</label><textarea class="ch-in" id="ch-rx-en" rows="4">${esc(a.en)}</textarea>` +
         `<div class="ch-lb">ピクトグラム</div><div class="ch-pics">${picHTML(a.pics)}</div>` +
         `<div class="ch-lb">新しい確認質問 (1問)</div><input class="ch-in" id="ch-rx-qja" value="${esc(a.q.qJa || '')}" aria-label="質問 日本語"><input class="ch-in" id="ch-rx-qen" value="${esc(a.q.q)}" aria-label="Question English">` +
         `<div class="ch-opts">${a.q.options.map((o, j) => `<span class="ch-op${j === a.q.answer ? ' ok' : ''}">${j === a.q.answer ? svg('check') : ''}${esc((a.q.optionsJa || a.q.options)[j])}</span>`).join('')}</div>` +
@@ -794,7 +797,7 @@
     SH('ch-gl-b').innerHTML = `<div class="ch-sh-h"><b>用語集に追加</b><span class="ch-ai">${svg('lock')}固定用語</span></div>` +
       '<p class="ch-sh-p">AIは固定用語の訳を変えません。両方の画面で下線が付き、タップで意味が見られます。</p>' +
       `<label class="ch-lb" for="ch-gl-ja">日本語</label><input class="ch-in" id="ch-gl-ja" value="${esc(pre.ja || '')}" autocomplete="off">` +
-      `<label class="ch-lb" for="ch-gl-en">English</label><input class="ch-in" id="ch-gl-en" value="${esc(g ? g.en : sg.en || '')}" autocomplete="off">` +
+      `<label class="ch-lb" for="ch-gl-en">英語の訳</label><input class="ch-in" id="ch-gl-en" value="${esc(g ? g.en : sg.en || '')}" autocomplete="off">` +
       `<label class="ch-lb" for="ch-gl-rd">よみがな</label><input class="ch-in" id="ch-gl-rd" value="${esc(g ? g.reading : sg.reading || '')}" autocomplete="off">` +
       `<div class="ch-gprev" id="ch-gl-pv"></div><div class="ch-foot"><button class="btn block ch-go" data-act="glsave">${svg('add')}用語集に追加</button></div>`;
     glPreview(); App.open('ch-gl');

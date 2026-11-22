@@ -106,9 +106,9 @@ const hello = () => `<div class="hm-hello"><h2>${FM ? 'おはようございま�
 
 
 /* quick actions (entry points to parts C and D screens). Schemas of DATA.nearmisses / DATA.briefings belong to part C: read defensively. */
-const nmUnacked = () => (DATA.nearmisses || []).filter(n => !(n.ack || n.acked || n.acknowledged || n.ackBy || n.ackAt || n.status === 'ack' || n.status === 'acknowledged')).length;
-const answeredBy = (b, u) => { const a = b.answers || b.results || b.answered || b.responses; return Array.isArray(a) ? a.some(x => x === u || (x && x.user === u)) : !!(a && a[u]); };
-const briefingToday = () => (DATA.briefings || []).filter(b => !answeredBy(b, ME)).pop();
+const nmUnacked = () => window.sfOpenNearmisses ? window.sfOpenNearmisses() : (DATA.nearmisses || []).filter(n => n.status !== 'ack').length;
+const answeredBy = (b, u) => { const r = b.results && b.results[u]; return !!r && r.status !== 'wait'; };
+const briefingToday = () => { const l = window.sfLatestBriefing ? window.sfLatestBriefing() : (DATA.briefings || []).slice().sort((x, y) => x.at < y.at ? 1 : -1)[0]; return l && !answeredBy(l, ME) ? l : null; };
 const qa = (id, icon, label, badge, p) => `<button class="hm-qa" data-go="${id}"${p ? ' ' + param(p) : ''}><span class="hm-qi">${ic(icon, 'ic')}${badge ? `<i class="hm-qb">${badge}</i>` : ''}</span><span class="hm-ql">${label}</span></button>`;
 
 const fuOpen = () => (DATA.followups || []).filter(f => f.status === 'open');
@@ -146,16 +146,16 @@ function homeForeman(anim) {
 }
 function homeWorker(anim) {
   const pend = pending(), mine = openTasks().filter(k => k.assignees.includes(ME)), br = briefingToday();
-  const brT = br && (br.titleEn || br.title || br.en || br.ja || 'Today’s briefing');
+  const brT = br && (br.focusEn || br.en || 'Today’s briefing');
   return `<div class="pad${stag(anim)}" style="padding-bottom:88px">
     ${hello()}
-    ${br ? `<button class="card hm-brief" data-go="briefing" ${param({id: br.id})}><span class="hm-qi">${ic('camp', 'ic')}</span><div class="grow"><div class="from">Today’s briefing</div><div class="q hm-clamp">${esc(brT)}</div></div><span class="btn tonal">Open</span></button>` : ''}
+    ${br ? `<button class="card hm-brief" data-go="briefing-card" ${param({id: br.id})}><span class="hm-qi">${ic('camp', 'ic')}</span><div class="grow"><div class="from">Today’s briefing</div><div class="q hm-clamp">${esc(brT)}</div></div><span class="btn tonal">Open</span></button>` : ''}
     <div><div class="hm-h">Checks waiting for you</div>${pend.map(m => `<button class="card hm-chk" data-push="chat" ${param({thread: m.thread, msg: m.id})}>
         <div class="from">From ${esc(nameOf(m.from))} · ${esc(m.at)}</div><div class="q hm-clamp">${esc(textOf(m))}</div>
         <div class="foot">${stChip('wait')}<span class="btn tonal">Answer now</span></div></button>`).join('')
       || `<div class="card"><div class="hm-empty">${ic('check')}<span>You're all caught up</span></div></div>`}</div>
     <div><div class="hm-h">Quick actions</div><div class="hm-qgrid">
-      ${qa('nearmiss', 'warn', 'Report near-miss')}${qa('life', 'groups', 'Life &amp; notices')}${qa('ask', 'help', 'Ask')}</div></div>
+      ${qa('nearmiss', 'warn', 'Report near-miss')}${qa('life', 'groups', 'Life &amp; notices', (window.lfPending && window.lfPending(ME)) || '')}${qa('ask', 'help', 'Ask')}${qa('course', 'book', 'Safety course')}</div></div>
     <button class="card hm-learn" data-go="learning" ${param({user: ME})} style="margin-top:12px"><span class="hm-qi">${ic('book', 'ic')}</span><div class="grow"><div>My learning</div><small>Words you learned and gaps to review</small></div>${ic('next', 'ic')}</button>
     <div><div class="hm-h">My tasks</div><div class="card">${mine.map(k => `<div class="list-item" data-tap data-push="task" ${param({id: k.id})}>
       <div class="grow"><div class="hm-ell">${esc(ttl(k))}</div><div class="sub">${esc(dueT(k.due))}</div></div>${ic('next')}</div>`).join('')
@@ -272,19 +272,33 @@ function setupBoard(el) {
     if (commit && task && col && task.col !== col) { Bus.emit('task:update', {task: {...task, col}}); scrollToCol(col); }
     else { if (pendBoard) { pendBoard = false; renderBoard(el); } if (col) scrollToCol(col); }
   };
+  // Mouse: drag empty space or a card sideways to pan; touch pans natively. Shift+wheel (or a sideways wheel) scrolls the strip.
+  let pan = null;
+  strip.addEventListener('wheel', e => {
+    const dx = e.deltaX || (e.shiftKey ? e.deltaY : 0);
+    if (!dx) return;
+    e.preventDefault(); strip.scrollBy({left: dx});
+  }, {passive: false});
   strip.addEventListener('pointerdown', e => {
+    if (e.pointerType === 'mouse' && e.button === 0 && !e.target.closest('[data-push]')) pan = {x0: e.clientX, y0: e.clientY, sl: strip.scrollLeft, list: e.target.closest('.bd-list'), st0: e.target.closest('.bd-list') ? e.target.closest('.bd-list').scrollTop : 0, on: false};
     const c = e.target.closest('.bd-card');
     if (!c || (e.pointerType === 'mouse' && e.button !== 0) || e.target.closest('[data-push]')) return;
     st = {card: c, id: c.dataset.id, x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY, lifted: false};
     st.timer = setTimeout(lift, 250);
   });
   addEventListener('pointermove', e => {
+    if (pan && !(st && st.lifted)) {
+      const dx = e.clientX - pan.x0, dy = e.clientY - pan.y0;
+      if (!pan.on && Math.hypot(dx, dy) > 10) { pan.on = true; strip.classList.add('bd-dragging'); strip.style.userSelect = 'none'; if (st) { clearTimeout(st.timer); st = null; } }
+      if (pan.on) { strip.scrollLeft = pan.sl - dx / scale(); if (pan.list) pan.list.scrollTop = pan.st0 - dy / scale(); }
+    }
     if (!st) return;
     st.x = e.clientX; st.y = e.clientY;
     if (!st.lifted && Math.hypot(st.x - st.x0, st.y - st.y0) > 10) { clearTimeout(st.timer); st = null; }
   });
-  addEventListener('pointerup', () => end(true));
-  addEventListener('pointercancel', () => end(false));
+  const endPan = () => { if (!pan) return; if (pan.on) { suppress = Date.now() + 150; strip.classList.remove('bd-dragging'); strip.style.userSelect = ''; } pan = null; };
+  addEventListener('pointerup', () => { end(true); endPan(); });
+  addEventListener('pointercancel', () => { end(false); endPan(); });
   strip.addEventListener('touchmove', e => { if (st && st.lifted && e.cancelable) e.preventDefault(); }, {passive: false});
   strip.addEventListener('contextmenu', e => e.preventDefault());
   el.addEventListener('click', e => {
@@ -307,6 +321,7 @@ function renderTask(el) {
     <div class="bd-nm">${k.assignees.map(u => `<span>${av(u, 'sm')}${esc(nameOf(u))}</span>`).join('')}</div>
     <div class="card" style="margin-top:16px"><div class="list-item bd-row">${ic('clock', 'lead')}<div class="grow"><div class="sub">${t('期限', 'Due')}</div><div>${esc(dueT(k.due) || '-')}</div></div></div>
       ${m ? `<div class="list-item bd-row" data-tap data-push="machine" ${param({id: m.id})}>${ic('build', 'lead')}<div class="grow"><div class="sub">${t('機械', 'Machine')}</div><div>${esc(mcName(m))}</div></div>${ic('next')}</div>` : ''}</div>
+    ${k.nm ? `<div class="card" style="margin-top:12px"><button class="list-item bd-row" data-tap data-go="nearmiss-detail" ${param({id: k.nm})} style="width:100%;text-align:left">${ic('warn', 'lead')}<div class="grow"><div class="sub">${t('元の報告', 'Source')}</div><div>${t('ヒヤリハット報告から', 'From near-miss report')}</div></div>${ic('next')}</button></div>` : ''}
     ${src ? `<div class="hm-h">${t('元のメッセージ', 'Source message')}</div>
       <blockquote class="bd-q"><div class="who">${av(src.from, 'sm')}<span>${esc(nameOf(src.from))} · ${esc(src.at)}</span></div><div class="txt">${esc(textOf(src))}</div></blockquote>
       <button class="btn tonal block" style="margin-top:12px;height:48px;border-radius:24px" data-push="chat" ${param({thread: src.thread, msg: src.id})}>${ic('chat')}${t('チャットで開く', 'Open in chat')}</button>` : ''}
@@ -433,11 +448,12 @@ function refresh() {
   if (curTask && (e = built('task'))) renderTask(e);
   if (curMc && (e = built('machine'))) renderMachine(e);
   badge();
+  if (window.uxRefresh) window.uxRefresh();
 }
 Bus.on('msg:new', ({thread, msg}) => { bump[thread] = Date.now(); refresh(); setTimeout(refresh, 60); });
 Bus.on('wk:stage', () => refresh());
 // part C / D data changed: their own handlers run in the same tick, so re-render after them
-['followup:new', 'followup:resolve', 'signoff', 'nearmiss:new', 'nearmiss:ack', 'briefing:new', 'briefing:answer', 'notice:new', 'ask:new'].forEach(ev => Bus.on(ev, () => setTimeout(refresh, 50)));
+['followup:new', 'followup:resolve', 'signoff', 'nearmiss:new', 'nearmiss:ack', 'briefing:new', 'briefing:answer', 'confusion:new', 'notice:new', 'notice:answer', 'ask:new', 'ask:reply'].forEach(ev => Bus.on(ev, () => setTimeout(refresh, 50)));
 Bus.on('check:answer', ({msgId, user, status}) => { (ov[msgId] = ov[msgId] || {})[user] = status; refresh(); });
 Bus.on('task:update', ({task}) => {
   if (!task || !task.id) return;

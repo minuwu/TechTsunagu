@@ -10,7 +10,7 @@ function build() {
   body.innerHTML = `<div class="bd-sheet"><h2 class="bd-sh">${t('タスクを追加', 'New task')}</h2>
     <input class="field" id="bd-title" autocomplete="off" placeholder="${t('タイトル', 'Title')}" aria-label="${t('タイトル', 'Title')}">
     <div class="bd-lbl">${t('担当', 'Assignees')}</div>
-    <div class="row bd-wrap" id="bd-asg">${Object.keys(DATA.users).map(u => `<button class="chip" data-u="${u}">${esc(nameOf(u).split(' ')[0])}</button>`).join('')}</div>
+    <div class="row bd-wrap" id="bd-asg">${Object.keys(DATA.users).filter(u => DATA.users[u].role === 'worker' || DATA.users[u].role === 'foreman').map(u => `<button class="chip" data-u="${u}">${esc(nameOf(u).split(' ')[0])}</button>`).join('')}</div>
     <div class="bd-lbl">${t('期限', 'Due')}</div>
     <div class="row bd-wrap" id="bd-due">${DUES.map(([v, ja, en], i) => `<button class="chip${i ? '' : ' on'}" data-chip data-due="${v}">${t(ja, en)}</button>`).join('')}</div>
     <button class="btn block" id="bd-save">${t('追加', 'Add task')}</button></div>`;
