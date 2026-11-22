@@ -12,6 +12,7 @@ A ready-to-use starting point for a hackathon team. It holds the team protocol, 
 | [docs/FRONTEND_ARCHITECTURE.md](docs/FRONTEND_ARCHITECTURE.md) | Replaceable-UI architecture `A-01`…`A-09`: swappable UI kits on one headless core |
 | [docs/FRONTEND_REGULATIONS.md](docs/FRONTEND_REGULATIONS.md) | Japan-facing UI rules `F-01`…`F-53` and pre-demo checklist |
 | [docs/API_SPEC.md](docs/API_SPEC.md), [docs/openapi.yaml](docs/openapi.yaml) | Contract-first API stubs with the response envelope |
+| [docs/ROVERVILLA_COURSE_PLATFORM_SPEC.md](docs/ROVERVILLA_COURSE_PLATFORM_SPEC.md) | Course platform architecture: Rover Villa translation, "One Safety Skill, Four Doors", 9 simulation drills, schemas & Three.js blueprint |
 | [TEAM_INSTRUCTIONS.md](TEAM_INSTRUCTIONS.md) | Human onboarding, daily loop, per-person checklist, Hour-0 agenda |
 | [HACKATHON_PRESETUP.md](HACKATHON_PRESETUP.md) | Parallel workflow playbook and stack options |
 | `.githooks/pre-push` | Rejects stale pushes to `main`; auto-merges `origin/main` into feature branches |
