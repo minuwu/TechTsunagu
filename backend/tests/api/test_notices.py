@@ -192,9 +192,13 @@ def test_a_flyer_photo_is_stored_without_its_exif(client: TestClient, town: Town
     )
 
     assert res.status_code == 201, res.text
-    stored = client.get(res.json()["data"]["photo"], headers=town.worker)
+    draft = res.json()["data"]
+    stored = client.get(draft["photo"], headers=town.poster)
     assert stored.status_code == 200 and stored.headers["content-type"] == "image/jpeg"
     assert b"GPS-SECRET" not in stored.content and stored.content.endswith(b"pixels\xff\xd9")
+    assert client.get(draft["photo"], headers=town.worker).status_code == 404  # a draft's photo stays private
+    _publish(client, town, draft)
+    assert client.get(draft["photo"], headers=town.worker).status_code == 200
 
 
 def test_a_photo_that_is_not_jpeg_is_refused(client: TestClient, town: Town) -> None:

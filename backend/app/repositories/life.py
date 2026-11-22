@@ -2,16 +2,16 @@
 Senpai pairs and Meet-ups take the shop id (or the hashed Senpai token). Nothing here is unscoped."""
 
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 
 from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, aliased
 
 from app.models.life import Ask, Event, Meetup, Notice, SenpaiPair
 from app.models.platform import Blob
 from app.models.scopes import Poster, User
-from app.models.work import Receipt
+from app.models.work import Machine, PanelOverride, Receipt
 
 
 def poster_of(db: Session, district_id: int, user_id: int) -> Poster | None:
@@ -70,8 +70,15 @@ def published_events(db: Session, district_id: int) -> list[Event]:
     return list(db.scalars(stmt))
 
 
-def blob(db: Session, district_id: int, blob_id: int) -> Blob | None:
-    return db.scalar(select(Blob).where(Blob.district_id == district_id, Blob.id == blob_id))
+def notice_photo(db: Session, district_id: int, blob_id: int) -> tuple[Blob, Notice] | None:
+    """A flyer photo with the Notice it belongs to; the caller decides who may see a draft's photo."""
+    stmt = (
+        select(Blob, Notice)
+        .join(Notice, (Notice.source_blob_id == Blob.id) & (Notice.district_id == Blob.district_id))
+        .where(Blob.district_id == district_id, Blob.id == blob_id)
+    )
+    row = db.execute(stmt).first()
+    return (row[0], row[1]) if row else None
 
 
 def receipts_of(db: Session, worker_id: int, notice_ids: list[int]) -> dict[int, Receipt]:
@@ -166,3 +173,60 @@ def worker(db: Session, shop_id: int, worker_id: int) -> User | None:
 def meetups_of(db: Session, pair: SenpaiPair, limit: int) -> list[Meetup]:
     stmt = select(Meetup).where(Meetup.shop_id == pair.shop_id, Meetup.pair_id == pair.id)
     return list(db.scalars(stmt.order_by(Meetup.happened_on.desc(), Meetup.id.desc()).limit(limit)))
+
+
+def unrevoked_pair(db: Session, shop_id: int, worker_id: int) -> SenpaiPair | None:
+    stmt = select(SenpaiPair).where(
+        SenpaiPair.shop_id == shop_id, SenpaiPair.worker_id == worker_id, SenpaiPair.revoked_at.is_(None)
+    )
+    return db.scalar(stmt)
+
+
+# Support Log (architecture §9.3): one shop, one date range; each row carries the names the CSV shows.
+Worker_ = aliased(User)
+Foreman_ = aliased(User)
+
+
+def forwarded_between(db: Session, shop_id: int, start: datetime, end: datetime) -> list[tuple[Ask, str, str]]:
+    stmt = (
+        select(Ask, Worker_.display_name, SenpaiPair.senpai_name)
+        .join(Worker_, Worker_.id == Ask.worker_id)
+        .join(SenpaiPair, SenpaiPair.id == Ask.pair_id)
+        .where(Ask.shop_id == shop_id, Ask.forwarded_at >= start, Ask.forwarded_at <= end)
+    )
+    return [(a, w, s) for a, w, s in db.execute(stmt)]
+
+
+def meetups_between(db: Session, shop_id: int, start: date, end: date) -> list[tuple[Meetup, str, str]]:
+    stmt = (
+        select(Meetup, Worker_.display_name, SenpaiPair.senpai_name)
+        .join(SenpaiPair, SenpaiPair.id == Meetup.pair_id)
+        .join(Worker_, Worker_.id == SenpaiPair.worker_id)
+        .where(Meetup.shop_id == shop_id, Meetup.happened_on >= start, Meetup.happened_on <= end)
+    )
+    return [(m, w, s) for m, w, s in db.execute(stmt)]
+
+
+def notice_receipts_between(
+    db: Session, shop_id: int, start: datetime, end: datetime
+) -> list[tuple[Receipt, str, dict[str, str]]]:
+    stmt = (
+        select(Receipt, Worker_.display_name, Notice.title)
+        .join(Worker_, Worker_.id == Receipt.worker_id)
+        .join(Notice, Notice.id == Receipt.notice_id)
+        .where(Receipt.shop_id == shop_id, Receipt.opened_at >= start, Receipt.opened_at <= end)
+    )
+    return [(r, w, t) for r, w, t in db.execute(stmt)]
+
+
+def overrides_between(
+    db: Session, shop_id: int, start: datetime, end: datetime
+) -> list[tuple[PanelOverride, str, str, str | None]]:
+    stmt = (
+        select(PanelOverride, Machine.code, Foreman_.display_name, Worker_.display_name)
+        .join(Machine, Machine.id == PanelOverride.machine_id)
+        .join(Foreman_, Foreman_.id == PanelOverride.created_by)
+        .outerjoin(Worker_, Worker_.id == PanelOverride.worker_id)
+        .where(PanelOverride.shop_id == shop_id, PanelOverride.starts_at >= start, PanelOverride.starts_at <= end)
+    )
+    return [(o, m, f, w) for o, m, f, w in db.execute(stmt)]

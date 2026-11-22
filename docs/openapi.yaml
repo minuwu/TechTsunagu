@@ -1821,6 +1821,557 @@
           }
         }
       }
+    },
+    "/api/asks": {
+      "post": {
+        "tags": [
+          "life"
+        ],
+        "summary": "Ask by text or voice; answered only from published Notices",
+        "operationId": "create_ask_api_asks_post",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_create_ask_api_asks_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_AskOut_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "life"
+        ],
+        "summary": "Your own Asks, newest first",
+        "operationId": "list_asks_api_asks_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 40
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Page_AskOut__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/asks/{ask_id}/forward": {
+      "post": {
+        "tags": [
+          "life"
+        ],
+        "summary": "Send an Ask to your Senpai; 409 NO_ACTIVE_PAIR without one",
+        "operationId": "forward_ask_api_asks__ask_id__forward_post",
+        "parameters": [
+          {
+            "name": "ask_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Ask Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_AskOut_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/senpai-pairs": {
+      "get": {
+        "tags": [
+          "life"
+        ],
+        "summary": "Senpai pairs of your shop",
+        "operationId": "list_pairs_api_senpai_pairs_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 40
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Page_SenpaiPairOut__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "life"
+        ],
+        "summary": "Pair a Worker with a Senpai; the link token is shown once",
+        "operationId": "create_pair_api_senpai_pairs_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SenpaiPairCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_SenpaiPairCreated_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/senpai-pairs/{pair_id}": {
+      "delete": {
+        "tags": [
+          "life"
+        ],
+        "summary": "Revoke a Senpai link",
+        "operationId": "revoke_pair_api_senpai_pairs__pair_id__delete",
+        "parameters": [
+          {
+            "name": "pair_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Pair Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/meetups": {
+      "post": {
+        "tags": [
+          "life"
+        ],
+        "summary": "Log a Meet-up with your Senpai",
+        "operationId": "worker_meetup_api_meetups_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MeetupCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_MeetupOut_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/senpai/{token}": {
+      "get": {
+        "tags": [
+          "life"
+        ],
+        "summary": "The Senpai page: their Worker, forwarded Asks, district dates, Meet-ups",
+        "operationId": "senpai_view_api_senpai__token__get",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 64,
+              "pattern": "^[A-Za-z0-9_-]+$",
+              "title": "Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_SenpaiView_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/senpai/{token}/asks/{ask_id}/reply": {
+      "post": {
+        "tags": [
+          "life"
+        ],
+        "summary": "Answer a forwarded Ask in Japanese",
+        "operationId": "senpai_reply_api_senpai__token__asks__ask_id__reply_post",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 64,
+              "pattern": "^[A-Za-z0-9_-]+$",
+              "title": "Token"
+            }
+          },
+          {
+            "name": "ask_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Ask Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SenpaiReplyIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_ForwardedAsk_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/senpai/{token}/meetups": {
+      "post": {
+        "tags": [
+          "life"
+        ],
+        "summary": "Log a Meet-up as the Senpai",
+        "operationId": "senpai_meetup_api_senpai__token__meetups_post",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 64,
+              "pattern": "^[A-Za-z0-9_-]+$",
+              "title": "Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MeetupCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_MeetupOut_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/support-log.csv": {
+      "get": {
+        "tags": [
+          "life"
+        ],
+        "summary": "Support Log for the 登録支援機関 (CSV, UTF-8 with BOM, not enveloped)",
+        "operationId": "support_log_csv_api_support_log_csv_get",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "From"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "To"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2000,6 +2551,112 @@
         "additionalProperties": false,
         "type": "object",
         "title": "ApproveIn"
+      },
+      "AskOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "workerId": {
+            "type": "string",
+            "title": "Workerid"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "covered": {
+            "type": "boolean",
+            "title": "Covered"
+          },
+          "answer": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string",
+                  "maxLength": 1000
+                },
+                "propertyNames": {
+                  "enum": [
+                    "ja",
+                    "bn",
+                    "en",
+                    "vi",
+                    "id",
+                    "ne",
+                    "my",
+                    "tl",
+                    "zh"
+                  ]
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answer"
+          },
+          "sourceNoticeIds": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Sourcenoticeids"
+          },
+          "forwarded": {
+            "type": "boolean",
+            "title": "Forwarded"
+          },
+          "senpaiReply": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string",
+                  "maxLength": 1000
+                },
+                "propertyNames": {
+                  "enum": [
+                    "ja",
+                    "bn",
+                    "en",
+                    "vi",
+                    "id",
+                    "ne",
+                    "my",
+                    "tl",
+                    "zh"
+                  ]
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Senpaireply"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "workerId",
+          "text",
+          "covered",
+          "answer",
+          "sourceNoticeIds",
+          "forwarded",
+          "senpaiReply",
+          "createdAt"
+        ],
+        "title": "AskOut"
       },
       "AssignmentIn": {
         "properties": {
@@ -2212,6 +2869,36 @@
           "openConfusions"
         ],
         "title": "BoardOut"
+      },
+      "Body_create_ask_api_asks_post": {
+        "properties": {
+          "text": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          },
+          "audio": {
+            "anyOf": [
+              {
+                "type": "string",
+                "contentMediaType": "application/octet-stream"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Audio"
+          }
+        },
+        "type": "object",
+        "title": "Body_create_ask_api_asks_post"
       },
       "Body_create_notice_api_notices_post": {
         "properties": {
@@ -2642,6 +3329,29 @@
         ],
         "title": "Envelope[AccountOut]"
       },
+      "Envelope_AskOut_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/AskOut"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[AskOut]"
+      },
       "Envelope_BoardOut_": {
         "properties": {
           "success": {
@@ -2710,6 +3420,29 @@
           "data"
         ],
         "title": "Envelope[ConfusionOut]"
+      },
+      "Envelope_ForwardedAsk_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/ForwardedAsk"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[ForwardedAsk]"
       },
       "Envelope_GlossaryOut_": {
         "properties": {
@@ -2825,6 +3558,29 @@
           "data"
         ],
         "title": "Envelope[MachineOut]"
+      },
+      "Envelope_MeetupOut_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/MeetupOut"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[MeetupOut]"
       },
       "Envelope_NoneType_": {
         "properties": {
@@ -2942,6 +3698,29 @@
         ],
         "title": "Envelope[Page[AccountOut]]"
       },
+      "Envelope_Page_AskOut__": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/Page_AskOut_"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[Page[AskOut]]"
+      },
       "Envelope_Page_ConfusionOut__": {
         "properties": {
           "success": {
@@ -3011,6 +3790,29 @@
         ],
         "title": "Envelope[Page[PosterOut]]"
       },
+      "Envelope_Page_SenpaiPairOut__": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/Page_SenpaiPairOut_"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[Page[SenpaiPairOut]]"
+      },
       "Envelope_PanelOut_": {
         "properties": {
           "success": {
@@ -3056,6 +3858,52 @@
           "data"
         ],
         "title": "Envelope[PanelToken]"
+      },
+      "Envelope_SenpaiPairCreated_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/SenpaiPairCreated"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[SenpaiPairCreated]"
+      },
+      "Envelope_SenpaiView_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/SenpaiView"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[SenpaiView]"
       },
       "Envelope_Union_AssignmentOut__NoneType__": {
         "properties": {
@@ -3403,6 +4251,55 @@
         "title": "EventUpdate",
         "description": "PATCH /notices/{id}/events/{eventId}. A field left out keeps its value; `rrule: null` makes the Event\none-off (the service tells them apart with `model_fields_set`). Invalid dates are a 422 with the reason\nfrom app.domain.recurrence."
       },
+      "ForwardedAsk": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "textJa": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Textja"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "replyJa": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Replyja"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "text",
+          "textJa",
+          "createdAt",
+          "replyJa"
+        ],
+        "title": "ForwardedAsk"
+      },
       "GlossaryIn": {
         "properties": {
           "ja": {
@@ -3702,6 +4599,89 @@
           "activeWorkerId"
         ],
         "title": "MachineOut"
+      },
+      "MeetupCreate": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "coffee",
+              "event",
+              "drill",
+              "other"
+            ],
+            "title": "Kind"
+          },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date"
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Note",
+            "default": ""
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "kind",
+          "date"
+        ],
+        "title": "MeetupCreate",
+        "description": "POST /meetups (Worker) and POST /senpai/{token}/meetups. The pair and `loggedBy` come from the caller."
+      },
+      "MeetupOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "pairId": {
+            "type": "string",
+            "title": "Pairid"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "coffee",
+              "event",
+              "drill",
+              "other"
+            ],
+            "title": "Kind"
+          },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note"
+          },
+          "loggedBy": {
+            "type": "string",
+            "enum": [
+              "worker",
+              "senpai"
+            ],
+            "title": "Loggedby"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "pairId",
+          "kind",
+          "date",
+          "note",
+          "loggedBy"
+        ],
+        "title": "MeetupOut"
       },
       "NoteForWorker": {
         "properties": {
@@ -4337,6 +5317,35 @@
         ],
         "title": "Page[AccountOut]"
       },
+      "Page_AskOut_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AskOut"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "nextCursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nextcursor"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "title": "Page[AskOut]"
+      },
       "Page_ConfusionOut_": {
         "properties": {
           "items": {
@@ -4481,6 +5490,35 @@
           "nextCursor"
         ],
         "title": "Page[PosterOut]"
+      },
+      "Page_SenpaiPairOut_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SenpaiPairOut"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "nextCursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nextcursor"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "title": "Page[SenpaiPairOut]"
       },
       "PanelOut": {
         "properties": {
@@ -4720,6 +5758,223 @@
           "displayName"
         ],
         "title": "RosterEntry"
+      },
+      "SenpaiPairCreate": {
+        "properties": {
+          "workerId": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]{0,18}$",
+            "title": "Workerid"
+          },
+          "senpaiName": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Senpainame"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "coworker",
+              "jichikai"
+            ],
+            "title": "Kind"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "workerId",
+          "senpaiName",
+          "kind"
+        ],
+        "title": "SenpaiPairCreate"
+      },
+      "SenpaiPairCreated": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "workerId": {
+            "type": "string",
+            "title": "Workerid"
+          },
+          "senpaiName": {
+            "type": "string",
+            "title": "Senpainame"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "coworker",
+              "jichikai"
+            ],
+            "title": "Kind"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expiresat"
+          },
+          "token": {
+            "type": "string",
+            "title": "Token"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "workerId",
+          "senpaiName",
+          "kind",
+          "createdAt",
+          "expiresAt",
+          "token"
+        ],
+        "title": "SenpaiPairCreated"
+      },
+      "SenpaiPairOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "workerId": {
+            "type": "string",
+            "title": "Workerid"
+          },
+          "senpaiName": {
+            "type": "string",
+            "title": "Senpainame"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "coworker",
+              "jichikai"
+            ],
+            "title": "Kind"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expiresat"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "workerId",
+          "senpaiName",
+          "kind",
+          "createdAt",
+          "expiresAt"
+        ],
+        "title": "SenpaiPairOut",
+        "description": "No token: only its SHA-256 is stored, so the link can be shown once, at creation."
+      },
+      "SenpaiReplyIn": {
+        "properties": {
+          "replyJa": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Replyja"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "replyJa"
+        ],
+        "title": "SenpaiReplyIn",
+        "description": "POST /senpai/{token}/asks/{id}/reply; the backend translates it for the Worker."
+      },
+      "SenpaiView": {
+        "properties": {
+          "senpaiName": {
+            "type": "string",
+            "title": "Senpainame"
+          },
+          "worker": {
+            "$ref": "#/components/schemas/SenpaiWorker"
+          },
+          "asks": {
+            "items": {
+              "$ref": "#/components/schemas/ForwardedAsk"
+            },
+            "type": "array",
+            "title": "Asks"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/EventOccurrence"
+            },
+            "type": "array",
+            "title": "Events"
+          },
+          "meetups": {
+            "items": {
+              "$ref": "#/components/schemas/MeetupOut"
+            },
+            "type": "array",
+            "title": "Meetups"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "senpaiName",
+          "worker",
+          "asks",
+          "events",
+          "meetups"
+        ],
+        "title": "SenpaiView",
+        "description": "GET /senpai/{token}: only this pair's Worker and data; a wrong token is 404."
+      },
+      "SenpaiWorker": {
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "title": "Displayname"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "ja",
+              "bn",
+              "en",
+              "vi",
+              "id",
+              "ne",
+              "my",
+              "tl",
+              "zh"
+            ],
+            "title": "Language"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "displayName",
+          "language"
+        ],
+        "title": "SenpaiWorker"
       },
       "SignOffOut": {
         "properties": {

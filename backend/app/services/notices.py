@@ -389,8 +389,12 @@ def events_between(db: Session, who: Principal, q: EventsQuery) -> list[EventOcc
 
 
 def photo(db: Session, who: Principal, blob_id: int) -> tuple[bytes, str]:
-    b = repo.blob(db, district_of(who), blob_id)
-    if b is None:
+    """Published Notices' photos for the district; a draft's photo only for the organisation that wrote it."""
+    found = repo.notice_photo(db, district_of(who), blob_id)
+    if found is None:
+        raise _not_found()
+    b, n = found
+    if n.status != "published" and (who.role != "poster" or n.poster_id != _poster_id(db, who)):
         raise _not_found()
     return b.bytes_, b.mime
 
