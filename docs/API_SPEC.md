@@ -15,12 +15,14 @@ A machine-readable copy lives in [openapi.yaml](openapi.yaml) (OpenAPI 3.1). Cha
 | Base URL (local) | `http://localhost:8000` |
 | Contract file | [openapi.yaml](openapi.yaml), validated with `npx -y @redocly/cli lint docs/openapi.yaml` |
 | Mock API (no backend) | `npx -y @stoplight/prism-cli mock docs/openapi.yaml` → `http://localhost:4010` |
-| Format | JSON, UTF-8, `snake_case` keys |
-| Auth | `Authorization: Bearer <token>` on every endpoint not marked **public** |
+| Format | JSON, UTF-8, `camelCase` keys, ids as strings ([ADR 0011](adr/0011-camelcase-string-ids-cursor-lists.md)) |
+| Auth | `Authorization: Bearer <token>` from `POST /api/auth/login` on every endpoint not marked **public** ([ADR 0010](adr/0010-personal-accounts-and-pins.md)) |
 | Versioning | No version in the path during the hackathon. Breaking changes only through an `XREQ`. |
 | Timestamps | ISO 8601 in UTC, e.g. `2026-01-01T04:30:00Z` |
 | Nulls | A nullable field is always present and set to `null`. |
-| Lists | Query `page` (from 1) and `page_size` (default 20, max 100); `data` is `{ "items": [...], "page": 1, "page_size": 20, "total": 57 }` |
+| Lists | Query `limit` (default 50, max 200) and `cursor`; `data` is `{ "items": [...], "nextCursor": "opaque" \| null }` |
+| Retried creates | `Idempotency-Key: <uuid>` header; a repeat returns the first result |
+| Endpoints (Wakatta?) | Full list and roles: [BACKEND_ARCHITECTURE.md §9](BACKEND_ARCHITECTURE.md#9-api); this file's index is filled as routes go `LIVE` |
 
 ### 1.1 Response envelope
 

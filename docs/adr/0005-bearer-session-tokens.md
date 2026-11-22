@@ -1,3 +1,5 @@
 # Bearer session tokens, not an API cookie
 
+*Amended by [ADR 0010](0010-personal-accounts-and-pins.md): sessions now belong to a personal account, not a shared role PIN. The Bearer transport below is unchanged.*
+
 The Foreman and Community Poster PINs are exchanged at `POST /api/auth/pin` for an opaque token (`secrets.token_urlsafe(32)`, stored only as its SHA-256 in a `sessions` row with the role and a 12-hour expiry), which the frontend sends as `Authorization: Bearer <token>`. The plan's httpOnly cookie on the API was rejected for three reasons: `docs/API_SPEC.md` already specifies Bearer auth; the frontend renders on its own server (S-11), and a server-side fetch does not carry a cookie the browser holds for the API's domain; and the web and API Container Apps have different hosts, so the cookie would be cross-site and blocked by Safari on iPhones. Opaque tokens were chosen over JWTs so a session can be revoked by deleting its row. Where the frontend keeps the token is the frontend's decision.

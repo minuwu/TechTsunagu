@@ -1,10 +1,25 @@
 # Backend Architecture — Wakatta?
 
-**Owner** Asif (`MdAsif-Hossain`) · **Status** proposed for team review · **Updated** 2026-11-22
+**Owner** Asif (`MdAsif-Hossain`) · **Status** v2, proposed for team review · **Updated** 2026-11-22
 
-How the backend works for every feature in the [plan](superpowers/plans/2026-11-22-wakatta.md). Terms in **bold** are from [GLOSSARY.md](../GLOSSARY.md). Decisions that are hard to undo are ADRs 0005–0008 in [adr/](adr/). Where this file and the plan disagree, this file wins for the backend; the plan is updated to match.
+How the backend and database work for every feature in the [plan](superpowers/plans/2026-11-22-wakatta.md), for **many shops and many users at once**. Terms in **bold** are from [GLOSSARY.md](../GLOSSARY.md). Decisions that are hard to undo are ADRs in [adr/](adr/): 0005–0008 (v1) and 0009–0011 (v2). Where this file and the plan disagree, this file wins for the backend.
 
-Contents: 1 Shape · 2 Code layout · 3 Stack · 4 Data model · 5 Domain rules · 6 API · 7 AI subsystem · 8 Media · 9 Security · 10 Observability · 11 Testing · 12 Deployment · 13 WS0 and ownership · 14 Changes to the plan · 15 Open items
+v2 replaces v1 completely. What changed and why is in §0; nothing has been migrated yet, so the first migration is written from this file.
+
+Contents: 0 Decisions · 1 Shape · 2 Scopes and tenancy · 3 Identity and access · 4 Code layout · 5 Stack · 6 Data model · 7 Domain rules · 8 Transactions and concurrency · 9 API · 10 AI subsystem · 11 Media · 12 Security · 13 Observability · 14 Testing · 15 Deployment · 16 Build order · 17 Frontend contract changes · 18 Risks and open items
+
+---
+
+## 0. Decisions (v2)
+
+Decided with a four-voice review (architect, skeptic, pragmatist, critic), each voice given the same brief without this conversation.
+
+| # | Decision | Rejected | Why |
+| :--- | :--- | :--- | :--- |
+| D1 | **Two scopes in one database.** Work data belongs to a **shop** (`shop_id`); Life data belongs to a **district** (`district_id`), because a 自治会 or city serves Workers of several employers. Isolation is enforced in one repository layer and by composite foreign keys. [ADR 0009](adr/0009-shop-and-district-scopes.md) | Row Level Security; schema per tenant | RLS on a pooled sync session needs `SET LOCAL` in every transaction and `FORCE ROW LEVEL SECURITY`; a mistake leaks silently. One tested filter plus database-level FKs gives the same guarantee we can prove in a test. |
+| D2 | **Every person has their own account.** Name + PIN → opaque Bearer session. The Worker id always comes from the token, never from the request body. Machine Panels get a device token; Senpai links are hashed, expiring and revocable. [ADR 0010](adr/0010-personal-accounts-and-pins.md) | Shared role PINs (v1); email + password; JWT | Unauthenticated Workers could forge a **Sign-off**, the safety record the product sells. A shared Foreman PIN cannot say who approved a Note Version. Names + PINs keep the shop-floor flow fast for low-literacy users. |
+| D3 | **AI calls stay inline**, behind a global limit (2 at once, 4 per minute) and a daily budget counted in Postgres. Over the limit, the fallback ladder answers at once. No database session is held during an AI call. One API replica. | Job table + worker + polling | The frontend already expects `POST …/notes` to return the draft. A queue adds no quota (the real limit is about 20 calls a day); it only queues failures. |
+| D4 | **The wire format follows the built frontend:** camelCase JSON, ids as strings, cursor-paged lists. [ADR 0011](adr/0011-camelcase-string-ids-cursor-lists.md) | snake_case + page numbers (API_SPEC template) | The frontend's types and screens already use camelCase and string ids; changing one Pydantic setting costs nothing, rewriting the frontend costs a day. Cursors stay fast as feeds grow. |
 
 ---
 
@@ -21,72 +36,147 @@ flowchart LR
   end
   subgraph Azure Container Apps env
     WEB[web: TanStack Start / Nitro SSR]
-    API[api: FastAPI, 1 replica]
+    API[api: FastAPI, exactly 1 replica]
   end
   DB[(PostgreSQL Flexible Server B1ms)]
   G[Gemini API]
   Devices -- HTML --> WEB
   WEB -- SSR fetch, Bearer --> API
   Devices -- client fetch, Bearer --> API
-  API --> DB
-  API -- one call per Note / Notice / Ask --> G
+  API -- pool of 10 --> DB
+  API -- max 2 at once, 4/min --> G
 ```
 
-- One API process, one database, one AI provider. No queue, no Redis, no object storage: every piece of state lives in Postgres.
-- The browser and the frontend server both call the API directly (frontend rule S-11), so the API has external ingress and CORS for the frontend origin.
-- Auth is a Bearer token in the `Authorization` header ([ADR 0005](adr/0005-bearer-session-tokens.md)), never a cross-site cookie.
-- Endpoints are synchronous `def` functions on a sync SQLModel session ([ADR 0007](adr/0007-sync-fastapi-sqlmodel.md)). AI calls run inline with a hard timeout; there is no background job system.
-- Real-time screens (Machine Panel 2 s, Foreman board 5 s) poll. At this scale polling is cheaper to build and debug than SSE or WebSockets.
+- One API process, one database, one AI provider. No queue, no Redis, no object storage: all state is in Postgres, so a restart loses nothing except in-memory rate-limit buckets.
+- Synchronous `def` endpoints on a sync SQLModel session ([ADR 0007](adr/0007-sync-fastapi-sqlmodel.md)). FastAPI runs them in AnyIO's thread pool (40 threads), so a slow AI call blocks its own thread, not the server.
+- Real-time screens poll: Machine Panel every 2 s, Foreman board every 5 s. Both are single indexed reads (§6.6).
+- How it grows past one replica is in §15.3; nothing in this design blocks it.
 
 ---
 
-## 2. Code layout and module rules
+## 2. Scopes and tenancy
+
+```mermaid
+erDiagram
+  SHOP ||--o{ USER : "foremen, workers"
+  DISTRICT ||--o{ USER : "workers live in, posters serve"
+  SHOP ||--o{ MACHINE : owns
+  DISTRICT ||--o{ POSTER : has
+  POSTER ||--o{ NOTICE : publishes
+  DISTRICT ||--o{ NOTICE : "scoped to"
+  USER ||--o{ SENPAI_PAIR : "worker has"
+```
+
+| Scope | Owns | Who belongs |
+| :--- | :--- | :--- |
+| **Shop** (one factory) | Machines, Note Versions, Glossary, Checks, Confusions, Sign-offs, Shift Assignments, Briefings, Near-miss Reports, Senpai pairs, Meet-ups, Asks, Support Log | Foremen and Workers (`users.shop_id`) |
+| **District** (one 自治会 / city area) | Posters, Notices, Events | Community Posters (`users.district_id`); Workers *read* it through `users.district_id` |
+
+Rules:
+1. Every shop-owned table has `shop_id not null`; every district-owned table has `district_id not null`.
+2. Every shop-owned table has `unique (shop_id, id)`, and every reference between shop tables is a **composite foreign key** `(shop_id, x_id) references x (shop_id, id)`. The database itself refuses a Sign-off whose Machine belongs to another shop. Same pattern for districts.
+3. Rows that cross scopes (a Worker's Check of a Notice, an Ask grounded in Notices) belong to the **Worker's shop**; their link to the district row is checked in the service against `worker.district_id`.
+4. The scope always comes from the session (§3), never from the URL or body. A URL id from another scope returns **404**, not 403, so ids cannot be probed.
+5. Shops and districts are created by a CLI (`python -m app.cli create-shop|create-district|create-user`), not an API. Self-service onboarding is out of scope.
+
+---
+
+## 3. Identity and access
+
+### 3.1 Principals
+
+| Principal | Signs in with | Session | Scope |
+| :--- | :--- | :--- | :--- |
+| Foreman | shop code → pick name → 6-digit PIN | 12 h | their shop |
+| Worker | shop code (on every QR sticker) → pick name → 4-digit PIN, once per phone | 30 days, sliding | their shop; reads their district |
+| Community Poster | district code → pick name → 6-digit PIN | 12 h | their district, their Poster organisation |
+| Machine Panel | a Foreman taps "Use this device as the Panel" | 180 days, revocable | one Machine, read-only |
+| Senpai | the link `/senpai/{token}` (128-bit, stored as SHA-256) | until the pair is revoked or 180 days | one Senpai pair |
+
+- The name list comes from `GET /api/auth/roster?code=…&role=…`: display names and ids only, rate-limited. The shop code is 8 random characters printed on the QR stickers inside the factory, so the roster is visible only to people standing in the shop.
+- A Worker phone keeps its session, so the next QR scan opens the Machine at once. "Not me" on the Worker screen logs out (shared phones).
+- Sessions are opaque tokens (`secrets.token_urlsafe(32)`), stored as SHA-256 in `sessions`, sent as `Authorization: Bearer` ([ADR 0005](adr/0005-bearer-session-tokens.md)). Deleting the row revokes it.
+
+### 3.2 Access matrix
+
+✅ own scope · 👤 own rows only · — refused (404 for another scope's id, 403 for a wrong role)
+
+| Area | Foreman | Worker | Poster | Panel | Senpai link |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| Workers (create, reset PIN, deactivate) | ✅ | 👤 read self | — | — | — |
+| Machines, Note Versions (record, edit, approve) | ✅ | read current version, no answers | — | — | — |
+| Scan (Presence), take a Check | — | 👤 | — | — | — |
+| Panel state | ✅ | — | — | its Machine | — |
+| Confusions, Board, Skill Matrix, Heatmap, Library | ✅ | 👤 Skill Passport | — | — | — |
+| Shift Assignments, Glossary | ✅ write | read own shifts | — | — | — |
+| Briefings | ✅ write | 👤 read + Check | — | — | — |
+| Near-miss Reports | ✅ read, ack | 👤 create | — | — | — |
+| Notices, Events | — (Notice Check results reach the Support Log) | read own district, published only | ✅ own Poster's | — | read their Worker's district |
+| Asks | — | 👤 | — | — | forwarded to them |
+| Senpai pairs, Support Log | ✅ | 👤 own pair | — | — | own pair |
+| Meet-ups | ✅ read | 👤 create | — | — | create |
+| Photos (`/blobs/{id}`) | own shop | own uploads | own district | — | — |
+
+### 3.3 How it is enforced
+
+```python
+@router.post("/machines/{machine_id}/scan")
+def scan(machine_id: Id, me: Annotated[Principal, Depends(require(Role.WORKER))], svc: MachinesSvc) -> Envelope[None]:
+    svc.scan(me, machine_id)     # me.user_id and me.shop_id come from the session row
+```
+
+- `require(*roles)` resolves the Bearer token to a frozen `Principal(user_id, role, shop_id, district_id, machine_id)`; no route reads identity anywhere else.
+- Every repository method takes the `Principal` (or its scope id) as its first argument and adds `where shop_id = :shop` itself. There is no unscoped query method; `import-linter` forbids services from building queries outside `repositories/`.
+- **Guard test:** a test walks `app.routes`, and for each route checks 401 without a token, 403 for every role outside its allow list, and 404 when the id belongs to the other seeded shop. A new route cannot ship without passing it.
+
+---
+
+## 4. Code layout and module rules
 
 ```
 backend/
   pyproject.toml, uv.lock          uv-managed, versions pinned at WS0
-  Dockerfile, .dockerignore        multi-stage, non-root, python:3.12-slim
-  docker-compose.yml               postgres for dev (db) and tests (db_test)
+  Dockerfile, .dockerignore        multi-stage, non-root, python:3.12-slim pinned by digest
+  docker-compose.yml               postgres 16 for dev (db) and tests (db_test)
   alembic.ini, migrations/         Alembic only (G-45)
   .env.example
   app/
     main.py                        create_app(): middleware, routers, error handlers
     config.py                      pydantic-settings, validated at startup, fail fast
-    db.py                          engine, get_session dependency
-    api/                           envelope.py, errors.py, auth.py (role deps), pagination.py
+    db.py                          engine (pool 5 + 5 overflow), session dependency
+    api/                           envelope, errors, auth (require, Principal), pagination, ids
     routers/                       one file per area, thin: parse → service → envelope
-    services/                      one file per area: transactions, queries, orchestration
+    services/                      one file per area: rules, transactions, orchestration
+    repositories/                  one file per area: every SQL query, always scoped
     domain/                        pure functions, stdlib only, no I/O
     models/                        SQLModel table classes (never returned to clients)
-    schemas/                       request/response models (the contract)
-    ai/                            client.py (seam), gemini.py, fake.py, cache.py, pipelines
+    schemas/                       request/response models (the contract, camelCase)
+    ai/                            client.py (seam), gemini.py, fake.py, limiter.py, cache.py, pipelines
     prompts/                       <name>.v<N>.md, versioned in git (G-34)
     media.py                       upload validation, image re-encode
+    cli.py                         create-shop, create-district, create-user, reset-pin
     seed.py                        demo data, `python -m app.seed --reset`
   tests/
-    domain/                        pure unit tests, no DB
-    api/                           HTTP tests against real Postgres
-    ai/                            pipeline tests with FakeAiClient
+    domain/  repositories/  api/  ai/
 ```
 
-Areas (one router + one service each): `health`, `auth`, `workers`, `machines` (incl. Presence and Panel), `notes`, `checks`, `board`, `shifts`, `skills` (Skill Matrix, Passport, Heatmap), `glossary`, `briefings`, `near_misses`, `library`, `notices`, `events`, `asks`, `senpai`, `meetups`, `support_log`, `blobs`.
+Areas (router + service + repository each): `auth`, `users`, `machines` (incl. Presence and Panel), `notes`, `checks`, `board`, `shifts`, `skills` (Matrix, Passport, Heatmap), `glossary`, `briefings`, `receipts`, `near_misses`, `library`, `notices`, `events`, `asks`, `senpai`, `meetups`, `support_log`, `blobs`, `demo`.
 
 **Import rules (G-12), enforced by `import-linter` in CI:**
 
 | Layer | May import | Never imports |
 | :--- | :--- | :--- |
-| `routers` | `services`, `schemas`, `api` | `models`, `db` queries, `ai` |
-| `services` | `models`, `schemas`, `domain`, `ai`, `db`, `media` | `routers` |
-| `ai` | `domain` (validators), `prompts`, `schemas` | `routers`, `services`, `models` |
+| `routers` | `services`, `schemas`, `api` | `repositories`, `models`, `db`, `ai` |
+| `services` | `repositories`, `schemas`, `domain`, `ai`, `media` | `routers`, `sqlalchemy` / `sqlmodel` query builders |
+| `repositories` | `models`, `db` | `services`, `routers`, `ai` |
+| `ai` | `domain` (validators), `prompts`, `schemas` | `routers`, `services`, `repositories`, `models` |
 | `domain` | stdlib, `dateutil` | anything in `app` outside `domain` |
 
-Why `domain/` exists: the rules that the demo story depends on (Sign-off validity, Lock, grading, Glossary lock, recurrence, Ask grounding) are pure functions over plain values. They are the deepest modules in the system, they carry most of the test suite, and they run in milliseconds without a database.
-
-**Response models are separate from table models.** A route declares a `schemas` response model; it never returns a `models` row. That makes the answer-leak rule (`correct_index` never sent to a Worker) a property of the type, not of someone remembering to drop a field.
+Why: the rules the demo depends on (Sign-off validity, Lock, grading, Glossary lock, recurrence, Ask grounding) are pure functions in `domain/` with most of the tests; scoping lives in exactly one layer (`repositories/`), so tenant isolation is reviewed in one place; response models are separate from table models, so `correctIndex` reaching a Worker is a type error, not a review miss.
 
 ---
 
-## 3. Stack
+## 5. Stack
 
 | Concern | Choice | Why |
 | :--- | :--- | :--- |
@@ -94,99 +184,133 @@ Why `domain/` exists: the rules that the demo story depends on (Sign-off validit
 | ORM | SQLModel (SQLAlchemy 2) sync sessions, psycopg 3 | ADR 0007 |
 | Migrations | Alembic, autogenerate reviewed by hand | G-45 |
 | Settings | pydantic-settings | fail fast on missing env |
+| PIN hashing | **argon2id** via `argon2-cffi`, with a server-side pepper (HMAC-SHA256 of the PIN with `PIN_PEPPER` before hashing) | Engineering manual requires Argon2id or bcrypt; the standard library has no Argon2. **New dependency, needs team OK**; fallback is stdlib `hashlib.scrypt`. The pepper matters more than the hash: a 4–6 digit PIN space is small, so a leaked table without the pepper is useless. |
 | AI | `google-genai` SDK, structured output with Pydantic schemas | ADR 0001 |
 | Recurrence | `python-dateutil` (`rrulestr`) | RRULE parsing and expansion |
-| Calendar export | `icalendar` | correct escaping and line folding for `.ics` |
+| Calendar export | `icalendar` | correct escaping and folding for `.ics` |
 | Images | Pillow | re-encode uploads, strip EXIF (GPS) |
 | Multipart | `python-multipart` | FastAPI uploads |
-| Tooling | uv, ruff (`E,F,I,B,UP,S,ASYNC,T20,ERA`), pyright, import-linter, pytest, pytest-cov, httpx | G-11, G-12 |
+| Tooling | uv, ruff (`E,F,I,B,UP,S,ASYNC,T20,ERA`), pyright strict, import-linter, pytest, pytest-cov, httpx, Hypothesis | G-11, G-12 |
 
 Exact versions are pinned in `uv.lock` at WS0 after checking each package's current release; this file does not guess them.
 
 ---
 
-## 4. Data model
+## 6. Data model
 
-Conventions: `bigint generated always as identity` primary keys (Machines keep a text slug, used in the QR URL); `text` with a `CHECK` instead of Postgres enums (easier migrations); `timestamptz` everywhere, stored in UTC, shown in `Asia/Tokyo`; translated text as `jsonb` `{ja, bn, en}`; every foreign key has an index; lowercase snake_case names.
+Conventions:
+- Primary keys `bigint generated always as identity`; serialised as **strings** in JSON (ADR 0011). Internal, sequential, small indexes; enumeration is harmless because every lookup is scoped (§2 rule 4).
+- `text` + `CHECK` instead of Postgres enums (cheaper migrations). `timestamptz` everywhere in UTC; dates shown in the shop's `timezone` (`Asia/Tokyo`).
+- Translated text is `jsonb` `Tri` = `{ja, bn, en}`, validated by Pydantic before it is written. Question sets are `jsonb` on their owner row (they are written once with the draft and frozen on approval), each question carrying a stable `id` (`q1`…) and an optional `termId`.
+- Every foreign key column has an index (a composite FK is covered by an index that starts with `shop_id`). Lowercase snake_case names.
+- Actor columns (`created_by`, `approved_by`, `acknowledged_by`) reference `users`, so every safety-relevant action has a person.
 
-### 4.1 Work
-
-| Table | Columns (constraints) | Indexes |
-| :--- | :--- | :--- |
-| `workers` | id, name text not null, language text not null check in (`bn`,`en`,`ja`) | |
-| `machines` | id text pk (slug, `^[a-z0-9-]+$`), name_ja text not null, current_version_id bigint null fk → note_versions (added after note_versions), present_worker_id bigint null fk → workers, present_at timestamptz null | present_worker_id |
-| `glossary_terms` | id, ja text not null unique, reading text not null, bn text not null, en text not null, note text null | |
-| `note_versions` | id, machine_id fk, version_no int not null, status text check in (`draft`,`approved`), needs_edit bool not null default false, recorded_by text not null, audio_hash bytea null, transcript_ja text not null, easy_ja text, bn text, en text, back_bn_ja text, back_en_ja text, icons text[] not null default '{}', created_at, approved_at null; unique (machine_id, version_no); check (status = 'approved') = (approved_at is not null) | machine_id |
-| `briefings` | id, recorded_by text, transcript_ja, easy_ja, bn, en, needs_edit bool, created_at | created_at desc |
-| `check_questions` | id, note_version_id null fk, briefing_id null fk, notice_id null fk, position smallint not null, term_id null fk → glossary_terms, prompt jsonb not null, options jsonb not null (array of 3 `{ja,bn,en}`), correct_index smallint not null check between 0 and 2; check num_nonnulls(note_version_id, briefing_id, notice_id) = 1 | each fk |
-| `checks` | id, worker_id fk, note_version_id null fk, briefing_id null fk, notice_id null fk, language text check, answers jsonb not null (`[{question_id, chosen_index}]`), passed bool not null, created_at; same `num_nonnulls = 1` check | worker_id, each owner fk |
-| `confusions` | id, check_id fk, question_id fk, term_id null fk, machine_id null fk, worker_id fk, created_at, acknowledged_at null | partial (created_at) where acknowledged_at is null; term_id, machine_id |
-| `sign_offs` | id, worker_id fk, machine_id fk, note_version_id fk, check_id fk unique, passed_at timestamptz not null | (worker_id, machine_id, passed_at desc) |
-| `shift_assignments` | id, worker_id fk, machine_id fk, shift_date date not null, shift text check in (`day`,`night`); unique (machine_id, shift_date, shift) | worker_id, (shift_date) |
-| `briefing_receipts` | briefing_id fk, worker_id fk, opened_at, check_id null fk; pk (briefing_id, worker_id) | worker_id |
-| `near_miss_reports` | id, worker_id fk, machine_id fk, transcript_src text, text_ja text, photo_blob_id null fk → blobs, created_at, acknowledged_at null | partial where acknowledged_at is null; machine_id |
-
-### 4.2 Life
+### 6.1 Scopes and identity
 
 | Table | Columns (constraints) | Indexes |
 | :--- | :--- | :--- |
-| `posters` | id, name text not null, kind text check in (`jichikai`,`city`,`employer`) | |
-| `notices` | id, poster_id fk, category text check in (`garbage`,`disaster`,`event`,`duty`,`other`), source_kind text check in (`text`,`voice`,`photo`), source_ja text, source_blob_id null fk → blobs, easy_ja, bn, en, steps jsonb not null (array ≤ 8 `{ja,bn,en}`), status text check in (`draft`,`published`), needs_edit bool, created_at, published_at null; check (status = 'published') = (published_at is not null) | poster_id; partial (published_at desc) where status = 'published' |
-| `events` | id, notice_id fk, title jsonb, starts_at timestamptz not null, ends_at null, rrule text null, confirmed bool not null default false | notice_id |
-| `notice_receipts` | notice_id fk, worker_id fk, opened_at, check_id null fk; pk (notice_id, worker_id) | worker_id |
-| `senpai_pairs` | id, worker_id fk unique, senpai_name text, senpai_kind text check in (`coworker`,`jichikai`), token_hash bytea not null unique, created_at | |
-| `asks` | id, worker_id fk, text_src text, language text check, covered bool not null, answer jsonb not null, source_notice_ids bigint[] not null default '{}', forwarded_to_pair_id null fk, forwarded_at null, senpai_reply_ja text null, senpai_reply_tr jsonb null, replied_at null, created_at | worker_id; partial where forwarded_at is not null and replied_at is null |
-| `meetups` | id, pair_id fk, kind text check in (`coffee`,`event`,`drill`,`other`), happened_on date, note text, logged_by text check in (`worker`,`senpai`), created_at | pair_id |
+| `shops` | id, code text not null unique check `^[A-Z0-9]{8}$`, name text not null, timezone text not null default `'Asia/Tokyo'`, created_at | |
+| `districts` | id, code text not null unique (same check), name text not null, prefecture text not null, municipality text not null, created_at | |
+| `posters` | id, district_id fk, name text not null, kind text check in (`jichikai`,`city`,`employer`); unique (district_id, id) | district_id |
+| `users` | id, role text not null check in (`foreman`,`worker`,`poster`), display_name text not null check (length 1–40), language text not null check in (`ja`,`bn`,`en`), shop_id null fk, district_id null fk, poster_id null, pin_hash text not null, pin_failed_count smallint not null default 0, pin_locked_until timestamptz null, active bool not null default true, created_at; **check**: foreman → shop_id not null; worker → shop_id and district_id not null; poster → district_id and poster_id not null, shop_id null; unique (shop_id, id); unique (district_id, id); fk (district_id, poster_id) → posters | unique (shop_id, display_name) where active and shop_id is not null; unique (district_id, display_name) where active and role = 'poster'; district_id |
+| `sessions` | token_hash bytea pk, kind text check in (`user`,`panel`), user_id null fk, machine_id null, shop_id null, created_at, expires_at not null, last_seen_at, revoked_at null; check (kind = 'user') = (user_id is not null); check (kind = 'panel') = (machine_id is not null and shop_id is not null) | user_id; expires_at |
+| `audit_events` | id, shop_id null, district_id null, actor_user_id null fk, action text not null (`login`, `login_failed`, `pin_reset`, `note_approved`, `pair_created`, `pair_revoked`, `panel_token_issued`, `demo_reset`), subject_id bigint null, at timestamptz not null default now() | (shop_id, at desc); (district_id, at desc) |
 
-### 4.3 Platform
+`audit_events` is insert-only: the app role gets `insert, select`, never `update` or `delete`.
+
+### 6.2 Work (shop scope)
+
+| Table | Columns (constraints) | Indexes |
+| :--- | :--- | :--- |
+| `machines` | id, shop_id fk, code text not null check `^[a-z0-9-]{1,32}$`, name jsonb Tri not null, current_version_id null, present_worker_id null, present_at null, created_at; unique (shop_id, code); unique (shop_id, id); fk (shop_id, current_version_id) → note_versions **deferrable initially deferred**; fk (shop_id, present_worker_id) → users | |
+| `glossary_terms` | id, shop_id fk, ja text not null, reading text not null, bn text not null, en text not null, note text null; unique (shop_id, ja); unique (shop_id, id) | |
+| `note_versions` | id, shop_id, machine_id, version_no int not null, status text check in (`draft`,`approved`), needs_edit bool not null default false, recorded_by fk users, approved_by null fk users, source_kind text check in (`voice`,`text`), audio_sha256 bytea null, transcript_ja text not null, steps jsonb not null (1–12 `{text: Tri, icon}`), back_translation jsonb not null `{bn, en}`, questions jsonb not null (2–3), idempotency_key uuid not null, created_at, approved_at null; unique (shop_id, machine_id, version_no); unique (shop_id, idempotency_key); unique (shop_id, id); fk (shop_id, machine_id) → machines; check (status = 'approved') = (approved_at is not null and approved_by is not null) | (shop_id, machine_id, version_no desc) |
+| `checks` | id, shop_id, worker_id, note_version_id null, briefing_id null, notice_id null, language text check, answers smallint[] not null, passed bool not null, idempotency_key uuid not null, created_at; check num_nonnulls(note_version_id, briefing_id, notice_id) = 1; unique (shop_id, worker_id, idempotency_key); composite fks to users, note_versions, briefings; fk notice_id → notices | (shop_id, worker_id, created_at desc); note_version_id; briefing_id; notice_id |
+| `confusions` | id, shop_id, check_id, worker_id, machine_id, question_id text not null, term_id null, created_at, acknowledged_at null, acknowledged_by null fk users; composite fks to checks, users, machines, glossary_terms | partial (shop_id, created_at desc) where acknowledged_at is null; (shop_id, term_id); (shop_id, machine_id) |
+| `sign_offs` | id, shop_id, worker_id, machine_id, note_version_id, check_id not null, passed_at not null; unique (check_id); composite fks to users, machines, note_versions, checks | (shop_id, worker_id, machine_id, passed_at desc) |
+| `shift_assignments` | id, shop_id, worker_id, machine_id, shift_date date not null, shift text check in (`day`,`night`), assigned_by fk users; unique (shop_id, machine_id, shift_date, shift); composite fks | (shop_id, shift_date); (shop_id, worker_id, shift_date) |
+| `briefings` | id, shop_id, status text check in (`draft`,`published`), recorded_by fk users, transcript_ja text not null, text jsonb Tri not null, question jsonb not null, needs_edit bool not null default false, idempotency_key uuid not null, created_at, published_at null; unique (shop_id, idempotency_key); unique (shop_id, id); check (status = 'published') = (published_at is not null) | partial (shop_id, published_at desc) where status = 'published' |
+| `receipts` | id, shop_id, worker_id, briefing_id null, notice_id null, opened_at not null, passed bool null; check num_nonnulls(briefing_id, notice_id) = 1; composite fks to users, briefings; fk notice_id → notices | unique (worker_id, briefing_id) where briefing_id is not null; unique (worker_id, notice_id) where notice_id is not null; briefing_id; notice_id |
+| `near_miss_reports` | id, shop_id, worker_id, machine_id, source_kind text check in (`voice`,`text`), text_src text not null, text jsonb Tri not null, photo_blob_id null fk blobs, idempotency_key uuid not null, created_at, acknowledged_at null, acknowledged_by null; unique (shop_id, idempotency_key); composite fks | partial (shop_id, created_at desc) where acknowledged_at is null; (shop_id, machine_id) |
+
+### 6.3 Life (district scope, plus shop-owned links)
+
+| Table | Columns (constraints) | Indexes |
+| :--- | :--- | :--- |
+| `notices` | id, district_id, poster_id, created_by fk users, category text check in (`garbage`,`disaster`,`event`,`duty`,`other`), source_kind text check in (`text`,`voice`,`photo`), source_ja text not null, source_blob_id null fk blobs, title jsonb Tri, steps jsonb not null (1–8 Tri), question jsonb not null, status text check in (`draft`,`published`), needs_edit bool not null default false, idempotency_key uuid not null, created_at, published_at null; unique (district_id, idempotency_key); unique (district_id, id); fk (district_id, poster_id) → posters; check (status = 'published') = (published_at is not null) | partial (district_id, published_at desc) where status = 'published'; (district_id, poster_id, created_at desc) |
+| `events` | id, district_id, notice_id, title jsonb Tri, starts_at timestamptz not null, ends_at null, rrule text null check (length ≤ 200), confirmed bool not null default false; fk (district_id, notice_id) → notices on delete cascade | (district_id, notice_id) |
+| `senpai_pairs` | id, shop_id, worker_id, senpai_name text not null, kind text check in (`coworker`,`jichikai`), token_hash bytea not null unique, created_by fk users, created_at, expires_at not null, revoked_at null; composite fk to users | unique (shop_id, worker_id) where revoked_at is null |
+| `asks` | id, shop_id, worker_id, source_kind text check in (`text`,`voice`), text_src text not null check (length ≤ 1000), language text check, covered bool not null, answer jsonb null, source_notice_ids bigint[] not null default '{}', pair_id null, forwarded_at null, senpai_reply_ja text null, senpai_reply jsonb null, replied_at null, idempotency_key uuid not null, created_at; unique (shop_id, idempotency_key); composite fks to users, senpai_pairs; check covered = (answer is not null and cardinality(source_notice_ids) > 0) | (shop_id, worker_id, created_at desc); partial (pair_id) where forwarded_at is not null and replied_at is null |
+| `meetups` | id, shop_id, pair_id, kind text check in (`coffee`,`event`,`drill`,`other`), happened_on date not null, note text check (length ≤ 500), logged_by text check in (`worker`,`senpai`), created_at; composite fk to senpai_pairs | (shop_id, pair_id, happened_on desc) |
+
+### 6.4 Platform
 
 | Table | Columns | Why |
 | :--- | :--- | :--- |
-| `blobs` | id, mime text, size_bytes int check ≤ 5 MB, sha256 bytea, bytes bytea, created_at | Photos live in their own table so list queries never drag image bytes along; one place for limits (ADR 0002 keeps them in Postgres) |
-| `sessions` | token_hash bytea pk, role text check in (`foreman`,`community`), created_at, expires_at | Opaque Bearer tokens, revocable (ADR 0005) |
-| `ai_cache` | key text pk, model text, prompt text, response jsonb, created_at | Replay and quota protection (§7) |
+| `blobs` | id, shop_id null, district_id null, created_by fk users, mime text, size_bytes int check ≤ 2 MB, sha256 bytea, bytes bytea, created_at; check num_nonnulls(shop_id, district_id) = 1 | Photos in their own table so list queries never drag bytes; access is checked against the blob's scope |
+| `ai_cache` | key text pk, scope text not null (`shop:<id>` or `district:<id>`), pipeline text, prompt_version int, model text, response jsonb, created_at | Replay and quota protection (§10). The scope is part of the key, so one shop never receives another's cached output |
+| `ai_usage` | day date, model text, calls int not null default 0; pk (day, model) | The daily budget survives restarts. `day` is the Pacific-time date, because the free-tier quota resets at midnight Pacific (14:00 Bangladesh, 17:00 Tokyo) |
+| `login_limits` | key text pk (`ip:<addr>` or `user:<id>`), window_start timestamptz, attempts int | PIN lockouts survive restarts and are shared if the API ever scales out |
 
-Notes:
-- **Current Note Version** is the `machines.current_version_id` pointer, set in the same transaction as the approval. Approval locks the Machine row (`select … for update`), so two approvals cannot interleave, and `version_no` is assigned under the same lock.
-- **Sign-off validity is computed, never stored** (§5.1). Approving a new Note Version needs no `UPDATE` on Sign-offs: they stop matching `current_version_id` and become invalid automatically.
-- **Row Level Security** is not used: there is one shop and one community, no tenants. Authorization is enforced in the API (§9). The app connects with a non-superuser role that owns only its schema.
+### 6.5 Derived, never stored
+- **Current Note Version** is `machines.current_version_id`, set in the approval transaction (§8.1). **Superseded** = approved and not current.
+- **Sign-off status** (valid / expiring / expired / none) is computed (§7.1). Approving a new version updates no Sign-off rows; old ones stop matching.
+- **Panel state** is computed from Presence, Shift Assignments and Sign-offs on every poll.
+
+### 6.6 Query patterns and their indexes
+
+| Screen / call | Query | Index used |
+| :--- | :--- | :--- |
+| Panel poll (2 s, per tablet) | machine by (shop, id) → newest Sign-off for (shop, worker, machine) | machines pk; `sign_offs (shop_id, worker_id, machine_id, passed_at desc)` |
+| Foreman board (5 s) | machines of shop + today's assignments + newest Sign-off per pair + open Confusions count | `shift_assignments (shop_id, shift_date)`; sign_offs index; confusions partial |
+| Skill Matrix | `distinct on (worker_id, machine_id)` newest Sign-off per cell | sign_offs index |
+| Heatmap | `count(*) group by term_id, machine_id` over shop's Confusions | `confusions (shop_id, term_id)` |
+| Worker Life feed | published Notices of the district, newest first, cursor | notices partial index |
+| Ask | ≤ 30 newest published Notices of the district | notices partial index |
+
+No N+1: board, matrix and heatmap are one query each (CTEs), never a loop of queries per Machine.
 
 ---
 
-## 5. Domain rules (`app/domain/`, pure, unit-tested)
+## 7. Domain rules (`app/domain/`, pure, unit-tested)
 
-### 5.1 Sign-off and Lock
+### 7.1 Sign-off and Lock
 ```
-status(sign_offs_for(worker, machine), current_version_id, now) ->
-  "valid"    newest Sign-off matches current_version_id and now - passed_at < 90 days, more than 14 days left
-  "expiring" same, 14 days or less left
-  "expired"  newest Sign-off is older than 90 days or matches an older Note Version
+status(newest_sign_off, current_version_id, now) ->
   "none"     no Sign-off
+  "expired"  sign_off.note_version_id != current_version_id, or now - passed_at >= 90 days
+  "expiring" valid with <= 14 days left
+  "valid"    otherwise
 panel_state = "ready" if status in {valid, expiring} else "locked"
 ```
-A Machine with no approved Note Version is `locked` for everyone with reason `no_note`.
+A Machine with no approved Note Version is `locked` for everyone with reason `no_note`. Only the newest Sign-off per (Worker, Machine) counts.
 
-### 5.2 Who the Machine Panel shows (Presence)
-The plan's `/panel/$machineId` has no Worker, so the backend decides: **Presence** is set when a Worker picks their name on `/m/$machineId` (`POST /machines/{id}/presence`). The Panel shows the present Worker if `present_at` is within 10 minutes, else today's Shift Assignment for that Machine (Asia/Tokyo date, current shift), else `idle`. This matches the demo: Rahim scans, the Panel shows Rahim and LOCK; he passes, it turns READY.
+### 7.2 Who the Machine Panel shows (Presence)
+`POST /machines/{id}/scan` by a signed-in Worker sets `present_worker_id = me`, `present_at = now()`. The Panel shows the present Worker if `present_at` is within 10 minutes, else today's Shift Assignment for the current shift (shop timezone), else `idle`. Last scan wins; that is the physical truth at a shared machine.
 
-### 5.3 Grading
-A Check passes only if every answer is correct. Each wrong answer creates one Confusion carrying the question's Glossary Term and the Machine (for Note Versions). Answers are matched by `question_id`; a missing, duplicate or unknown `question_id` is a 422, not a wrong answer. A pass on a Note Version writes a Sign-off; on a Briefing or Notice it updates the receipt's `check_id`.
+### 7.3 Grading
+- `answers` is an array of chosen option indexes in question order. Its length must equal the number of questions and each value must be 0–2, else **422** (not a wrong answer).
+- A Check passes only if every answer is correct.
+- Each wrong answer on a Note Version creates one Confusion with the question's `termId` and the Machine.
+- A pass on a Note Version writes a Sign-off. A Briefing or Notice Check upserts the Worker's receipt with `passed`.
+- The response lists the wrong questions **without** `correctIndex`, so a retry is not a lookup.
+- Grading a Note Version that is no longer current returns **409 `VERSION_CHANGED`**. This happens when the Foreman approves a new version while the Worker is mid-Check, and the Worker gets the new one.
 
-### 5.4 Glossary lock
-Text is NFKC-normalised before comparing. For every Glossary Term whose `ja` appears in `transcript_ja`:
-- `easy_ja` must still contain `ja` (a reading in brackets is allowed). やさしい日本語 keeps shop words, because the Worker must learn the word used on the floor.
-- `bn` must contain the term's `bn` as a substring. Bengali case endings are suffixes (মাপ → মাপের), so a substring match accepts them.
-- `en` must contain the term's `en`, case-insensitive (accepts plurals).
+### 7.4 Glossary lock (with Galib's review, point 4)
+NFKC-normalise all text. A Glossary Term is **in scope** when its `ja` **or its `reading`** appears in `transcript_ja`; the prompt also tells the model to write Glossary Terms in their `ja` form. For every in-scope term:
+- `easy_ja` keeps `ja` (a reading in brackets is allowed). やさしい日本語 keeps shop words, because the Worker must learn the floor word.
+- `bn` contains the term's `bn` (substring; Bengali case endings are suffixes).
+- `en` contains the term's `en`, case-insensitive.
 
-Questions: 2–3 per Note Version, exactly 3 options each, `correct_index` 0–2 (a single index, so "exactly one correct option" holds by type). Icon ids must exist in the fixed set, at most one per step.
+Questions: 2–3 per Note Version, exactly 3 options each, `correctIndex` 0–2. Icon ids come from the fixed set (the frontend's `IconId`), at most one per step.
 
-### 5.5 Recurrence (Events)
-`rrulestr(rrule, dtstart=starts_at in Asia/Tokyo)`. Rejected when: it does not parse, `starts_at` is in the past for a one-off Event, or there is no occurrence within 366 days. The preview is the next 3 occurrences. Japan has no daylight saving time, so storing UTC and expanding in `Asia/Tokyo` is exact. An Event publishes only with `confirmed = true`.
+### 7.5 Recurrence (Events)
+`rrulestr(rrule, dtstart=starts_at in shop/district timezone)`. Only `FREQ=WEEKLY` with `BYDAY` (and optional `UNTIL`/`COUNT`) is accepted, matching the frontend. Rejected when it does not parse, a one-off Event is in the past, or there is no occurrence within 366 days. Japan has no daylight saving time, so UTC storage expands exactly. A Notice publishes only when every Event is `confirmed` (409 `EVENTS_NOT_CONFIRMED`).
 
-### 5.6 Ask grounding
-`covered = true` requires a non-empty `source_notice_ids` that is a subset of the Notice ids sent to the model. Anything else is rewritten to `covered = false` with the fixed answer 「掲示された案内にはありません」 (and its BN/EN), plus the forward-to-Senpai offer.
+### 7.6 Ask grounding
+`covered = true` needs a non-empty `source_notice_ids` that is a subset of the Notice ids sent to the model, all published in the Worker's district. Anything else is rewritten to `covered = false` with the fixed answer 「掲示された案内にはありません」 (and BN/EN) plus the forward-to-Senpai offer. The database check in §6.3 backs this up.
 
-### 5.7 State charts (G-28)
+### 7.7 State charts (G-28)
 ```mermaid
 stateDiagram-v2
   state "Note Version" as NV {
@@ -195,214 +319,359 @@ stateDiagram-v2
     draft --> approved: Foreman confirms (確認)
     approved --> superseded: newer version approved
   }
+  state "Briefing" as B {
+    [*] --> b_draft: AI pipeline
+    b_draft --> b_draft: Foreman edits
+    b_draft --> b_published: publish
+  }
   state "Notice" as N {
     [*] --> n_draft: AI pipeline
-    n_draft --> n_draft: poster edits, confirms Events
-    n_draft --> published: publish (all Events confirmed)
+    n_draft --> n_draft: Poster edits, confirms Events
+    n_draft --> n_published: publish (all Events confirmed)
   }
   state "Ask" as A {
     [*] --> answered: covered
     [*] --> not_covered
-    not_covered --> forwarded: Worker forwards
+    not_covered --> forwarded: Worker forwards (needs an active pair)
     forwarded --> replied: Senpai replies
   }
 ```
-`superseded` is derived (approved and not current); it is not a stored status. AI output only ever creates `draft` rows (G-33).
+AI output only ever creates `draft` rows (G-33). Published and approved rows are immutable; editing means a new version.
 
 ---
 
-## 6. API design
+## 8. Transactions and concurrency
 
-Conventions are [API_SPEC.md §1](API_SPEC.md#1-conventions): envelope on every response, snake_case, UTC ISO 8601, nullable fields always present, list endpoints paged (`items, page, page_size, total`).
+### 8.1 Writes that must be atomic
 
-### 6.1 Principals
+| Operation | Transaction |
+| :--- | :--- |
+| Approve a Note Version | `select … from machines where shop_id = :s and id = :m for update` → the draft must be `draft` and belong to the Machine (else 409) → set `approved`, `approved_at`, `approved_by` → set `machines.current_version_id` → insert `audit_events`. One transaction; the row lock serialises two Foremen approving at once. |
+| Create a draft | `version_no = max + 1` is assigned under the same Machine row lock, so two drafts never collide on `unique (shop_id, machine_id, version_no)`. |
+| Submit a Check | read the target → check it is current (§7.3) → insert `checks` + `confusions` + `sign_offs` or the receipt upsert. One transaction. |
+| Publish a Notice | lock the Notice row → every Event confirmed and valid → set published. |
+| Shift Assignment | `insert … on conflict (shop_id, machine_id, shift_date, shift) do update` (or delete when `workerId` is null). |
+| Create a Senpai pair | revoke the Worker's active pair and insert the new one in one transaction (the partial unique index enforces one active pair). |
 
-| Principal | How | Can |
+### 8.2 Idempotency (retried creates)
+Every create that can be retried (Checks, Note/Briefing/Notice drafts, Asks, Near-miss Reports) takes an `Idempotency-Key` header (a UUID the frontend makes per user action). It is stored in the row under `unique (scope, idempotency_key)`. A repeat returns the existing row with 200 and does **not** call the AI again. A missing key is a 422 on these routes.
+
+### 8.3 AI calls and the database
+**No transaction or pooled connection is held across a model call.** The service reads its inputs (Machine, Glossary, Notices) in transaction 1 and closes it. It calls the pipeline (§10), then writes the result in transaction 2. So a 45-second Gemini call holds a thread, never one of the 10 database connections, and the Panel and board stay fast while Foremen record.
+
+### 8.4 Capacity, measured against the limits we have
+
+| Resource | Limit | Our setting |
 | :--- | :--- | :--- |
-| Worker | none; sends `worker_id` | Worker routes only (`/m`, `/me`, `/life`). Shortcut: anyone can act as any Worker; replace with per-Worker login after the hackathon. |
-| Foreman | `POST /auth/pin` with `SHOP_PIN` → Bearer token, role `foreman` | everything marked 🔒 and 🏘 |
-| Community Poster | `POST /auth/pin` with `COMMUNITY_PIN` → Bearer token, role `community` | only 🏘 routes; 403 on every 🔒 route |
-| Senpai | 128-bit token in the path, stored hashed | only their own pair; wrong token is 404 |
+| Postgres connections (B1ms) | small; check `max_connections` on our server at WS0 | pool 5 + 5 overflow, `pool_timeout` 10 s → 503 `BUSY`, `pool_pre_ping` |
+| Threads | 40 (AnyIO default) | at most 2 held by AI calls (§10.3) |
+| Request time | ingress 240 s | AI budget 45 s per call, 60 s per request |
+| Polling load | 10 Panels × 0.5 req/s + 3 boards × 0.2 req/s ≈ 6 req/s | single indexed reads, well inside one replica |
 
-### 6.2 Errors
+---
+
+## 9. API
+
+### 9.1 Conventions (ADR 0011; [API_SPEC.md §1](API_SPEC.md#1-conventions) is updated to match)
+- Envelope on every JSON response: `{success: true, data, message}` / `{success: false, error: {code, message, details}}`.
+- **camelCase** keys (Pydantic `alias_generator=to_camel`, `populate_by_name`). **Ids are strings** on the wire; a non-numeric id is a 404.
+- Unknown request fields are rejected (`extra="forbid"`), 422.
+- UTC ISO 8601 timestamps; dates `YYYY-MM-DD` in the shop timezone; nullable fields always present.
+- **Lists are cursor-paged:** `?limit=` (default 50, max 200) and `?cursor=`; `data` is `{items, nextCursor}` (`null` on the last page). The cursor is opaque (base64 of the last sort key and id).
+- Auth: `Authorization: Bearer <token>` on every route except `/api/health*`, `/api/auth/roster`, `/api/auth/login` and the `/api/senpai/{token}` family.
+
+### 9.2 Errors
 
 | HTTP | `error.code` | When |
 | :--- | :--- | :--- |
-| 400 | `BAD_REQUEST` | malformed but parseable input the schema cannot express |
-| 401 | `UNAUTHORIZED` | no or expired token |
-| 403 | `FORBIDDEN` | wrong role (Community Poster on a shop route) |
-| 404 | `NOT_FOUND` | unknown id, wrong Senpai token |
-| 409 | `CONFLICT` | approving a non-draft, publishing with unconfirmed Events, duplicate Shift Assignment |
+| 400 | `BAD_REQUEST` | parseable input the schema cannot express |
+| 401 | `UNAUTHORIZED` | no, expired or revoked token; wrong PIN |
+| 403 | `FORBIDDEN` | wrong role |
+| 404 | `NOT_FOUND` | unknown id, id of another shop or district, wrong Senpai token |
+| 409 | `CONFLICT`, `VERSION_CHANGED`, `EVENTS_NOT_CONFIRMED`, `NO_ACTIVE_PAIR` | state does not allow the action |
 | 413 | `PAYLOAD_TOO_LARGE` | upload over its limit |
-| 415 | `UNSUPPORTED_MEDIA_TYPE` | upload whose magic bytes are not an allowed type |
+| 415 | `UNSUPPORTED_MEDIA_TYPE` | magic bytes are not an allowed type |
 | 422 | `VALIDATION_ERROR` | schema validation; `details` lists fields |
-| 429 | `RATE_LIMITED` | PIN attempts or AI endpoints over limit; `Retry-After` set |
-| 500 | `INTERNAL_ERROR` | anything else; message is generic, the log has the request id |
+| 423 | `PIN_LOCKED` | account locked after failed PINs; `details.until` |
+| 429 | `RATE_LIMITED` | over a rate limit; `Retry-After` set |
+| 503 | `BUSY` | database pool exhausted; `Retry-After: 2` |
+| 500 | `INTERNAL_ERROR` | anything else; generic message, request id in the log |
 
-AI trouble is never a 5xx: the pipelines degrade to a `needs_edit` draft (§7.4).
+AI trouble is never a 5xx: pipelines degrade (§10.4).
 
-### 6.3 Endpoints
+### 9.3 Endpoints (paths match `frontend/src/services/wakatta.ts`)
 
-The plan's API table stands, with these backend decisions:
+Roles: F Foreman · W Worker · P Poster · D Panel device · S Senpai link · pub public. All under `/api`.
 
-| Change | Detail |
-| :--- | :--- |
-| `POST /auth/pin` | Body `{pin}` → `{token, role, expires_at}` (12 h). New: `DELETE /auth/session` logs out. |
-| New `POST /machines/{id}/presence` | Body `{worker_id}` → sets Presence (§5.2). Called by `/m/$machineId` after the name pick. |
-| `GET /machines/{id}/panel` | No `worker_id` query; returns `{state, worker, reason, note_version_no}` using Presence. |
-| `GET /machines/{id}?language=` | Questions without `correct_index` (type-enforced, tested). |
-| `POST /machines/{id}/notes`, `POST /briefings`, `POST /notices`, `POST /asks`, `POST /near-misses` | Synchronous, 60 s budget, multipart for audio and photos (§8). Return the draft or answer directly. |
-| New `GET /blobs/{id}` 🏘 | Serves a stored photo (flyer to its poster and Foreman, Near-miss photo to Foreman). `Content-Type` from the row, `X-Content-Type-Options: nosniff`. |
-| Lists | `GET /workers`, `/machines`, `/glossary`, `/notices`, `/near-misses`, `/confusions`, `/machines/{id}/versions` are paged. `/board`, `/skill-matrix`, `/heatmap` return one aggregate object. |
-| `GET /workers/{id}/calendar.ics` and `GET /support-log.csv` | Not enveloped (file downloads). CSV starts with a UTF-8 BOM. |
+**Health and auth**
 
-### 6.4 Contract flow ([ADR 0006](adr/0006-code-first-openapi.md))
-FastAPI is the source of `docs/openapi.yaml`: `uv run python -m app.openapi > ../docs/openapi.yaml`. WS0 lands every route as a typed stub (real request and response models, body returns a 501 `NOT_IMPLEMENTED` envelope), so the frontend can generate types from day one. CI regenerates the file and fails on a diff. `API_SPEC.md` keeps the prose (roles, endpoint status, examples).
+| Method | Path | Role | Body → `data` |
+| :--- | :--- | :--- | :--- |
+| GET | `/health`, `/health/ready` | pub | liveness; readiness checks the DB |
+| GET | `/auth/roster?code=&role=` | pub | `[{id, displayName}]` active users of that shop or district and role; 20/min per IP |
+| POST | `/auth/login` | pub | `{userId, pin}` → `{token, expiresAt, user: {id, displayName, role, language, shopId, districtId}}` |
+| GET | `/auth/me` | F W P | the user above |
+| POST | `/auth/logout` | any | revokes the session |
+
+**People and setup (Foreman)**
+
+| Method | Path | Role | Body → `data` |
+| :--- | :--- | :--- | :--- |
+| GET | `/workers` | F | paged Workers of the shop |
+| POST | `/workers` | F | `{displayName, language, pin}` → Worker |
+| PATCH | `/workers/{id}` | F | `{displayName?, language?, pin?, active?}`; a PIN reset revokes that Worker's sessions |
+| GET / POST | `/machines` | F (GET also W) | Machines; create `{code, name}` |
+| POST | `/machines/{id}/panel-token` | F | → `{token, expiresAt}` (kind `panel`) |
+| GET / POST / PATCH | `/glossary`, `/glossary/{id}` | F (GET also W) | Glossary Terms |
+| GET / PUT | `/shift-assignments?date=` | F (GET also W: own) | PUT `{machineId, shift, date?, workerId \| null}` |
+
+**Work flow**
+
+| Method | Path | Role | Body → `data` |
+| :--- | :--- | :--- | :--- |
+| GET | `/machines/{id}` | F W | Machine + current Note Version; for W, questions without `correctIndex` |
+| POST | `/machines/{id}/scan` | W | (no body) sets Presence for the signed-in Worker |
+| GET | `/machines/{id}/panel` | D F | `{state: idle\|locked\|ready, worker, reason, versionNo}` |
+| POST | `/machines/{id}/notes` | F | multipart `audio` or `text`, `Idempotency-Key` → draft NoteVersion |
+| GET | `/machines/{id}/versions` | F | Knowledge Library, paged, newest first |
+| GET / PATCH | `/note-versions/{id}` | F | read; PATCH a draft `{index, ja}` (step edit) |
+| POST | `/note-versions/{id}/approve` | F | → approved NoteVersion |
+| POST | `/checks` | W | `{target: {kind, id}, language, answers[]}`, `Idempotency-Key` → `{passed, wrong: [{id, termId, prompt}], signOff \| null}` |
+| GET | `/sign-offs` | F (W: own) | paged |
+| GET | `/confusions?open=true` | F | paged, newest first |
+| POST | `/confusions/{id}/ack` | F | acknowledges |
+| GET | `/board`, `/skill-matrix`, `/heatmap` | F | one aggregate object each (§6.6) |
+| GET | `/workers/{id}/passport` | F, W (self) | Skill Passport |
+| POST | `/briefings/draft` | F | multipart `audio` or `text`, `Idempotency-Key` → draft Briefing |
+| PATCH | `/briefings/{id}` | F | edit a draft `{text?, question?}` |
+| POST | `/briefings/{id}/publish` | F | publishes |
+| GET | `/briefings` | F W | published, paged |
+| POST | `/receipts` | W | `{target: {kind: briefing\|notice, id}}` → marks opened (idempotent) |
+| GET | `/receipts?target=` | F | who opened and passed |
+| POST | `/near-misses` | W | multipart `machineId`, `text` or `audio`, optional `photo` file, `Idempotency-Key` |
+| GET | `/near-misses?open=true` | F | paged |
+| POST | `/near-misses/{id}/ack` | F | acknowledges |
+| GET | `/blobs/{id}` | by scope | image bytes, `Content-Type` from the row, `nosniff`, `Cache-Control: private` |
+
+**Life flow**
+
+| Method | Path | Role | Body → `data` |
+| :--- | :--- | :--- | :--- |
+| GET | `/posters` | P | the Poster's organisation |
+| POST | `/notices` | P | multipart `sourceKind`, `text` / `audio` / `photo`, `Idempotency-Key` → draft Notice with Events |
+| PATCH | `/notices/{id}` | P | edit a draft (title, steps, category, question) |
+| PATCH | `/notices/{id}/events/{eventId}` | P | `{confirmed, startsAt?, rrule?}` |
+| POST | `/notices/{id}/publish` | P | 409 `EVENTS_NOT_CONFIRMED` if any Event is unconfirmed or invalid |
+| GET | `/notices` | P (own), W (district, published) | paged, newest first |
+| GET | `/workers/{id}/calendar.ics` | W (self) | not enveloped; confirmed Events of the district |
+| POST | `/asks` | W | multipart `text` or `audio`, `Idempotency-Key` → Ask |
+| GET | `/asks` | W (own) | paged |
+| POST | `/asks/{id}/forward` | W | 409 `NO_ACTIVE_PAIR` without a Senpai |
+| GET / POST | `/senpai-pairs` | F | list; create `{workerId, senpaiName, kind}` → pair + **link token shown once** |
+| DELETE | `/senpai-pairs/{id}` | F | revokes the link |
+| POST | `/meetups` | W | `{kind, date, note}` (pair from the session) |
+| GET | `/senpai/{token}` | S | their Worker (display name, language), forwarded Asks, district Events, Meet-ups |
+| POST | `/senpai/{token}/asks/{id}/reply` | S | `{replyJa}` → translated for the Worker |
+| POST | `/senpai/{token}/meetups` | S | `{kind, date, note}` |
+| GET | `/support-log.csv` | F | not enveloped; UTF-8 BOM; Meet-ups + Notice Check results for the shop |
+
+**Demo**
+
+| Method | Path | Role | Body → `data` |
+| :--- | :--- | :--- | :--- |
+| POST | `/demo/reset` | F, only when `DEMO_MODE=true` | re-runs the seed for the caller's shop only; audited |
+
+### 9.4 Contract flow ([ADR 0006](adr/0006-code-first-openapi.md))
+FastAPI generates `docs/openapi.yaml` (`uv run python -m app.openapi > ../docs/openapi.yaml`). WS0 lands every route above as a typed stub, so the frontend can generate types on day one. The stub has its real request and response models and returns a 501 `NOT_IMPLEMENTED` envelope. CI regenerates the file and fails on a diff.
 
 ---
 
-## 7. AI subsystem (`app/ai/`)
+## 10. AI subsystem (`app/ai/`)
 
-### 7.1 Seam
+### 10.1 Seam
 ```python
 class AiClient(Protocol):
     def generate(self, *, prompt: Prompt, parts: Sequence[Part], schema: type[T]) -> T: ...
 ```
-Two adapters, so the seam is real ([ADR 0008](adr/0008-ai-client-seam-and-fake.md)): `GeminiClient` (production) and `FakeAiClient` (tests and day-to-day development; returns fixture JSON keyed by prompt name and input hash). `AI_MODE=gemini|fake`, default `fake` in `.env.example`, because the free tier's daily request limit is small and unclear (as low as about 20 requests per day has been reported for some models).
+`GeminiClient` (production) and `FakeAiClient` (tests and day-to-day work; fixture JSON keyed by prompt name and input hash) ([ADR 0008](adr/0008-ai-client-seam-and-fake.md)). `AI_MODE=gemini|fake`, default `fake`.
 
-### 7.2 Pipelines (the interface services use)
+### 10.2 Pipelines
 
 | Function | Input | Output |
 | :--- | :--- | :--- |
-| `build_note(source, glossary, icons)` | audio bytes or Japanese text | `NoteDraft` (transcript_ja, easy_ja, bn, en, back-translations, icons, 2–3 questions, needs_edit) |
-| `build_briefing(source, glossary)` | same | draft with 1 question |
-| `build_notice(source, glossary)` | text, audio or photo | `NoticeDraft` (source_ja, category, steps ≤ 8, events with rrule or starts_at, 1 question) |
-| `answer_ask(question, notices, glossary)` | text or audio, ≤ 30 newest published Notices | `AskAnswer` (covered, answer ja/bn/en, source_notice_ids) |
-| `translate(text, source_lang, target_lang)` | Near-miss reports, Senpai replies | translated text |
+| `build_note(source, glossary, icons)` | audio bytes or Japanese text | `NoteDraft`: transcript_ja, steps (Tri + icon), back-translation, 2–3 questions, needs_edit |
+| `build_briefing(source, glossary)` | same | text Tri + 1 question |
+| `build_notice(source)` | text, audio or photo | `NoticeDraft`: source_ja, category, title, steps ≤ 8, events, 1 question |
+| `answer_ask(question, notices, glossary)` | text or audio, ≤ 30 newest published district Notices | `AskAnswer`: covered, answer Tri, source_notice_ids |
+| `translate(text, source, target)` | Near-miss Reports, Senpai replies | text |
 
-Each pipeline owns: cache lookup → model call → schema parse → domain validation (§5.4–5.6) → one retry with the validation error appended → fallback. Services never see Gemini types, prompts or retries.
+Each pipeline owns: cache lookup → limiter → model call → schema parse → domain validation (§7.4–7.6) → one retry with the validation error → fallback. Services never see Gemini types, prompts or retries.
 
-### 7.3 Calls
-- Structured output: `response_mime_type="application/json"` with the Pydantic schema; output is parsed again by our own model (G-36).
-- Audio and photos go inline (`Part.from_bytes`), well under the inline limit; no Files API.
-- Timeouts: `AI_TIMEOUT_SECONDS=45` per call. `AI_MAX_CONCURRENT=2` (a semaphore). One retry with jitter on 429/5xx from Gemini.
-- **No database transaction stays open across a model call**: the service reads its inputs, ends the transaction, calls the pipeline, then opens a new transaction to write.
-- Model name from `GEMINI_MODEL`, checked against `models.list` at WS0.
+### 10.3 Limits (from Galib's review, points 2, 3 and 7)
 
-### 7.4 Fallback ladder (G-32)
-1. Cache hit (`ai_cache`): key is `sha256(prompt name + prompt version + model + input bytes + glossary hash)`. The glossary hash makes edits to Glossary Terms miss the cache.
+| Limit | Value | When hit |
+| :--- | :--- | :--- |
+| Concurrent calls | `AI_MAX_CONCURRENT=2` (process semaphore, wait ≤ 10 s) | fallback |
+| Calls per minute, whole app | `AI_RPM=4` (token bucket; Gemini's project limit is 5) | fallback |
+| Calls per day per model | `AI_DAILY_BUDGET=18` in `ai_usage` (incremented in its own short transaction before the call) | fallback, no call |
+| Per user | 10 AI requests per minute per user | 429 |
+| Timeout | `AI_TIMEOUT_SECONDS=45` per call | fallback |
+
+- Retry once with jitter on a Gemini 429 or 5xx that is per-minute or transient. **Never retry a 429 that means the daily quota is used up**: mark `ai_usage` as exhausted for the day and go straight to the fallback. The same applies to the validation retry, which spends a second call.
+- **Model split:** `GEMINI_MODEL` (filmed takes and the live demo: `gemini-3.8-flash`, about 20 calls a day) and `GEMINI_MODEL_DEV` (prompt work: `gemini-3.5-flash-lite`, about 500 a day). These are Galib's numbers, read from AI Studio on 2026-11-22; recheck on the day.
+- The limiter is in memory, which is correct only because the API runs exactly one replica (§15). The daily budget is in Postgres, so a restart cannot reset it.
+
+### 10.4 Fallback ladder (G-32)
+1. Cache hit (`ai_cache`). Key = `sha256(scope + pipeline + prompt version + model + input bytes + glossary hash)`, so a Glossary edit misses the cache.
 2. Live call, validated.
-3. One retry with the validation error.
-4. Seeded result for the 4 demo Machines and the demo flyer (stored in `ai_cache` by `seed.py` from fixtures in `tests/fixtures/ai/`).
-5. `needs_edit` draft holding whatever was usable (at least the transcript or source text), returned with 200. Never a 500.
+3. One retry with the validation error (only while within the budget).
+4. Seeded result for the demo Machines and the demo flyer (put in `ai_cache` by `seed.py` from `tests/fixtures/ai/`).
+5. Degraded result, 200, never a 500:
+   - **Notes, Briefings, Notices:** a `needs_edit` draft holding whatever was usable (at least the transcript or typed text). The Foreman or Poster can edit it.
+   - **Asks:** `covered = false` with the forward-to-Senpai offer.
+   - **Translations:** the Japanese original, with a "not translated" flag.
 
-Prompts are `app/prompts/<name>.v<N>.md`; changing a prompt bumps `N` (which also changes the cache key) and updates its fixture test (G-34).
+### 10.5 Calls and inputs
+- Structured output: `response_mime_type="application/json"` with a **simple** schema (objects, lists, strings, ints, enums; no unions, Galib point 5). Our Pydantic models parse it again (G-36).
+- Audio and photos go inline (`Part.from_bytes`). Safari records `audio/mp4`: we send it to Gemini as `audio/m4a` (Galib point 1).
+- **Untrusted text:** flyer text, Notice text, Ask text and Near-miss text are data. Every prompt puts them in a delimited block, and the prompt says that text inside the block is never an instruction (Galib point 6). Output is validated, so injected text can only produce a draft that a person still approves.
+- Prompts are `app/prompts/<name>.v<N>.md`. Changing a prompt bumps `N` (which changes the cache key) and updates its fixture test (G-34).
 
 ---
 
-## 8. Media
+## 11. Media
 
-| Upload | Allowed types (checked by magic bytes, not the header) | Max | Processing |
+| Upload | Allowed (magic bytes, not the header) | Max | Processing |
 | :--- | :--- | :--- | :--- |
-| Foreman / Briefing / Notice / Ask audio | webm/opus, ogg/opus, mp4/m4a | 8 MB (≈ 60 s) | hashed for the cache; not stored |
-| Notice flyer photo | jpeg, png, webp (heic is rejected with 415 and a message to use JPEG) | 5 MB in, 2 MB stored | Pillow: auto-rotate, max 2048 px, re-encode JPEG, EXIF and GPS removed |
-| Near-miss photo | jpeg, png, webp | 2 MB (client resizes first) | same re-encode |
+| Audio (notes, briefings, notices, asks, near-miss) | webm/opus, ogg/opus, mp4/m4a | 8 MB (≈ 60 s) | hashed for the cache and idempotency, **never stored** |
+| Flyer photo | jpeg, png, webp (heic → 415 with "use JPEG") | 5 MB in | Pillow: auto-rotate, max 2048 px, re-encode JPEG, EXIF and GPS removed, ≤ 2 MB stored |
+| Near-miss photo | jpeg, png, webp | 5 MB in | same |
 
-A body-size limit (10 MB) is applied before parsing multipart, so an oversized request is refused early.
-
----
-
-## 9. Security
-
-- **PINs:** 6 digits (the plan says 4; 10,000 combinations is guessable). Compared with `hmac.compare_digest`. `POST /auth/pin` is limited to 5 attempts per minute per IP, with a 5-minute lockout after 10 failures.
-- **Tokens:** `secrets.token_urlsafe(32)`, only the SHA-256 is stored, 12 h expiry, role inside the session row.
-- **Authorization:** each route declares its role with a dependency (`require_role("foreman")`, `require_role("foreman", "community")`). A test walks `app.routes` and checks every protected route returns 401 without a token and 403 with the wrong role, so a new route cannot ship unprotected.
-- **CORS:** only `FRONTEND_ORIGIN`; methods `GET, POST, PATCH, DELETE`; headers `Authorization, Content-Type`; no credentials (Bearer, not cookies).
-- **AI endpoints:** 10 requests per minute per IP, to protect the Gemini quota.
-- **Limiter state is in memory.** This is correct only with one API replica, which §12 fixes. Shortcut: in-memory limiter, move to Postgres or Redis if the API ever runs more than one replica.
-- **Headers:** `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer` (the Senpai token is in the URL), `Cache-Control: no-store` on authenticated responses.
-- **Secrets:** env only, `.env.example` lists every variable with a dummy value, gitleaks in CI (G-37).
-- **Known shortcut:** Workers are not authenticated (§6.1). The demo data is fictional; real Workers would need their own login before any real use.
+A 10 MB body limit applies before multipart parsing. Pillow's decompression-bomb guard stays on (`Image.MAX_IMAGE_PIXELS`).
 
 ---
 
-## 10. Observability
+## 12. Security
 
-- JSON logs to stdout (Container Apps collects them), one line per request: method, route, status, latency, request id (`X-Request-ID`, generated if absent and returned in the response).
-- One line per AI call: pipeline, prompt version, model, latency, cache hit, outcome (`ok`, `retried`, `fallback_seed`, `needs_edit`). No prompt or answer text, no Ask text, no photos in logs.
-- `GET /api/health` is liveness (no DB); `GET /api/health/ready` checks the database (used as the readiness probe).
+| Area | Rule |
+| :--- | :--- |
+| PINs | 4 digits for Workers, 6 for Foremen and Posters. Stored as argon2id of HMAC-SHA256(`PIN_PEPPER`, pin). 5 wrong PINs lock the account for 15 min (`423 PIN_LOCKED`, stored in `users`). 10 attempts per minute per IP (`login_limits`). Seed and demo PINs are not reused in production. |
+| Sessions | opaque 256-bit tokens, SHA-256 at rest, expiry by kind (§3.1), sliding refresh for Workers at most once an hour, revoked on logout and PIN reset. |
+| Isolation | scope from the session only; repository layer adds the scope; composite FKs; cross-scope ids are 404; the guard test (§3.3) and a two-shop isolation test suite (§14). |
+| Answer leak | Worker response models have no `correctIndex`; a test asserts that the field is absent in every Worker-facing schema. |
+| Senpai links | 128-bit, hashed, expiring, revocable, one active per Worker; `Referrer-Policy: no-referrer`; a wrong token is 404. |
+| CORS | only `FRONTEND_ORIGIN`; methods `GET, POST, PUT, PATCH, DELETE`; headers `Authorization, Content-Type, Idempotency-Key`; no credentials. |
+| Headers | `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`, `Cache-Control: no-store` on authenticated JSON. |
+| Database role | the app connects as `wakatta_app`. It has DML on the app tables, no DDL, and only `insert, select` on `audit_events`. Migrations run as `wakatta_owner`. The `public` schema is revoked from `PUBLIC`. |
+| Secrets | env only (`DATABASE_URL`, `MIGRATION_DATABASE_URL`, `PIN_PEPPER`, `GEMINI_API_KEY`); `.env.example` lists every variable with a dummy value; gitleaks in CI (G-37). |
+| Personal data (APPI) | names, language, Check results, Asks. Audio is never stored. Photos have EXIF removed. No PII, Ask text, prompts or answers in logs. Deactivating a Worker keeps their Sign-off history (safety record) but ends their sessions. |
+| AI input | untrusted text is delimited as data (§10.5); AI output is validated and only creates drafts. |
 
 ---
 
-## 11. Testing
+## 13. Observability
+
+- JSON logs to stdout: one line per request (method, route template, status, latency, request id, user id, role, shop id). `X-Request-ID` is generated if absent and returned.
+- One line per AI call: pipeline, prompt version, model, latency, cache hit, outcome (`ok`, `retried`, `fallback_seed`, `degraded`, `budget_exhausted`), daily calls used. No prompt, answer or user text.
+- Login events go to `audit_events` (success and failure, never the PIN).
+- `GET /api/health` liveness (no DB); `GET /api/health/ready` runs `select 1` (readiness probe).
+- Exceptions are logged once with the request id and re-raised to the handler; nothing is swallowed.
+
+---
+
+## 14. Testing
 
 | Suite | What | How |
 | :--- | :--- | :--- |
-| `tests/domain` | §5 rules: validity windows (89/90/91 days, 14-day edge), new version invalidates, grading, glossary lock (passing output, missing locked term, Bengali suffix accepted), RRULE (Mon/Thu weekly in Asia/Tokyo, invalid, past), Ask grounding | plain pytest; Hypothesis for grading and validity |
-| `tests/api` | every route: success, validation error, 401/403 matrix, 404; the plan's Review focus 1–8 as named tests | real Postgres (`db_test` from compose locally, service container in CI), each test in a rolled-back transaction, `FakeAiClient` |
-| `tests/ai` | each pipeline: valid output, invalid then fixed on retry, invalid twice → `needs_edit`, timeout → seed fallback, cache hit skips the client | `FakeAiClient` scripted per test |
-| contract | `docs/openapi.yaml` equals the generated schema | CI diff |
+| `tests/domain` | §7: validity windows (89/90/91 days, the 14-day edge), new version invalidates, grading (length, range, all-correct), Glossary lock (passing, missing term, Bengali suffix, term found only by `reading`), RRULE (Mon/Thu weekly, invalid, past), Ask grounding | plain pytest; Hypothesis for grading and validity |
+| `tests/repositories` | **isolation**: with two seeded shops and two districts, every repository read and write with shop A's principal never returns or touches shop B's rows; composite FKs reject cross-shop references | real Postgres |
+| `tests/api` | every route: success, 422, the 401/403/404 guard matrix (§3.3), idempotent repeat returns the same row; Review focus 1–8 from the plan as named tests; `VERSION_CHANGED` race; approval by two Foremen at once | real Postgres (`db_test` locally, service container in CI), each test in a rolled-back transaction, `FakeAiClient` |
+| `tests/ai` | each pipeline: valid; invalid then fixed; invalid twice → degraded; timeout → seed; cache hit skips the client; daily budget exhausted → no call; daily-quota 429 → no retry | `FakeAiClient` scripted per test |
+| contract | `docs/openapi.yaml` equals the generated schema; no Worker schema has `correctIndex` | CI |
 
-Coverage target: 80% on `domain`, `services`, `ai` (G-22). CI job `backend-ci.yml`: ruff → pyright → import-linter → pytest with coverage → openapi diff → gitleaks.
+Coverage target 80% on `domain`, `services`, `repositories`, `ai` (G-22). CI `backend-ci.yml`: ruff → pyright → import-linter → pytest + coverage → openapi diff → gitleaks.
 
 ---
 
-## 12. Deployment (Azure for Students)
+## 15. Deployment (Azure for Students)
+
+### 15.1 Resources
 
 | Piece | Setting | Cost |
 | :--- | :--- | :--- |
-| Resource group | one, region Japan East if the student subscription's region policy allows it, else the nearest allowed region | — |
-| PostgreSQL Flexible Server | Burstable B1ms, 32 GB, SSL required, database `wakatta`, app role without superuser | free for 12 months (750 h/month) under Azure for Students |
+| Resource group | Japan East if the student subscription's region policy allows it, else the nearest allowed region | — |
+| PostgreSQL Flexible Server | Burstable B1ms, 32 GB, SSL required, database `wakatta`, roles `wakatta_owner` and `wakatta_app` | free 12 months (750 h/month) under Azure for Students |
 | Container Apps environment | Consumption plan | free monthly grant (180,000 vCPU-s, 360,000 GiB-s) |
-| `api` app | external ingress, port 8000, 0.5 vCPU / 1 GiB, **min 1 max 1 replica** on demo days (Nov 24–26), min 0 while developing | an always-on replica exceeds the free grant: roughly a few dollars per demo week, paid from the $100 credit; check in the pricing calculator |
-| `web` app | Minhaz's Nitro build, same environment | same as above |
-| Images | built by GitHub Actions, pushed to GHCR (public repo, no registry cost) | free |
-| Secrets | `DATABASE_URL`, `GEMINI_API_KEY`, `SHOP_PIN`, `COMMUNITY_PIN` as Container App secrets mapped to env | — |
-| Migrations | entrypoint runs `alembic upgrade head` before Uvicorn. Shortcut: safe only with one replica; move to a Container Apps Job if the API scales out | — |
-| Seed | `python -m app.seed --reset` run once via `az containerapp exec`, and again before filming | — |
+| `api` app | external ingress, port 8000, 0.5 vCPU / 1 GiB, **min 1 max 1** from Nov 24 to Nov 26 (no cold start on stage), min 0 while developing | an always-on replica exceeds the grant: a few dollars for the demo week from the $100 credit; check in the pricing calculator |
+| `web` app | Minhaz's Nitro build, same environment | same |
+| Images | GitHub Actions → GHCR (public repo) | free |
+| Secrets | Container App secrets mapped to env | — |
+| Migrations | entrypoint runs `alembic upgrade head` as `wakatta_owner`, then Uvicorn. Shortcut: safe only with one replica; becomes a Container Apps Job when the API scales out. | — |
+| Seed | `python -m app.seed --reset` via `az containerapp exec`, again before filming | — |
 
-Ingress timeout (240 s) is above the 60 s AI budget. A hello-world `api` with `/api/health` goes to Azure on day 1, not day 3.
+### 15.2 Demo-day checklist
+- `AI_MODE=gemini`, `GEMINI_MODEL` set, `ai_cache` holds every filmed take, `ai_usage` checked that morning (the quota resets at 14:00 Bangladesh time).
+- min = max = 1 replica; `/api/health/ready` green; seed reset; Panel token issued on the tablet.
+
+### 15.3 Scaling past one replica (not needed for the hackathon)
+Move the in-memory AI limiter and per-IP buckets to Postgres. Run migrations as a Job. Then raise `max replicas`. Sessions, idempotency, budgets and lockouts are already in Postgres, so nothing else changes. If AI volume grows beyond inline calls, add a `jobs` table claimed with `for update skip locked`; the pipelines do not change.
 
 ---
 
-## 13. WS0 deliverables and ownership of shared files
+## 16. Build order (each step has its check)
 
-WS0 (owner Asif) lands, in this order, on one branch merged to `main` before any other backend workstream starts:
-1. Project skeleton (§2), config, envelope, error handlers, request id, CORS, `/api/health` and `/api/health/ready`.
-2. **All** tables of §4 in the first Alembic migration.
-3. Every route as a typed stub (§6.4) and the generated `docs/openapi.yaml`.
-4. `AiClient` seam with `FakeAiClient` and fixtures; Gemini adapter behind `AI_MODE`.
-5. `seed.py` with the plan's seed story.
-6. `docker-compose.yml`, `.env.example`, `backend-ci.yml`, README run steps.
+WS0 (Asif) lands on `asif/ws0-foundation` and merges to `main` before other backend work starts. Target: Nov 23 02:00 Bangladesh time.
 
-After WS0, to avoid conflicts between five people working in parallel:
-- Each workstream edits only its own `routers/<area>.py`, `services/<area>.py`, `schemas/<area>.py`, `tests/**/<area>*`.
-- **Schema changes go through the WS0 owner** (one Alembic head at a time). Ask in your WORK_LOG or an XREQ.
-- `docs/openapi.yaml` is never hand-edited; regenerate it.
+| # | Step | Verified by |
+| :--- | :--- | :--- |
+| 1 | Skeleton: config (fail fast), envelope, error handlers, request id, CORS, `/api/health`, `/api/health/ready` | `curl` both; test for an unknown env var at startup |
+| 2 | First migration: **all** tables of §6, roles and grants | `alembic upgrade head` then `downgrade base` on a fresh DB; composite-FK test rejects a cross-shop row |
+| 3 | Auth: roster, login, lockout, sessions, `require()`, `Principal` | login/lockout tests; guard test on a sample route |
+| 4 | Repository base with scope + every route as a typed stub; generated `docs/openapi.yaml` | guard test over all routes; openapi diff in CI |
+| 5 | AI seam: `FakeAiClient`, fixtures, limiter, budget; Gemini adapter behind `AI_MODE` | `tests/ai` green |
+| 6 | Seed: 2 shops, 1 shared district, the plan's story in shop A, a small shop B for isolation | `python -m app.seed --reset` twice (idempotent); isolation suite green |
+| 7 | `docker-compose.yml`, `.env.example`, `backend-ci.yml`, README run steps | CI green on the PR |
+| 8 | Hello-world `api` on Azure | public `/api/health/ready` returns ok |
+
+Then in parallel (owners from the plan): WS1 AI pipelines (Galib) · WS2 Notes, Checks, Sign-offs, Lock (Asif) · Life (Anim) · frontend wiring (Minhaz).
+
+Rules after WS0:
+- Each workstream edits only its own `routers/`, `services/`, `repositories/`, `schemas/` and `tests/` files for its area.
+- **Schema changes go through Asif** (one Alembic head at a time).
+- `docs/openapi.yaml` is never hand-edited.
 - `seed.py` and `domain/` changes are small, reviewed PRs.
 
 ---
 
-## 14. Changes to the plan (all features kept)
+## 17. Frontend contract changes
 
-| Plan says | Backend decision | Why |
+Tracked as `XREQ-001` in [AGENTS.md](../AGENTS.md#2-active-cross-functional-request-queue-xreq) for Minhaz:
+
+| # | Frontend today | Backend contract |
 | :--- | :--- | :--- |
-| httpOnly cookie with role | Bearer token from `POST /auth/pin` (ADR 0005) | API_SPEC already uses Bearer; SSR fetches cannot carry the browser's API cookie; cross-site cookies are blocked by Safari on iPhones |
-| 4-digit PIN | 6 digits + rate limit + lockout | guessable in minutes otherwise |
-| `GET /machines/{id}/panel?worker_id=` | Presence + `POST /machines/{id}/presence` | the Panel URL has no Worker |
-| `docs/openapi.yaml` written by hand | generated from FastAPI (ADR 0006) | one source of truth, CI-checked |
-| Photos as `bytea` columns | `blobs` table referenced by id | keeps list queries light, one place for limits |
-| `checks` for Note Version or Briefing | Note Version, Briefing **or Notice** with a `num_nonnulls` check | the plan's Notice Check had no table |
-| Glossary lock on "the Japanese text" | checked against `transcript_ja`, `easy_ja` must keep the term, Bengali by substring | defines the rule precisely (§5.4) |
-| Gemini always called | `AI_MODE=fake` by default, real calls only when needed | free-tier daily limits |
+| 1 | `credentials: 'include'`, PIN unlock stored as `'1'` | Bearer token from `POST /auth/login`, sent as `Authorization: Bearer`; the stored flag is only a UI hint |
+| 2 | `verifyPin(role, pin)` → `{ok}` | roster → pick name → `POST /auth/login {userId, pin}` → `{token, expiresAt, user}` |
+| 3 | `workerId` in bodies (`scan`, `checks`, `receipts`, `near-misses`, `asks`, `meetups`) | removed; the Worker comes from the token |
+| 4 | `list(key)` expects an array | `{items, nextCursor}` |
+| 5 | `POST /briefings` with the whole Briefing object | `POST /briefings/draft` → `PATCH /briefings/{id}` → `POST /briefings/{id}/publish` |
+| 6 | Senpai reply sends `Tri` | sends `{replyJa}`; the backend translates |
+| 7 | Near-miss and flyer photo as a data URL string | multipart file field `photo` |
+| 8 | `receipts` body `{targetId, workerId}` | `{target: {kind, id}}` |
+| 9 | none | `Idempotency-Key` header (UUID per user action) on Checks, drafts, Asks, Near-miss Reports |
+| 10 | QR URL `/m/$machineId` | `/m/$machineId?s=<shopCode>` so a phone without a session can show the right name list |
+| 11 | `Machine.activeWorkerId` | `GET /machines/{id}/panel` returns the Worker; Panels use a device token |
 
 ---
 
-## 15. Open items
+## 18. Risks and open items
 
-| Item | Owner | Due |
+| Risk / item | Mitigation / owner | Due |
 | :--- | :--- | :--- |
-| Confirm the current Gemini Flash model accepts audio input together with a response schema, and its daily limit on our key | Galib | WS0 |
-| Azure for Students allowed regions for the subscription | Asif | before the hello-world deploy |
-| Frontend: send `Authorization: Bearer` from `src/services/api.ts`, store the token (frontend decides where), call `/presence` after the name pick | Minhaz (XREQ) | after this design is agreed |
-| 6-digit PINs in the demo script and seed | Minhaz, Anim | WS0 |
+| Daily Gemini quota gone during rehearsal or on stage | fake by default, `ai_usage` budget, cache every filmed take, Flash-Lite for prompt work, new Google Cloud project used only for Wakatta? (Galib) | before filming |
+| Scope (per-user auth + two scopes) eats the 50 hours | WS0 lands auth and scoping first; feature workstreams only add routes on top; if late, cut breadth features per the plan, never the guard tests | Nov 23 |
+| Frontend rework for XREQ-001 | the changes are in `services/wakatta.ts` and the PIN gate, not the screens | Minhaz, Nov 23 |
+| `argon2-cffi` dependency | team OK, else stdlib scrypt | WS0 |
+| B1ms `max_connections` and the student subscription's allowed regions | check on the server at WS0 (Asif) | WS0 |
+| Galib's suggestion to cut WS7/WS8 | team decision; the team decided "keep every feature" | open |
+| Prototype "Chat" terms in GLOSSARY.md (Thread, Task, Board…) | not in this design; "Board" already means the Foreman board. Minhaz to confirm scope | open |
+| Worker data retention (Asks, photos) | no automatic deletion yet; add a retention job after the hackathon | after |
