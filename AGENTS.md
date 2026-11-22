@@ -71,7 +71,7 @@ This file is:
 **Requirement Details:**
 The backend supports many shops and personal accounts ([ADR 0009](docs/adr/0009-shop-and-district-scopes.md), [ADR 0010](docs/adr/0010-personal-accounts-and-pins.md)). The full list is in [BACKEND_ARCHITECTURE.md §17](docs/BACKEND_ARCHITECTURE.md#17-frontend-contract-changes); the ones that matter most:
 1. Replace `credentials: 'include'` with `Authorization: Bearer <token>`. Store the token from login instead of `'1'` in `wakatta.pin.<role>` (the stored flag can be forged in dev tools; the backend refuses every call without a valid token anyway).
-2. Login: `GET /api/auth/roster?code=&role=` → pick name → `POST /api/auth/login`.
+2. Login: `GET /api/auth/roster?code=&role=` → pick name → `POST /api/auth/login`. Workers and Foremen each have their own account; when the response has `mustChangePin: true`, show a "choose your PIN" screen (`PUT /api/auth/me/pin`) before anything else. Foreman screens to add: create Worker / Foreman, reset PIN, deactivate (`/api/workers`, `/api/foremen`).
 3. Drop `workerId` from request bodies; the backend takes it from the token.
 4. Lists return `{items, nextCursor}`; send `Idempotency-Key` (a `crypto.randomUUID()` per user action) on Checks, drafts, Asks and Near-miss Reports.
 5. Briefings: draft → patch → publish by id. Senpai reply sends `{replyJa}`. Photos are multipart files, not data URLs.

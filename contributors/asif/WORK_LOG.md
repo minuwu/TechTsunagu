@@ -27,6 +27,12 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
   - Galib's 7 Gemini points accepted and folded into §7.4 and §10 (global 4/min limit, daily budget in Postgres, no retry on daily-quota 429, `reading` match for the Glossary lock, simple schemas, Notice text as data, model split).
 - Opened **XREQ-001** for Minhaz in [AGENTS.md](../../AGENTS.md): Bearer token instead of cookie and the forgeable `'1'` PIN flag, roster + login, no `workerId` in bodies, cursor lists, `Idempotency-Key`.
 
+- Completed the backend plan:
+  - Account lifecycle for Workers and Foremen ([§3.4](../../docs/BACKEND_ARCHITECTURE.md#34-account-lifecycle-workers-and-foremen)): Foremen create accounts, first-login PIN change, reset revokes sessions (lost phone), deactivate keeps history, last Foreman can't be removed.
+  - Added the plan's missing routes: Notice reach, expanded Events, Support Log date range.
+  - Synced the team plan with v2: personal accounts, table map, route groups, WS0 owner and env vars (`8f2834c`).
+  - XREQ-001 now includes the first-login PIN screen and the Foreman account screens.
+
 ### Next
 - Team reads BACKEND_ARCHITECTURE.md v2 (§0 first). OK needed on the `argon2-cffi` dependency.
 - WS0 on `asif/ws0-foundation`, steps 1–8 of §16 (target Nov 23 02:00).
