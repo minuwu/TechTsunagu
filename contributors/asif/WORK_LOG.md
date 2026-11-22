@@ -19,9 +19,17 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 
 - Evaluated the alternative idea **Matte** (bank-transfer fraud circuit breaker): checked 18 claims of spec v2 against sources, judged it winnable, and wrote a system and team plan: [MATTE_EVALUATION_AND_PLAN.md](MATTE_EVALUATION_AND_PLAN.md).
 - **Team decision: we stay with Wakatta?.** Matte is shelved; its plan stays in my folder for reference only.
+- **Backend design v2, built for many shops and many users:** [docs/BACKEND_ARCHITECTURE.md](../../docs/BACKEND_ARCHITECTURE.md) rewritten (v1 replaced; nothing was migrated yet). Decided with a four-voice review (architect, skeptic, pragmatist, critic):
+  - Two scopes: Work data per **shop**, Life data per **district** (a 自治会 serves Workers of several factories). Isolation in one repository layer + composite foreign keys; no RLS ([ADR 0009](../../docs/adr/0009-shop-and-district-scopes.md)).
+  - Personal accounts: name + PIN → Bearer session; the Worker comes from the token, so nobody can forge a Sign-off; Panel device tokens; Senpai links hashed and revocable ([ADR 0010](../../docs/adr/0010-personal-accounts-and-pins.md), amends 0005).
+  - Wire format matches Minhaz's frontend: camelCase, string ids, cursor lists ([ADR 0011](../../docs/adr/0011-camelcase-string-ids-cursor-lists.md)); `docs/API_SPEC.md` §1 updated.
+  - Full data model (§6), transactions, idempotency and capacity (§8), every endpoint mapped to the frontend's paths (§9), build order with a check per step (§16).
+  - Galib's 7 Gemini points accepted and folded into §7.4 and §10 (global 4/min limit, daily budget in Postgres, no retry on daily-quota 429, `reading` match for the Glossary lock, simple schemas, Notice text as data, model split).
+- Opened **XREQ-001** for Minhaz in [AGENTS.md](../../AGENTS.md): Bearer token instead of cookie and the forgeable `'1'` PIN flag, roster + login, no `workerId` in bodies, cursor lists, `Idempotency-Key`.
 
 ### Next
-- Accept or change Galib's Gemini review points (his [WORK_LOG.md](../galib/WORK_LOG.md)) in BACKEND_ARCHITECTURE.md §7 and §9.
+- Team reads BACKEND_ARCHITECTURE.md v2 (§0 first). OK needed on the `argon2-cffi` dependency.
+- WS0 on `asif/ws0-foundation`, steps 1–8 of §16 (target Nov 23 02:00).
 - Team reads BACKEND_ARCHITECTURE.md; then WS0 on `asif/ws0-foundation`: skeleton, all tables in the first migration, typed route stubs, generated openapi.yaml, AI seam with fake, seed, CI.
 - Hello-world API on Azure Container Apps today.
 - XREQ to Minhaz: Bearer token in `src/services/api.ts`, call `/machines/{id}/presence` after the name pick.
