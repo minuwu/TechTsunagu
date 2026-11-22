@@ -274,5 +274,15 @@
   "senpai_sub": "{worker}さんからの、お知らせで答えられない質問です。",
   "forwarded_asks": "あなたへの質問",
   "no_asks": "今は質問はありません。",
-  "free_reply": "日本語で返信"
+  "free_reply": "日本語で返信",
+  "footer_made_by": "制作：Team TechTsunagu",
+  "hub_lead": "班長のノウハウを、機械ごとに作業者の言葉で伝えます。理解できたことを確認してから、機械が使えるようになります。",
+  "cancel": "キャンセル",
+  "close": "閉じる",
+  "steps_label": "進み具合",
+  "step_read": "読む",
+  "step_check": "確認",
+  "step_done": "完了",
+  "reset_confirm_title": "デモをリセットしますか？",
+  "reset_confirm_body": "このデモで行った確認、サインオフ、お知らせ、報告はすべて消え、初期データに戻ります。"
 }

@@ -1,0 +1,335 @@
+/* Kit v2 look: Nagasaki public service. Harbour navy, porcelain white, ocean-blue action, a subtle
+   teal for the Life side, and the indigo line work of Hasami / Mikawachi blue-and-white porcelain.
+   Colour carries meaning (JIS Z 9103): red = Lock / Confusion, green = Ready / valid,
+   amber = expiring / caution, blue = action. Values and kit-only classes; utilities that read the
+   values are mapped in theme/base.css (A-06). */
+
+:root {
+  --background: oklch(0.972 0.016 240); /* harbour-mist blue-white */
+  --foreground: oklch(0.24 0.05 262); /* harbour-navy ink */
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.24 0.05 262);
+  --primary: oklch(0.48 0.13 248); /* ocean blue: action (F-21) */
+  --primary-foreground: oklch(0.995 0 0);
+  --secondary: oklch(0.955 0.012 250);
+  --secondary-foreground: oklch(0.28 0.05 262);
+  --muted: oklch(0.955 0.012 250); /* sea mist */
+  --muted-foreground: oklch(0.45 0.035 258);
+  --accent: oklch(0.94 0.03 245);
+  --accent-foreground: oklch(0.3 0.08 255);
+  --destructive: oklch(0.52 0.19 25); /* red: Lock, Confusion, error */
+  --success: oklch(0.5 0.12 155); /* green: Ready, valid Sign-off */
+  --warning: oklch(0.53 0.12 68); /* amber: expiring, caution (text-safe) */
+  --life: oklch(0.5 0.08 195); /* subtle teal: the Life side */
+  --border: oklch(0.62 0.03 255); /* 3:1 for controls (F-35) */
+  --input: oklch(0.62 0.03 255);
+  --ring: oklch(0.48 0.13 248);
+  --radius: 0.5rem; /* lg 8px panels, md 6px controls (F-20) */
+
+  /* kit-only */
+  --rule: oklch(0.9 0.014 250); /* panel hairline, not a control edge */
+  --shell: oklch(0.26 0.07 262); /* harbour navy */
+  --shell-raised: oklch(0.32 0.075 260);
+  --shell-foreground: oklch(0.975 0.008 85);
+  --shell-muted: oklch(0.82 0.03 255);
+  --indigo: oklch(0.42 0.12 265); /* porcelain line work */
+  --shadow-sm:
+    0 1px 2px oklch(0.26 0.07 262 / 0.06),
+    0 2px 8px -2px oklch(0.26 0.07 262 / 0.06);
+  --shadow-md:
+    0 2px 4px oklch(0.26 0.07 262 / 0.06),
+    0 10px 24px -8px oklch(0.26 0.07 262 / 0.16);
+  --shadow-lg:
+    0 4px 8px oklch(0.26 0.07 262 / 0.08),
+    0 24px 48px -12px oklch(0.26 0.07 262 / 0.28);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Browser surfaces carry the design too */
+::selection {
+  background: oklch(0.86 0.06 245);
+  color: var(--foreground);
+}
+html {
+  caret-color: var(--primary);
+  scrollbar-color: var(--border) transparent;
+  accent-color: var(--primary);
+}
+:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+}
+a {
+  text-underline-offset: 0.22em;
+  text-decoration-thickness: 1px;
+}
+
+/* Headings: one family (F-09), refined by tracking and proportional kana (F-12) */
+.display {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  font-feature-settings: 'palt';
+}
+.display:lang(en) {
+  letter-spacing: -0.01em;
+}
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* The harbour line under the header: ocean into teal, one hairline */
+.harbour-line {
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    var(--primary) 0%,
+    var(--indigo) 45%,
+    var(--life) 100%
+  );
+}
+
+/* Panels and controls lift on hover only where they are a target */
+.lift {
+  transition:
+    box-shadow 200ms var(--ease-out),
+    transform 200ms var(--ease-out),
+    border-color 150ms;
+}
+.lift:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+/* Page transition: each screen settles in */
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+.page-enter {
+  animation: page-in 260ms var(--ease-out);
+}
+
+/* State plate settles in when the state changes */
+@keyframes plate-in {
+  from {
+    opacity: 0.4;
+    transform: scale(0.985);
+  }
+}
+.plate-swing {
+  animation: plate-in 320ms var(--ease-out);
+}
+
+/* Bridge arc draws itself */
+@keyframes arc-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.arc-draw {
+  stroke-dasharray: 1;
+  animation: arc-draw 700ms var(--ease-out) both;
+}
+.arc-draw-late {
+  stroke-dasharray: 1;
+  animation: arc-draw 700ms 180ms var(--ease-out) both;
+}
+
+/* Splash on the first document load: CSS-only, so it fades even if scripts fail */
+@keyframes splash-out {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  background: var(--shell);
+  color: var(--shell-foreground);
+  pointer-events: none;
+  animation: splash-out 360ms 900ms var(--ease-out) forwards;
+}
+
+/* Skeleton: sea mist with a slow light passing */
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+.skeleton {
+  border-radius: calc(var(--radius) - 2px);
+  background: linear-gradient(
+      90deg,
+      var(--muted) 0%,
+      oklch(0.985 0.008 250) 50%,
+      var(--muted) 100%
+    )
+    0 0 / 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+
+/* Spinner inside a busy button */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.spin {
+  animation: spin 800ms linear infinite;
+}
+
+/* Toast */
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+}
+.toast-enter {
+  animation: toast-in 240ms var(--ease-out);
+}
+
+/* Dialog */
+dialog.sheet {
+  border: 0;
+  padding: 0;
+  max-width: min(32rem, calc(100vw - 2rem));
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--card-foreground);
+  box-shadow: var(--shadow-lg);
+}
+dialog.sheet::backdrop {
+  background: oklch(0.26 0.07 262 / 0.45);
+  backdrop-filter: blur(2px);
+}
+dialog.sheet[open] {
+  animation: toast-in 220ms var(--ease-out);
+}
+
+/* Tooltip: any element with data-tip shows it on hover and keyboard focus */
+[data-tip] {
+  position: relative;
+}
+[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  translate: -50% 4px;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  background: var(--shell);
+  color: var(--shell-foreground);
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.4;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 150ms,
+    translate 150ms var(--ease-out);
+  z-index: 20;
+}
+[data-tip]:hover::after,
+[data-tip]:focus-visible::after {
+  opacity: 1;
+  translate: -50% 0;
+}
+
+/* File pickers: a real button in the kit's outline style, not the browser default */
+input[type='file'] {
+  max-width: 100%;
+  font-size: 1rem;
+}
+input[type='file']::file-selector-button {
+  min-height: 2.75rem;
+  margin-inline-end: 0.75rem;
+  padding: 0 1rem;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) - 2px);
+  background: var(--card);
+  color: var(--foreground);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+input[type='file']::file-selector-button:hover {
+  border-color: var(--primary);
+  background: var(--accent);
+}
+
+/* Ground: light harbour blue at the top, easing into the blue-white; panels stay pure white */
+body {
+  background:
+    linear-gradient(180deg, oklch(0.94 0.03 238) 0, var(--background) 28rem)
+      no-repeat,
+    var(--background);
+}
+
+/* Cards: soft light-blue panels with a blue hairline. Every card lifts and deepens on hover;
+   clickable ones (.tile) also take the pointer. */
+:root {
+  --tile: oklch(0.982 0.016 238);
+  --tile-hover: oklch(0.956 0.034 240);
+  --tile-border: oklch(0.86 0.045 245);
+  --tile-border-hover: oklch(0.72 0.09 248);
+}
+.card-surface {
+  background: var(--tile);
+  border: 1px solid var(--tile-border);
+  border-radius: 0.875rem;
+  box-shadow: var(--shadow-sm);
+  transition:
+    background-color 200ms var(--ease-out),
+    border-color 200ms var(--ease-out),
+    box-shadow 200ms var(--ease-out),
+    transform 200ms var(--ease-out);
+}
+.card-surface:hover {
+  background: var(--tile-hover);
+  border-color: var(--tile-border-hover);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+/* A clickable card (a worker, a machine, a link row) */
+.tile {
+  cursor: pointer;
+  background: var(--card);
+  border: 1px solid var(--tile-border);
+  border-radius: 0.625rem;
+  box-shadow: var(--shadow-sm);
+  transition:
+    background-color 200ms var(--ease-out),
+    border-color 200ms var(--ease-out),
+    box-shadow 200ms var(--ease-out),
+    transform 200ms var(--ease-out);
+}
+.tile:hover {
+  background: var(--tile-hover);
+  border-color: var(--tile-border-hover);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+.tile:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+/* A card inside a card (a step, a notice, a question): white on the blue panel */
+.inset-card {
+  background: var(--card);
+  border: 1px solid var(--tile-border);
+  border-radius: 0.625rem;
+}
