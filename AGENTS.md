@@ -113,6 +113,9 @@ The Life request and response models are in `backend/app/schemas/notices.py`, `a
 6. `POST /api/meetups` and `POST /api/senpai/{token}/meetups` take `{kind, date, note}` only: no `pairId` or `loggedBy`.
 7. The Senpai link token is returned only by `POST /api/senpai-pairs` (shown once; only its hash is stored). `GET /api/senpai-pairs` has no `token`, so the Senpai screen loads `GET /api/senpai/{token}` instead of finding the pair in the list.
 8. Optional: `GET /api/events?from=&to=` (at most 62 days) returns `[{eventId, noticeId, title, at}]` for today / tomorrow, so the Worker screen need not expand rules itself.
+9. `toIcs` in `domain/calendar.ts` (the "Add to calendar" file, built in the browser): RFC 5545 needs lines folded at **75 octets** (`\r\n` + a space), never splitting a UTF-8 character, and a `VTIMEZONE` block for `TZID=Asia/Tokyo` (one `STANDARD`, `TZOFFSETFROM`/`TZOFFSETTO` `+0900`). Without folding, a Japanese or Bengali `SUMMARY` passes 75 octets after about 25 characters and Google or Outlook can mangle it. Keep `DTSTART;TZID=Asia/Tokyo` local time: UTC `…Z` times shift `BYDAY` to the wrong weekday (Mon 08:00 JST is Sun 23:00 UTC). The backend `.ics` endpoint is deferred to P2, so this browser file is the one judges see.
+10. Support Log: with the real API, download `GET /api/support-log.csv?from=&to=` instead of building the CSV in the browser. The backend file groups rows by the official support item, states what it does not cover, and escapes cells that start with `= + - @` so Worker-typed text cannot run as an Excel formula.
+11. Notice questions have `termId: null`: Glossary Terms belong to one shop, Notices to a district shared by several employers (the mock's drill question points at `g-hinanjo`).
 
 **Expected Request (Payload / Query Params / Headers):**
 ```json
