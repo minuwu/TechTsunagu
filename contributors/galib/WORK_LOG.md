@@ -7,6 +7,13 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 ## 2026-11-22
 
 ### Completed
+- **WS1, the parts that need no WS0** (branch `galib/ws1-ai`). Pure code, no skeleton, no database:
+  - `backend/app/ai/schemas.py`: what each pipeline asks Gemini to return (`NoteDraft`, `BriefingDraft`, `NoticeDraft`, `AskDraft`, `Translation`). Simple schemas only (point 5); icon ids equal the frontend's `IconId`. Shortcut: languages fixed to ja/bn/en until a shop adds more.
+  - `backend/app/domain/ai_checks.py`: the glossary lock exactly as §7.4 (NFKC; a term is in scope by `ja` or `reading`; steps keep `ja`; every language uses the fixed translation, case-insensitive for Latin scripts) and question checks (no two options with the same text in any language, `term_ja` must be a Glossary Term). Returns plain-English problems for the one retry prompt.
+  - `backend/app/prompts/*.v1.md`: `build_note`, `build_briefing`, `build_notice`, `answer_ask`, `translate`. Untrusted text is data (point 6); notices never guess a date or weekday; asks answer only from the given Notices.
+  - `backend/tests/fixtures/ai/`: `glossary.json` (the 15 seeded terms, copied from the frontend mock) and the eval set: 20 Foreman notes covering all 10 Work terms (one spoken only as readings, one with numbers, one prompt injection), 4 notices (the garbage one uses only Anim's verified rules, so the right answer has no Event), 6 asks (2 not covered).
+  - Tests: the plan's three (passing note, missing locked term, two correct options) plus reading-only terms, unknown term, schema limits, eval-set completeness and prompt placeholders. Verified: 106 tests pass (88 before), ruff, `ruff format --check` and pyright strict clean.
+- **WS6 Briefing plan:** [WS6_BRIEFING_PLAN.md](WS6_BRIEFING_PLAN.md). Found a gap: §9 has no route for the Foreman's "understood / opened only / not opened" view; proposed `GET /briefings/{id}/receipts` for Asif to approve.
 - **AI options, all free (proposal for Asif, §10.3/§10.4).** Checked against official pages on 2026-11-22:
 
   | Option | Free limit | Source | Proposed role |
@@ -72,6 +79,7 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 - WS1 once Asif's WS0 lands the `AiClient` seam: prompts in `backend/app/prompts/`, validators with pytest cases, cache and fallback.
 
 ### Blockers / handoff
+- Asif: please OK the Briefing receipts route ([WS6_BRIEFING_PLAN.md](WS6_BRIEFING_PLAN.md), route 5). WS0's seed should load `backend/tests/fixtures/ai/glossary.json` (or move it into `seed_data/`) so the eval and the demo use the same terms. When step 5 lands, the pipelines plug `app.ai.schemas` and `app.domain.ai_checks` into the `AiClient` seam.
 - Asif: open item in §15 answered above. The model split and review points 2–4 touch your §7 and §9; accept or change them in BACKEND_ARCHITECTURE.md.
 - Minhaz: the Problem wording in the plan is corrected; use the new wording in the proposal and demo caption.
 
