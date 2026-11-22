@@ -1,6 +1,6 @@
 # backend/
 
-Design: [docs/BACKEND_ARCHITECTURE.md](../docs/BACKEND_ARCHITECTURE.md) (layout, data model, rules, API, AI pipeline, security, deploy). Code lands in WS0.
+Plan (scope tiers, owners, timeline, guide checklist): [docs/BACKEND_PLAN.md](../docs/BACKEND_PLAN.md). Design (layout, data model, rules, API, AI pipeline, security, deploy): [docs/BACKEND_ARCHITECTURE.md](../docs/BACKEND_ARCHITECTURE.md). Code lands in WS0.
 
 Conventions (AGENTS.md §4.2, §4.3):
 - `app/routers/` call `app/services/`, never SQL or models directly.
