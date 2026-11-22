@@ -8,7 +8,6 @@ import {
   useSenpaiAdmin,
 } from '@/features/foreman'
 import { m } from '@/i18n/paraglide/messages'
-import { useToastWhen } from '@/ui/v2/lib/toast'
 import { EmptyState, ScreenSkeleton } from '@/ui/v2/components/Feedback'
 import { Card, inputClass } from '@/ui/v2/components/Card'
 import { Icon } from '@/ui/v2/components/Icon'
@@ -21,7 +20,6 @@ import { ForemanPage } from './ForemanBoardScreen'
 /** Morning Briefing (朝礼): record, AI translates and drafts one question, publish, see receipts. */
 export function ForemanBriefingScreen() {
   const b = useBriefingAdmin()
-  useToastWhen(b.step === 'done', m.briefing_published)
   const lang = uiLang()
   const receiptLabel = {
     'not-opened': m.notice_new(),

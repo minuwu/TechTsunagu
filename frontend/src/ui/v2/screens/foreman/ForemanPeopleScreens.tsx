@@ -6,7 +6,6 @@ import {
   useSkillMatrix,
 } from '@/features/foreman'
 import { m } from '@/i18n/paraglide/messages'
-import { useToastWhen } from '@/ui/v2/lib/toast'
 import { EmptyState } from '@/ui/v2/components/Feedback'
 import { Card, inputClass } from '@/ui/v2/components/Card'
 import { StatusChip } from '@/ui/v2/components/StatusChip'
@@ -21,7 +20,6 @@ const shiftLabel = (s: (typeof SHIFTS)[number]) =>
 /** Shift Assignments for today; warns when the Worker has no valid Sign-off. */
 export function ForemanAssignScreen() {
   const a = useAssign()
-  useToastWhen(a.saved, m.saved)
   const lang = uiLang()
   return (
     <ForemanPage

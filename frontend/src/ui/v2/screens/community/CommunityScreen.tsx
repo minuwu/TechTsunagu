@@ -1,7 +1,6 @@
 import { pick } from '@/domain/wakatta'
 import { useCommunity, type SourceKind } from '@/features/community'
 import { m } from '@/i18n/paraglide/messages'
-import { useToastWhen } from '@/ui/v2/lib/toast'
 import { Card, PageTitle, inputClass } from '@/ui/v2/components/Card'
 import { PinGate } from '@/ui/v2/components/PinGate'
 import { RecorderButton } from '@/ui/v2/components/RecorderButton'
@@ -11,7 +10,6 @@ import { fmtDate, uiLang } from '@/ui/v2/lib/format'
 /** Community Poster (自治会 / city / employer): post a Notice, confirm dates, see who understood. */
 export function CommunityScreen() {
   const c = useCommunity()
-  useToastWhen(c.step === 'done', m.notice_published)
   const lang = uiLang()
   const kinds: [SourceKind, string][] = [
     ['photo', m.src_photo()],

@@ -2,7 +2,6 @@ import { Link, useParams } from '@tanstack/react-router'
 import { pick } from '@/domain/wakatta'
 import { useWorkerWork } from '@/features/worker'
 import { m } from '@/i18n/paraglide/messages'
-import { useToastWhen } from '@/ui/v2/lib/toast'
 import { ScreenSkeleton } from '@/ui/v2/components/Feedback'
 import { Card, PageTitle, inputClass } from '@/ui/v2/components/Card'
 import { LangToggle } from '@/ui/v2/components/LangToggle'
@@ -17,7 +16,6 @@ import { fmtDate } from '@/ui/v2/lib/format'
 export function WorkerWorkScreen() {
   const { workerId = '' } = useParams({ strict: false })
   const w = useWorkerWork(workerId)
-  useToastWhen(w.nearMiss.sent != null, m.near_miss_sent)
   if (w.loading) return <ScreenSkeleton />
   if (!w.worker) return <p>{m.worker_not_found()}</p>
   const lang = w.lang
