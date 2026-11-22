@@ -183,15 +183,23 @@ def submit_check(db: Session, who: Principal, body: CheckIn, key: uuid.UUID, now
         raise ApiError(403, "FORBIDDEN", "Not allowed")
     if body.target.kind != "note":
         raise ApiError(422, "VALIDATION_ERROR", "Briefing and Notice Checks use their own routes")
+
+    done = repo.check_by_key(db, shop_id, worker_id, key)
+    if done is not None:
+        # A retried submit returns the first result (§8.2), but only for the same target: a key reused for another
+        # note must not replay an old grade against a note that was never approved or is no longer current.
+        if done.note_version_id is None or done.note_version_id != int(body.target.id):
+            raise ApiError(409, "IDEMPOTENCY_KEY_REUSED", "This Idempotency-Key was already used for another Check")
+        first = repo.note(db, shop_id, done.note_version_id)
+        if first is None:
+            raise ApiError(404, "NOT_FOUND", "Not found")
+        stored = [int(q["correctIndex"]) for q in first.questions]  # pyright: ignore[reportArgumentType]
+        return _result(first.questions, grade(stored, done.answers), repo.sign_off_of(db, shop_id, done.id))
+
     n = repo.note(db, shop_id, int(body.target.id))
     if n is None:
         raise ApiError(404, "NOT_FOUND", "Not found")
     correct = [int(q["correctIndex"]) for q in n.questions]  # pyright: ignore[reportArgumentType]
-
-    done = repo.check_by_key(db, shop_id, worker_id, key)
-    if done is not None:  # a retried submit returns the first result (§8.2)
-        return _result(n.questions, grade(correct, done.answers), repo.sign_off_of(db, shop_id, done.id))
-
     m = repo.machine(db, shop_id, n.machine_id)
     if m is None or n.status != "approved" or m.current_version_id != n.id:
         raise ApiError(409, "VERSION_CHANGED", "This instruction was updated; read the new version")

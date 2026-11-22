@@ -13,6 +13,7 @@ from app.ai.fake import FakeAiClient
 from app.ai.gemini import GeminiClient
 from app.api.context import RequestContextMiddleware, configure_logging
 from app.api.errors import install_error_handlers
+from app.api.limits import BodyLimitMiddleware
 from app.config import Settings
 from app.db import make_engine, make_session_factory
 from app.routers import auth, health, users, work
@@ -61,6 +62,7 @@ def create_app(
         app.include_router(module.router)
 
     # Added last = runs first: the request context wraps CORS, which wraps GZip.
+    app.add_middleware(BodyLimitMiddleware)  # innermost of these: a 413 still gets CORS and request-id headers
     app.add_middleware(GZipMiddleware, minimum_size=1000)
     app.add_middleware(
         CORSMiddleware,
