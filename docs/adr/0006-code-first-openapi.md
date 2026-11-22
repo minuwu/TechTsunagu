@@ -1,0 +1,3 @@
+# OpenAPI is generated from FastAPI
+
+`docs/openapi.yaml` is produced by `uv run python -m app.openapi` from the FastAPI routes and their Pydantic request and response models, and CI fails if the committed file differs from the generated one. It is no longer edited by hand. To keep the frontend unblocked (contract-first, G-49), WS0 lands every endpoint as a typed stub that returns a 501 `NOT_IMPLEMENTED` envelope, so `npm run gen:api` has the full contract on day one. Hand-writing the YAML alongside the code was rejected because two sources of truth drift, and a test that compares them is more work than generating one from the other. `docs/API_SPEC.md` stays as the human-readable companion (roles, endpoint status, examples), and a contract change still needs an XREQ.

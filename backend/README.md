@@ -1,6 +1,6 @@
 # backend/
 
-Empty until kickoff. Stack is chosen at Hour 0 ([HACKATHON_PRESETUP.md §2](../HACKATHON_PRESETUP.md#2-recommended-tech-stacks)).
+Design: [docs/BACKEND_ARCHITECTURE.md](../docs/BACKEND_ARCHITECTURE.md) (layout, data model, rules, API, AI pipeline, security, deploy). Code lands in WS0.
 
 Conventions (AGENTS.md §4.2, §4.3):
 - `app/routers/` call `app/services/`, never SQL or models directly.
