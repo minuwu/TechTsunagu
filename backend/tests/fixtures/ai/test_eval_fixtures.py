@@ -11,7 +11,8 @@ def load(name: str) -> dict[str, Any]:
     return json.loads((HERE / name).read_text(encoding="utf-8"))
 
 
-GLOSSARY: list[dict[str, Any]] = load("glossary.json")["terms"]
+SEED_DATA = HERE.parents[2] / "app" / "seed_data"  # the glossary is shared with the demo seed
+GLOSSARY: list[dict[str, Any]] = json.loads((SEED_DATA / "glossary.json").read_text(encoding="utf-8"))["terms"]
 NOTES: list[dict[str, Any]] = load("eval/notes.json")["cases"]
 NOTICES: list[dict[str, Any]] = load("eval/notices.json")["cases"]
 ASKS: list[dict[str, Any]] = load("eval/asks.json")["cases"]

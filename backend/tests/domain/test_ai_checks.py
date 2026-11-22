@@ -9,11 +9,12 @@ from app.ai.schemas import AiQuestion, AiStep, AiTri, BackTranslation, NoteDraft
 from app.domain.ai_checks import GlossaryTerm, glossary_problems, note_problems, question_problems, terms_in_scope
 
 FIXTURES = Path(__file__).parents[1] / "fixtures" / "ai"
+SEED_DATA = Path(__file__).parents[2] / "app" / "seed_data"  # the glossary is shared with the demo seed
 LANGS = ("bn", "en")
 
 
 def load_glossary() -> list[GlossaryTerm]:
-    raw: list[dict[str, Any]] = json.loads((FIXTURES / "glossary.json").read_text(encoding="utf-8"))["terms"]
+    raw: list[dict[str, Any]] = json.loads((SEED_DATA / "glossary.json").read_text(encoding="utf-8"))["terms"]
     return [GlossaryTerm(t["id"], t["ja"], t["reading"], t["translations"]) for t in raw]
 
 
