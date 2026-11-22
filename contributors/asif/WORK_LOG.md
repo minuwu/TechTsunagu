@@ -49,6 +49,11 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
   - **Corrections to our claim:** tebiki has translation and a skill map but no test feature found; カミナシ already has tests in 18 languages and Bengali in its worker app. Bengali and quizzes are not our difference; the gate, the term alert and the support record are. Plan line fixed.
   - **Biggest threat:** カミナシ (tests + per-learner results + shared tablets + equipment records + Bengali); linking them is a feature release for them.
   - Prices: most direct tools are quote-only; 3 public prices for factory manual SaaS, ¥34,000–¥89,800 per month.
+- **Backend plan mapped to the hackathon guide** ([docs/BACKEND_PLAN.md](../../docs/BACKEND_PLAN.md), `c30145d`), written from the Participant Guide:
+  - The guide's rules turned into backend rules: claim only what runs ("what works now vs planned" is a required proposal item, and reviewers check the repo against it); code freeze Tue 22:30 BST because commits after 23:59 are not evaluated; an AI-use statement in the proposal; the API stays up for the 6-minute presentation on Nov 26.
+  - 15 open questions closed in one table (accounts, Bearer, many shops, `/scan`, camelCase, WS7/WS8 kept as P2 instead of cut, "Chat" prototype out of backend scope, `argon2-cffi`, demo languages bn + en, AI model split, 1 replica, software lock, what is original (gate + term alert + support record, not Bengali or quizzes), who pays).
+  - Backend work mapped to each of the 5 evaluation points; P0 / P1 / P2 tiers; proposed owners (Asif WS0/WS2/WS9, Anim WS10/WS11, Galib WS1 + AI parts, Minhaz XREQ-001, Member 5 WS5–WS8); BST timeline with checkpoints (WS0 by Mon 03:00, P0 on Azure with the real frontend by Mon 18:00, P1 by Tue 06:00, freeze Tue 10:00, submit 23:30); definition of done; proposal checklist.
+  - Pulled Galib's Rover Villa UX ideas (proposal, not agreed): listed as an open item, no backend work before P0 is green.
 - Running when this entry was written: a sourced research pass (`founder/research.md`: 特定技能 support duties and the periodic report, Nagasaki worker numbers and nationalities, 登録支援機関 counts and fees, Gemini paid prices). The 20-buyer panel is prepared (`founder/customer.json`, `founder/pitch.md`, all guesses) and waits for my check of the buyer profile.
 
 ### Next

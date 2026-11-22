@@ -205,6 +205,7 @@ An item counts as "works now" only when all of these are true:
 | :--- | :--- | :--- |
 | Minhaz confirms XREQ-001 and whether the "Chat" prototype is in scope | Minhaz | Mon 03:00 |
 | Member 5 confirms WS5–WS8 | Member 5 | Mon 03:00 |
+| Galib's [Rover Villa ideas](../contributors/galib/ROVERVILLA_IDEAS.md) (UX proposal, not agreed) | team | decide after P0 is green; no backend work before then |
 | Support Log columns mapped to the official support-record fields (research running: `contributors/asif/founder/research.md`) | Asif, Anim | P1 |
 | Gemini paid prices for the cost model (same research) | Galib | Tue 10:00 |
 | Azure region allowed by the student subscription; database `max_connections` | Asif | Mon 06:00 |
