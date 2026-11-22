@@ -1,14 +1,12 @@
-from typing import Annotated, Literal
+from typing import Literal
 
-from fastapi import APIRouter, Depends
-from sqlalchemy import text
-from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import Session
+from fastapi import APIRouter
 
+from app.api.auth import DbSession
 from app.api.envelope import Envelope
 from app.api.errors import ApiError
-from app.db import get_session
 from app.schemas.common import CamelModel
+from app.services import health as service
 
 router = APIRouter(prefix="/api", tags=["health"])
 
@@ -23,9 +21,7 @@ def health() -> Envelope[Health]:
 
 
 @router.get("/health/ready", summary="Readiness: the database answers")
-def ready(session: Annotated[Session, Depends(get_session)]) -> Envelope[Health]:
-    try:
-        session.execute(text("SELECT 1"))
-    except SQLAlchemyError as exc:
-        raise ApiError(503, "NOT_READY", "Database unavailable", headers={"Retry-After": "5"}) from exc
+def ready(db: DbSession) -> Envelope[Health]:
+    if not service.database_ready(db):
+        raise ApiError(503, "NOT_READY", "Database unavailable", headers={"Retry-After": "5"})
     return Envelope(data=Health(status="ok"))
