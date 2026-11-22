@@ -1,0 +1,3 @@
+# One app for Work and Life
+
+The community-notice idea is built into Wakatta? rather than as a separate app: the same Worker gets machine instructions (Work) and local Notices, Asks and a Senpai (Life), through the same AI pipeline and Check. For 特定技能1号 workers the employer (or its 登録支援機関) is already legally responsible for life orientation, consultation and exchange with Japanese people, so the employer is a natural owner of Life too. Asks are answered only from posted Notices, never from the model's general knowledge, because local rules (garbage days by district) differ and a confident wrong answer is worse than none. Rejected: a Life-only pivot (loses the machine gate, our one unique feature) and two separate apps (double the UI).

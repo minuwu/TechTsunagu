@@ -1,0 +1,3 @@
+# Gemini for every AI step, audio straight in
+
+One provider (Google Gemini) does transcription, rewrite to やさしい日本語, Bengali and English translation, back-translation, Check Question generation and Icon choice. Foreman audio goes straight to Gemini as audio input, so there is no separate speech-to-text service. Chosen for one key and a free tier for a student team; Claude and OpenAI were the alternatives. The model name lives in `GEMINI_MODEL` (verify the current Flash model with `models.list` at kickoff), and every call has a cached or seeded fallback because free-tier rate limits must not break the demo.
