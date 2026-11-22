@@ -20,6 +20,7 @@ Decided with a four-voice review (architect, skeptic, pragmatist, critic), each 
 | D2 | **Every person has their own account.** Name + PIN → opaque Bearer session. The Worker id always comes from the token, never from the request body. Machine Panels get a device token; Senpai links are hashed, expiring and revocable. [ADR 0010](adr/0010-personal-accounts-and-pins.md) | Shared role PINs (v1); email + password; JWT | Unauthenticated Workers could forge a **Sign-off**, the safety record the product sells. A shared Foreman PIN cannot say who approved a Note Version. Names + PINs keep the shop-floor flow fast for low-literacy users. |
 | D3 | **AI calls stay inline**, behind a global limit (2 at once, 4 per minute) and a daily budget counted in Postgres. Over the limit, the fallback ladder answers at once. No database session is held during an AI call. One API replica. | Job table + worker + polling | The frontend already expects `POST …/notes` to return the draft. A queue adds no quota (the real limit is about 20 calls a day); it only queues failures. |
 | D4 | **The wire format follows the built frontend:** camelCase JSON, ids as strings, cursor-paged lists. [ADR 0011](adr/0011-camelcase-string-ids-cursor-lists.md) | snake_case + page numbers (API_SPEC template) | The frontend's types and screens already use camelCase and string ids; changing one Pydantic setting costs nothing, rewriting the frontend costs a day. Cursors stay fast as feeds grow. |
+| D5 | **Gaps from the founder board** ([board.md](../contributors/asif/founder/board.md)): Panel Override with a name and reason (§7.1); safety vs wording change so re-approval doesn't force everyone to re-check (§7.1); per-shop languages beyond Bengali and English (§6.1); effort metrics (§9.3) and a measured AI eval and cost model (§10.6); performance budgets with a load test (§8.5) | a hard lock with no override; one language set for every shop | A lock that can stop production gets switched off by the first busy shift; a lock that can be overridden by a named Foreman keeps its record. Factories employ workers from many countries (figures: [research.md](../contributors/asif/founder/research.md)), so Bengali and English only would shrink the market. Judges trust measured numbers over claims. |
 
 ---
 
@@ -220,7 +221,7 @@ Exact versions are pinned in `uv.lock` at WS0 after checking each package's curr
 Conventions:
 - Primary keys `bigint generated always as identity`; serialised as **strings** in JSON (ADR 0011). Internal, sequential, small indexes; enumeration is harmless because every lookup is scoped (§2 rule 4).
 - `text` + `CHECK` instead of Postgres enums (cheaper migrations). `timestamptz` everywhere in UTC; dates shown in the shop's `timezone` (`Asia/Tokyo`).
-- Translated text is `jsonb` `Tri` = `{ja, bn, en}`, validated by Pydantic before it is written. Question sets are `jsonb` on their owner row (they are written once with the draft and frozen on approval), each question carrying a stable `id` (`q1`…) and an optional `termId`.
+- Translated text is `jsonb` `{ja, <each shop language>}` (the shop's `languages`, §6.1), validated by Pydantic before it is written. With the demo shop's languages (`bn`, `en`) it is exactly the frontend's `Tri`; a shop with Vietnamese workers adds `vi` with no schema change. Question sets are `jsonb` on their owner row (they are written once with the draft and frozen on approval), each question carrying a stable `id` (`q1`…) and an optional `termId`.
 - Every foreign key column has an index (a composite FK is covered by an index that starts with `shop_id`). Lowercase snake_case names.
 - Actor columns (`created_by`, `approved_by`, `acknowledged_by`) reference `users`, so every safety-relevant action has a person.
 
@@ -228,10 +229,10 @@ Conventions:
 
 | Table | Columns (constraints) | Indexes |
 | :--- | :--- | :--- |
-| `shops` | id, code text not null unique check `^[A-Z0-9]{8}$`, name text not null, timezone text not null default `'Asia/Tokyo'`, default_district_id fk districts not null, created_at | |
+| `shops` | id, code text not null unique check `^[A-Z0-9]{8}$`, name text not null, timezone text not null default `'Asia/Tokyo'`, default_district_id fk districts not null, languages text[] not null default `'{bn,en}'` check (languages <@ `'{bn,en,vi,id,ne,my,tl,zh}'` and cardinality between 1 and 4), created_at | |
 | `districts` | id, code text not null unique (same check), name text not null, prefecture text not null, municipality text not null, created_at | |
 | `posters` | id, district_id fk, name text not null, kind text check in (`jichikai`,`city`,`employer`); unique (district_id, id) | district_id |
-| `users` | id, role text not null check in (`foreman`,`worker`,`poster`), display_name text not null check (length 1–40), language text not null check in (`ja`,`bn`,`en`), shop_id null fk, district_id null fk, poster_id null, pin_hash text not null, pin_must_change bool not null default true, pin_failed_count smallint not null default 0, pin_locked_until timestamptz null, active bool not null default true, created_at; **check**: foreman → shop_id not null; worker → shop_id and district_id not null; poster → district_id and poster_id not null, shop_id null; unique (shop_id, id); unique (district_id, id); fk (district_id, poster_id) → posters | unique (shop_id, display_name) where active and shop_id is not null; unique (district_id, display_name) where active and role = 'poster'; district_id |
+| `users` | id, role text not null check in (`foreman`,`worker`,`poster`), display_name text not null check (length 1–40), language text not null check in (`ja`,`bn`,`en`,`vi`,`id`,`ne`,`my`,`tl`,`zh`) (service: `ja` or one of the shop's languages), shop_id null fk, district_id null fk, poster_id null, pin_hash text not null, pin_must_change bool not null default true, pin_failed_count smallint not null default 0, pin_locked_until timestamptz null, active bool not null default true, created_at; **check**: foreman → shop_id not null; worker → shop_id and district_id not null; poster → district_id and poster_id not null, shop_id null; unique (shop_id, id); unique (district_id, id); fk (district_id, poster_id) → posters | unique (shop_id, display_name) where active and shop_id is not null; unique (district_id, display_name) where active and role = 'poster'; district_id |
 | `sessions` | token_hash bytea pk, kind text check in (`user`,`panel`), user_id null fk, machine_id null, shop_id null, created_at, expires_at not null, last_seen_at, revoked_at null; check (kind = 'user') = (user_id is not null); check (kind = 'panel') = (machine_id is not null and shop_id is not null) | user_id; expires_at |
 | `audit_events` | id, shop_id null, district_id null, actor_user_id null fk, action text not null (`login`, `login_failed`, `pin_reset`, `note_approved`, `pair_created`, `pair_revoked`, `panel_token_issued`, `demo_reset`), subject_id bigint null, at timestamptz not null default now() | (shop_id, at desc); (district_id, at desc) |
 
@@ -241,13 +242,14 @@ Conventions:
 
 | Table | Columns (constraints) | Indexes |
 | :--- | :--- | :--- |
-| `machines` | id, shop_id fk, code text not null check `^[a-z0-9-]{1,32}$`, name jsonb Tri not null, current_version_id null, present_worker_id null, present_at null, created_at; unique (shop_id, code); unique (shop_id, id); fk (shop_id, current_version_id) → note_versions **deferrable initially deferred**; fk (shop_id, present_worker_id) → users | |
-| `glossary_terms` | id, shop_id fk, ja text not null, reading text not null, bn text not null, en text not null, note text null; unique (shop_id, ja); unique (shop_id, id) | |
-| `note_versions` | id, shop_id, machine_id, version_no int not null, status text check in (`draft`,`approved`), needs_edit bool not null default false, recorded_by fk users, approved_by null fk users, source_kind text check in (`voice`,`text`), audio_sha256 bytea null, transcript_ja text not null, steps jsonb not null (1–12 `{text: Tri, icon}`), back_translation jsonb not null `{bn, en}`, questions jsonb not null (2–3), idempotency_key uuid not null, created_at, approved_at null; unique (shop_id, machine_id, version_no); unique (shop_id, idempotency_key); unique (shop_id, id); fk (shop_id, machine_id) → machines; check (status = 'approved') = (approved_at is not null and approved_by is not null) | (shop_id, machine_id, version_no desc) |
+| `machines` | id, shop_id fk, code text not null check `^[a-z0-9-]{1,32}$`, name jsonb Tri not null, current_version_id null, recheck_version_no int null (the newest approved **safety change**, §7.1), present_worker_id null, present_at null, created_at; unique (shop_id, code); unique (shop_id, id); fk (shop_id, current_version_id) → note_versions **deferrable initially deferred**; fk (shop_id, present_worker_id) → users | |
+| `glossary_terms` | id, shop_id fk, ja text not null, reading text not null, translations jsonb not null (one non-empty entry per shop language), note text null; unique (shop_id, ja); unique (shop_id, id) | |
+| `note_versions` | id, shop_id, machine_id, version_no int not null, status text check in (`draft`,`approved`), needs_edit bool not null default false, recorded_by fk users, approved_by null fk users, source_kind text check in (`voice`,`text`), audio_sha256 bytea null, transcript_ja text not null, steps jsonb not null (1–12 `{text: Tri, icon}`), back_translation jsonb not null `{bn, en}`, questions jsonb not null (2–3), change_kind text null check in (`safety`,`wording`) (set on approval; the first version of a Machine is always `safety`), edit_count int not null default 0, ai_outcome text not null check in (`ok`,`retried`,`fallback_seed`,`degraded`,`typed`), idempotency_key uuid not null, created_at, approved_at null; unique (shop_id, machine_id, version_no); unique (shop_id, idempotency_key); unique (shop_id, id); fk (shop_id, machine_id) → machines; check (status = 'approved') = (approved_at is not null and approved_by is not null) | (shop_id, machine_id, version_no desc) |
 | `checks` | id, shop_id, worker_id, note_version_id null, briefing_id null, notice_id null, language text check, answers smallint[] not null, passed bool not null, idempotency_key uuid not null, created_at; check num_nonnulls(note_version_id, briefing_id, notice_id) = 1; unique (shop_id, worker_id, idempotency_key); composite fks to users, note_versions, briefings; fk notice_id → notices | (shop_id, worker_id, created_at desc); note_version_id; briefing_id; notice_id |
 | `confusions` | id, shop_id, check_id, worker_id, machine_id, question_id text not null, term_id null, created_at, acknowledged_at null, acknowledged_by null fk users; composite fks to checks, users, machines, glossary_terms | partial (shop_id, created_at desc) where acknowledged_at is null; (shop_id, term_id); (shop_id, machine_id) |
 | `sign_offs` | id, shop_id, worker_id, machine_id, note_version_id, check_id not null, passed_at not null; unique (check_id); composite fks to users, machines, note_versions, checks | (shop_id, worker_id, machine_id, passed_at desc) |
 | `shift_assignments` | id, shop_id, worker_id, machine_id, shift_date date not null, shift text check in (`day`,`night`), assigned_by fk users; unique (shop_id, machine_id, shift_date, shift); composite fks | (shop_id, shift_date); (shop_id, worker_id, shift_date) |
+| `panel_overrides` | id, shop_id, machine_id, worker_id null (null = anyone), reason text not null check (length 3–200), created_by fk users, starts_at timestamptz not null default now(), ends_at timestamptz not null check (ends_at > starts_at and ends_at <= starts_at + interval '8 hours'), revoked_at null; composite fks | (shop_id, machine_id, ends_at desc) |
 | `briefings` | id, shop_id, status text check in (`draft`,`published`), recorded_by fk users, transcript_ja text not null, text jsonb Tri not null, question jsonb not null, needs_edit bool not null default false, idempotency_key uuid not null, created_at, published_at null; unique (shop_id, idempotency_key); unique (shop_id, id); check (status = 'published') = (published_at is not null) | partial (shop_id, published_at desc) where status = 'published' |
 | `receipts` | id, shop_id, worker_id, briefing_id null, notice_id null, opened_at not null, passed bool null; check num_nonnulls(briefing_id, notice_id) = 1; composite fks to users, briefings; fk notice_id → notices | unique (worker_id, briefing_id) where briefing_id is not null; unique (worker_id, notice_id) where notice_id is not null; briefing_id; notice_id |
 | `near_miss_reports` | id, shop_id, worker_id, machine_id, source_kind text check in (`voice`,`text`), text_src text not null, text jsonb Tri not null, photo_blob_id null fk blobs, idempotency_key uuid not null, created_at, acknowledged_at null, acknowledged_by null; unique (shop_id, idempotency_key); composite fks | partial (shop_id, created_at desc) where acknowledged_at is null; (shop_id, machine_id) |
@@ -273,7 +275,7 @@ Conventions:
 
 ### 6.5 Derived, never stored
 - **Current Note Version** is `machines.current_version_id`, set in the approval transaction (§8.1). **Superseded** = approved and not current.
-- **Sign-off status** (valid / expiring / expired / none) is computed (§7.1). Approving a new version updates no Sign-off rows; old ones stop matching.
+- **Sign-off status** (valid / expiring / expired / none) is computed (§7.1). Approving a new version updates no Sign-off rows: a **safety change** raises `machines.recheck_version_no`, and older Sign-offs stop counting; a **wording change** leaves them valid.
 - **Panel state** is computed from Presence, Shift Assignments and Sign-offs on every poll.
 
 ### 6.6 Query patterns and their indexes
@@ -295,14 +297,19 @@ No N+1: board, matrix and heatmap are one query each (CTEs), never a loop of que
 
 ### 7.1 Sign-off and Lock
 ```
-status(newest_sign_off, current_version_id, now) ->
+status(newest_sign_off, recheck_version_no, now) ->
   "none"     no Sign-off
-  "expired"  sign_off.note_version_id != current_version_id, or now - passed_at >= 90 days
+  "expired"  sign_off.version_no < recheck_version_no, or now - passed_at >= 90 days
   "expiring" valid with <= 14 days left
   "valid"    otherwise
-panel_state = "ready" if status in {valid, expiring} else "locked"
+panel_state = "override" if an active Panel Override covers this Worker (or anyone)
+              else "ready" if status in {valid, expiring} else "locked"
 ```
 A Machine with no approved Note Version is `locked` for everyone with reason `no_note`. Only the newest Sign-off per (Worker, Machine) counts.
+
+**Safety change vs wording change** (from the founder board: re-approval friction). When the Foreman approves a new version they choose: **safety change** (new steps, new hazard, new tool: everyone must pass the new Check) or **wording change** (typo, clearer phrasing, a better translation: existing Sign-offs stay valid, and Workers see the new text next time). The default is safety change, the first version of a Machine is always one, and the choice is audited. Workers who sign off after a wording change take that version's Check as usual.
+
+**Panel Override** (from the founder board: "a lock will stop production when we are busy"). A Foreman can let one Worker (or anyone) run a Machine without a valid Sign-off for up to 8 hours, with a reason. The Panel shows amber `override` with the Foreman's name, the board lists every active override, and each one is in `audit_events` and the Support Log. The lock never silently blocks production, and every bypass has a name on it, which also answers "what happens when someone walks past LOCK": the record shows whether a Foreman allowed it.
 
 ### 7.2 Who the Machine Panel shows (Presence)
 `POST /machines/{id}/scan` by a signed-in Worker sets `present_worker_id = me`, `present_at = now()`. The Panel shows the present Worker if `present_at` is within 10 minutes, else today's Shift Assignment for the current shift (shop timezone), else `idle`. Last scan wins; that is the physical truth at a shared machine.
@@ -318,8 +325,7 @@ A Machine with no approved Note Version is `locked` for everyone with reason `no
 ### 7.4 Glossary lock (with Galib's review, point 4)
 NFKC-normalise all text. A Glossary Term is **in scope** when its `ja` **or its `reading`** appears in `transcript_ja`; the prompt also tells the model to write Glossary Terms in their `ja` form. For every in-scope term:
 - `easy_ja` keeps `ja` (a reading in brackets is allowed). やさしい日本語 keeps shop words, because the Worker must learn the floor word.
-- `bn` contains the term's `bn` (substring; Bengali case endings are suffixes).
-- `en` contains the term's `en`, case-insensitive.
+- Every shop language's text contains the term's translation for that language: substring after NFC normalisation (Bengali case endings are suffixes; Vietnamese keeps its diacritics), case-insensitive for Latin scripts (`en`, `vi`, `id`, `tl`).
 
 Questions: 2–3 per Note Version, exactly 3 options each, `correctIndex` 0–2. Icon ids come from the fixed set (the frontend's `IconId`), at most one per step.
 
@@ -365,7 +371,7 @@ AI output only ever creates `draft` rows (G-33). Published and approved rows are
 
 | Operation | Transaction |
 | :--- | :--- |
-| Approve a Note Version | `select … from machines where shop_id = :s and id = :m for update` → the draft must be `draft` and belong to the Machine (else 409) → set `approved`, `approved_at`, `approved_by` → set `machines.current_version_id` → insert `audit_events`. One transaction; the row lock serialises two Foremen approving at once. |
+| Approve a Note Version | `select … from machines where shop_id = :s and id = :m for update` → the draft must be `draft` and belong to the Machine (else 409) → set `approved`, `approved_at`, `approved_by`, `change_kind` → set `machines.current_version_id`, and for a safety change `machines.recheck_version_no` → insert `audit_events`. One transaction; the row lock serialises two Foremen approving at once. |
 | Create a draft | `version_no = max + 1` is assigned under the same Machine row lock, so two drafts never collide on `unique (shop_id, machine_id, version_no)`. |
 | Submit a Check | read the target → check it is current (§7.3) → insert `checks` + `confusions` + `sign_offs` or the receipt upsert. One transaction. |
 | Publish a Notice | lock the Notice row → every Event confirmed and valid → set published. |
@@ -386,6 +392,19 @@ Every create that can be retried (Checks, Note/Briefing/Notice drafts, Asks, Nea
 | Threads | 40 (AnyIO default) | at most 2 held by AI calls (§10.3) |
 | Request time | ingress 240 s | AI budget 45 s per call, 60 s per request |
 | Polling load | 10 Panels × 0.5 req/s + 3 boards × 0.2 req/s ≈ 6 req/s | single indexed reads, well inside one replica |
+
+### 8.5 Performance budgets (checked by the load test in §14)
+
+| Path | Budget (p95, server time) | How |
+| :--- | :--- | :--- |
+| Panel poll | 50 ms; `304` with no body when unchanged | one indexed read; `ETag` = hash of (state, worker, version, override) |
+| Foreman board | 200 ms; `304` when unchanged | one CTE query; `ETag` |
+| Worker Machine page, Check submit | 150 ms | two indexed reads; one transaction |
+| Lists | 150 ms for 50 items | keyset cursor, no `count(*)` |
+| AI draft (note, notice, ask) | 15 s typical, 45 s hard cap, cache hit 100 ms | §10.3; the frontend shows progress |
+| Any SQL statement | 5 s hard stop | `statement_timeout = 5s` on the app role; `idle_in_transaction_session_timeout = 30s` |
+
+Also: GZip for responses over 1 KB (Starlette's `GZipMiddleware`, no new dependency); `orjson` is not added (the payloads are small). Load test target: 30 Panels + 5 boards polling and 2 AI drafts at once on the B1ms server stay inside these budgets. If not, measure first (`EXPLAIN ANALYZE`, `pg_stat_statements`) before changing anything.
 
 ---
 
@@ -453,11 +472,14 @@ Roles: F Foreman · W Worker · P Poster · D Panel device · S Senpai link · p
 | :--- | :--- | :--- | :--- |
 | GET | `/machines/{id}` | F W | Machine + current Note Version; for W, questions without `correctIndex` |
 | POST | `/machines/{id}/scan` | W | (no body) sets Presence for the signed-in Worker |
-| GET | `/machines/{id}/panel` | D F | `{state: idle\|locked\|ready, worker, reason, versionNo}` |
+| GET | `/machines/{id}/panel` | D F | `{state: idle\|locked\|ready\|override, worker, reason, versionNo, override: {by, until, reason} \| null}`; sends an `ETag`, answers `304` when nothing changed |
+| POST | `/machines/{id}/overrides` | F | `{workerId \| null, minutes ≤ 480, reason}` → Panel Override (§7.1) |
+| DELETE | `/machines/{id}/overrides/{overrideId}` | F | ends it early |
 | POST | `/machines/{id}/notes` | F | multipart `audio` or `text`, `Idempotency-Key` → draft NoteVersion |
 | GET | `/machines/{id}/versions` | F | Knowledge Library, paged, newest first |
 | GET / PATCH | `/note-versions/{id}` | F | read; PATCH a draft `{index, ja}` (step edit) |
-| POST | `/note-versions/{id}/approve` | F | → approved NoteVersion |
+| POST | `/note-versions/{id}/approve` | F | `{changeKind: safety \| wording}` (default `safety`; the first version is always `safety`) → approved NoteVersion |
+| GET | `/metrics/effort` | F | for the shop: median seconds from draft to approval, median edits per draft, share of drafts the AI produced cleanly (`ok`), Checks passed first time; the evidence for "how long does a foreman spend" |
 | POST | `/checks` | W | `{target: {kind, id}, language, answers[]}`, `Idempotency-Key` → `{passed, wrong: [{id, termId, prompt}], signOff \| null}` |
 | GET | `/sign-offs` | F (W: own) | paged |
 | GET | `/confusions?open=true` | F | paged, newest first |
@@ -497,7 +519,7 @@ Roles: F Foreman · W Worker · P Poster · D Panel device · S Senpai link · p
 | GET | `/senpai/{token}` | S | their Worker (display name, language), forwarded Asks, district Events, Meet-ups |
 | POST | `/senpai/{token}/asks/{id}/reply` | S | `{replyJa}` → translated for the Worker |
 | POST | `/senpai/{token}/meetups` | S | `{kind, date, note}` |
-| GET | `/support-log.csv?from=&to=` | F | not enveloped; UTF-8 BOM; one row per Worker per Meet-up or Notice Check in the range, for the shop |
+| GET | `/support-log.csv?from=&to=` | F | not enveloped; UTF-8 BOM; one row per Worker per Meet-up, Notice Check or Panel Override in the range, for the shop; columns follow the support-record fields in [research.md](../contributors/asif/founder/research.md) once confirmed |
 
 **Demo**
 
@@ -560,6 +582,18 @@ Each pipeline owns: cache lookup → limiter → model call → schema parse →
 - Audio and photos go inline (`Part.from_bytes`). Safari records `audio/mp4`: we send it to Gemini as `audio/m4a` (Galib point 1).
 - **Untrusted text:** flyer text, Notice text, Ask text and Near-miss text are data. Every prompt puts them in a delimited block, and the prompt says that text inside the block is never an instruction (Galib point 6). Output is validated, so injected text can only produce a draft that a person still approves.
 - Prompts are `app/prompts/<name>.v<N>.md`. Changing a prompt bumps `N` (which changes the cache key) and updates its fixture test (G-34).
+- Pipelines translate into the shop's `languages` (§6.1); each extra language adds output tokens, so the cost model below counts languages.
+
+### 10.6 Measured quality and cost (from the founder board: "nobody has measured the error rate")
+- **Eval set:** `tests/fixtures/ai/eval/` holds about 20 cases: typed and recorded Foreman notes covering every seeded Glossary Term (玉掛け, 段取り, 寸法…), plus 4 flyers and 6 Asks (2 not covered by any Notice).
+- **Runner:** `python -m app.ai.eval --model <name>` runs each case once against the live model, within the daily budget, and writes `docs/ai-eval.md`. It reports, per prompt version and model:
+  - schema-valid rate
+  - Glossary-lock pass rate per term
+  - question validity
+  - for Asks, grounding precision (a not-covered Ask must return `covered=false`)
+  - median latency
+- **Use:** that file is the number we show judges instead of claiming accuracy. Galib owns it in WS1, and it is re-run after every prompt change.
+- **Cost model:** `docs/ai-eval.md` also records the median input and output tokens per pipeline. Monthly AI cost per factory = Σ pipelines (calls per month × tokens × the model's paid price per token). The prices and the audio token rate come from Google's pricing page ([research](../contributors/asif/founder/research.md)), never from memory.
 
 ---
 
@@ -612,6 +646,9 @@ A 10 MB body limit applies before multipart parsing. Pillow's decompression-bomb
 | `tests/api` | every route: success, 422, the 401/403/404 guard matrix (§3.3), idempotent repeat returns the same row; Review focus 1–8 from the plan as named tests; `VERSION_CHANGED` race; approval by two Foremen at once | real Postgres (`db_test` locally, service container in CI), each test in a rolled-back transaction, `FakeAiClient` |
 | `tests/ai` | each pipeline: valid; invalid then fixed; invalid twice → degraded; timeout → seed; cache hit skips the client; daily budget exhausted → no call; daily-quota 429 → no retry | `FakeAiClient` scripted per test |
 | contract | `docs/openapi.yaml` equals the generated schema; no Worker schema has `correctIndex` | CI |
+| `tests/domain` additions | wording change keeps Sign-offs valid, safety change expires them; an active Override turns the Panel `override` and ends on time; Glossary lock for a `vi` shop | plain pytest |
+| `tests/load/poll.py` | §8.5 budgets: 30 Panels + 5 boards polling, 2 AI drafts (fake AI with a 10 s delay); prints p50/p95 per path | `httpx` (already a test dependency) with threads; run against the Azure server before demo day |
+| `app.ai.eval` | §10.6 quality numbers | live model, manual run, not in CI |
 
 Coverage target 80% on `domain`, `services`, `repositories`, `ai` (G-22). CI `backend-ci.yml`: ruff → pyright → import-linter → pytest + coverage → openapi diff → gitleaks.
 
@@ -684,6 +721,10 @@ Tracked as `XREQ-001` in [AGENTS.md](../AGENTS.md#2-active-cross-functional-requ
 | 9 | none | `Idempotency-Key` header (UUID per user action) on Checks, drafts, Asks, Near-miss Reports |
 | 10 | QR URL `/m/$machineId` | `/m/$machineId?s=<shopCode>` so a phone without a session can show the right name list |
 | 11 | `Machine.activeWorkerId` | `GET /machines/{id}/panel` returns the Worker; Panels use a device token |
+| 12 | Panel states `idle / locked / ready` | adds `override` (amber, with Foreman name, until, reason); Foreman board gets "Allow without Sign-off" (`POST /machines/{id}/overrides`) |
+| 13 | Approve is one button | Approve asks "Safety change (everyone re-checks)" or "Wording only (Sign-offs stay)"; default safety |
+| 14 | `Tri` = `{ja, bn, en}` | unchanged for the demo shop; a shop's `languages` may add `vi`, `id`, `ne`, `my`, `tl`, `zh` (keys appear only when the shop has them) |
+| 15 | Panel and board polling | send `If-None-Match` with the last `ETag`; treat `304` as "no change" |
 
 ---
 

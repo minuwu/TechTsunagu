@@ -51,8 +51,16 @@ _Avoid_: Quiz, test, exam, teach-back (in code)
 A multiple-choice question tied to one Glossary Term or step of a Note Version, Briefing or Notice.
 
 **Sign-off**:
-The record that a Worker passed the Check for a Machine's current Note Version; valid until a new Note Version is approved or 90 days pass.
+The record that a Worker passed the Check for a Machine's Note Version; valid until a newer **Safety Change** is approved for that Machine or 90 days pass.
 _Avoid_: Certification, approval, clearance
+
+**Safety Change**:
+A new Note Version that changes what the Worker must do (steps, hazard, tool), so every Worker must pass its Check again. Its opposite, a **Wording Change**, only fixes text or translation and leaves Sign-offs valid. The Foreman chooses when approving.
+_Avoid_: Major/minor version, update
+
+**Panel Override**:
+A Foreman's time-limited permission (at most 8 hours, with a reason) for a Worker, or anyone, to run a Machine without a valid Sign-off; the Machine Panel shows it in amber with the Foreman's name.
+_Avoid_: Bypass, unlock, exception
 
 **Confusion**:
 A wrong answer on a Check Question, recorded against its Glossary Term and sent to the Foreman as an alert.
