@@ -7,6 +7,7 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 ## 2026-11-22
 
 ### Completed
+- **Free-AI plan, for review:** [AI_PLAN.md](AI_PLAN.md). The team agreed to use every free AI API; the plan covers which model does what (`dev` and `demo` chains behind `AI_CHAIN`), the fallback ladder (cache → Gemini chain → seeded → Groq Whisper transcript for voice → degraded), per-model budgets (no schema change: `ai_usage` is already per model), privacy (fictional data only on free tiers), the eval and the demo-day quota calendar. Filed **XREQ-003** (Asif: chain, budgets, Whisper, settings, receipts route, `approvedBy`/`needsEdit` in responses) and **XREQ-004** (Minhaz, Arjun: "Dictate instead", degraded-draft message, provenance line). Questions for reviewers in AI_PLAN.md §9.
 - **WS1, the parts that need no WS0** (branch `galib/ws1-ai`). Pure code, no skeleton, no database:
   - `backend/app/ai/schemas.py`: what each pipeline asks Gemini to return (`NoteDraft`, `BriefingDraft`, `NoticeDraft`, `AskDraft`, `Translation`). Simple schemas only (point 5); icon ids equal the frontend's `IconId`. Shortcut: languages fixed to ja/bn/en until a shop adds more.
   - `backend/app/domain/ai_checks.py`: the glossary lock exactly as §7.4 (NFKC; a term is in scope by `ja` or `reading`; steps keep `ja`; every language uses the fixed translation, case-insensitive for Latin scripts) and question checks (no two options with the same text in any language, `term_ja` must be a Glossary Term). Returns plain-English problems for the one retry prompt.
