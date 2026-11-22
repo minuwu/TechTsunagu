@@ -7,6 +7,22 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 ## 2026-11-22
 
 ### Completed
+- **AI options, all free (proposal for Asif, §10.3/§10.4).** Checked against official pages on 2026-11-22:
+
+  | Option | Free limit | Source | Proposed role |
+  | :--- | :--- | :--- | :--- |
+  | Fake AI + `ai_cache` + seeded results | unlimited | already in the design (§10) | default for all development; filmed takes cached |
+  | `gemini-3.5-flash-lite` (audio, image, JSON) | 500/day, 15/min | [model page](https://ai.google.dev/gemini-api/docs/models/gemini-3.5-flash-lite), AI Studio | prompt work, AI eval, first backup |
+  | `gemini-3.1-flash-lite` (audio, image, JSON) | 500/day | [model page](https://ai.google.dev/gemini-api/docs/models/gemini-3.1-flash-lite), AI Studio | second backup (new) |
+  | `gemini-3.8-flash` (audio, image, JSON) | 20/day, 5/min | [model page](https://ai.google.dev/gemini-api/docs/models/gemini-3.8-flash), AI Studio | filmed takes and live demo only |
+  | `gemini-3.6-flash` | 20/day | AI Studio | demo-day backup for 3.8 (new) |
+  | Browser speech recognition (`ja-JP`) | unlimited | [caniuse](https://caniuse.com/speech-recognition): partial support in Chrome (desktop, Android) and Safari (macOS, iOS); none in Firefox | Foreman voice → text when all AI is down (new, frontend) |
+  | Groq Whisper (transcription only) | 2,000/day, org-wide | [Groq limits](https://console.groq.com/docs/rate-limits) | optional last resort; less accurate on Japanese than Gemini in one third-party benchmark |
+
+  - Not usable or not free: Azure OpenAI on Azure for Students (no quota, per Microsoft Q&A), Google's $300 trial (doesn't cover AI Studio for accounts opened after 2026-03-02), Mistral Voxtral (no free API).
+  - Free-tier inputs are used by Google to improve its products ([pricing page](https://ai.google.dev/gemini-api/docs/pricing)): fine for our fictional demo data, never for real Worker data. Paid tier, if the team chooses it later: $5 minimum prepay, $250/month cap ([billing page](https://ai.google.dev/gemini-api/docs/billing)).
+  - Rules for the free plan: nobody tests on 3.8 Flash; cache each filmed take as soon as it works; a Google project used only for Wakatta?; rehearse on demo day with the cache, not live AI.
+  - Still unmeasured: Bengali quality (no Japanese→Bengali benchmark exists; the AI eval must include a teammate scoring the Bengali) and whether the per-model quotas really add up (seen in AI Studio, not stated in Google's docs). A live test script (audio + JSON, one call per model) is ready and runs as soon as the Wakatta? project key is in `backend/.env`.
 - Researched [Rover Villa](https://rovervilla.space/heroes/phoenix) for ideas we can use: [ROVERVILLA_IDEAS.md](ROVERVILLA_IDEAS.md). My picks: machine photos with tap-the-part Check Questions (understanding checked without depending on translation), a provenance line on every AI output, and a "Veteran's voice outlives the Veteran" beat in the pitch. Proposal only; needs team agreement and an XREQ for the first one.
 - Checked the Gemini open item Asif assigned me ([BACKEND_ARCHITECTURE.md §15](../../docs/BACKEND_ARCHITECTURE.md#15-open-items)): "Confirm the current Gemini Flash model accepts audio input together with a response schema, and its daily limit on our key."
   - **Model:** `gemini-3.8-flash` is the current stable Flash model (updated September 2026). Google's model page lists audio, image, video, PDF and text as inputs and structured outputs as supported, so one call with the Foreman's audio and our JSON schema works. Checked from the docs only; no live call yet.
