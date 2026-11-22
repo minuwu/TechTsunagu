@@ -55,6 +55,7 @@ This file is:
 | Request ID | Priority | From | To | Target / Title | Status | Updated (UTC+6) |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | `XREQ-001` | P1 | Backend (Asif) | Frontend (Minhaz) | Auth, ids and list shape for the real API ([BACKEND_ARCHITECTURE.md §17](docs/BACKEND_ARCHITECTURE.md#17-frontend-contract-changes)) | `[PENDING]` | 2026-11-22 19:10 |
+| `XREQ-002` | P1 | Backend (Anim) | Frontend (Minhaz) | Life contract: Notices, Events, Asks, Senpai, Meet-ups (`backend/app/schemas/`) | `[PENDING]` | 2026-11-22 20:06 |
 
 *(When adding a request: append a row above AND add a detailed card in 2.2. Never insert in the middle.)*
 
@@ -88,6 +89,47 @@ POST /api/auth/login
   "user": { "id": "12", "displayName": "Rahim", "role": "worker", "language": "bn", "shopId": "1", "districtId": "1" } } }
 ```
 Errors: `401 UNAUTHORIZED` (wrong PIN), `423 PIN_LOCKED` (`details.until`), `429 RATE_LIMITED`.
+
+**Fulfillment & Proof (filled by recipient on completion):**
+- **Branch / Commit**: 
+- **Status / Notes**: 
+- **Verification Proof**: 
+
+#### `[XREQ-002]` Life contract: Notices, Events, Asks, Senpai, Meet-ups
+- **Priority**: `P1 (High)`
+- **From**: Backend (Anim)
+- **To**: Frontend (Minhaz)
+- **Status**: `[PENDING]`
+- **Created**: `2026-11-22 20:06 (UTC+6)`
+- **Target Interface / Endpoint**: `frontend/src/services/wakatta.ts` (Life functions), `frontend/src/features/{community,worker,senpai}/`
+
+**Requirement Details:**
+The Life request and response models are in `backend/app/schemas/notices.py`, `asks.py`, `senpai.py` (branch `anim/ws10-notices`, `e281beb`); `docs/openapi.yaml` is generated from them once WS0 lands. Changes beyond XREQ-001 (bodies reject unknown fields with 422):
+1. `POST /api/notices` multipart: `sourceKind` plus exactly the one source it names (`text`, `audio` or `photo` file). No `posterId`: it comes from the session.
+2. `PATCH /api/notices/{id}/events/{eventId}` returns the Event with `nextDates`, expanded by the backend with `COUNT` and `UNTIL` applied. Show these to the Poster: `nextOccurrences` in `domain/calendar.ts` ignores `COUNT` and `UNTIL`, so an ended rule still shows dates. A bad date is 422 with `details.reason` `unsupported_rule`, `past` or `no_upcoming`.
+3. `POST /api/notices/{id}/publish` refuses with **409** `EVENTS_NOT_CONFIRMED` (the mock throws 422).
+4. Notices add `needsEdit` (the AI fell back; the Poster must finish the draft) and `publishedAt`. `photo` is `/api/blobs/{id}`, which needs the Bearer header, so `<img src>` cannot load it directly: fetch it with the token and show `URL.createObjectURL(blob)`.
+5. Worker `GET /api/notices` items carry `opened` and `passed` from their receipt, and the question has no `correctIndex` (grading is server-side, `POST /api/checks`).
+6. `POST /api/meetups` and `POST /api/senpai/{token}/meetups` take `{kind, date, note}` only: no `pairId` or `loggedBy`.
+7. The Senpai link token is returned only by `POST /api/senpai-pairs` (shown once; only its hash is stored). `GET /api/senpai-pairs` has no `token`, so the Senpai screen loads `GET /api/senpai/{token}` instead of finding the pair in the list.
+8. Optional: `GET /api/events?from=&to=` (at most 62 days) returns `[{eventId, noticeId, title, at}]` for today / tomorrow, so the Worker screen need not expand rules itself.
+
+**Expected Request (Payload / Query Params / Headers):**
+```json
+POST /api/meetups
+{ "kind": "drill", "date": "2026-12-06", "note": "防災訓練に一緒に行った" }
+```
+
+**Expected Response (Status Code + Payload / Error Codes):**
+```json
+GET /api/senpai/{token} → 200
+{ "success": true, "data": { "senpaiName": "田中 健",
+  "worker": { "displayName": "Rahim Uddin", "language": "bn" },
+  "asks": [{ "id": "31", "text": "আমার ফ্যান নষ্ট হয়ে গেছে।", "textJa": "扇風機が壊れました。", "createdAt": "2026-11-22T10:00:00Z", "replyJa": null }],
+  "events": [{ "eventId": "5", "noticeId": "2", "title": { "ja": "防災訓練", "bn": "দুর্যোগ মহড়া", "en": "Disaster drill" }, "at": "2026-12-06T09:00:00+09:00" }],
+  "meetups": [] } }
+```
+Errors: `404 NOT_FOUND` (wrong or revoked Senpai token), `409 NO_ACTIVE_PAIR` (forwarding an Ask without a Senpai), `422 VALIDATION_ERROR`.
 
 **Fulfillment & Proof (filled by recipient on completion):**
 - **Branch / Commit**: 
