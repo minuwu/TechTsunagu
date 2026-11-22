@@ -4,6 +4,20 @@ Owner: Arjun Saha (GitHub handle TBD) — Role: Frontend design
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-23 (web frontend, from Minhaz)
+
+Minhaz asks you to take the **web frontend**. It comes **before** the items in the 2026-11-22 entry below; those stay yours, after this.
+
+### Next (assigned)
+1. **Desktop web layouts of the React app** (first). Today only `src/ui/v3/tokens.css` has breakpoints; v1 and v2 are phone-only. Workers stay phone-first; the Foreman and Poster get desktop and tablet layouts at ≥ 1024 px:
+   - Foreman Board, chat (Thread list + chat side by side), Task Board (Kanban columns side by side), Skill Matrix, Confusion Heatmap, Support Log, Glossary, Assign, Briefing, Near-miss list; Community Poster notice editor.
+   - Presentation only, inside the kit (`src/ui/<version>/`): same routes, same `features/` hooks, no logic copied (FRONTEND_ARCHITECTURE A-01…A-09). Data stays mock until XREQ-001/005 land.
+   - Check at 1280×800, 1024×768 and 390×844; nothing clipped; keyboard navigation works; axe green; FRONTEND_REGULATIONS F-01…F-53.
+2. **Public web site** (second): a landing page for judges and 登録支援機関 at a public route in the same app (no login): the problem, how it works (machine gate, term alert to the Foreman, Support Log), a short demo video slot and links into the demo. In Japanese first, en and bn switchable. Claims match BACKEND_PLAN §2 decisions 14 and 15 (what makes us different, who pays): no price, no unsourced numbers.
+
+### Blockers / handoff
+- Agree with Minhaz which kit (v2 or v3) gets the desktop layouts before you start; Minhaz owns the chat logic you lay out.
+
 ## 2026-11-22 (proto → production handoff from Minhaz)
 
 Minhaz mapped the prototype (`prototypes/wakatta/`) and the frontend against `main` (`c07a8fb`). Decisions: the prototype's **Chat is in production scope (WS12, P1)**; Course stays P2 and frontend-only. Read [BACKEND_PLAN.md](../../docs/BACKEND_PLAN.md) decision #8 and XREQ-004 and XREQ-005 in [AGENTS.md](../../AGENTS.md) §2.2. Do the items in this order.
