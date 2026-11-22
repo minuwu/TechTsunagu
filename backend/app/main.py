@@ -12,7 +12,7 @@ from app.api.context import RequestContextMiddleware, configure_logging
 from app.api.errors import install_error_handlers
 from app.config import Settings
 from app.db import make_engine, make_session_factory
-from app.routers import health
+from app.routers import auth, health, users
 
 
 def create_app(settings: Settings | None = None, session_factory: sessionmaker[Session] | None = None) -> FastAPI:
@@ -39,7 +39,8 @@ def create_app(settings: Settings | None = None, session_factory: sessionmaker[S
     app.state.settings = settings
     app.state.session_factory = factory
     install_error_handlers(app)
-    app.include_router(health.router)
+    for module in (health, auth, users):
+        app.include_router(module.router)
 
     # Added last = runs first: the request context wraps CORS, which wraps GZip.
     app.add_middleware(GZipMiddleware, minimum_size=1000)

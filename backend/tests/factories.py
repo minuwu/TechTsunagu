@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.models.scopes import District, Shop, User
 from app.models.work import Machine, NoteVersion
+from app.services.credentials import hash_pin
 
 _seq = count(1)
 
@@ -30,14 +31,23 @@ def shop(db: Session, home: District | None = None) -> Shop:
     return row
 
 
-def user(db: Session, at: Shop, role: str = "worker", name: str | None = None, pin_hash: str = "x") -> User:
+TEST_PEPPER = "test-pepper-0123456789abcdef0123456789"
+_hashes: dict[str, str] = {}  # argon2 is deliberately slow; reuse one hash per PIN across tests
+
+
+def user(
+    db: Session, at: Shop, role: str = "worker", name: str | None = None, pin: str = "2468", must_change: bool = True
+) -> User:
+    if pin not in _hashes:
+        _hashes[pin] = hash_pin(TEST_PEPPER, pin)
     row = User(
         role=role,
         display_name=name or f"user-{next(_seq)}",
         language="bn" if role == "worker" else "ja",
         shop_id=at.id,
         district_id=at.default_district_id,
-        pin_hash=pin_hash,
+        pin_hash=_hashes[pin],
+        pin_must_change=must_change,
     )
     db.add(row)
     db.flush()
