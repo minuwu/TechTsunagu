@@ -7,15 +7,17 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 ## 2026-11-22
 
 ### Completed
+- Ask grounding rule (architecture §7.6): `backend/app/domain/grounding.py` `ground()`. A covered answer is kept only if it cites at least one Notice, every cited Notice was among those sent to the model, and it has text in ja and every shop language (extra languages are dropped). Anything else becomes `NOT_COVERED` (`covered=false`, `answer=null`, no sources), the shape the frontend already renders with its own `ask_not_covered` text, so no fixed answer is stored (D4: wire format follows the frontend). Verified: 6 tests in `backend/tests/domain/test_grounding.py`; all 30 domain tests pass; ruff and pyright strict clean.
 - Event recurrence rules (architecture §7.5): `backend/app/domain/recurrence.py` with `validate_event` and `occurrences_between`. Only `FREQ=WEEKLY;BYDAY=…` with optional `COUNT` or UTC `UNTIL` is accepted, in the exact shape the frontend can expand (dateutil alone also accepts `1MO`, lowercase days, an `RRULE:` prefix and `COUNT` with `UNTIL`). Rules always expand in Asia/Tokyo, so a UTC start keeps its Japan weekday. Rejects past one-off Events and Events with no date in the next 366 days. Verified: 24 tests in `backend/tests/domain/test_recurrence.py` pass; ruff (architecture rule set) and pyright strict clean. Run without a project file until WS0 lands: `cd backend; uv run --no-project --with pytest --with python-dateutil python -m pytest tests/domain -q`.
 
 ### Next
-- Ask grounding rule (architecture §7.6): `backend/app/domain/grounding.py` and its tests.
-- Then WS10/WS11 routes once WS0 is merged on `main`.
+- WS10/WS11 routes, services and repositories once WS0 is merged on `main`, in `BACKEND_PLAN.md` §4 order (Notices first).
 
 ### Blockers / handoff
+- Galib (WS1): `answer_ask` should pass its parsed output through `app.domain.grounding.ground()` (with the ids of the Notices it sent) before the service writes the Ask.
 - WS0 (Asif): the domain files use implicit namespace packages (no `__init__.py`), so they merge cleanly into your skeleton. Please add `python-dateutil` and `types-python-dateutil` (dev) to `pyproject.toml`.
 - Minhaz (FYI, no XREQ needed yet): `frontend/src/domain/calendar.ts` `nextOccurrences` ignores `COUNT` and `UNTIL`, so a rule that has ended still shows dates in the preview. The backend accepts both, as the architecture specifies.
 
 ### Related issues / commits / PRs
 - `c6939ba` feat(domain): add event recurrence rules (branch `anim/ws10-notices`)
+- `47509f6` feat(domain): add ask grounding rule
