@@ -29,7 +29,7 @@ from app.schemas.work import (
     PanelToken,
     StepEdit,
 )
-from app.services import floor, notes
+from app.services import floor, notes, notices
 from app.services.ai_runner import AiRunner
 from app.services.auth import Principal
 
@@ -118,6 +118,8 @@ def approve_note(who: Foreman, note_id: IdIn, body: ApproveIn, db: DbSession) ->
 
 @router.post("/checks", summary="Answer a Note Version's Check; graded on the server")
 def submit_check(who: Worker, body: CheckIn, key: IdempotencyKey, db: DbSession) -> Envelope[CheckResult]:
+    if body.target.kind == "notice":
+        return Envelope(data=notices.submit_check(db, who, body, key))
     return Envelope(data=floor.submit_check(db, who, body, key, now_utc()))
 
 

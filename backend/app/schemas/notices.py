@@ -6,7 +6,7 @@ from typing import Annotated, Literal, Self
 from fastapi import UploadFile
 from pydantic import AwareDatetime, Field, NonNegativeInt, model_validator
 
-from app.schemas.common import CamelModel, CheckQuestion, CheckQuestionForWorker, DateRange, Translated
+from app.schemas.common import CamelModel, CheckQuestion, CheckQuestionForWorker, DateRange, IdIn, Translated
 
 NoticeCategory = Literal["garbage", "disaster", "event", "duty", "other"]
 NoticeSourceKind = Literal["text", "voice", "photo"]
@@ -115,6 +115,17 @@ class EventsQuery(DateRange):
         if self.days.days > MAX_EVENTS_RANGE_DAYS:
             raise ValueError(f"at most {MAX_EVENTS_RANGE_DAYS} days")
         return self
+
+
+class ReceiptTarget(CamelModel):
+    kind: Literal["briefing", "notice"]
+    id: IdIn
+
+
+class ReceiptIn(CamelModel):
+    """POST /receipts: the Worker opened a Briefing or Notice (idempotent). The Worker comes from the session."""
+
+    target: ReceiptTarget
 
 
 class EventOccurrence(CamelModel):

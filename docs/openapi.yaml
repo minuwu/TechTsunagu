@@ -1355,6 +1355,472 @@
           }
         }
       }
+    },
+    "/api/posters": {
+      "get": {
+        "tags": [
+          "life"
+        ],
+        "summary": "The signed-in Poster's organisation",
+        "operationId": "list_posters_api_posters_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Page_PosterOut__"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notices": {
+      "post": {
+        "tags": [
+          "life"
+        ],
+        "summary": "Text, voice or flyer photo → AI draft with Events (never a 500)",
+        "operationId": "create_notice_api_notices_post",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_create_notice_api_notices_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoticeForPoster_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "life"
+        ],
+        "summary": "Posters: their own Notices; Workers: the district's published Notices",
+        "operationId": "list_notices_api_notices_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 40
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Union_Page_NoticeForPoster___Page_NoticeForWorker___"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notices/{notice_id}": {
+      "patch": {
+        "tags": [
+          "life"
+        ],
+        "summary": "Edit a draft Notice",
+        "operationId": "update_notice_api_notices__notice_id__patch",
+        "parameters": [
+          {
+            "name": "notice_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Notice Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NoticeUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoticeForPoster_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notices/{notice_id}/events/{event_id}": {
+      "patch": {
+        "tags": [
+          "life"
+        ],
+        "summary": "Confirm or correct an Event of a draft",
+        "operationId": "update_event_api_notices__notice_id__events__event_id__patch",
+        "parameters": [
+          {
+            "name": "notice_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Notice Id"
+            }
+          },
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Event Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EventUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoticeForPoster_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notices/{notice_id}/publish": {
+      "post": {
+        "tags": [
+          "life"
+        ],
+        "summary": "Publish; 409 EVENTS_NOT_CONFIRMED until every date is confirmed",
+        "operationId": "publish_notice_api_notices__notice_id__publish_post",
+        "parameters": [
+          {
+            "name": "notice_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Notice Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoticeForPoster_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notices/{notice_id}/reach": {
+      "get": {
+        "tags": [
+          "life"
+        ],
+        "summary": "How many district Workers opened and understood it (counts only)",
+        "operationId": "notice_reach_api_notices__notice_id__reach_get",
+        "parameters": [
+          {
+            "name": "notice_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Notice Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoticeReach_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events": {
+      "get": {
+        "tags": [
+          "life"
+        ],
+        "summary": "Dates of confirmed district Events in a range (at most 62 days)",
+        "operationId": "list_events_api_events_get",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "From"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "To"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_list_EventOccurrence__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/receipts": {
+      "post": {
+        "tags": [
+          "life"
+        ],
+        "summary": "The Worker opened a Notice (idempotent)",
+        "operationId": "open_receipt_api_receipts_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReceiptIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/blobs/{blob_id}": {
+      "get": {
+        "tags": [
+          "life"
+        ],
+        "summary": "A flyer photo of your district (JPEG, EXIF removed)",
+        "operationId": "get_blob_api_blobs__blob_id__get",
+        "parameters": [
+          {
+            "name": "blob_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Blob Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1746,6 +2212,60 @@
           "openConfusions"
         ],
         "title": "BoardOut"
+      },
+      "Body_create_notice_api_notices_post": {
+        "properties": {
+          "sourceKind": {
+            "type": "string",
+            "enum": [
+              "text",
+              "voice",
+              "photo"
+            ],
+            "title": "Sourcekind"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 4000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          },
+          "audio": {
+            "anyOf": [
+              {
+                "type": "string",
+                "contentMediaType": "application/octet-stream"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Audio"
+          },
+          "photo": {
+            "anyOf": [
+              {
+                "type": "string",
+                "contentMediaType": "application/octet-stream"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Photo"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sourceKind"
+        ],
+        "title": "Body_create_notice_api_notices_post"
       },
       "Body_record_note_api_machines__machine_id__notes_post": {
         "properties": {
@@ -2353,6 +2873,52 @@
         ],
         "title": "Envelope[NoteVersionOut]"
       },
+      "Envelope_NoticeForPoster_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/NoticeForPoster"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[NoticeForPoster]"
+      },
+      "Envelope_NoticeReach_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/NoticeReach"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[NoticeReach]"
+      },
       "Envelope_Page_AccountOut__": {
         "properties": {
           "success": {
@@ -2421,6 +2987,29 @@
           "data"
         ],
         "title": "Envelope[Page[MachineOut]]"
+      },
+      "Envelope_Page_PosterOut__": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/Page_PosterOut_"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[Page[PosterOut]]"
       },
       "Envelope_PanelOut_": {
         "properties": {
@@ -2498,6 +3087,37 @@
         ],
         "title": "Envelope[Union[AssignmentOut, NoneType]]"
       },
+      "Envelope_Union_Page_NoticeForPoster___Page_NoticeForWorker___": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Page_NoticeForPoster_"
+              },
+              {
+                "$ref": "#/components/schemas/Page_NoticeForWorker_"
+              }
+            ],
+            "title": "Data"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[Union[Page[NoticeForPoster], Page[NoticeForWorker]]]"
+      },
       "Envelope_UserOut_": {
         "properties": {
           "success": {
@@ -2547,6 +3167,33 @@
           "data"
         ],
         "title": "Envelope[list[AssignmentOut]]"
+      },
+      "Envelope_list_EventOccurrence__": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/EventOccurrence"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[list[EventOccurrence]]"
       },
       "Envelope_list_GlossaryOut__": {
         "properties": {
@@ -2601,6 +3248,160 @@
           "data"
         ],
         "title": "Envelope[list[RosterEntry]]"
+      },
+      "EventOccurrence": {
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "title": "Eventid"
+          },
+          "noticeId": {
+            "type": "string",
+            "title": "Noticeid"
+          },
+          "title": {
+            "additionalProperties": {
+              "type": "string",
+              "maxLength": 1000
+            },
+            "propertyNames": {
+              "enum": [
+                "ja",
+                "bn",
+                "en",
+                "vi",
+                "id",
+                "ne",
+                "my",
+                "tl",
+                "zh"
+              ]
+            },
+            "type": "object",
+            "title": "Title"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "eventId",
+          "noticeId",
+          "title",
+          "at"
+        ],
+        "title": "EventOccurrence"
+      },
+      "EventOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "additionalProperties": {
+              "type": "string",
+              "maxLength": 1000
+            },
+            "propertyNames": {
+              "enum": [
+                "ja",
+                "bn",
+                "en",
+                "vi",
+                "id",
+                "ne",
+                "my",
+                "tl",
+                "zh"
+              ]
+            },
+            "type": "object",
+            "title": "Title"
+          },
+          "startsAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Startsat"
+          },
+          "rrule": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rrule"
+          },
+          "confirmed": {
+            "type": "boolean",
+            "title": "Confirmed"
+          },
+          "nextDates": {
+            "items": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "type": "array",
+            "title": "Nextdates"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "startsAt",
+          "rrule",
+          "confirmed",
+          "nextDates"
+        ],
+        "title": "EventOut"
+      },
+      "EventUpdate": {
+        "properties": {
+          "confirmed": {
+            "type": "boolean",
+            "title": "Confirmed"
+          },
+          "startsAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Startsat"
+          },
+          "rrule": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rrule"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "confirmed"
+        ],
+        "title": "EventUpdate",
+        "description": "PATCH /notices/{id}/events/{eventId}. A field left out keeps its value; `rrule: null` makes the Event\none-off (the service tells them apart with `model_fields_set`). Invalid dates are a 422 with the reason\nfrom app.domain.recurrence."
       },
       "GlossaryIn": {
         "properties": {
@@ -3054,6 +3855,459 @@
         ],
         "title": "NoteVersionOut"
       },
+      "NoticeForPoster": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "posterId": {
+            "type": "string",
+            "title": "Posterid"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "garbage",
+              "disaster",
+              "event",
+              "duty",
+              "other"
+            ],
+            "title": "Category"
+          },
+          "sourceKind": {
+            "type": "string",
+            "enum": [
+              "text",
+              "voice",
+              "photo"
+            ],
+            "title": "Sourcekind"
+          },
+          "sourceJa": {
+            "type": "string",
+            "title": "Sourceja"
+          },
+          "photo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Photo"
+          },
+          "title": {
+            "additionalProperties": {
+              "type": "string",
+              "maxLength": 1000
+            },
+            "propertyNames": {
+              "enum": [
+                "ja",
+                "bn",
+                "en",
+                "vi",
+                "id",
+                "ne",
+                "my",
+                "tl",
+                "zh"
+              ]
+            },
+            "type": "object",
+            "title": "Title"
+          },
+          "steps": {
+            "items": {
+              "additionalProperties": {
+                "type": "string",
+                "maxLength": 1000
+              },
+              "propertyNames": {
+                "enum": [
+                  "ja",
+                  "bn",
+                  "en",
+                  "vi",
+                  "id",
+                  "ne",
+                  "my",
+                  "tl",
+                  "zh"
+                ]
+              },
+              "type": "object"
+            },
+            "type": "array",
+            "maxItems": 8,
+            "minItems": 1,
+            "title": "Steps"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/EventOut"
+            },
+            "type": "array",
+            "title": "Events"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "published"
+            ],
+            "title": "Status"
+          },
+          "needsEdit": {
+            "type": "boolean",
+            "title": "Needsedit"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "publishedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Publishedat"
+          },
+          "question": {
+            "$ref": "#/components/schemas/CheckQuestion"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "posterId",
+          "category",
+          "sourceKind",
+          "sourceJa",
+          "photo",
+          "title",
+          "steps",
+          "events",
+          "status",
+          "needsEdit",
+          "createdAt",
+          "publishedAt",
+          "question"
+        ],
+        "title": "NoticeForPoster"
+      },
+      "NoticeForWorker": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "posterId": {
+            "type": "string",
+            "title": "Posterid"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "garbage",
+              "disaster",
+              "event",
+              "duty",
+              "other"
+            ],
+            "title": "Category"
+          },
+          "sourceKind": {
+            "type": "string",
+            "enum": [
+              "text",
+              "voice",
+              "photo"
+            ],
+            "title": "Sourcekind"
+          },
+          "sourceJa": {
+            "type": "string",
+            "title": "Sourceja"
+          },
+          "photo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Photo"
+          },
+          "title": {
+            "additionalProperties": {
+              "type": "string",
+              "maxLength": 1000
+            },
+            "propertyNames": {
+              "enum": [
+                "ja",
+                "bn",
+                "en",
+                "vi",
+                "id",
+                "ne",
+                "my",
+                "tl",
+                "zh"
+              ]
+            },
+            "type": "object",
+            "title": "Title"
+          },
+          "steps": {
+            "items": {
+              "additionalProperties": {
+                "type": "string",
+                "maxLength": 1000
+              },
+              "propertyNames": {
+                "enum": [
+                  "ja",
+                  "bn",
+                  "en",
+                  "vi",
+                  "id",
+                  "ne",
+                  "my",
+                  "tl",
+                  "zh"
+                ]
+              },
+              "type": "object"
+            },
+            "type": "array",
+            "maxItems": 8,
+            "minItems": 1,
+            "title": "Steps"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/EventOut"
+            },
+            "type": "array",
+            "title": "Events"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "published"
+            ],
+            "title": "Status"
+          },
+          "needsEdit": {
+            "type": "boolean",
+            "title": "Needsedit"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "publishedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Publishedat"
+          },
+          "question": {
+            "$ref": "#/components/schemas/CheckQuestionForWorker"
+          },
+          "opened": {
+            "type": "boolean",
+            "title": "Opened"
+          },
+          "passed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Passed"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "posterId",
+          "category",
+          "sourceKind",
+          "sourceJa",
+          "photo",
+          "title",
+          "steps",
+          "events",
+          "status",
+          "needsEdit",
+          "createdAt",
+          "publishedAt",
+          "question",
+          "opened",
+          "passed"
+        ],
+        "title": "NoticeForWorker",
+        "description": "GET /notices for a Worker: published Notices of their district, with their own receipt."
+      },
+      "NoticeReach": {
+        "properties": {
+          "workers": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Workers"
+          },
+          "opened": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Opened"
+          },
+          "understood": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Understood"
+          },
+          "notOpened": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Notopened"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "workers",
+          "opened",
+          "understood",
+          "notOpened"
+        ],
+        "title": "NoticeReach",
+        "description": "GET /notices/{id}/reach: counts over all Workers of the district, never names."
+      },
+      "NoticeUpdate": {
+        "properties": {
+          "category": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "garbage",
+                  "disaster",
+                  "event",
+                  "duty",
+                  "other"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string",
+                  "maxLength": 1000
+                },
+                "propertyNames": {
+                  "enum": [
+                    "ja",
+                    "bn",
+                    "en",
+                    "vi",
+                    "id",
+                    "ne",
+                    "my",
+                    "tl",
+                    "zh"
+                  ]
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "steps": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": {
+                    "type": "string",
+                    "maxLength": 1000
+                  },
+                  "propertyNames": {
+                    "enum": [
+                      "ja",
+                      "bn",
+                      "en",
+                      "vi",
+                      "id",
+                      "ne",
+                      "my",
+                      "tl",
+                      "zh"
+                    ]
+                  },
+                  "type": "object"
+                },
+                "type": "array",
+                "maxItems": 8,
+                "minItems": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Steps"
+          },
+          "question": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CheckQuestion"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "NoticeUpdate",
+        "description": "PATCH /notices/{id} on a draft; only the fields sent change."
+      },
       "Page_AccountOut_": {
         "properties": {
           "items": {
@@ -3140,6 +4394,93 @@
           "nextCursor"
         ],
         "title": "Page[MachineOut]"
+      },
+      "Page_NoticeForPoster_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/NoticeForPoster"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "nextCursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nextcursor"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "title": "Page[NoticeForPoster]"
+      },
+      "Page_NoticeForWorker_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/NoticeForWorker"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "nextCursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nextcursor"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "title": "Page[NoticeForWorker]"
+      },
+      "Page_PosterOut_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PosterOut"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "nextCursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nextcursor"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "title": "Page[PosterOut]"
       },
       "PanelOut": {
         "properties": {
@@ -3293,6 +4634,73 @@
           "newPin"
         ],
         "title": "PinChangeIn"
+      },
+      "PosterOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "jichikai",
+              "city",
+              "employer"
+            ],
+            "title": "Kind"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "kind"
+        ],
+        "title": "PosterOut"
+      },
+      "ReceiptIn": {
+        "properties": {
+          "target": {
+            "$ref": "#/components/schemas/ReceiptTarget"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "target"
+        ],
+        "title": "ReceiptIn",
+        "description": "POST /receipts: the Worker opened a Briefing or Notice (idempotent). The Worker comes from the session."
+      },
+      "ReceiptTarget": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "briefing",
+              "notice"
+            ],
+            "title": "Kind"
+          },
+          "id": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]{0,18}$",
+            "title": "Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "kind",
+          "id"
+        ],
+        "title": "ReceiptTarget"
       },
       "RosterEntry": {
         "properties": {
