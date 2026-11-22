@@ -54,13 +54,45 @@ This file is:
 
 | Request ID | Priority | From | To | Target / Title | Status | Updated (UTC+6) |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| *(none yet)* | | | | | | |
+| `XREQ-001` | P1 | Backend (Asif) | Frontend (Minhaz) | Auth, ids and list shape for the real API ([BACKEND_ARCHITECTURE.md §17](docs/BACKEND_ARCHITECTURE.md#17-frontend-contract-changes)) | `[PENDING]` | 2026-11-22 19:10 |
 
 *(When adding a request: append a row above AND add a detailed card in 2.2. Never insert in the middle.)*
 
 ### 2.2 Detailed Request Cards
 
-*(empty — add cards here using the template in 2.3)*
+#### `[XREQ-001]` Auth, ids and list shape for the real API
+- **Priority**: `P1 (High)`
+- **From**: Backend (Asif)
+- **To**: Frontend (Minhaz)
+- **Status**: `[PENDING]`
+- **Created**: `2026-11-22 19:10 (UTC+6)`
+- **Target Interface / Endpoint**: `frontend/src/services/wakatta.ts`, `frontend/src/services/api.ts`, `frontend/src/features/session/`
+
+**Requirement Details:**
+The backend supports many shops and personal accounts ([ADR 0009](docs/adr/0009-shop-and-district-scopes.md), [ADR 0010](docs/adr/0010-personal-accounts-and-pins.md)). The full list is in [BACKEND_ARCHITECTURE.md §17](docs/BACKEND_ARCHITECTURE.md#17-frontend-contract-changes); the ones that matter most:
+1. Replace `credentials: 'include'` with `Authorization: Bearer <token>`. Store the token from login instead of `'1'` in `wakatta.pin.<role>` (the stored flag can be forged in dev tools; the backend refuses every call without a valid token anyway).
+2. Login: `GET /api/auth/roster?code=&role=` → pick name → `POST /api/auth/login`.
+3. Drop `workerId` from request bodies; the backend takes it from the token.
+4. Lists return `{items, nextCursor}`; send `Idempotency-Key` (a `crypto.randomUUID()` per user action) on Checks, drafts, Asks and Near-miss Reports.
+5. Briefings: draft → patch → publish by id. Senpai reply sends `{replyJa}`. Photos are multipart files, not data URLs.
+
+**Expected Request (Payload / Query Params / Headers):**
+```json
+POST /api/auth/login
+{ "userId": "12", "pin": "1234" }
+```
+
+**Expected Response (Status Code + Payload / Error Codes):**
+```json
+{ "success": true, "data": { "token": "opaque", "expiresAt": "2026-12-22T10:00:00Z",
+  "user": { "id": "12", "displayName": "Rahim", "role": "worker", "language": "bn", "shopId": "1", "districtId": "1" } } }
+```
+Errors: `401 UNAUTHORIZED` (wrong PIN), `423 PIN_LOCKED` (`details.until`), `429 RATE_LIMITED`.
+
+**Fulfillment & Proof (filled by recipient on completion):**
+- **Branch / Commit**: 
+- **Status / Notes**: 
+- **Verification Proof**: 
 
 ### 2.3 Blank XREQ Template (copy & paste)
 
