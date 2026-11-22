@@ -13,5 +13,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore", frozen=True)
 
     frontend_origin: Origin
+    # The app role (DML only). Migrations use MIGRATION_DATABASE_URL (the owner), read by migrations/env.py only.
+    database_url: Annotated[str, StringConstraints(pattern=r"^postgresql\+psycopg://")]
     demo_mode: bool = False
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"
