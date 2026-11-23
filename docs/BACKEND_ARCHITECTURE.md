@@ -379,7 +379,7 @@ AI output only ever creates `draft` rows (G-33). Published and approved rows are
 | Create a Senpai pair | revoke the Worker's active pair and insert the new one in one transaction (the partial unique index enforces one active pair). |
 
 ### 8.2 Idempotency (retried creates)
-Every create that can be retried (Checks, Note/Briefing/Notice drafts, Asks, Near-miss Reports) takes an `Idempotency-Key` header (a UUID the frontend makes per user action). It is stored in the row under `unique (scope, idempotency_key)`. A repeat returns the existing row with 200 and does **not** call the AI again. A missing key is a 422 on these routes.
+Every create that can be retried (Checks, Note/Briefing/Notice drafts, Asks, Near-miss Reports) takes an `Idempotency-Key` header (a UUID the frontend makes per user action). It is stored in the row under `unique (scope, idempotency_key)`. A repeat by the same user returns the existing row with the **same status as the first response** (201 for the creates that answer 201: drafts, Asks, Chat messages, Near-miss Reports; 200 for `POST /checks`) and does **not** call the AI again. A key that belongs to another user's row is a 409 `IDEMPOTENCY_KEY_REUSED`, never that row. A missing key is a 422 on these routes.
 
 ### 8.3 AI calls and the database
 **No transaction or pooled connection is held across a model call.** The service reads its inputs (Machine, Glossary, Notices) in transaction 1 and closes it. It calls the pipeline (§10), then writes the result in transaction 2. So a 45-second Gemini call holds a thread, never one of the 10 database connections, and the Panel and board stay fast while Foremen record.
@@ -426,16 +426,19 @@ Also: GZip for responses over 1 KB (Starlette's `GZipMiddleware`, no new depende
 | 401 | `UNAUTHORIZED` | no, expired or revoked token; wrong PIN |
 | 403 | `FORBIDDEN`, `PIN_CHANGE_REQUIRED` | wrong role; first-login PIN not yet changed (§3.4) |
 | 404 | `NOT_FOUND` | unknown id, id of another shop or district, wrong Senpai token |
-| 409 | `CONFLICT`, `VERSION_CHANGED`, `EVENTS_NOT_CONFIRMED`, `NO_ACTIVE_PAIR` | state does not allow the action |
+| 409 | `CONFLICT`, `VERSION_CHANGED`, `EVENTS_NOT_CONFIRMED`, `NO_ACTIVE_PAIR`, `NEEDS_EDIT`, `ALREADY_SENT`, `IDEMPOTENCY_KEY_REUSED` | state does not allow the action; a draft still has empty languages; a Chat message was already sent; the `Idempotency-Key` belongs to another user's row (§8.2) |
+| 412 | `VERSION_CONFLICT` | `If-Match` on a Task is not its current version (someone moved it first) |
 | 413 | `PAYLOAD_TOO_LARGE` | upload over its limit |
 | 415 | `UNSUPPORTED_MEDIA_TYPE` | magic bytes are not an allowed type |
-| 422 | `VALIDATION_ERROR` | schema validation; `details` lists fields |
+| 422 | `VALIDATION_ERROR` | schema validation; `details` lists fields; also a non-numeric id in a path (ids are digits, §9.1) |
 | 423 | `PIN_LOCKED` | account locked after failed PINs; `details.until` |
 | 429 | `RATE_LIMITED` | over a rate limit; `Retry-After` set |
 | 503 | `BUSY` | database pool exhausted; `Retry-After: 2` |
+| 503 | `NOT_READY` | `GET /health/ready` only: the database does not answer |
+| 503 | `AI_UNAVAILABLE` | `POST /messages/{id}/reexplain` only: a Re-explanation has no useful degraded form, so the Foreman is told to explain in person |
 | 500 | `INTERNAL_ERROR` | anything else; generic message, request id in the log |
 
-AI trouble is never a 5xx: pipelines degrade (§10.4).
+AI trouble is never a 5xx except the Re-explanation above: pipelines degrade (§10.4). `THREAD_LOCKED` is not returned by any route (XREQ-008 asked; nothing locks a Thread).
 
 ### 9.3 Endpoints (paths match `frontend/src/services/wakatta.ts`)
 

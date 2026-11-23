@@ -26,3 +26,13 @@ def test_no_worker_facing_schema_carries_the_answer_key() -> None:
         "BriefingForWorker",
     ):
         assert "correctIndex" not in json.dumps(schemas[name]), name
+
+
+def test_protected_routes_declare_bearer_and_their_roles() -> None:
+    spec = json.loads(contract())
+    assert spec["components"]["securitySchemes"]["HTTPBearer"] == {"type": "http", "scheme": "bearer"}
+    board = spec["paths"]["/api/board"]["get"]
+    assert board["security"] == [{"HTTPBearer": []}] and board["x-roles"] == ["foreman"]
+    assert spec["paths"]["/api/notices"]["get"]["x-roles"] == ["poster", "worker"]
+    assert "security" not in spec["paths"]["/api/auth/roster"]["get"]  # public
+    assert "security" not in spec["paths"]["/api/senpai/{token}"]["get"]  # the link token is the credential
