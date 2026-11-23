@@ -8,7 +8,7 @@
 # Container App / Job secrets, and never printed.
 # Usage: powershell -ExecutionPolicy Bypass -File backend\deploy\azure-setup.ps1
 . "$PSScriptRoot\common.ps1"
-$GithubRepo = "minuwu/TechTsunagu"; $CiIdentity = "wakatta-ci"
+$CiIdentity = "wakatta-ci"
 
 Step "providers and resource group"
 Invoke-Az config set extension.use_dynamic_install=yes_without_prompt -o none
@@ -73,8 +73,12 @@ foreach ($a in (Invoke-Az role assignment list --assignee $ciPrincipal --scope $
 }
 
 # Only a workflow running on the main branch of this repository can sign in as wakatta-ci.
-$subject = "repo:${GithubRepo}:ref:refs/heads/main"
-if (-not (Invoke-Az identity federated-credential list --identity-name $CiIdentity -g $Rg --query "[?name=='github-main'].name" -o tsv)) {
+# This repository presents its ID-based subject (owner and repo numeric IDs), not the plain repo name: use the form
+# shown in the azure/login log ("subject claim"), or Azure answers AADSTS700213.
+$subject = "repo:minuwu@84508269/TechTsunagu@1466841300:ref:refs/heads/main"
+if (Invoke-Az identity federated-credential list --identity-name $CiIdentity -g $Rg --query "[?name=='github-main'].name" -o tsv) {
+    Invoke-Az identity federated-credential update --identity-name $CiIdentity -g $Rg --name github-main --subject $subject -o none
+} else {
     Invoke-Az identity federated-credential create --identity-name $CiIdentity -g $Rg --name github-main `
         --issuer "https://token.actions.githubusercontent.com" --subject $subject --audiences "api://AzureADTokenExchange" -o none
 }
