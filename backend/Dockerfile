@@ -10,6 +10,7 @@ RUN uv sync --frozen --no-dev --no-install-project
 COPY alembic.ini ./
 COPY migrations ./migrations
 COPY app ./app
+COPY jobs ./jobs
 
 FROM python:3.12-slim-bookworm
 RUN useradd --create-home --uid 10001 wakatta
