@@ -730,7 +730,7 @@ Push (XREQ-014): a new Contact message sends one generic push "New message from 
 
 **Fulfillment & Proof (filled by recipient on completion):**
 - **Branch / Commit**: 
-- **Status / Notes**: 
+- **Status / Notes**:  2026-11-23 Anim: **items 1 and 2 live** (migration `21d9f849b5c9`, tables `qr_tokens`, `contacts`, `blocks`, `contact_messages`; no shop scope, no Foreman/Poster/Support Log route reads them). Paths as proposed: `POST /api/me/qr`, `GET /api/contacts/resolve?token=`, `POST|GET /api/contacts`, `PUT /api/contacts/{id}`, `POST /api/blocks`, `DELETE /api/blocks/{contactId}`, `GET|POST /api/contacts/{id}/messages`. **One change:** `POST /me/qr` returns `token` only when it is created or rotated (only its SHA-256 is stored); otherwise `token: null` with `createdAt`: keep the token on the phone, call with `rotate: true` after a reinstall. `POST /contacts` connects both sides; contact `hidden` is in the item and hides it from the list. Messages: `{id, fromMe, textSrc, srcLang, text, createdAt}`, `text` in the reader's language (the original when the model is down); optional `Idempotency-Key`; 20 resolves and 30 sends per minute. A blocked sender gets 201 and nothing is delivered; the blocker's list and thread hide that Contact until unblocked. Push: after XREQ-014. Items 3 (Talk Threads, needs Galib's `explain_utterance` / `grade_understanding`) and 4 (group controls) are next.
 - **Verification Proof**: 
 
 ### 2.3 Blank XREQ Template (copy & paste)

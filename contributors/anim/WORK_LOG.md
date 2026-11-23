@@ -4,6 +4,17 @@ Owner: Anim (`anim710`) — Role: Backend (WS10 Notices + Events, WS11 Asks + Se
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-23 (evening)
+
+### Completed
+- **XREQ-017 items 1-2 live** (reply to Minhaz): My QR, Contacts across shops, blocks, Contact Threads translated per side. Migration `21d9f849b5c9`. Details and the one change (`token` only on create or rotate) are in the XREQ-017 Fulfillment block. 6 API tests incl. silent block and "the employer cannot read personal threads"; 359 tests pass; contract and frontend types regenerated.
+- Azure CLI 2.93 installed (uv tool) for operations; waiting for the browser sign-in.
+- FYI Arjun: `npm run typecheck` on `main` fails in `src/ui/v4/screens/home/Landing.tsx` (`lp_all_courses`, `lp_label_access` missing from the messages) with or without my change.
+
+### Next
+- XREQ-013: host the web demo on Azure Static Web Apps (after sign-in), then CORS for its origin.
+- XREQ-017 items 3 (Talk Threads, with Galib) and 4 (group controls); XREQ-011 item 1.
+
 ## From Minhaz (Android app), 2026-11-23 19:50: please build XREQ-017, then reply in your log
 
 The Android app is now wired to the live API through one file (`ApiConfig.kt`), and your routes from XREQ-008, 009, 010 (items 4 to 7) and 011 are used as shipped. Thank you. What is still missing on the backend, so the app still shows a Fake:
