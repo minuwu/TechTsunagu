@@ -137,6 +137,18 @@ export type ApproveIn = {
 };
 
 /**
+ * AskForemanIn
+ *
+ * POST /messages/{id}/ask (XREQ-022): a Worker asks the Foreman to explain one term of a sent message again.
+ */
+export type AskForemanIn = {
+    /**
+     * Termja
+     */
+    termJa: string;
+};
+
+/**
  * AskOut
  */
 export type AskOut = {
@@ -850,6 +862,28 @@ export type ContactUpdate = {
 };
 
 /**
+ * DayCounts
+ */
+export type DayCounts = {
+    /**
+     * Day
+     */
+    day: string;
+    /**
+     * Green
+     */
+    green: number;
+    /**
+     * Orange
+     */
+    orange: number;
+    /**
+     * Red
+     */
+    red: number;
+};
+
+/**
  * DeviceIn
  */
 export type DeviceIn = {
@@ -895,6 +929,19 @@ export type DeviceOut = {
      * Lastseenat
      */
     lastSeenAt: string;
+};
+
+/**
+ * DraftEdit
+ *
+ * PATCH /messages/{id} (XREQ-022): the Foreman's corrected Japanese for an unsent draft. The AI translates it and
+ * makes the Check Questions again, as for a new draft.
+ */
+export type DraftEdit = {
+    /**
+     * Textja
+     */
+    textJa: string;
 };
 
 /**
@@ -1253,6 +1300,21 @@ export type EnvelopeKnowledgeAnswer = {
      */
     success?: true;
     data: KnowledgeAnswer;
+    /**
+     * Message
+     */
+    message?: string;
+};
+
+/**
+ * Envelope[Learning]
+ */
+export type EnvelopeLearning = {
+    /**
+     * Success
+     */
+    success?: true;
+    data: Learning;
     /**
      * Message
      */
@@ -1698,6 +1760,21 @@ export type EnvelopeQrOut = {
 };
 
 /**
+ * Envelope[ReexplainDraft]
+ */
+export type EnvelopeReexplainDraft = {
+    /**
+     * Success
+     */
+    success?: true;
+    data: ReexplainDraft;
+    /**
+     * Message
+     */
+    message?: string;
+};
+
+/**
  * Envelope[SenpaiPairCreated]
  */
 export type EnvelopeSenpaiPairCreated = {
@@ -1766,6 +1843,21 @@ export type EnvelopeTodayWord = {
      */
     success?: true;
     data: TodayWord;
+    /**
+     * Message
+     */
+    message?: string;
+};
+
+/**
+ * Envelope[Understanding]
+ */
+export type EnvelopeUnderstanding = {
+    /**
+     * Success
+     */
+    success?: true;
+    data: Understanding;
     /**
      * Message
      */
@@ -2458,6 +2550,54 @@ export type KnowledgeSource = {
      * Attribution
      */
     attribution: string | null;
+};
+
+/**
+ * Learning
+ */
+export type Learning = {
+    /**
+     * Items
+     */
+    items: Array<LearningItem>;
+    /**
+     * Nextcursor
+     */
+    nextCursor: string | null;
+    /**
+     * Streakdays
+     */
+    streakDays: number;
+};
+
+/**
+ * LearningItem
+ */
+export type LearningItem = {
+    /**
+     * Followupid
+     */
+    followUpId: string;
+    /**
+     * Termja
+     */
+    termJa: string;
+    /**
+     * Status
+     */
+    status: 'open' | 'clarified' | 'understood';
+    /**
+     * Missedat
+     */
+    missedAt: string;
+    /**
+     * Clarifiedat
+     */
+    clarifiedAt: string | null;
+    /**
+     * Understoodat
+     */
+    understoodAt: string | null;
 };
 
 /**
@@ -3574,7 +3714,26 @@ export type ReceiptWorker = {
 };
 
 /**
+ * ReexplainDraft
+ *
+ * POST /messages/{id}/reexplain/draft (XREQ-022): the simpler version to read and edit before sending.
+ * `text.ja` is the easy Japanese; the other languages are the explanation. Nothing is stored.
+ */
+export type ReexplainDraft = {
+    /**
+     * Text
+     */
+    text: {
+        [key: string]: string;
+    };
+    question: CheckQuestion;
+};
+
+/**
  * ReexplainIn
+ *
+ * POST /messages/{id}/reexplain. With `text` and `question` (the Foreman's edited draft from
+ * /reexplain/draft) it is sent as written and no model is called; without them the AI writes it (XREQ-022).
  */
 export type ReexplainIn = {
     /**
@@ -3585,6 +3744,13 @@ export type ReexplainIn = {
      * Termja
      */
     termJa: string;
+    /**
+     * Text
+     */
+    text?: {
+        [key: string]: string;
+    } | null;
+    question?: CheckQuestion | null;
 };
 
 /**
@@ -4001,6 +4167,20 @@ export type TaskUpdate = {
 };
 
 /**
+ * TermCount
+ */
+export type TermCount = {
+    /**
+     * Termja
+     */
+    termJa: string;
+    /**
+     * Count
+     */
+    count: number;
+};
+
+/**
  * ThreadOut
  */
 export type ThreadOut = {
@@ -4054,6 +4234,28 @@ export type TodayWord = {
      * Meaningja
      */
     meaningJa: string;
+};
+
+/**
+ * Understanding
+ */
+export type Understanding = {
+    /**
+     * Days
+     */
+    days: number;
+    /**
+     * Trend
+     */
+    trend: Array<DayCounts>;
+    /**
+     * Perworker
+     */
+    perWorker: Array<WorkerCounts>;
+    /**
+     * Topterms
+     */
+    topTerms: Array<TermCount>;
 };
 
 /**
@@ -4112,6 +4314,32 @@ export type ValidationError = {
     ctx?: {
         [key: string]: unknown;
     };
+};
+
+/**
+ * WorkerCounts
+ */
+export type WorkerCounts = {
+    /**
+     * Workerid
+     */
+    workerId: string;
+    /**
+     * Displayname
+     */
+    displayName: string;
+    /**
+     * Green
+     */
+    green: number;
+    /**
+     * Orange
+     */
+    orange: number;
+    /**
+     * Red
+     */
+    red: number;
 };
 
 /**
@@ -5904,6 +6132,70 @@ export type HeatmapApiHeatmapGetResponses = {
 
 export type HeatmapApiHeatmapGetResponse = HeatmapApiHeatmapGetResponses[keyof HeatmapApiHeatmapGetResponses];
 
+export type MyLearningApiWorkersMeLearningGetData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Limit
+         */
+        limit?: number;
+        /**
+         * Cursor
+         */
+        cursor?: string | null;
+    };
+    url: '/api/workers/me/learning';
+};
+
+export type MyLearningApiWorkersMeLearningGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type MyLearningApiWorkersMeLearningGetError = MyLearningApiWorkersMeLearningGetErrors[keyof MyLearningApiWorkersMeLearningGetErrors];
+
+export type MyLearningApiWorkersMeLearningGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeLearning;
+};
+
+export type MyLearningApiWorkersMeLearningGetResponse = MyLearningApiWorkersMeLearningGetResponses[keyof MyLearningApiWorkersMeLearningGetResponses];
+
+export type UnderstandingApiAnalyticsUnderstandingGetData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Days
+         */
+        days?: number;
+    };
+    url: '/api/analytics/understanding';
+};
+
+export type UnderstandingApiAnalyticsUnderstandingGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UnderstandingApiAnalyticsUnderstandingGetError = UnderstandingApiAnalyticsUnderstandingGetErrors[keyof UnderstandingApiAnalyticsUnderstandingGetErrors];
+
+export type UnderstandingApiAnalyticsUnderstandingGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeUnderstanding;
+};
+
+export type UnderstandingApiAnalyticsUnderstandingGetResponse = UnderstandingApiAnalyticsUnderstandingGetResponses[keyof UnderstandingApiAnalyticsUnderstandingGetResponses];
+
 export type PassportApiWorkersWorkerIdPassportGetData = {
     body?: never;
     path: {
@@ -6020,6 +6312,36 @@ export type PostMessageApiThreadsThreadIdMessagesPostResponses = {
 };
 
 export type PostMessageApiThreadsThreadIdMessagesPostResponse = PostMessageApiThreadsThreadIdMessagesPostResponses[keyof PostMessageApiThreadsThreadIdMessagesPostResponses];
+
+export type EditDraftApiMessagesMessageIdPatchData = {
+    body: DraftEdit;
+    path: {
+        /**
+         * Message Id
+         */
+        message_id: string;
+    };
+    query?: never;
+    url: '/api/messages/{message_id}';
+};
+
+export type EditDraftApiMessagesMessageIdPatchErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type EditDraftApiMessagesMessageIdPatchError = EditDraftApiMessagesMessageIdPatchErrors[keyof EditDraftApiMessagesMessageIdPatchErrors];
+
+export type EditDraftApiMessagesMessageIdPatchResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeMessageForSender;
+};
+
+export type EditDraftApiMessagesMessageIdPatchResponse = EditDraftApiMessagesMessageIdPatchResponses[keyof EditDraftApiMessagesMessageIdPatchResponses];
 
 export type SendMessageApiMessagesMessageIdSendPostData = {
     body: SendIn;
@@ -6178,6 +6500,66 @@ export type ReexplainApiMessagesMessageIdReexplainPostResponses = {
 };
 
 export type ReexplainApiMessagesMessageIdReexplainPostResponse = ReexplainApiMessagesMessageIdReexplainPostResponses[keyof ReexplainApiMessagesMessageIdReexplainPostResponses];
+
+export type ReexplainDraftApiMessagesMessageIdReexplainDraftPostData = {
+    body: ReexplainIn;
+    path: {
+        /**
+         * Message Id
+         */
+        message_id: string;
+    };
+    query?: never;
+    url: '/api/messages/{message_id}/reexplain/draft';
+};
+
+export type ReexplainDraftApiMessagesMessageIdReexplainDraftPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ReexplainDraftApiMessagesMessageIdReexplainDraftPostError = ReexplainDraftApiMessagesMessageIdReexplainDraftPostErrors[keyof ReexplainDraftApiMessagesMessageIdReexplainDraftPostErrors];
+
+export type ReexplainDraftApiMessagesMessageIdReexplainDraftPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeReexplainDraft;
+};
+
+export type ReexplainDraftApiMessagesMessageIdReexplainDraftPostResponse = ReexplainDraftApiMessagesMessageIdReexplainDraftPostResponses[keyof ReexplainDraftApiMessagesMessageIdReexplainDraftPostResponses];
+
+export type AskForemanApiMessagesMessageIdAskPostData = {
+    body: AskForemanIn;
+    path: {
+        /**
+         * Message Id
+         */
+        message_id: string;
+    };
+    query?: never;
+    url: '/api/messages/{message_id}/ask';
+};
+
+export type AskForemanApiMessagesMessageIdAskPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type AskForemanApiMessagesMessageIdAskPostError = AskForemanApiMessagesMessageIdAskPostErrors[keyof AskForemanApiMessagesMessageIdAskPostErrors];
+
+export type AskForemanApiMessagesMessageIdAskPostResponses = {
+    /**
+     * Successful Response
+     */
+    201: EnvelopeMessageForSender;
+};
+
+export type AskForemanApiMessagesMessageIdAskPostResponse = AskForemanApiMessagesMessageIdAskPostResponses[keyof AskForemanApiMessagesMessageIdAskPostResponses];
 
 export type NudgeApiMessagesMessageIdNudgePostData = {
     body: NudgeIn;

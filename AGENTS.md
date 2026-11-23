@@ -75,7 +75,7 @@ This file is:
 | `XREQ-017` | P1 | Frontend (Minhaz, Android app) | Backend (Anim), AI (Galib) | Contacts, My QR, Contact Threads (routes now live; Talk Threads and group controls moved to XREQ-018 and 019); notification list stays push-only | `[PENDING]` | 2026-11-23 19:50 |
 | `XREQ-018` | P1 | Frontend (Minhaz, Android app) | Backend (Anim), AI (Galib) | Talk Threads: threads and entries routes plus the two AI pipelines | `[RESOLVED]` | 2026-11-23 23:56 |
 | `XREQ-019` | P2 | Frontend (Minhaz, Android app) | Backend (Anim) | Group controls on work Threads: create, members, roles, mute/pin/archive, leave, announce-only | `[PENDING]` | 2026-11-23 23:56 |
-| `XREQ-020` | P1 | Frontend (Minhaz, Android app) | Backend (Anim) | Worker can read own Follow-ups and Learning History; analytics trend and per-Worker counts | `[PENDING]` | 2026-11-23 23:56 |
+| `XREQ-020` | P1 | Frontend (Minhaz, Android app) | Backend (Anim) | Worker can read own Follow-ups and Learning History; analytics trend and per-Worker counts | `[DONE]` | 2026-11-24 00:10 |
 | `XREQ-021` | P2 | Frontend (Minhaz, Android app) | Backend (Anim) | Machine gaps: Remind a Worker, Idempotency-Key on overrides, Task filter by Machine | `[PENDING]` | 2026-11-23 23:56 |
 | `XREQ-022` | P1 | Frontend (Minhaz, Android app) | Backend (Anim), AI (Galib) | Chat: edit a draft before Send, Re-explanation draft and edit, term-linked Ask the Foreman | `[RESOLVED]` | 2026-11-23 23:56 |
 | `XREQ-023` | P2 | Frontend (Minhaz, Android app) | Backend (Anim) | Near-miss: Worker's own list, severity, Foreman translation, photo mark | `[PENDING]` | 2026-11-23 23:56 |
@@ -786,7 +786,7 @@ Split out of XREQ-017 item 4. Today a Foreman cannot create a group Thread, rena
 - **Priority**: `P1 (High)`
 - **From**: `Frontend (Minhaz, Android app)`
 - **To**: `Backend (Anim)`
-- **Status**: `[PENDING]`
+- **Status**: `[DONE]`
 - **Created**: `2026-11-23 23:56 (UTC+6)`
 - **Target Interface / Endpoint**: `GET /api/follow-ups` (foreman only today), new `GET /api/workers/me/learning`, new analytics read
 
@@ -794,9 +794,9 @@ Split out of XREQ-017 item 4. Today a Foreman cannot create a group Thread, rena
 The still-open item 1 of XREQ-011. (1) `GET /follow-ups` is Foreman-only, so a Worker cannot see their own open and clarified Follow-ups; the `learning` screen needs it. Please allow a Worker to read their own (filtered by the token, never another user's), or add `GET /workers/me/learning` returning the Worker's timeline `{items:[{termJa, missedAt, clarifiedAt|null, understoodAt|null, status}], streakDays}`. (2) The `analytics` screen needs the understanding trend and per-Worker counts: a read such as `GET /analytics/understanding?days=30` returning `{trend:[{day,green,orange,red}], perWorker:[{workerId,displayName,green,orange,red}], topTerms:[{termJa,count}]}` (Foreman only). `GET /heatmap` and `GET /metrics/effort` already cover part of it.
 
 **Fulfillment & Proof (filled by recipient on completion):**
-- **Branch / Commit**: 
-- **Status / Notes**: 
-- **Verification Proof**: 
+- **Branch / Commit**: `main` (this commit)
+- **Status / Notes**: 2026-11-24 Anim. (1) **`GET /api/workers/me/learning`** (Worker only; `?limit=&cursor=`) → `{items:[{followUpId, termJa, status, missedAt, clarifiedAt, understoodAt}], nextCursor, streakDays}`, newest first, only the caller's own Follow-ups (from the token). `GET /follow-ups` stays Foreman-only. One `resolved_at` is stored, so a Follow-up that went clarified → understood shows only `understoodAt`. `streakDays`: Tokyo days in a row with a passed Check or a green Chat answer, ending today (a run that ended yesterday still counts until today is over). (2) **`GET /api/analytics/understanding?days=30`** (Foreman only, `days` 1–90, default 30) → `{days, trend:[{day, green, orange, red}] (one entry per Tokyo day, oldest first, zeros filled), perWorker:[{workerId, displayName, green, orange, red}] (every active Worker of the shop), topTerms:[{termJa, count}] (top 10 Follow-up terms)}`. Counts are Chat Wakatta Status answers; Work Check misses per Machine stay in `GET /heatmap`. No migration.
+- **Verification Proof**: `tests/api/test_learning.py` (6: own items only, clarified/understood dates, streak after a green answer, cursor paging, trend/per-Worker/top terms on the seed, 403 for the wrong role, 422 for `days=91`, another shop sees none), `tests/domain/test_learning_rules.py` (5); full suite 372 passed; ruff, pyright strict, lint-imports clean; `docs/openapi.yaml` and frontend types regenerated.
 
 #### `[XREQ-021]` Machine screen gaps: Remind a Worker, override idempotency, Tasks by Machine
 

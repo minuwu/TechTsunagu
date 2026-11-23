@@ -3334,6 +3334,129 @@
         ]
       }
     },
+    "/api/workers/me/learning": {
+      "get": {
+        "tags": [
+          "work"
+        ],
+        "summary": "Your Learning History: missed terms, newest first, and your streak",
+        "operationId": "my_learning_api_workers_me_learning_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 40
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Learning_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "worker"
+        ]
+      }
+    },
+    "/api/analytics/understanding": {
+      "get": {
+        "tags": [
+          "work"
+        ],
+        "summary": "Wakatta Status trend per day and per Worker, and the top missed terms",
+        "operationId": "understanding_api_analytics_understanding_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 90,
+              "minimum": 1,
+              "default": 30,
+              "title": "Days"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Understanding_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "foreman"
+        ]
+      }
+    },
     "/api/workers/{worker_id}/passport": {
       "get": {
         "tags": [
@@ -8033,6 +8156,36 @@
         "type": "object",
         "title": "ContactUpdate"
       },
+      "DayCounts": {
+        "properties": {
+          "day": {
+            "type": "string",
+            "format": "date",
+            "title": "Day"
+          },
+          "green": {
+            "type": "integer",
+            "title": "Green"
+          },
+          "orange": {
+            "type": "integer",
+            "title": "Orange"
+          },
+          "red": {
+            "type": "integer",
+            "title": "Red"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "day",
+          "green",
+          "orange",
+          "red"
+        ],
+        "title": "DayCounts"
+      },
       "DeviceIn": {
         "properties": {
           "installId": {
@@ -8731,6 +8884,29 @@
           "data"
         ],
         "title": "Envelope[KnowledgeAnswer]"
+      },
+      "Envelope_Learning_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/Learning"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[Learning]"
       },
       "Envelope_LoginOut_": {
         "properties": {
@@ -9629,6 +9805,29 @@
           "data"
         ],
         "title": "Envelope[TodayWord]"
+      },
+      "Envelope_Understanding_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/Understanding"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[Understanding]"
       },
       "Envelope_Union_AssignmentOut__NoneType__": {
         "properties": {
@@ -10840,6 +11039,101 @@
           "attribution"
         ],
         "title": "KnowledgeSource"
+      },
+      "Learning": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/LearningItem"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "nextCursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nextcursor"
+          },
+          "streakDays": {
+            "type": "integer",
+            "title": "Streakdays"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items",
+          "nextCursor",
+          "streakDays"
+        ],
+        "title": "Learning"
+      },
+      "LearningItem": {
+        "properties": {
+          "followUpId": {
+            "type": "string",
+            "title": "Followupid"
+          },
+          "termJa": {
+            "type": "string",
+            "title": "Termja"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "clarified",
+              "understood"
+            ],
+            "title": "Status"
+          },
+          "missedAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Missedat"
+          },
+          "clarifiedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Clarifiedat"
+          },
+          "understoodAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Understoodat"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "followUpId",
+          "termJa",
+          "status",
+          "missedAt",
+          "clarifiedAt",
+          "understoodAt"
+        ],
+        "title": "LearningItem"
       },
       "LoginIn": {
         "properties": {
@@ -14211,6 +14505,25 @@
         "title": "TaskUpdate",
         "description": "PATCH /tasks/{id} with `If-Match: <version>`; only the fields sent change (`dueAt: null` clears it)."
       },
+      "TermCount": {
+        "properties": {
+          "termJa": {
+            "type": "string",
+            "title": "Termja"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "termJa",
+          "count"
+        ],
+        "title": "TermCount"
+      },
       "ThreadOut": {
         "properties": {
           "id": {
@@ -14310,6 +14623,44 @@
           "meaningJa"
         ],
         "title": "TodayWord"
+      },
+      "Understanding": {
+        "properties": {
+          "days": {
+            "type": "integer",
+            "title": "Days"
+          },
+          "trend": {
+            "items": {
+              "$ref": "#/components/schemas/DayCounts"
+            },
+            "type": "array",
+            "title": "Trend"
+          },
+          "perWorker": {
+            "items": {
+              "$ref": "#/components/schemas/WorkerCounts"
+            },
+            "type": "array",
+            "title": "Perworker"
+          },
+          "topTerms": {
+            "items": {
+              "$ref": "#/components/schemas/TermCount"
+            },
+            "type": "array",
+            "title": "Topterms"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "days",
+          "trend",
+          "perWorker",
+          "topTerms"
+        ],
+        "title": "Understanding"
       },
       "UserOut": {
         "properties": {
@@ -14419,6 +14770,40 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "WorkerCounts": {
+        "properties": {
+          "workerId": {
+            "type": "string",
+            "title": "Workerid"
+          },
+          "displayName": {
+            "type": "string",
+            "title": "Displayname"
+          },
+          "green": {
+            "type": "integer",
+            "title": "Green"
+          },
+          "orange": {
+            "type": "integer",
+            "title": "Orange"
+          },
+          "red": {
+            "type": "integer",
+            "title": "Red"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "workerId",
+          "displayName",
+          "green",
+          "orange",
+          "red"
+        ],
+        "title": "WorkerCounts"
       },
       "WrongQuestion": {
         "properties": {
