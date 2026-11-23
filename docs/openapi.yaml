@@ -1885,6 +1885,67 @@
         ]
       }
     },
+    "/api/glossary/{term_id}": {
+      "patch": {
+        "tags": [
+          "work"
+        ],
+        "summary": "Edit a Glossary Term or add a translation for a shop language",
+        "operationId": "update_glossary_api_glossary__term_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "term_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Term Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GlossaryUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_GlossaryOut_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "foreman"
+        ]
+      }
+    },
     "/api/posters": {
       "get": {
         "tags": [
@@ -8305,6 +8366,13 @@
           "en": {
             "type": "string",
             "title": "En"
+          },
+          "translations": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Translations"
           }
         },
         "additionalProperties": false,
@@ -8314,9 +8382,73 @@
           "ja",
           "reading",
           "bn",
-          "en"
+          "en",
+          "translations"
         ],
         "title": "GlossaryOut"
+      },
+      "GlossaryUpdate": {
+        "properties": {
+          "ja": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ja"
+          },
+          "reading": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reading"
+          },
+          "translations": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string",
+                  "maxLength": 80,
+                  "minLength": 1
+                },
+                "propertyNames": {
+                  "enum": [
+                    "ja",
+                    "bn",
+                    "en",
+                    "vi",
+                    "id",
+                    "ne",
+                    "my",
+                    "tl",
+                    "zh"
+                  ]
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Translations"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "GlossaryUpdate",
+        "description": "PATCH /glossary/{id}: only the fields sent change; `translations` adds or replaces languages."
       },
       "HTTPValidationError": {
         "properties": {

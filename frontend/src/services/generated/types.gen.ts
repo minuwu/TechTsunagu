@@ -1934,6 +1934,34 @@ export type GlossaryOut = {
      * En
      */
     en: string;
+    /**
+     * Translations
+     */
+    translations: {
+        [key: string]: string;
+    };
+};
+
+/**
+ * GlossaryUpdate
+ *
+ * PATCH /glossary/{id}: only the fields sent change; `translations` adds or replaces languages.
+ */
+export type GlossaryUpdate = {
+    /**
+     * Ja
+     */
+    ja?: string | null;
+    /**
+     * Reading
+     */
+    reading?: string | null;
+    /**
+     * Translations
+     */
+    translations?: {
+        [key: string]: string;
+    } | null;
 };
 
 /**
@@ -4734,6 +4762,36 @@ export type AddGlossaryApiGlossaryPostResponses = {
 };
 
 export type AddGlossaryApiGlossaryPostResponse = AddGlossaryApiGlossaryPostResponses[keyof AddGlossaryApiGlossaryPostResponses];
+
+export type UpdateGlossaryApiGlossaryTermIdPatchData = {
+    body: GlossaryUpdate;
+    path: {
+        /**
+         * Term Id
+         */
+        term_id: string;
+    };
+    query?: never;
+    url: '/api/glossary/{term_id}';
+};
+
+export type UpdateGlossaryApiGlossaryTermIdPatchErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UpdateGlossaryApiGlossaryTermIdPatchError = UpdateGlossaryApiGlossaryTermIdPatchErrors[keyof UpdateGlossaryApiGlossaryTermIdPatchErrors];
+
+export type UpdateGlossaryApiGlossaryTermIdPatchResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeGlossaryOut;
+};
+
+export type UpdateGlossaryApiGlossaryTermIdPatchResponse = UpdateGlossaryApiGlossaryTermIdPatchResponses[keyof UpdateGlossaryApiGlossaryTermIdPatchResponses];
 
 export type ListPostersApiPostersGetData = {
     body?: never;

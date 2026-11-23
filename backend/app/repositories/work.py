@@ -246,3 +246,8 @@ def effort(db: Session, shop_id: int) -> tuple[int, int, float | None, float | N
         return None if v is None else float(str(v))
 
     return int(drafts), int(approved), num(seconds), num(edits), num(clean), num(first_try)
+
+
+def glossary_term(db: Session, shop_id: int, term_id: int, *, for_update: bool = False) -> GlossaryTerm | None:
+    stmt = select(GlossaryTerm).where(GlossaryTerm.shop_id == shop_id, GlossaryTerm.id == term_id)
+    return db.scalar(stmt.with_for_update() if for_update else stmt)
