@@ -13,6 +13,7 @@ No secrets in this file: passwords live in the Supabase dashboard and in Azure C
 | Database | Supabase's own `postgres` database, schema `public` (the pooler serves `postgres`) |
 | Pooler (use this) | `aws-0-ap-northeast-1.pooler.supabase.com:5432`, **session mode**, IPv4. `aws-1-…` does not know this project. |
 | Direct host | `db.jpajxyejcbtfivrylcaf.supabase.co:5432` is IPv6-only on the free plan: Azure cannot reach it. Do not use it. |
+| TLS | `sslmode=verify-full` against Supabase's root CA in `backend/certs/` (in the image; Asif's `e90c74e`); checked from here: the Tokyo pooler's chain and hostname validate |
 | Limits | `max_connections` 60; the app pool is at most 10 (`app/db.py`) plus one owner connection at boot |
 
 Free-plan facts to remember: a project with no traffic for 7 days is paused (restore it in the dashboard; the demo is
