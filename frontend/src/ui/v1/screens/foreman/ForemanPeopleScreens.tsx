@@ -229,7 +229,6 @@ export function ForemanGlossaryScreen() {
   const fields = [
     ['ja', m.g_ja()],
     ['reading', m.g_reading()],
-    ['bn', m.g_bn()],
     ['en', m.g_en()],
   ] as const
   return (
@@ -285,9 +284,6 @@ export function ForemanGlossaryScreen() {
                 </td>
                 <td className="p-3" lang="ja">
                   {t.reading}
-                </td>
-                <td className="p-3" lang="bn">
-                  {t.bn}
                 </td>
                 <td className="p-3" lang="en">
                   {t.en}

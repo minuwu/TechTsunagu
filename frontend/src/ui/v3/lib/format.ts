@@ -4,7 +4,7 @@ import { getLocale } from '@/i18n/paraglide/runtime'
 /** The UI locale as a content language. */
 export const uiLang = (): Lang => getLocale() as Lang
 
-const intl: Record<Lang, string> = { ja: 'ja-JP', en: 'en-GB', bn: 'bn-BD' }
+const intl: Record<Lang, string> = { ja: 'ja-JP', en: 'en-GB' }
 
 /** Date (and optional time) in Japan time, in the given language. */
 export function fmtDate(
