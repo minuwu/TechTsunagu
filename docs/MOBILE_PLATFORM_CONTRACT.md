@@ -913,7 +913,7 @@ AI pipelines **never return a 5xx**: they degrade (arch §10.4, §9.2). A voice 
 | 415 on audio | "This recording could not be read." Offer re-record or type instead; log the first 16 bytes (hex) for the bug report |
 | 413, 415 on photo | one automatic re-encode (4.4) then "This photo cannot be sent. Take a new one." |
 | 422 (both or neither of text and audio, missing field) | a bug; Failed |
-| 429 | wait `Retry-After`; show "Too many requests, wait {n} seconds" (AI limit is 10 requests per minute per user, arch §10.3) |
+| 429 | wait `Retry-After`; show "Too many requests, wait {n} seconds" (AI limit is 10 requests per minute and 100 per day per user, arch §10.3; `Retry-After` is 60 or 3600) |
 | Network failure or timeout | queue per 3.3 when queueable; otherwise "No connection" with Retry |
 
 **Timeouts matter:** the server's AI budget is 45 s per call and 60 s per request (arch §8.4). OkHttp's default call timeout will cut the request first. Set the call timeout for upload routes to at least 75 s (read 70 s), connect 10 s; a timed-out request is retried with the **same** key, which is safe because a repeat does not call the AI again (arch §8.2). Show progress and "Still working" after 10 s.

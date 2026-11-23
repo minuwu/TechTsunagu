@@ -37,3 +37,7 @@ BUDGETS: dict[Tier, dict[str, tuple[int, int]]] = {
         GROQ_MODEL: (3000, 60),
     },
 }
+
+# (AI requests per minute, per day) for one user, so nobody can spend the shared budget above alone. A cached answer is
+# free; one request may cost a model two calls (the validation retry), so the day stays under half of one model's.
+USER_LIMITS: dict[Tier, tuple[int, int]] = {"free": (10, 100), "paid": (10, 500)}

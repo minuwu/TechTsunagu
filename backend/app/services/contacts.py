@@ -210,7 +210,7 @@ def send(
 
     translations: dict[str, str] = {}
     if delivered and target != body.lang:
-        text = translate(ai, body.text, body.lang, target, f"user:{me}", now)
+        text = translate(ai, body.text, body.lang, target, f"user:{me}", f"user:{me}", now)
         if text:  # at the AI cap the reader sees the original, never an error
             translations[target] = text
     row = ContactMessage(

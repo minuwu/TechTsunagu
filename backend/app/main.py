@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from sqlalchemy.orm import Session, sessionmaker
 
-from app.ai.chains import BUDGETS, GEMINI_CHAINS, GROQ_MODEL
+from app.ai.chains import BUDGETS, GEMINI_CHAINS, GROQ_MODEL, USER_LIMITS
 from app.ai.client import AiClient
 from app.ai.fake import FakeAiClient
 from app.ai.gemini import GeminiClient
@@ -75,7 +75,7 @@ def ai_runner(settings: Settings, factory: sessionmaker[Session], ai_client: AiC
         groq = GroqClient(settings.groq_api_key.get_secret_value(), GROQ_MODEL, timeout)
         links.append((groq, _limits(settings, GROQ_MODEL)))
     (first, first_limits), *backups = links
-    return AiRunner(first, factory, first_limits, backups)
+    return AiRunner(first, factory, first_limits, backups, USER_LIMITS[settings.ai_tier])
 
 
 def create_app(

@@ -2,7 +2,8 @@
 chain: budget → limiter → call → validate → one retry → next model → degrade.
 
 It opens its own short database sessions, so no request transaction is held across a model call (§8.3).
-It never raises for AI trouble: the caller gets a value or `None` with the outcome, and builds its degraded draft."""
+It never raises for AI trouble: the caller gets a value or `None` with the outcome, and builds its degraded draft.
+The one exception is a user over their own allowance (§10.3): 429, unless the request asks to degrade instead."""
 
 import hashlib
 import json
@@ -12,15 +13,18 @@ import time
 from collections import deque
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from typing import Literal
 from zoneinfo import ZoneInfo
 
 from pydantic import BaseModel, ValidationError
 from sqlalchemy.orm import Session, sessionmaker
 
+from app.ai.chains import USER_LIMITS
 from app.ai.client import AiClient, AiUnavailable, Part, Prompt, QuotaExhausted
 from app.ai.schemas import DEFAULT_LANGUAGES
+from app.api.errors import ApiError
+from app.repositories import accounts
 from app.repositories import ai as repo
 
 _log = logging.getLogger("wakatta.ai")
@@ -49,7 +53,11 @@ class AiRequest[T: BaseModel]:
     schema: type[T]
     scope: str  # "shop:<id>" or "district:<id>": one scope never reads another's cache
     cache_input: bytes  # the input bytes plus anything that changes the answer (e.g. the glossary)
+    caller: str  # "user:<id>" or "senpai:<pair id>": whose AI allowance this spends (§10.3)
     languages: tuple[str, ...] = DEFAULT_LANGUAGES  # the shop's languages besides ja (XREQ-011 item 5)
+    # "degrade" when the service keeps the person's own words without the model: a message or a safety report is
+    # never refused only because it could not be translated.
+    over_limit: Literal["refuse", "degrade"] = "refuse"
 
 
 @dataclass(frozen=True)
@@ -104,9 +112,12 @@ class AiRunner:
         sessions: sessionmaker[Session],
         limits: AiLimits,
         backups: Sequence[tuple[AiClient, AiLimits]] = (),
+        user_limits: tuple[int, int] = USER_LIMITS["free"],
     ) -> None:
-        """`client` answers first; each backup is tried in order when the one before it gives no valid answer."""
+        """`client` answers first; each backup is tried in order when the one before it gives no valid answer.
+        `user_limits`: AI requests per minute and per day for one caller."""
         self._sessions = sessions
+        self._user_limits = user_limits
         self._chain = [_Link(c, lim, _Limiter(lim)) for c, lim in [(client, limits), *backups]]
 
     @property
@@ -150,6 +161,20 @@ class AiRunner:
         finally:
             link.limiter.release()
 
+    def _spend_allowance(self, caller: str, now: datetime) -> int | None:
+        """Counts one AI request of this caller; the seconds to wait when they are over a limit. In Postgres, so a
+        restart cannot reset it. A request refused by the minute limit does not spend the day."""
+        per_minute, per_day = self._user_limits
+        with self._sessions() as db:
+            if accounts.count_attempt(db, f"ai-minute:{caller}", now, timedelta(minutes=1)) > per_minute:
+                retry_after = 60
+            elif accounts.count_attempt(db, f"ai-day:{caller}", now, timedelta(days=1)) > per_day:
+                retry_after = 3600
+            else:
+                retry_after = None
+            db.commit()
+        return retry_after
+
     def _parse[T: BaseModel](
         self, req: AiRequest[T], raw: str, validate: Callable[[T], list[str]]
     ) -> tuple[T | None, list[str]]:
@@ -168,6 +193,15 @@ class AiRunner:
                 hit = repo.cached(db, self._key(req, link.client.model))
                 if hit is not None:
                     return AiResult(req.schema.model_validate(hit.response), "cached")
+
+        retry_after = self._spend_allowance(req.caller, now)
+        if retry_after is not None:
+            _log.info("ai user limit reached", extra={"route": req.pipeline})
+            if req.over_limit == "degrade":
+                return AiResult(None, "degraded")
+            raise ApiError(
+                429, "RATE_LIMITED", "Too many AI requests; try again later", headers={"Retry-After": str(retry_after)}
+            )
 
         for link in self._chain:
             raw = self._call(link, req, [], now, wait=link is self._chain[-1])

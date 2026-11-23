@@ -573,7 +573,7 @@ The models and every budget live in one table, [`app/ai/chains.py`](../backend/a
 | :--- | :--- | :--- |
 | Calls per day, per model | `chains.BUDGETS[tier][model][0]` (free: 18 for the Flash models, 450 for the Flash-Lites, 40 for Groq) in `ai_usage`, taken in its own short transaction before the call | that model is skipped, no call |
 | Calls per minute, per model | `chains.BUDGETS[tier][model][1]` (free: 4, 12, 1), in-memory limiter per model | that model is skipped |
-| Per user | 10 AI requests per minute per user | 429 |
+| Per user (a Senpai link counts as one) | `chains.USER_LIMITS[tier]`: 10 AI requests per minute, and 100 (free) or 500 (paid) per day, in `login_limits`; a cached answer is free; a voice chatbot question counts as two (transcript, answer) | 429 `RATE_LIMITED` with `Retry-After` (60 or 3600). Typed messages, forwarded Asks, Senpai replies and Near-miss Reports are never refused: they are stored untranslated |
 
 - **A busy or failing model is skipped at once** (5xx such as 503 "high demand", a per-minute 429, a timeout): the next model of the chain answers. **A daily-quota 429 is never retried**: the model is marked exhausted in `ai_usage` and skipped for the rest of the day (resets at midnight Pacific, 14:00 Bangladesh time).
 - The only retry is the **validation retry** (§10.4 step 3), on the model that answered, and it spends that model's budget.
