@@ -243,8 +243,11 @@ def submit_check(db: Session, who: Principal, body: CheckIn, key: uuid.UUID, now
             passed_at=now,
         )
         db.add(sign_off)
+        db.flush()
+    # Build the response before committing: if it fails, the Check rolls back and a retry is safe (no 500 after save).
+    result = _result(n.questions, wrong, sign_off)
     db.commit()
-    return _result(n.questions, wrong, sign_off)
+    return result
 
 
 def confusion_out(c: Confusion) -> ConfusionOut:

@@ -456,5 +456,7 @@ def submit_check(db: Session, who: Principal, body: CheckIn, key: uuid.UUID) -> 
         )
     )
     repo.open_receipt(db, shop_id, worker_id, n.id, passed=not wrong)
+    # Build the response before committing, as floor.submit_check does: a failure here must not leave a saved Check.
+    result = _check_result(n.question, wrong)
     db.commit()
-    return _check_result(n.question, wrong)
+    return result

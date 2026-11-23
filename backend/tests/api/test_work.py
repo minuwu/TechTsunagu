@@ -2,15 +2,18 @@
 
 import uuid
 from dataclasses import dataclass
+from datetime import UTC, datetime
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.ai.client import AiUnavailable
 from app.ai.fake import FakeAiClient
 from app.models.scopes import Shop as ShopRow
-from app.models.work import GlossaryTerm, Machine
+from app.models.scopes import User
+from app.models.work import Check, GlossaryTerm, Machine
 from tests import factories as f
 
 TRI = {"ja": "電源を切る", "bn": "পাওয়ার বন্ধ করুন", "en": "Turn off the power"}
@@ -429,3 +432,28 @@ def test_effort_metrics_are_empty_not_an_error_for_a_new_shop(client: TestClient
         "cleanAiShare": None,
         "firstTryPassShare": None,
     }
+
+
+def test_a_check_whose_result_cannot_be_built_saves_nothing(client: TestClient, db: Session, shop: Shop) -> None:
+    """The response is built before the commit, so a failure there never leaves a Check behind a 500."""
+    home = db.get(ShopRow, shop.machine.shop_id)
+    foreman = db.scalar(select(User).where(User.shop_id == shop.machine.shop_id, User.role == "foreman"))
+    assert home is not None and foreman is not None
+    note = f.note_draft(db, home, shop.machine, foreman)
+    bad = note_answer()["questions"][0]  # type: ignore[index]
+    note.questions = [
+        {"id": "q-legacy", "termId": None, "prompt": bad["prompt"], "options": bad["options"], "correctIndex": 0}
+    ]  # type: ignore[index]
+    note.status, note.change_kind = "approved", "safety"
+    note.approved_at, note.approved_by = datetime.now(UTC), foreman.id
+    shop.machine.current_version_id = note.id
+    db.flush()
+
+    res = client.post(
+        "/api/checks",
+        headers=_auth(shop.worker, str(uuid.uuid4())),
+        json={"target": {"kind": "note", "id": str(note.id)}, "language": "bn", "answers": [1]},
+    )
+
+    assert res.status_code == 500
+    assert db.scalar(select(func.count()).select_from(Check).where(Check.worker_id == shop.worker_id)) == 0
