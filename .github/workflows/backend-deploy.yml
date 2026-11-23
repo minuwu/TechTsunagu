@@ -1,0 +1,89 @@
+# Builds the backend image into Azure Container Registry, migrates, and rolls the API (architecture §15).
+# Runs only after backend-ci passes on main (or by hand). Signs in to Azure with a short-lived OIDC token: the
+# identity wakatta-ci trusts only this repository's main branch, so there is no stored password or token.
+# One-time infrastructure: backend/deploy/azure-setup.ps1. These IDs are identifiers, not secrets.
+name: backend-deploy
+
+on:
+  workflow_run:
+    workflows: [backend-ci]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: backend-deploy
+  cancel-in-progress: false
+
+env:
+  AZURE_CLIENT_ID: f73b53fe-596d-48c1-8baf-f55cd499781f
+  AZURE_TENANT_ID: acf1fe93-0760-406b-9216-573b5fed5453
+  AZURE_SUBSCRIPTION_ID: 90422110-41e8-4a1a-8c8e-4ef7e0481e98
+  ACR: wakattaacr42338
+  RG: wakatta-rg
+  IMAGE: techtsunagu-api
+
+jobs:
+  deploy:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      # Actions pinned to full commit SHAs (a moved tag cannot run new code with the deploy identity).
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+      - uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2.3.0
+        with:
+          client-id: ${{ env.AZURE_CLIENT_ID }}
+          tenant-id: ${{ env.AZURE_TENANT_ID }}
+          subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
+      - run: az acr login --name "$ACR"
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
+      - uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
+        with:
+          context: backend
+          push: true
+          tags: |
+            ${{ env.ACR }}.azurecr.io/${{ env.IMAGE }}:${{ github.event.workflow_run.head_sha || github.sha }}
+            ${{ env.ACR }}.azurecr.io/${{ env.IMAGE }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Migrate, roll the API, wait until it is healthy
+        env:
+          SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+        run: |
+          set -euo pipefail
+          ref="$ACR.azurecr.io/$IMAGE:$SHA"
+
+          if ! az containerapp show -n wakatta-api -g "$RG" >/dev/null 2>&1; then
+            echo "::notice::wakatta-api does not exist yet: image pushed; run backend/deploy/azure-setup.ps1 again."
+            exit 0
+          fi
+
+          for job in wakatta-seed wakatta-migrate; do az containerapp job update -n "$job" -g "$RG" --image "$ref" -o none; done
+          exec_name=$(az containerapp job start -n wakatta-migrate -g "$RG" --query name -o tsv)
+          for _ in $(seq 1 60); do
+            status=$(az containerapp job execution show -n wakatta-migrate -g "$RG" --job-execution-name "$exec_name" --query properties.status -o tsv)
+            [ "$status" = Succeeded ] && break
+            [ "$status" = Failed ] && { echo "::error::migration failed; the API was not rolled"; exit 1; }
+            sleep 10
+          done
+          [ "$status" = Succeeded ] || { echo "::error::migration still running after 10 min"; exit 1; }
+
+          az containerapp update -n wakatta-api -g "$RG" --image "$ref" -o none
+          fqdn=$(az containerapp show -n wakatta-api -g "$RG" --query properties.configuration.ingress.fqdn -o tsv)
+          for _ in $(seq 1 30); do
+            # The old revision answers until the new one is ready, so wait for the new revision first.
+            read -r latest ready < <(az containerapp show -n wakatta-api -g "$RG" --query "[properties.latestRevisionName, properties.latestReadyRevisionName]" -o tsv | paste -sd' ')
+            if [ "$latest" = "$ready" ] && curl -fsS --max-time 10 "https://$fqdn/api/health/ready" >/dev/null; then
+              echo "ready: https://$fqdn (revision $latest, image $SHA)"; exit 0
+            fi
+            sleep 10
+          done
+          echo "::error::API not healthy after 5 min; check: az containerapp logs show -n wakatta-api -g $RG --tail 50"
+          exit 1
