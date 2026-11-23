@@ -1,11 +1,17 @@
 import { useQuery } from '@tanstack/react-query'
-import { getCountries, getHighlights, getPrefectures } from '@/services/geo'
+import { getHighlights, getNeighbours, getPrefectures } from '@/services/geo'
 
-export type { PrefectureHighlight, PrefectureProps } from '@/services/geo'
+export type {
+  Bilingual,
+  PrefectureHighlight,
+  PrefectureProps,
+} from '@/services/geo'
 
 /** The demo shop's prefecture (the fictional 佐世保鋼材加工 is in Sasebo, Nagasaki) and its pin. */
 export const HOME_PREFECTURE = 'JP-42'
 export const SASEBO: [number, number] = [129.7239, 33.1799]
+/** Nagasaki city, where the journey across the Earth ends (lon, lat). */
+export const NAGASAKI: [number, number] = [129.8737, 32.7503]
 
 /** Japan's prefectures for the map: loaded once per session; an empty list while loading or offline. */
 export function useJapanMap() {
@@ -21,17 +27,17 @@ export function useJapanMap() {
 
 const once = { staleTime: Infinity, gcTime: Infinity, retry: 1 } as const
 
-/** The globe map: countries, prefectures and each prefecture's highlight, loaded once per session.
- *  Empty while loading or offline; the map is decorative there and the page still works. */
-export function useGlobeMap() {
-  const countries = useQuery({
-    queryKey: ['geo', 'countries'],
-    queryFn: getCountries,
-    ...once,
-  })
+/** The Nagasaki journey's map data: prefectures, neighbouring countries and each prefecture's highlight,
+ *  loaded once per session. `failed` means the map cannot be drawn (the section then says so). */
+export function useJourneyMap() {
   const prefectures = useQuery({
     queryKey: ['geo', 'prefectures'],
     queryFn: getPrefectures,
+    ...once,
+  })
+  const neighbours = useQuery({
+    queryKey: ['geo', 'neighbours'],
+    queryFn: getNeighbours,
     ...once,
   })
   const highlights = useQuery({
@@ -40,10 +46,10 @@ export function useGlobeMap() {
     ...once,
   })
   return {
-    countries: countries.data?.features ?? [],
     prefectures: prefectures.data?.features ?? [],
+    neighbours: neighbours.data?.features ?? [],
     highlights: highlights.data ?? [],
-    ready: countries.isSuccess && prefectures.isSuccess,
-    failed: countries.isError || prefectures.isError,
+    ready: prefectures.isSuccess && highlights.isSuccess,
+    failed: prefectures.isError || highlights.isError,
   }
 }

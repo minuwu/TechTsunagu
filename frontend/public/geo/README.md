@@ -10,20 +10,19 @@
 npx mapshaper@0.6.113 ne_10m_admin_1_states_provinces.shp name=prefectures \
   -filter "adm0_a3 === 'JPN'" \
   -each "id=iso_3166_2, ja=name_ja, en=(name_en || name).replace(/ Prefecture$/, '')" \
-  -filter-fields id,ja,en -simplify 12% keep-shapes -clean \
+  -filter-fields id,ja,en -simplify 45% keep-shapes -clean \
   -o format=topojson quantization=1e5 japan-prefectures.topo.json
 ```
 
 Natural Earth draws boundaries at small scale; the map is decorative and for orientation, not a survey map.
 
-`world-countries-110m.topo.json`: the world's countries for the landing globe (object `countries`; property `id` = ISO 3166-1 alpha-3).
+`east-asia-50m.topo.json`: Japan's neighbours, drawn around the prefecture map in the landing's "Journey to Nagasaki" (object `countries`; property `id` = ISO 3166-1 alpha-3).
 
-- **Source:** Natural Earth 1:110m Cultural Vectors, Admin 0 – Countries (`ne_110m_admin_0_countries`). Public domain, as above.
-- **Built with** mapshaper 0.6.113:
+- **Source:** Natural Earth 1:50m Cultural Vectors, Admin 0 – Countries (`ne_50m_admin_0_countries`). Public domain, as above.
+- **Built with** mapshaper 0.6.113 (Japan left out, clipped to East Asia):
 
 ```sh
-npx mapshaper@0.6.113 ne_110m_admin_0_countries.shp name=countries -each "id=ISO_A3" \
-  -filter-fields id -simplify 40% keep-shapes -clean -o format=topojson quantization=1e4 world-countries-110m.topo.json
+npx mapshaper@0.6.113 ne_50m_admin_0_countries.shp name=countries -filter "ADM0_A3 !== 'JPN'"   -clip bbox=112,18,160,52 -each "id=ADM0_A3" -filter-fields id -simplify 60% keep-shapes -clean   -o format=topojson quantization=1e5 east-asia-50m.topo.json
 ```
 
-`prefecture-highlights.json`: one famous place per prefecture for the globe's card (`id`, `ja`, `en`, `image`, `license`, `artist`, `page`). Photos and credits: see `public/media/README.md`.
+`prefecture-highlights.json`: one famous place per prefecture for the journey's panel (`id`; `ja`, `en` = the place; `image`, `license`, `artist`, `page` = the photo and its credit; `desc`, `fact` = a short description and a fact, each `{ en, ja }`). Written for this project from well-established public facts; photos and credits: see `public/media/README.md`.

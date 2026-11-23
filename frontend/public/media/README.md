@@ -8,7 +8,15 @@ Only copyright-free files: public domain or CC0, checked on the source page befo
 
 Re-encoded to 960 × 720 WebP (quality 74) from the Commons 1280 px rendition; no metadata kept. Map data: see `public/geo/README.md` (Natural Earth, public domain).
 
-## `prefectures/`: one photo per prefecture (globe card on the landing)
+## Earth texture (the journey's 3D Earth)
+
+| File | What | Author | License | Source |
+| :--- | :--- | :--- | :--- | :--- |
+| `earth-3840.webp`, `earth-2048.webp` | Whole world, land and oceans (equirectangular, Blue Marble) | NASA Goddard Space Flight Center | **Public domain** (NASA imagery) | [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Whole_world_-_land_and_oceans_12000.jpg) |
+
+Re-encoded from the Commons 3840 px rendition to WebP (3840 × 1920 q78, and 2048 × 1024 q82 for small screens); no metadata kept.
+
+## `prefectures/`: one photo per prefecture (the journey's panel on the landing)
 
 Found on Wikimedia Commons with the structured-data licence filter (CC0 or public domain), licence re-checked from each file's metadata, each picture checked by eye. Re-encoded to 640 px WebP (quality 72), no metadata kept; the Ritsurin panorama is cropped to 3:2. Nagasaki (JP-42) reuses the Megane Bridge photo above.
 
@@ -20,7 +28,7 @@ Found on Wikimedia Commons with the structured-data licence filter (CC0 or publi
 | `jp-04.webp` | 松島 (Matsushima) | lumoplank | CC0 | [Commons](https://commons.wikimedia.org/wiki/File:Matsushima_Bay_-_Matsushima6224.jpg) |
 | `jp-05.webp` | 角館の武家屋敷通り (Kakunodate samurai district) | sayo ts | CC0 | [Commons](https://commons.wikimedia.org/wiki/File:%E7%A7%8B%E7%94%B0%E7%9C%8C_%E8%A7%92%E9%A4%A8%E7%94%BA_(26752244677).jpg) |
 | `jp-06.webp` | 山寺 (Yamadera) | lumoplank | CC0 | [Commons](https://commons.wikimedia.org/wiki/File:Yamadera,_Part_I_-_Yamadera7478.jpg) |
-| `jp-07.webp` | 会津の桜 (Aizu cherry blossoms) | lando | CC0 | [Commons](https://commons.wikimedia.org/wiki/File:Voja%C4%9Do_al_Aizu_02.jpg) |
+| `jp-07.webp` | 会津若松 (Aizu-Wakamatsu): cherry blossoms in Aizu | lando | CC0 | [Commons](https://commons.wikimedia.org/wiki/File:Voja%C4%9Do_al_Aizu_02.jpg) |
 | `jp-08.webp` | 偕楽園 (Kairaku-en) | 七巫こ | CC0 | [Commons](https://commons.wikimedia.org/wiki/File:Kairakuen_lake_senba_2021.jpg) |
 | `jp-09.webp` | 日光東照宮 (Nikkō Tōshō-gū) | lumoplank | CC0 | [Commons](https://commons.wikimedia.org/wiki/File:Toshogu_Shrine,_Nikko_-_ToshoguShrine7869.jpg) |
 | `jp-10.webp` | 草津温泉 (Kusatsu Onsen) | Aspere | CC0 | [Commons](https://commons.wikimedia.org/wiki/File:251129_Yubatake,_Kusatsu_07.jpg) |

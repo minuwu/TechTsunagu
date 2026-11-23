@@ -27,23 +27,32 @@ export async function getPrefectures(): Promise<
   >
 }
 
-/** The world's countries (Natural Earth 1:110m, public domain), for the globe the map opens on. */
-export async function getCountries(): Promise<FeatureCollection<Geometry>> {
-  const res = await fetch('/geo/world-countries-110m.topo.json')
-  if (!res.ok) throw new Error(`world data: HTTP ${res.status}`)
+/** Japan's neighbours (Natural Earth 1:50m countries clipped to East Asia, public domain): context around the map. */
+export async function getNeighbours(): Promise<FeatureCollection<Geometry>> {
+  const res = await fetch('/geo/east-asia-50m.topo.json')
+  if (!res.ok) throw new Error(`neighbours: HTTP ${res.status}`)
   const topo = (await res.json()) as Topology<{ countries: GeometryCollection }>
   return feature(topo, topo.objects.countries) as FeatureCollection<Geometry>
 }
 
-/** A prefecture's famous place and its copyright-free photo (public/geo/README.md, public/media/README.md). */
+/** Text in both UI languages. */
+export interface Bilingual {
+  en: string
+  ja: string
+}
+
+/** A prefecture's famous place: copyright-free photo, a short description and a fact
+ *  (public/geo/README.md, public/media/README.md). */
 export interface PrefectureHighlight {
   id: string
   ja: string
   en: string
-  image: string | null
-  license?: string
-  artist?: string
-  page?: string
+  image: string
+  license: string
+  artist: string
+  page: string
+  desc: Bilingual
+  fact: Bilingual
 }
 
 export async function getHighlights(): Promise<PrefectureHighlight[]> {

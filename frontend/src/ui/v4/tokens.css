@@ -434,154 +434,389 @@ input[type='file']::file-selector-button:hover {
   }
 }
 
-/* GlobeMap (landing hero): flat Poster Modernist globe. Cream land on a darker cream sea, black coast,
-   Nagasaki and the chosen prefecture in cobalt; square corners, no shadows (ADR 0012). */
-.globe {
-  background: var(--background);
+/* Journey to Nagasaki (landing section): a deep-navy band in the cream poster site, quiet like a museum
+   room. Washi-white text, vermilion (shu) only for Nagasaki and the chosen prefecture; square corners and
+   no shadows, as everywhere in v4 (ADR 0012). */
+.journey {
+  --j-bg: #0b1424;
+  --j-raise: #101c31;
+  --j-line: #2a3a57;
+  --j-ink: #ece6d8; /* washi white: 15:1 on --j-bg */
+  --j-body: #cdd5e2;
+  --j-muted: #a7b2c5; /* 8.6:1 on --j-bg */
+  --j-land: #16233a;
+  --j-pref: #1f3050;
+  --j-pref-hover: #2c4675;
+  --j-edge: #7f93b5;
+  --j-accent: #d9573b; /* shu (vermilion): marks only, never small text */
+  --j-serif:
+    'Hiragino Mincho ProN', 'Yu Mincho', YuMincho, 'Noto Serif JP', serif;
+  background: var(--j-bg);
+  color: var(--j-ink);
+  border-top-color: var(--j-line);
 }
-.globe-sea {
-  fill: var(--muted);
-  stroke: var(--foreground);
-  stroke-width: 1;
+.journey > .poster-side {
+  border-color: var(--j-line);
 }
-.globe-grid {
-  fill: none;
-  stroke: var(--rule);
-  stroke-width: 0.5;
+.journey > .journey-main {
+  padding: 1.5rem 1rem 0;
 }
-.globe-land {
-  fill: var(--background);
-  stroke: var(--foreground);
-  stroke-width: 0.4;
-  pointer-events: none;
+@media (min-width: 48rem) {
+  .journey > .journey-main {
+    padding: 2rem 2rem 0;
+  }
 }
-.globe-pref {
-  fill: var(--background);
-  stroke: var(--foreground);
-  stroke-width: 0.6;
-  cursor: pointer;
-  transition: fill 160ms;
+.journey-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--j-muted);
 }
-.globe-pref:hover {
-  fill: color-mix(in srgb, var(--primary) 25%, var(--background));
+.journey-vertical {
+  display: none;
 }
-.globe-pref.is-home {
-  fill: color-mix(in srgb, var(--primary) 40%, var(--background));
+@media (min-width: 48rem) {
+  .journey-vertical {
+    display: block;
+    margin-top: 2rem;
+    writing-mode: vertical-rl;
+    font-family: var(--j-serif);
+    font-size: 1.75rem;
+    letter-spacing: 0.35em;
+    color: var(--j-ink);
+  }
 }
-.globe-pref.is-selected {
-  fill: var(--primary);
+.journey-h {
+  color: var(--j-ink);
+  max-width: 16ch;
 }
-.globe-pin {
-  fill: var(--foreground);
-  stroke: var(--background);
-  stroke-width: 2;
-  pointer-events: none;
+.journey-lead {
+  margin-top: 1.25rem;
+  max-width: 40em;
+  font-size: 1.125rem;
+  line-height: 1.7;
+  color: var(--j-muted);
+  text-wrap: pretty;
 }
-.globe-tip {
+.journey-body {
+  grid-column: 1 / -1;
+  margin: 2rem 1rem 1rem;
+  display: grid;
+  border: 1px solid var(--j-line);
+}
+@media (min-width: 48rem) {
+  .journey-body {
+    margin: 2.5rem 2rem 2rem;
+  }
+}
+.journey-stage {
+  position: relative;
+  height: clamp(24rem, 70svh, 40rem);
+  overflow: hidden;
+  background: var(--j-bg);
+  border-bottom: 1px solid var(--j-line);
+}
+@media (min-width: 64rem) {
+  .journey-body {
+    grid-template-columns: minmax(0, 1fr) 26rem;
+  }
+  .journey-stage {
+    height: clamp(34rem, 82svh, 52rem);
+    border-bottom: 0;
+    border-right: 1px solid var(--j-line);
+  }
+  .journey .jp {
+    max-height: clamp(34rem, 82svh, 52rem);
+    overflow-y: auto;
+  }
+}
+.journey-earth,
+.journey-map {
   position: absolute;
-  z-index: 20;
-  translate: -50% calc(-100% - 10px);
+  inset: 0;
+  transition: opacity 900ms ease-in-out;
+}
+.journey-earth {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.journey-map {
+  opacity: 0;
+}
+.journey-stage[data-phase='map'] .journey-earth {
+  opacity: 0;
+}
+.journey-stage[data-phase='map'] .journey-map {
+  opacity: 1;
+}
+.journey-status {
+  position: absolute;
+  left: 1rem;
+  bottom: 1rem;
+  z-index: 4;
+  max-width: calc(100% - 12rem);
+  font-size: 0.875rem;
+  letter-spacing: 0.08em;
+  color: var(--j-muted);
+}
+.journey-action,
+.jm-zoom button,
+.jp select,
+.jp-step button {
+  min-height: 2.75rem;
+  border: 1px solid var(--j-line);
+  background: rgb(11 20 36 / 0.78);
+  color: var(--j-ink);
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    border-color 160ms,
+    background-color 160ms;
+}
+.journey-action {
+  position: absolute;
+  z-index: 4;
+  padding: 0 1rem;
+}
+.journey-action:hover,
+.jm-zoom button:hover {
+  border-color: var(--j-ink);
+}
+.journey-skip {
+  right: 1rem;
+  bottom: 1rem;
+}
+.journey-replay {
+  left: 1rem;
+  bottom: 1rem;
+}
+.journey :focus-visible {
+  outline: 3px solid var(--j-ink);
+  outline-offset: 2px;
+}
+
+/* the map */
+.jm {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+.jm-sea {
+  fill: var(--j-bg);
+}
+.jm-grid {
+  fill: none;
+  stroke: var(--j-line);
+  stroke-width: 0.6;
+  vector-effect: non-scaling-stroke;
+}
+.jm-land {
+  fill: var(--j-land);
+  stroke: var(--j-line);
+  stroke-width: 0.6;
+  vector-effect: non-scaling-stroke;
   pointer-events: none;
-  background: var(--foreground);
-  color: var(--background);
-  padding: 0.2rem 0.5rem;
+}
+.jm-pref {
+  fill: var(--j-pref);
+  stroke: var(--j-edge);
+  stroke-width: 0.6;
+  vector-effect: non-scaling-stroke;
+  cursor: pointer;
+  transition: fill 220ms;
+}
+.jm-pref:hover {
+  fill: var(--j-pref-hover);
+}
+.jm-pref.is-home {
+  fill: color-mix(in srgb, var(--j-accent) 35%, var(--j-pref));
+}
+.jm-pref.is-selected {
+  fill: var(--j-accent);
+  stroke: var(--j-ink);
+}
+.jm-pin {
+  fill: var(--j-ink);
+  pointer-events: none;
+}
+.jm-pin-pulse {
+  fill: none;
+  stroke: var(--j-ink);
+  stroke-width: 1.5;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: jm-pulse 2.4s ease-out infinite;
+}
+@keyframes jm-pulse {
+  from {
+    transform: scale(0.4);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+}
+.jm-tip,
+.jm-hint {
+  position: absolute;
+  z-index: 5;
+  pointer-events: none;
+  background: var(--j-ink);
+  color: var(--j-bg);
   font-size: 0.875rem;
   font-weight: 700;
   white-space: nowrap;
 }
-.globe-hint {
-  position: absolute;
+.jm-tip {
+  translate: -50% calc(-100% - 10px);
+  padding: 0.2rem 0.5rem;
+}
+.jm-hint {
   top: 0.75rem;
   left: 50%;
   translate: -50% 0;
-  z-index: 15;
-  pointer-events: none;
-  background: var(--foreground);
-  color: var(--background);
   padding: 0.35rem 0.75rem;
-  font-size: 0.875rem;
-  font-weight: 700;
   opacity: 0;
   transition: opacity 200ms;
 }
-.globe-hint.is-shown {
+.jm-hint.is-shown {
   opacity: 1;
 }
-.globe-card {
+.jm-zoom {
   position: absolute;
-  z-index: 10;
-  top: 0.75rem;
-  right: 0.75rem;
-  width: min(18rem, calc(100% - 1.5rem));
-  border: 1px solid var(--foreground);
-  background: var(--background);
+  right: 1rem;
+  top: 1rem;
+  z-index: 4;
+  display: flex;
+  gap: 0.5rem;
 }
-.globe-card img {
+.jm-zoom button {
+  min-width: 2.75rem;
+  padding: 0 0.75rem;
+}
+.jm-zoom button[aria-pressed='true'] {
+  background: var(--j-ink);
+  color: var(--j-bg);
+}
+
+/* the panel: a museum label for the chosen prefecture */
+.jp {
+  display: flex;
+  flex-direction: column;
+  background: var(--j-raise);
+}
+.jp-choose {
+  display: grid;
+  gap: 0.5rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--j-line);
+}
+.jp select {
+  width: 100%;
+  padding: 0 0.75rem;
+  background: var(--j-bg);
+}
+.jp-card {
+  padding: 1.5rem 1.25rem;
+  animation: jp-in 420ms ease-out;
+}
+@keyframes jp-in {
+  from {
+    opacity: 0;
+    translate: 0 8px;
+  }
+}
+.jp-ja {
+  margin-top: 0.5rem;
+  font-family: var(--j-serif);
+  font-size: 2.5rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+}
+.jp-en {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--j-muted);
+}
+.jp-photo {
+  margin: 1.25rem 0;
+  border: 1px solid var(--j-line);
+}
+.jp-photo img {
   display: block;
   width: 100%;
   height: auto;
   aspect-ratio: 3 / 2;
   object-fit: cover;
-  border-bottom: 1px solid var(--foreground);
 }
-.globe-card figcaption {
-  padding: 0.6rem 0.75rem 0.75rem;
+.jp-photo figcaption {
+  padding: 0.5rem 0.75rem;
+  border-top: 1px solid var(--j-line);
+  font-size: 0.875rem;
+  color: var(--j-muted);
 }
-/* phone: below the map (the map shrinks to make room), photo beside the text, so the prefecture stays in sight */
-@media (max-width: 40rem) {
-  .globe-card {
-    position: static;
-    width: auto;
-    display: flex;
-    border-width: 1px 0 0;
-  }
-  .globe-card img {
-    width: 38%;
-    aspect-ratio: auto;
-    border-right: 1px solid var(--foreground);
-    border-bottom: 0;
-  }
-  .globe-card figcaption {
-    flex: 1;
-    min-width: 0;
-  }
+.jp-photo a {
+  color: var(--j-ink);
+  text-decoration: underline;
 }
-.globe-controls {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 0.5rem;
-  padding: 0.5rem;
-  border-top: 1px solid var(--foreground);
-}
-.globe-controls select {
-  flex: 1 1 12rem;
-  min-width: 0;
-}
-.globe-controls select,
-.globe-controls button {
-  min-height: 2.75rem;
-  border: 1px solid var(--foreground);
-  background: var(--background);
-  color: var(--foreground);
-  padding: 0 0.85rem;
+.jp-place {
+  margin: 0.35rem 0 0.75rem;
+  font-size: 1.5rem;
   font-weight: 700;
-  cursor: pointer;
+  line-height: 1.25;
 }
-.globe-controls button {
-  min-width: 2.75rem;
+.jp-desc {
+  line-height: 1.75;
+  color: var(--j-body);
+  text-wrap: pretty;
 }
-.globe-controls button[aria-pressed='true'] {
-  background: var(--foreground);
-  color: var(--background);
+.jp-fact {
+  margin-top: 1.25rem;
+  padding: 1rem 1rem 1rem 1.125rem;
+  border-left: 3px solid var(--j-accent);
+  background: rgb(255 255 255 / 0.03);
 }
-.globe-controls :focus-visible {
-  outline: 3px solid var(--primary);
-  outline-offset: 2px;
+.jp-fact p:last-child {
+  margin-top: 0.35rem;
+  line-height: 1.7;
+  color: var(--j-body);
+}
+.jp-step {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin-top: auto;
+  border-top: 1px solid var(--j-line);
+}
+.jp-step button {
+  min-height: 3.25rem;
+  padding: 0.5rem 1rem;
+  border: 0;
+  background: transparent;
+  text-align: left;
+}
+.jp-step button + button {
+  border-left: 1px solid var(--j-line);
+  text-align: right;
+}
+.jp-step button:hover {
+  background: var(--j-pref);
 }
 @media (prefers-reduced-motion: reduce) {
-  .globe-pref,
-  .globe-hint {
+  .journey-earth,
+  .journey-map,
+  .jm-pref,
+  .jm-hint {
     transition: none;
+  }
+  .jm-pin-pulse,
+  .jp-card {
+    animation: none;
   }
 }
