@@ -72,6 +72,7 @@ This file is:
 | `XREQ-014` | P1 | Backend (Anim) | Frontend (Minhaz, Android + Firebase) | Firebase for push: project, Android app, FCM token upload to `PUT /api/devices/me`, service-account key to Anim privately | `[PENDING]` | 2026-11-23 19:30 |
 | `XREQ-015` | P0 | Backend (Anim) | Backend (Asif, Azure owner) | Give Anim's Azure account Contributor on the Wakatta resource group (Asif is off the project; Anim runs deploy now) | `[RESOLVED]` | 2026-11-23 19:30 |
 | `XREQ-016` | P0 | AI (Galib) | Frontend (Minhaz, Arjun; Android: Minhaz) | Chatbot screen on the Worker home and the Machine screen: `POST /api/knowledge/asks` (cited answer + self-check; emergency card; not covered → forward to Senpai) | `[PENDING]` | 2026-11-23 20:00 |
+| `XREQ-017` | P1 | Frontend (Minhaz, Android app) | Backend (Anim), AI (Galib) | Contacts, My QR, Contact Threads, Talk Threads and group controls (the open part of XREQ-010); notification list stays push-only | `[PENDING]` | 2026-11-23 19:50 |
 *(When adding a request: append a row above AND add a detailed card in 2.2. Never insert in the middle.)*
 
 ### 2.2 Detailed Request Cards
@@ -593,7 +594,7 @@ PUT /api/devices/me
 
 **Fulfillment & Proof (filled by recipient on completion):**
 - **Branch / Commit**: 
-- **Status / Notes**: 
+- **Status / Notes**: 2026-11-23 Minhaz: steps 1-3 partly done. Used the existing Firebase project **`daily-wizdom`** (number 206569521303; Spark, shared with the Pocket Japanese app) instead of a new `wakatta` project. Android app registered: package `com.techtsunagu.wakatta`, app id `1:206569521303:android:7afa3e8321fc042f9e29d2`. `android/app/google-services.json` downloaded (gitignored). Catalog already has `firebase-bom` 35.2.0 (latest) and `firebase-messaging`; `google-services` plugin bumped to 4.6.0 and declared in the root `build.gradle.kts`. **Not done:** the `:app` module is not scaffolded yet (WP-0A), so the plugin is not applied and steps 4-6 (token upload service, permission, channel) wait for it. Step 7 (service-account key) is the user's to generate and send to Anim privately. **Anim:** project id for the sender is `daily-wizdom`; note the key from this project can reach the Pocket Japanese app's Firebase data too, so store it only as the Azure secret. A dedicated project was tried and failed (Google project quota exceeded); to limit the risk, generate the key for a new service account with only the role "Firebase Cloud Messaging API Admin" (Google Cloud console → IAM & Admin → Service accounts), not the default Firebase Admin SDK account.
 - **Verification Proof**: 
 
 #### `[XREQ-015]` Azure access for Anim (Contributor on the Wakatta resource group)
@@ -659,6 +660,73 @@ text=Why must I stop the machine before cleaning it?   | audio=@q.webm     [mach
              "options": [ { "en": "Clean it after stopping the machine completely" }, { "en": "…" }, { "en": "…" } ], "correctIndex": 0 } } }
 ```
 Errors: `403` (not a Worker), `413` / `415` (recording too long or wrong format), `422` (neither text nor audio).
+
+**Fulfillment & Proof (filled by recipient on completion):**
+- **Branch / Commit**: 
+- **Status / Notes**: 
+- **Verification Proof**: 
+
+#### `[XREQ-017]` Contacts, My QR, Contact Threads, Talk Threads and group controls (the part of XREQ-010 still open)
+
+- **Priority**: `P1 (High)`
+- **From**: `Frontend (Minhaz, Android app)`
+- **To**: `Backend (Anim)`, `AI (Galib)` for items 3 and 4
+- **Status**: `[PENDING]`
+- **Created**: `2026-11-23 19:50 (UTC+6)`
+- **Target Interface / Endpoint**: `/api/me/qr`, `/api/contacts`, `/api/blocks`, `/api/talk-threads`, `/api/threads` (group controls)
+
+**Requirement Details:**
+The Android app is wired to the live API (`https://wakatta-api.agreeablestone-840cfb57.japaneast.azurecontainerapps.io`). Everything in XREQ-009, 010 (items 4, 5, 6, 7) and 011 that you shipped is used as is. These four areas have no routes yet, so the app keeps a Fake for them. Please build them in this order and tell us after each one (fill the Fulfillment block, regenerate `docs/openapi.yaml`, add one line to your WORK_LOG): the app switches that area from Fake to Real the same day.
+
+Product rules (already decided, do not re-ask): [ADR 0014](docs/adr/0014-personal-threads-outside-shop-scope-and-private-from-the-employer.md), GLOSSARY terms Talk Thread, Contact, Contact Thread, My QR. Personal threads are outside shop scope and private from the employer (the scope is the user id; a Foreman, Poster or the Support Log never reads them); the QR carries an opaque, revocable token (SHA-256 at rest), never a user id or shop; a blocked sender is dropped silently (no 403 reveals a block); Contact Threads are translated into each person's own language; Talk Threads never notify and never reach push; at the per-user daily AI cap the original text comes back untranslated, never a 5xx. All shapes below are PROPOSALS written from the Android Fake repositories: change a name if your code prefers another, then say so in the Fulfillment block and the app follows. Envelope, camelCase, string ids, cursor lists and `Idempotency-Key` on creates as everywhere else.
+
+**1. My QR and Contacts (smallest; no AI; do first)**
+| Route | Body or query | Success `data` | Errors |
+| :-- | :-- | :-- | :-- |
+| `POST /api/me/qr` (get or rotate) | `{ "rotate": false }` | `{ "token": "opaque-32-chars", "createdAt": "…Z" }` | n/a |
+| `GET /api/contacts/resolve?token=` | n/a | `{ "displayName": "Rahim", "language": "bn" }` (never an id or shop; rate-limited) | 404 unknown or revoked token, 429 |
+| `POST /api/contacts` | `{ "token": "…" }` (Idempotency-Key) | `{ "id": "7", "displayName": "Rahim", "language": "bn", "createdAt": "…Z" }` | 404 token, 409 already a Contact, 403 not allowed (own token) |
+| `GET /api/contacts` | `?cursor=&limit=` | `{ "items": [{ "id","displayName","language","muted","lastMessageAt","unread" }], "nextCursor": null }` | n/a |
+| `PUT /api/contacts/{id}` | `{ "muted": true, "hidden": false }` | the contact | 404 |
+| `POST /api/blocks` | `{ "contactId": "7" }` | `{}` | 404 |
+| `DELETE /api/blocks/{contactId}` | n/a | `{}` | 404 |
+
+**2. Contact Threads (private chat between two Contacts, translated per side)**
+| Route | Body | Success `data` | Notes |
+| :-- | :-- | :-- | :-- |
+| `GET /api/contacts/{id}/messages` | `?after=<messageId>&limit=` and `If-None-Match` | `{ "items": [{ "id","fromMe","textSrc","srcLang","text","createdAt" }], "nextCursor": null }` (`text` is in the reader's language) | ETag and 304 like Chat; 404 for a block or removed Contact |
+| `POST /api/contacts/{id}/messages` | `{ "text": "…", "lang": "bn" }` (Idempotency-Key; rate-limited) | the message as the sender sees it | a blocked sender still gets 201 and nothing is delivered |
+Push (XREQ-014): a new Contact message sends one generic push "New message from <name>" with NO message text; ids only in the data payload.
+
+**3. Talk Threads (owner-only notebook about a real-life conversation; AI inline). Needs Galib for the two pipelines.**
+| Route | Body | Success `data` |
+| :-- | :-- | :-- |
+| `GET /api/talk-threads` | `?cursor=` | `{ "items": [{ "id","title","updatedAt","entryCount" }], "nextCursor": null }` |
+| `POST /api/talk-threads` | `{ "title": "Elderly 1" }` (1 to 40 chars, Idempotency-Key) | the thread |
+| `PATCH /api/talk-threads/{id}` | `{ "title": "…" }` | the thread |
+| `DELETE /api/talk-threads/{id}` | n/a | `{}` (hard delete with all entries) |
+| `GET /api/talk-threads/{id}/entries` | `?cursor=` | `{ "items": [Entry], "nextCursor": null }` |
+| `POST /api/talk-threads/{id}/entries` | `{ "text": "…" }` or an audio upload (Idempotency-Key) | `Entry` |
+| `PATCH /api/talk-threads/{id}/entries/{entryId}` | `{ "ownText": "…" }` (own understanding), or `{ "replyJa": "…" }`, or `{ "confirmed": true }` | `Entry` (re-graded when `ownText` changes) |
+| `DELETE /api/talk-threads/{id}/entries/{entryId}` | n/a | `{}` |
+`Entry` = `{ "id", "transcript", "plainJa", "meaning" (owner's language), "terms": [{ "dialect","plain","meaning" }], "needsStaff": true|false (a deterministic rule, not the model), "ownText": null, "grade": null|"green"|"orange"|"red", "replyOptions": ["…"], "replyJa": null, "confirmed": null|true|false, "createdAt" }`. AI pipelines named in the handoff: `explain_utterance` (transcript to plainJa, meaning, terms; Kyushu dialect aware) and `grade_understanding` (ownText against meaning). On AI failure return the entry with `transcript` only and `needsEdit: true`, never a 500, as everywhere. The prototype logic to mirror is `prototypes/wakatta/parts/D.js` (`UTTER`, `grade`, `exCard`, `renderPchat`).
+
+**4. Group controls on work Threads (shop scope; extends XREQ-005)**
+`POST /api/threads` `{ "title","description","memberIds":[…],"announceOnly":false }` (Foreman; Idempotency-Key) · `GET /api/threads/{id}` (header and members: `{ "id","title","description","announceOnly","locked","members":[{ "userId","displayName","role":"admin|member","joinedAt" }] }`) · `PATCH /api/threads/{id}` `{ "title","description","announceOnly" }` (`409 THREAD_LOCKED` for a locked thread) · `POST /api/threads/{id}/members` `{ "userIds":[…] }` · `PATCH /api/threads/{id}/members/{userId}` `{ "role" }` (a thread keeps at least one Foreman admin: 409) · `DELETE /api/threads/{id}/members/{userId}` (soft removal; history stays; a new member sees messages from the join time) · `PUT /api/threads/{id}/me` `{ "muted","pinned","archived" }` · `POST /api/threads/{id}/leave` (409 `THREAD_LOCKED`). Workers get 403 on member changes. In an announce-only thread a Worker cannot post but can still answer Checks. System messages have `kind: "system"` with `{ event, actorId, subjectId }`; the client renders the text per language. Mute is notification-only: Nudge and Check deadlines ignore it.
+
+**Notification list.** Decided push-only on your side (XREQ-009): the Android app keeps a local list built from the pushes it received; nothing to build.
+
+**Also please** (small): fill the Fulfillment block of XREQ-010 items 1-3 as "moved to XREQ-017", and answer Q-04 of `docs/MOBILE_API_CONTRACT.md` (which route a Worker uses to ask the Foreman a term-linked question, kind `ask`) in your next log entry. A reply of "later" for any item is fine; say which, and the app keeps the Fake and shows nothing broken.
+
+**Expected Request (Payload / Query Params / Headers):**
+```json
+{ "token": "opaque-string-from-the-scanned-qr" }
+```
+
+**Expected Response (Status Code + Payload / Error Codes):**
+```json
+{ "success": true, "data": { "id": "7", "displayName": "Rahim", "language": "bn", "createdAt": "2026-11-23T10:00:00Z" } }
+```
 
 **Fulfillment & Proof (filled by recipient on completion):**
 - **Branch / Commit**: 

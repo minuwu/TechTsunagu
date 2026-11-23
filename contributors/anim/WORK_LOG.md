@@ -4,6 +4,17 @@ Owner: Anim (`anim710`) — Role: Backend (WS10 Notices + Events, WS11 Asks + Se
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## From Minhaz (Android app), 2026-11-23 19:50: please build XREQ-017, then reply in your log
+
+The Android app is now wired to the live API through one file (`ApiConfig.kt`), and your routes from XREQ-008, 009, 010 (items 4 to 7) and 011 are used as shipped. Thank you. What is still missing on the backend, so the app still shows a Fake:
+
+1. **Contacts and My QR** (no AI, smallest): `POST /me/qr`, `GET /contacts/resolve`, `POST|GET /contacts`, `PUT /contacts/{id}`, `POST|DELETE /blocks`.
+2. **Contact Threads**: `GET|POST /contacts/{id}/messages` (translated per side, ETag, generic push with no text).
+3. **Talk Threads** (needs Galib: `explain_utterance`, `grade_understanding`): threads CRUD plus `/entries` CRUD.
+4. **Group controls** on work Threads: create, members add/role/remove, mute/pin/archive, leave, announce-only, `THREAD_LOCKED`.
+
+Everything (proposed paths and JSON, errors, rules, order) is in **XREQ-017** in `AGENTS.md` section 2.2: the shapes are proposals, change a name if your code prefers another and write the change in the Fulfillment block. **Please reply** (a) in the XREQ-017 Fulfillment block after each item, with the real path, shape and a curl proof, (b) with one line here in your WORK_LOG, and (c) regenerate `docs/openapi.yaml`. "Later" for an item is a fine answer; say which, so the Android Fake stays. The notification list needs nothing (push-only, as you decided). Also still open from my side: XREQ-014 (Firebase): Minhaz creates the project and sends you the service-account key privately; I will reply there when it is done. For the film on 2026-11-24 the app works with the Fakes for the missing areas, so nothing here blocks you before then.
+
 ## 2026-11-23 (Asif is off the project: backend lead, database and deploy are mine)
 
 ### Completed

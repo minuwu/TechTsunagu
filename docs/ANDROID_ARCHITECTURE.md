@@ -14,6 +14,8 @@ Terms are those of `GLOSSARY.md` (Foreman, Worker, Check, Sign-off, Lock, Ready,
 4. Push: a Contact Thread message sends a generic "New message from <name>" with no message text; Talk Threads never notify.
 5. Up to 6 work packages run at the same time (section 5.4).
 6. The app must be fast on low-end phones: section 6 is a hard requirement and every feature package carries a `PERF-DW` Done-when line.
+7. Room 2.8.5 (not Room 3), primary blue `#1f63b5`, and no Poster role in the app for now (O-3, O-5, O-6).
+8. **The backend is live (2026-11-23)**: the app is wired to the hosted API. One file, `android/core/network/.../ApiConfig.kt`, holds the base URL and every endpoint path; no other file may contain the host or an `/api/...` literal (a unit test checks it). Real repositories replace the Fakes area by area; an area with no backend route yet keeps its Fake. This overrides decision 3 above and the mock-mode release in section 5.5.
 
 ## 0. Critique of the draft scaffold brief (`scaffold.md`) and what changes
 
@@ -469,10 +471,10 @@ No measurement exists yet; the figures below are proposals set by the architect 
 | :-- | :--- | :--- |
 | O-1 | applicationId | **Decided: `com.techtsunagu.wakatta`, final** (user, 2026-11-23). Package root `com.techtsunagu.wakatta`. |
 | O-2 | Which real low-end phone is reference device R1, and is minSdk 26 acceptable (Android 8.0)? Device coverage of Android 7 and lower was not checked. | Pick one or two phones the team owns; keep 26. |
-| O-3 | Posters. The prototype guards `notice-new` with `isPoster = () => FM`, but the backend has a separate Poster role (district code, 6-digit PIN) and the Foreman cannot create Notices (`BACKEND_ARCHITECTURE.md` 3.2). Does the app sign in Posters? | Yes: add role `poster` to sign-in and give `notice-new` to it; the Foreman sees Notices read-only. |
+| O-3 | Posters. **Decided 2026-11-23 (user): Foreman and Worker only for now.** Notice posting stays hidden in the app until the backend settles who may post (XREQ-011 item 3); a Poster login is a later package. | `notice-new` is built behind a role check that is false for both roles. |
 | O-4 | Machine Panel device mode ("Use this device as the Panel", token kind panel, 180 days)? | In scope for `panel`, as a second session in `PanelTokenStore`. |
-| O-5 | Room 3.0.3 (young, Kotlin and coroutines only) or Room 2.8.5 (proven)? | Room 3; fall back to 2.8.5 if WP-0A or WP-0D hits a blocker. |
-| O-6 | Primary blue: the prototype uses `#1f63b5`; the brand kit (ADR 0013) has cobalt `#1351AA` and an alternate `#246DD4`. | Brand cobalt for the app theme, prototype tokens for everything else. |
+| O-5 | **Decided 2026-11-23 (user): Room 2.8.5** (`androidx.room:room-runtime`, `room-ktx`, `room-compiler` via KSP, plugin `androidx.room`, `exportSchema` to `schemaDirectory`). Room 3.0.3 is not used. | Wherever this document says Room 3, `androidx.room3` or `room3-*`, read Room 2.8.5 and `androidx.room`. The two-table design (D-04) is unchanged. |
+| O-6 | **Decided 2026-11-23 (user): primary blue is the prototype's `#1f63b5`.** The brand cobalt `#1351AA` is not used for the app theme; the Nekko vectors keep their own colours (ADR 0013). | Theme tokens come from `skeleton.html` `:root` unchanged. |
 | O-7 | Who creates the Firebase project and holds `google-services.json`? Until then no push (the build works without it). | Lead creates it; file stays out of the repo unless the lead decides otherwise. |
 | O-8 | Foreman-only features with no prototype screen: account management (`/workers`, `/foremen`), recording and approving a Note. | Out of the first release. |
 | O-9 | Support Log on the phone: CSV download and share only, or a JSON preview endpoint? | CSV only; the preview in the prototype (`logData`) waits for a backend ask. |
