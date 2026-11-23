@@ -29,7 +29,7 @@ guides, with proof of where each answer comes from.
    - MHLW's manufacturing safety manual (work safety),
    - ISA's *Guidebook on Living and Working* (life in Japan: garbage, disasters, hospitals, procedures).
 
-It answers in **Japanese and the Worker's language** (for the demo shop: Bengali and English).
+It answers in **Japanese and the Worker's language** (the demo shops are Japanese + English only: Bengali was dropped).
 
 ## 3. The four things a Worker can see (your screen states)
 
@@ -58,7 +58,7 @@ Response `data` (`KnowledgeAnswer` in `docs/openapi.yaml`; generate types as usu
 ```json
 { "question": "Why must I stop the machine before cleaning it?",
   "covered": true, "emergency": false,
-  "answer": { "ja": "機械を掃除するときは…", "bn": "…", "en": "Be sure to completely stop the machine before cleaning it. …" },
+  "answer": { "ja": "機械を掃除するときは…", "en": "Be sure to completely stop the machine before cleaning it. …" },
   "sources": [ { "id": "mhlw-safety:p15:1", "kind": "safety", "title": "For Work Safety and Health: …",
                  "page": 15, "url": "https://www.mhlw.go.jp/…/0000148471.pdf",
                  "attribution": "出典：厚生労働省「…」… をもとに Wakatta? が抜粋・要約" } ],
