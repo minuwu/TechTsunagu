@@ -65,9 +65,15 @@ class Api:
         return self._data(self.http.get(path, headers=headers))
 
     def post_form(self, path: str, headers: dict[str, str], form: dict[str, str]) -> tuple[Json, float]:
-        start = time.monotonic()
-        r = self.http.post(path, headers=headers | {"Idempotency-Key": str(uuid.uuid4())}, data=form)
-        return self._data(r), time.monotonic() - start
+        """Waits out the per-minute AI allowance of one user (architecture §10.3); the daily one ends the run."""
+        sent = headers | {"Idempotency-Key": str(uuid.uuid4())}
+        while True:
+            start = time.monotonic()
+            r = self.http.post(path, headers=sent, data=form)
+            wait = int(r.headers.get("Retry-After", "0")) if r.status_code == 429 else 0
+            if not 0 < wait <= 60:
+                return self._data(r), time.monotonic() - start
+            time.sleep(wait)
 
     @staticmethod
     def _data(r: httpx2.Response) -> Any:
