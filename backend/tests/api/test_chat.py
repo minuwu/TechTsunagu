@@ -76,7 +76,8 @@ def line(client: TestClient, db: Session) -> Line:
 def draft_answer(line: Line) -> Json:
     return {
         "transcript_ja": "明日の朝8時から、2号プレスの金型交換をします。",
-        "text": _tri("明日8時に金型交換"),
+        # the glossary lock (message_problems) needs 金型's fixed translations: ডাই, die
+        "text": {"ja": "明日8時に金型交換", "bn": "কাল ৮টায় ডাই বদল", "en": "Die change tomorrow at 8"},
         "questions": [
             _q("金型", "何を交換しますか?", ["金型", "電源", "手袋"]),
             _q(None, "何時?", ["8時", "9時", "10時"]),
@@ -163,7 +164,8 @@ def test_a_reexplanation_reaches_one_worker_and_closes_the_follow_up(
 ) -> None:
     sent = _sent(client, line, fake_ai)
     client.post(f"/api/messages/{sent['id']}/answers", headers=line.rahim, json={"answers": [2, 0]})
-    fake_ai.queue("reexplain", {"text": _tri("金型は型です"), "question": _q("金型", "金型は?", ["型", "油", "靴"])})
+    text = {"ja": "金型は型です", "bn": "ডাই হলো ছাঁচ", "en": "The die is the mould"}  # fixed translations kept
+    fake_ai.queue("reexplain", {"text": text, "question": _q("金型", "金型は?", ["型", "油", "靴"])})
 
     body = {"userId": str(line.rahim_id), "termJa": "金型"}
     res = client.post(f"/api/messages/{sent['id']}/reexplain", headers=line.foreman, json=body)
