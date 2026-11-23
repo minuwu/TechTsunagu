@@ -66,6 +66,7 @@ This file is:
 | `XREQ-009` | P1 | Frontend (Minhaz, Android app) | Backend (Asif) | App platform routes: `GET /app/config` (version gate), device registration, notification list, photo limits | `[PENDING]` | 2026-11-23 08:25 |
 | `XREQ-010` | P1 | Frontend (Minhaz, Android app) | Backend (Anim, Asif) | Personal side: Contacts, My QR, Talk Threads, group controls, Periodic Interviews, Today's Word, Near-miss | `[PENDING]` | 2026-11-23 08:25 |
 | `XREQ-011` | P2 | Frontend (Minhaz, Android app) | Backend (Anim), AI (Galib) | Gaps in live routes: Worker reads, ETag and Idempotency-Key, get-one Notice, Glossary PATCH, analytics, per-shop AI languages, XREQ status upkeep | `[PENDING]` | 2026-11-23 08:25 |
+| `XREQ-012` | P1 | Backend (Anim, database) | Backend (Asif, deploy) | Point the Azure API at the Supabase database (`backend/deploy/SUPABASE.md`), reseed, smoke, then delete Azure PostgreSQL | `[PENDING]` | 2026-11-23 17:30 |
 
 *(When adding a request: append a row above AND add a detailed card in 2.2. Never insert in the middle.)*
 
@@ -484,6 +485,36 @@ GET /api/tasks?machineId={id}
 **Expected Response (Status Code + Payload / Error Codes):**
 ```json
 { "success": true, "data": { "items": [], "nextCursor": null } }
+```
+
+**Fulfillment & Proof (filled by recipient on completion):**
+- **Branch / Commit**: 
+- **Status / Notes**: 
+- **Verification Proof**: 
+
+#### `[XREQ-012]` Point the Azure API at the Supabase database
+- **Priority**: `P1 (High)`
+- **From**: `Backend (Anim, database)`
+- **To**: `Backend (Asif, deploy)`
+- **Status**: `[PENDING]`
+- **Created**: `2026-11-23 17:30 (UTC+6)`
+- **Target Interface / Endpoint**: Azure Container App secrets and env; no code change in `jobs/`
+
+**Requirement Details:**
+Team decision 2026-11-23: Anim owns the database and it moves to Supabase (free project `wakatta`, ref `jpajxyejcbtfivrylcaf`, Tokyo); the API stays on Azure. The project is ready and rehearsed (roles, migrations up/down/up on Postgres 17, seed, smoke 13/13 through the pooler, Data API roles locked out). Steps, values and checks: [backend/deploy/SUPABASE.md](backend/deploy/SUPABASE.md) "Cutover".
+1. Get the Supabase database password from Anim privately (not in git or chat logs).
+2. Set the Container App secrets/env as the runbook lists: the **session pooler** host `aws-0-ap-northeast-1.pooler.supabase.com:5432`, usernames `<role>.jpajxyejcbtfivrylcaf`, **`DB_NAME=postgres`**, `ADMIN_USER=postgres`, new `OWNER_PASSWORD` / `APP_PASSWORD`, `SEED_ON_START=reset` for one revision.
+3. After the first boot remove `ADMIN_DATABASE_URL` and `SEED_ON_START`; run `uv run python scripts/smoke.py https://<api-host> --origin https://<frontend-origin>`.
+4. When the smoke is all PASS, delete the Azure PostgreSQL server (decided 2026-11-23).
+
+**Expected Request (Payload / Query Params / Headers):**
+```
+DATABASE_URL=postgresql+psycopg://wakatta_app.jpajxyejcbtfivrylcaf:<app pw>@aws-0-ap-northeast-1.pooler.supabase.com:5432/postgres?sslmode=require
+```
+
+**Expected Response (Status Code + Payload / Error Codes):**
+```
+scripts/smoke.py → "13/13 passed" (with --origin)
 ```
 
 **Fulfillment & Proof (filled by recipient on completion):**

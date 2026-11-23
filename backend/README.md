@@ -15,6 +15,8 @@ uv run ruff check . && uv run ruff format --check . && uv run pyright   # lint, 
 
 API docs while running: `http://localhost:8000/api/docs`.
 
+Hosted database: Supabase, see [deploy/SUPABASE.md](deploy/SUPABASE.md) (project, pooler, roles, cutover, checks).
+
 ### Local PostgreSQL (no Docker needed)
 
 Any PostgreSQL 16 works. On Windows without Docker, the official [EDB binaries zip](https://www.enterprisedb.com/download-postgresql-binaries) unzipped to a folder is enough:
