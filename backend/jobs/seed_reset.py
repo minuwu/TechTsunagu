@@ -1,4 +1,5 @@
-"""Resets the demo: truncates every table and loads the demo data (`python /app/jobs/seed_reset.py`, the wakatta-seed job).
+"""Resets the demo: truncates every table and loads the demo data
+(`python /app/jobs/seed_reset.py`, the wakatta-seed job).
 Needs MIGRATION_DATABASE_URL (the owner) and PIN_PEPPER. Run it again whenever the demo should start from scratch."""
 
 import runpy
