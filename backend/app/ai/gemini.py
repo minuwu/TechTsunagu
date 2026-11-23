@@ -5,15 +5,21 @@ import logging
 from google import genai
 from google.genai import errors, types
 
-from app.ai.client import AiUnavailable, Part, Prompt, QuotaExhausted
+from app.ai.client import AiUnavailable, Overloaded, Part, Prompt, QuotaExhausted
 
 _log = logging.getLogger("wakatta.ai")
 # Safari records audio/mp4, which Gemini does not list; the same AAC data is accepted as audio/m4a (Galib, point 1).
 _MIME_ALIASES = {"audio/mp4": "audio/m4a"}
 
 
-def _is_daily_quota(exc: errors.APIError) -> bool:
-    return exc.code == 429 and "PerDay" in str(exc)  # the quota id, e.g. GenerateRequestsPerDayPerProject…
+def map_error(model: str, exc: errors.APIError) -> AiUnavailable:
+    """Daily 429 → QuotaExhausted (skip the model for the day); per-minute 429 or 5xx → Overloaded (one retry);
+    anything else (400, 404 unknown model, 403 key) → AiUnavailable (next model at once)."""
+    if exc.code == 429 and "PerDay" in str(exc):  # the quota id, e.g. GenerateRequestsPerDayPerProject…
+        return QuotaExhausted(f"{model}: daily quota used up")
+    if exc.code == 429 or exc.code >= 500:  # Galib's live check: 3.8 Flash answered 503 "high demand" twice
+        return Overloaded(f"{model}: HTTP {exc.code}")
+    return AiUnavailable(f"{model}: HTTP {exc.code}")
 
 
 class GeminiClient:
@@ -36,9 +42,7 @@ class GeminiClient:
                 model=self.model, contents=contents, config=config
             )
         except errors.APIError as exc:
-            if _is_daily_quota(exc):
-                raise QuotaExhausted(f"{self.model}: daily quota used up") from exc
-            raise AiUnavailable(f"{self.model}: HTTP {exc.code}") from exc
+            raise map_error(self.model, exc) from exc
         except Exception as exc:  # network errors and timeouts surface as several types; all mean "fall back"
             _log.warning("gemini call failed", exc_info=exc)
             raise AiUnavailable(f"{self.model}: {type(exc).__name__}") from exc

@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from sqlalchemy.orm import Session, sessionmaker
 
+from app.ai.chain import CHAINS
 from app.ai.client import AiClient
 from app.ai.fake import FakeAiClient
 from app.ai.gemini import GeminiClient
@@ -17,13 +18,20 @@ from app.api.limits import BodyLimitMiddleware
 from app.config import Settings
 from app.db import make_engine, make_session_factory
 from app.routers import auth, health, life, support, users, work
-from app.services.ai_runner import AiLimits, AiRunner
+from app.services.ai_runner import AiLimits, AiRunner, ChainLink
 
 
-def _ai_client(settings: Settings) -> AiClient:
+def _ai_chain(settings: Settings) -> AiClient | list[ChainLink]:
     if settings.ai_mode == "gemini" and settings.gemini_api_key is not None:
         key = settings.gemini_api_key.get_secret_value()
-        return GeminiClient(key, settings.gemini_model, settings.ai_timeout_seconds)
+        timeout = settings.ai_timeout_seconds
+        if settings.gemini_model:  # one pinned model, with the single-model limits
+            client = GeminiClient(key, settings.gemini_model, timeout)
+            return [ChainLink(client, settings.ai_daily_budget, settings.ai_per_minute)]
+        return [
+            ChainLink(GeminiClient(key, spec.name, timeout), spec.daily_budget, spec.per_minute)
+            for spec in CHAINS[settings.ai_chain]
+        ]
     return FakeAiClient()  # development: nothing scripted, so every AI step takes the fallback path
 
 
@@ -38,7 +46,7 @@ def create_app(
     engine = None if session_factory else make_engine(settings.database_url)
     factory = session_factory or make_session_factory(engine)  # pyright: ignore[reportArgumentType]
     limits = AiLimits(settings.ai_max_concurrent, settings.ai_per_minute, settings.ai_daily_budget, wait_seconds=10)
-    runner = AiRunner(ai_client or _ai_client(settings), factory, limits)
+    runner = AiRunner(ai_client or _ai_chain(settings), factory, limits)
 
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncGenerator[None]:

@@ -4,6 +4,13 @@ Owner: Arjun Saha (GitHub handle TBD) — Role: Frontend design
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-23 (AI model chain, helping Galib)
+
+### Done
+- **Model chain for the AI runner** (branch `arjun/ai-model-chain`, PR for Galib and Asif). Galib's live check showed 3.8 Flash answering 503 "high demand", and the runner called that one model only, so a busy or used-up Flash turned every AI step into a degraded draft. Now `AI_CHAIN=dev|demo` (`app/ai/chain.py`, AI_PLAN.md §2–§4): per-model budget and per-minute bucket; a busy model (503, per-minute 429) gets one jittered retry; a timeout or other error moves on; a daily 429 marks it exhausted; the next model answers. Cache looked up under every model; `AiResult.model` says who answered. `GEMINI_MODEL` still pins one model.
+- Implements XREQ-003 items 1–3 as proposed; it does **not** resolve XREQ-003 (Asif decides). Groq Whisper (`GROQ_API_KEY`, `httpx`) is left for Asif's dependency call.
+- Check: ruff, ruff format, pyright (0 errors), import contracts (4 kept). 11 new tests (chain behaviour, Gemini error mapping); pytest runs in CI only: Application Control on this laptop blocks uv's Python 3.12 `_ssl` DLL and the portable PostgreSQL.
+
 ## 2026-11-23 (desktop layouts, v3)
 
 ### Done

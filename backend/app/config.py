@@ -5,6 +5,8 @@ from typing import Annotated, Literal, Self
 from pydantic import Field, SecretStr, StringConstraints, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from app.ai.chain import ChainName
+
 # An exact origin for CORS: scheme and host[:port], no path, no wildcard.
 Origin = Annotated[str, StringConstraints(pattern=r"^https?://[^/\s*]+$")]
 
@@ -22,7 +24,10 @@ class Settings(BaseSettings):
     # AI (architecture §10). `fake` by default: real calls only when someone sets AI_MODE=gemini and a key.
     ai_mode: Literal["fake", "gemini"] = "fake"
     gemini_api_key: SecretStr | None = None
-    gemini_model: str = "gemini-3.8-flash"
+    # The model chain (app/ai/chain.py, AI_PLAN.md §2): `dev` = the Flash-Lites, `demo` = 3.8 Flash first
+    ai_chain: ChainName = "dev"
+    # One model instead of the chain (e.g. to score a single model in the eval); uses the two limits below
+    gemini_model: str | None = None
     ai_timeout_seconds: int = 45
     ai_max_concurrent: int = 2
     ai_per_minute: int = 4

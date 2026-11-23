@@ -10,9 +10,8 @@ Scripted = Mapping[str, object] | Exception
 
 
 class FakeAiClient:
-    model = "fake"
-
-    def __init__(self, script: Mapping[str, Sequence[Scripted]] | None = None) -> None:
+    def __init__(self, script: Mapping[str, Sequence[Scripted]] | None = None, model: str = "fake") -> None:
+        self.model = model  # tests name several fakes to stand in for a model chain
         self._script = {name: deque(answers) for name, answers in (script or {}).items()}
         self.calls = 0
         self.last_prompt_text = ""

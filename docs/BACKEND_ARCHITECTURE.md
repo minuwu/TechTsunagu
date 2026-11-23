@@ -564,7 +564,7 @@ Each pipeline owns: cache lookup → limiter → model call → schema parse →
 | Timeout | `AI_TIMEOUT_SECONDS=45` per call | fallback |
 
 - Retry once with jitter on a Gemini 429 or 5xx that is per-minute or transient. **Never retry a 429 that means the daily quota is used up**: mark `ai_usage` as exhausted for the day and go straight to the fallback. The same applies to the validation retry, which spends a second call.
-- **Model split:** `GEMINI_MODEL` (filmed takes and the live demo: `gemini-3.8-flash`, about 20 calls a day) and `GEMINI_MODEL_DEV` (prompt work: `gemini-3.5-flash-lite`, about 500 a day). These are Galib's numbers, read from AI Studio on 2026-11-22; recheck on the day.
+- **Model chain** ([AI_PLAN.md](../contributors/galib/AI_PLAN.md) §2–§4, `app/ai/chain.py`): `AI_CHAIN=dev` (3.5 → 3.1 Flash-Lite, 450 a day each) or `demo` (3.8 Flash → 3.6 Flash, 18 a day each → the Flash-Lites). Each model has its own budget and per-minute bucket. A busy model (503, per-minute 429) gets one jittered retry, a timeout or other error moves on at once, a daily 429 marks it exhausted; then the next model answers. The cache is looked up under every model of the chain. `GEMINI_MODEL` pins one model instead (it uses `AI_DAILY_BUDGET` and `AI_PER_MINUTE`). Numbers from Galib's AI Studio check on 2026-11-22; recheck on the day.
 - The limiter is in memory, which is correct only because the API runs exactly one replica (§15). The daily budget is in Postgres, so a restart cannot reset it.
 
 ### 10.4 Fallback ladder (G-32)
@@ -671,7 +671,7 @@ Coverage target 80% on `domain`, `services`, `repositories`, `ai` (G-22). CI `ba
 | Seed | `python -m app.seed --reset` via `az containerapp exec`, again before filming | — |
 
 ### 15.2 Demo-day checklist
-- `AI_MODE=gemini`, `GEMINI_MODEL` set, `ai_cache` holds every filmed take, `ai_usage` checked that morning (the quota resets at 14:00 Bangladesh time).
+- `AI_MODE=gemini`, `AI_CHAIN=demo` (and no `GEMINI_MODEL`), `ai_cache` holds every filmed take, `ai_usage` checked that morning (the quota resets at 14:00 Bangladesh time).
 - min = max = 1 replica; `/api/health/ready` green; seed reset; Panel token issued on the tablet.
 
 ### 15.3 Scaling past one replica (not needed for the hackathon)

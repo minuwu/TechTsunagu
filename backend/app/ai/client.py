@@ -12,6 +12,10 @@ class QuotaExhausted(AiUnavailable):
     """The model's daily quota is used up: never retried, and the rest of the day goes straight to the fallback."""
 
 
+class Overloaded(AiUnavailable):
+    """Busy for now (a 5xx such as 503 "high demand", or the per-minute 429): one short retry, then the next model."""
+
+
 @dataclass(frozen=True)
 class Prompt:
     name: str
