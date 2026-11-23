@@ -4,6 +4,21 @@ Owner: Arjun Saha (GitHub handle TBD) — Role: Frontend design
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-23 (Nagasaki porcelain redesign, branch `feat/techtsunagu-ui`)
+
+### Done (each milestone pushed; PR not opened yet)
+- M0 tokens: Porcelain by day (default), harbour night after dark, Site cobalt `#1351AA` as the one action colour, sea-glass for Life, vermilion as a seal accent only (red means Lock here). One `useTheme()` hook. [docs/design-system.md](../../docs/design-system.md).
+- M1 shell: Manrope for Latin ahead of Noto Sans JP (F-09 note updated), footer, navy header.
+- M2 signature moment: the Panel plays the brand `machine-unlock` Lottie on a live Locked to Ready change; the Worker's phone stamps `understood-stamp`; `check-wrong` on a fail (`lottie-web` light player, lazy).
+- M3 brand: favicons, manifest, theme colour, share cards; Nekko role art on the hub, PIN gates and 404.
+- M4 states: connection band (error / offline) with retry, Panel UNKNOWN, empty states; demo switcher `?demo=loading|empty|error|live` (mock only).
+- M5 responsive: no overflow at 375 / 430 / 768 / 1024 / 1440; 44 px targets on the Board links; tablet Foreman tabs wrap.
+- M6: axe clean on every screen in both themes and the error states; merged `main` (no conflicts); e2e 11/11.
+
+### Next
+- Open the PR from `feat/techtsunagu-ui` (description in the session handoff); Minhaz reviews the default-theme change (v3 night to porcelain) and the brand wiring.
+- Native check of the new ja / bn strings (data_error, data_offline, panel_unknown, board_empty, hub_empty, demo_*).
+
 ## 2026-11-23 (motion: Lenis, GSAP, Vanta in v3)
 
 ### Done

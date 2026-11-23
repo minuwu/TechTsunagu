@@ -1,6 +1,9 @@
+import { useState } from 'react'
 import { pick } from '@/domain/wakatta'
-import { usePanel } from '@/features/panel'
+import { usePanel, type PanelState } from '@/features/panel'
 import { m } from '@/i18n/paraglide/messages'
+import { Mark } from '@/ui/v3/components/Icon'
+import { Moment } from '@/ui/v3/components/Moment'
 import { StatePlate } from '@/ui/v3/components/StatePlate'
 import { statusLabel } from '@/ui/v3/components/StatusChip'
 import { uiLang } from '@/ui/v3/lib/format'
@@ -8,10 +11,40 @@ import { uiLang } from '@/ui/v3/lib/format'
 /** Machine Panel: the tablet beside the Machine. Software lock only (ADR 0003). */
 export function PanelScreen() {
   const p = usePanel()
+  // The signature moment: only a live change from Locked to Ready plays the unlock, never a page load
+  const [seen, setSeen] = useState<PanelState>(p.state)
+  const [unlocked, setUnlocked] = useState(false)
+  if (seen !== p.state) {
+    setSeen(p.state)
+    setUnlocked(seen === 'locked' && p.state === 'ready')
+  }
   if (p.loading)
     return (
       <div aria-busy="true" className="skeleton min-h-[60vh] rounded-lg">
         <span className="sr-only">{m.loading()}</span>
+      </div>
+    )
+  if (p.unknown)
+    return (
+      <div className="space-y-4">
+        <h1 className="display text-3xl sm:text-4xl">{m.hub_panel()}</h1>
+        <div role="status" aria-live="polite">
+          <StatePlate
+            state="idle"
+            size="lg"
+            className="min-h-[55vh]"
+            label={m.panel_unknown_word()}
+            art={
+              <span className="grid size-24 shrink-0 place-items-center rounded-full bg-card text-warning sm:size-28">
+                <Mark id="alert" className="size-12 sm:size-14" />
+              </span>
+            }
+          >
+            <p className="text-xl font-bold text-foreground">
+              {m.panel_unknown()}
+            </p>
+          </StatePlate>
+        </div>
       </div>
     )
   if (p.notFound || !p.machine) return <p>{m.machine_not_found()}</p>
@@ -21,7 +54,18 @@ export function PanelScreen() {
         {pick(p.machine.name, uiLang())}
       </h1>
       <div role="status" aria-live="polite">
-        <StatePlate state={p.state} size="lg" className="min-h-[55vh]">
+        <StatePlate
+          state={p.state}
+          size="lg"
+          className="min-h-[55vh]"
+          art={
+            unlocked ? (
+              <span className="grid size-44 shrink-0 place-items-center rounded-full bg-card shadow-[var(--shadow-md)] sm:size-56">
+                <Moment id="machine-unlock" className="w-[85%]" />
+              </span>
+            ) : undefined
+          }
+        >
           {p.worker && (
             <p className="text-2xl font-bold sm:text-3xl">
               {p.worker.name}

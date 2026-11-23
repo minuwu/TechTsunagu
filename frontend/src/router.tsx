@@ -1,12 +1,20 @@
 import { QueryClient } from '@tanstack/react-query'
 import { createRouter } from '@tanstack/react-router'
 import { setupRouterSsrQueryIntegration } from '@tanstack/react-router-ssr-query'
+import { ApiError } from './services/api'
 import { routeTree } from './routeTree.gen'
 
 export function getRouter() {
   // One QueryClient per SSR request, never at module scope (S-17)
   const queryClient = new QueryClient({
-    defaultOptions: { queries: { staleTime: 30_000 } },
+    defaultOptions: {
+      queries: {
+        staleTime: 30_000,
+        retry: (count, error) =>
+          !(error instanceof ApiError && error.code === 'DEMO_UNAVAILABLE') &&
+          count < 3,
+      },
+    },
   })
   const router = createRouter({
     routeTree,

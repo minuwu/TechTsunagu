@@ -95,9 +95,7 @@ test('every demo screen renders cleanly', async ({ page }) => {
 test('flyer notice reaches the Worker and Ask cites it', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: 'Reset demo' }).click()
-  await page.goto('/community')
-  await page.getByLabel('4-digit PIN').fill('5678')
-  await page.getByRole('button', { name: 'Open' }).click()
+  await unlock(page, '/community', '5678')
   await page
     .getByRole('button', { name: 'Use the sample garbage flyer' })
     .click()
@@ -118,9 +116,7 @@ test('flyer notice reaches the Worker and Ask cites it', async ({ page }) => {
 test('publishing a new version locks the Machine again', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: 'Reset demo' }).click()
-  await page.goto('/foreman/record/m-plasma')
-  await page.getByLabel('4-digit PIN').fill('1234')
-  await page.getByRole('button', { name: 'Open' }).click()
+  await unlock(page, '/foreman/record/m-plasma', '1234')
   await page.getByRole('button', { name: 'Use the sample take' }).click()
   await page.getByRole('button', { name: 'Next: confirm' }).click()
   await page.getByRole('button', { name: 'Approve and publish' }).click()

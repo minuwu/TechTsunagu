@@ -6,6 +6,7 @@ import { m } from '@/i18n/paraglide/messages'
 import { ScreenSkeleton, Steps } from '@/ui/v3/components/Feedback'
 import { Card, PageTitle } from '@/ui/v3/components/Card'
 import { Icon, Mark } from '@/ui/v3/components/Icon'
+import { Moment } from '@/ui/v3/components/Moment'
 import { LangToggle } from '@/ui/v3/components/LangToggle'
 import { Question } from '@/ui/v3/components/Question'
 import { StatusChip } from '@/ui/v3/components/StatusChip'
@@ -154,6 +155,7 @@ export function MachineScreen() {
         </Card>
       ) : c.result?.passed ? (
         <Card tone="success" title={m.passed_title()} id="result">
+          <Moment id="understood-stamp" className="mx-auto mb-2 w-40 sm:w-48" />
           <StatePlate state="ready" className="mb-4">
             <span className="font-bold">{c.worker.name}</span>
           </StatePlate>
@@ -168,6 +170,7 @@ export function MachineScreen() {
         </Card>
       ) : (
         <Card tone="danger" title={m.failed_title()} id="result">
+          <Moment id="check-wrong" className="mx-auto mb-2 w-40 sm:w-48" />
           <StatePlate state="locked" className="mb-4">
             <span className="font-bold">{c.worker.name}</span>
           </StatePlate>

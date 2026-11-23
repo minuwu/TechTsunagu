@@ -4,6 +4,7 @@ import { m } from '@/i18n/paraglide/messages'
 import { Card, inputClass } from './Card'
 import { Button } from './ui/button'
 import { Mark } from './Icon'
+import { Spot } from './Spot'
 
 /** Foreman and Community Poster screens open with the shop PIN.
  *  `frame` places the lock button and the screen itself (the Foreman console puts the lock in its sidebar). */
@@ -34,12 +35,10 @@ export function PinGate({
   }
   return (
     <Card className="mx-auto mt-6 max-w-sm">
-      <span
-        aria-hidden="true"
-        className="mb-4 grid size-12 place-items-center rounded-full bg-accent text-primary"
-      >
-        <Mark id="lock" className="size-6" />
-      </span>
+      <Spot
+        name={role === 'foreman' ? 'role-foreman' : 'role-poster'}
+        className="mb-3 size-24"
+      />
       <h1 className="display mb-4 text-2xl">
         {role === 'foreman' ? m.pin_title_foreman() : m.pin_title_community()}
       </h1>

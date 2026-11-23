@@ -10,9 +10,9 @@ export function ForemanNav() {
   return (
     <nav
       aria-label={m.foreman_nav()}
-      className="-mx-4 mb-8 overflow-x-auto border-b border-[var(--rule)] px-4 [scrollbar-width:thin] sm:mx-0 sm:px-0 lg:mb-0 lg:overflow-visible lg:rounded-2xl lg:border lg:border-[var(--tile-border)] lg:bg-[var(--tile)] lg:p-2 lg:shadow-[var(--shadow-sm)]"
+      className="-mx-4 mb-8 overflow-x-auto border-b border-[var(--rule)] px-4 [mask-image:linear-gradient(to_right,#000_85%,transparent)] [scrollbar-width:thin] sm:mx-0 sm:overflow-visible sm:px-0 sm:[mask-image:none] lg:mb-0 lg:overflow-visible lg:rounded-2xl lg:border lg:border-[var(--tile-border)] lg:bg-[var(--tile)] lg:p-2 lg:shadow-[var(--shadow-sm)]"
     >
-      <div className="flex gap-1 lg:flex-col lg:gap-0.5">
+      <div className="flex gap-1 sm:flex-wrap lg:flex-col lg:flex-nowrap lg:gap-0.5">
         <Link to="/foreman" activeOptions={{ exact: true }} className={tab}>
           {m.nav_board()}
         </Link>
