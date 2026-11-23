@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.api.errors import ApiError
 from app.domain.recurrence import TOKYO
 from app.domain.support_log import SupportEvent, render_support_log
+from app.repositories import chat as chat_repo
 from app.repositories import life as repo
 from app.schemas.senpai import SupportLogQuery
 from app.services.auth import Principal
@@ -26,6 +27,10 @@ def export(db: Session, who: Principal, q: SupportLogQuery) -> bytes:
         handling = f"{senpai}：{a.senpai_reply_ja}" if a.senpai_reply_ja else f"{senpai}：未回答"
         when = a.forwarded_at or a.created_at
         events.append(SupportEvent("consultation", when, worker, a.text_ja or a.text_src, handling, "Senpai"))
+    for fu, worker, foreman, said in chat_repo.clarified_between(db, shop_id, start, end):
+        content = f"「{fu.term_ja}」の確認（{said or ''}）"
+        handling = f"{foreman}：{fu.note}" if fu.note else foreman
+        events.append(SupportEvent("consultation", fu.resolved_at or fu.created_at, worker, content, handling, "Chat"))
     for m, worker, senpai in repo.meetups_between(db, shop_id, q.from_, q.to):
         content = f"{MEETUP_KINDS.get(m.kind, m.kind)}　{m.note}".strip()
         source = "Senpai" if m.logged_by == "senpai" else "Worker"
