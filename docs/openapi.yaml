@@ -1452,7 +1452,7 @@
         "tags": [
           "work"
         ],
-        "summary": "Foreman board: every Machine, today's assignments and their Sign-off status",
+        "summary": "Foreman board: every Machine, today's assignments and their Sign-off status; If-None-Match gives 304",
         "operationId": "board_api_board_get",
         "responses": {
           "200": {
@@ -2724,7 +2724,7 @@
         "tags": [
           "chat"
         ],
-        "summary": "Your Threads with unread counts, newest activity first",
+        "summary": "Your Threads with unread counts, newest activity first; If-None-Match gives 304",
         "operationId": "list_threads_api_threads_get",
         "responses": {
           "200": {
@@ -3213,7 +3213,7 @@
         "tags": [
           "chat"
         ],
-        "summary": "The Task Board of your shop",
+        "summary": "The Task Board of your shop; If-None-Match gives 304",
         "operationId": "list_tasks_api_tasks_get",
         "parameters": [
           {
