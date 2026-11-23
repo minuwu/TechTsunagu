@@ -3,6 +3,7 @@ import { Link, useLocation } from '@tanstack/react-router'
 import { m } from '@/i18n/paraglide/messages'
 import { ping } from '@/lib/audio'
 import { usePersisted } from '@/lib/persisted'
+import { startSmoothScroll } from './lib/motion'
 import { BridgeMark } from './components/Brand'
 import { Toaster } from './components/Feedback'
 import { LocaleSwitcher } from './components/LocaleSwitcher'
@@ -149,6 +150,8 @@ export function Layout({ children }: { children: ReactNode }) {
   const [soundPref, setSound] = usePersisted('wakatta.sound', 'on')
   const sound = soundPref === 'on'
   const light = theme === 'light'
+  // Lenis smooth wheel scroll for the whole kit (touch stays native; no smoothing under reduced motion)
+  useEffect(() => startSmoothScroll(), [])
   return (
     <div
       data-theme={light ? 'light' : 'dark'}

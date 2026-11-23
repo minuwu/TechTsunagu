@@ -5,6 +5,8 @@ from typing import Annotated, Literal, Self
 from pydantic import Field, SecretStr, StringConstraints, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from app.ai.chains import Chain, Tier
+
 # An exact origin for CORS: scheme and host[:port], no path, no wildcard.
 Origin = Annotated[str, StringConstraints(pattern=r"^https?://[^/\s*]+$")]
 
@@ -22,11 +24,12 @@ class Settings(BaseSettings):
     # AI (architecture §10). `fake` by default: real calls only when someone sets AI_MODE=gemini and a key.
     ai_mode: Literal["fake", "gemini"] = "fake"
     gemini_api_key: SecretStr | None = None
-    gemini_model: str = "gemini-3.8-flash"
+    # Models and per-model budgets live in app/ai/chains.py (XREQ-003): dev = Flash-Lite only, demo = 3.8 Flash first.
+    ai_chain: Chain = "dev"
+    ai_tier: Tier = "free"  # paid: the budgets become a cost cap instead of the free quota
+    groq_api_key: SecretStr | None = None  # optional backup at the end of the chain; empty turns it off
     ai_timeout_seconds: int = 45
     ai_max_concurrent: int = 2
-    ai_per_minute: int = 4
-    ai_daily_budget: int = 18
 
     @model_validator(mode="after")
     def _gemini_needs_a_key(self) -> Self:

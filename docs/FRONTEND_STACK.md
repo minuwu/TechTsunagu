@@ -59,6 +59,9 @@ Rejected for now, with the reason, so nobody re-litigates at 3 a.m.:
 | `shadcn` (CLI, via `npx`) | `4.x` | 4.23.0 | Not a runtime dependency. `frontend/components.json` points it at `src/ui/v1/`. |
 | `radix-ui`, `class-variance-authority`, `clsx`, `tailwind-merge` | `^1.8.1`, `^0.7.1`, `^2.1.1`, `^3.0.2` | 1.8.1, 0.7.1, 2.1.1, 3.7.1 | Runtime deps of the shadcn components in `ui/v1`. |
 | `@vitejs/plugin-react` | `^6.3.0` | 6.3.0 | |
+| `gsap`, `@gsap/react` | `^3.15.1`, `^2.1.2` | 3.15.1, 2.1.2 | v3 kit landing motion (entrance, scroll reveals, counter) and the ticker that drives Lenis. Free "no charge" license, plugins included. Only inside `gsap.matchMedia('(prefers-reduced-motion: no-preference)')` (F-38). Skill: `.claude/skills/gsap`. |
+| `lenis` | `^1.3.27` | 1.3.27 | v3 kit smooth wheel scroll; touch stays native; honours reduced motion by default. `anchors: false` so the skip link keeps moving focus. Skill: `.claude/skills/lenis`. |
+| `vanta`, `three` | `0.5.24`, `0.134.0` (exact) | 0.5.24, 0.187.0 | v3 landing hero background (WAVES). Vanta's last release targets three r134; newer three removed APIs it uses, so both are pinned. Lazy-loaded in their own chunk (about 153 KB gzipped), skipped under reduced motion or Data Saver. Skill: `.claude/skills/vanta`. |
 | `@inlang/paraglide-js` | `^3.2.2` | 3.2.2 | |
 | `@hey-api/openapi-ts` | `0.99.0` (exact) | 0.99.0 | 0.x: minor bumps can break output, so pin exactly. |
 | `vitest` | `^5.1.1` | 5.1.1 | |
