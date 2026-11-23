@@ -195,8 +195,12 @@ def task(db: Session, shop_id: int, task_id: int, *, for_update: bool = False) -
     return db.scalar(stmt.with_for_update() if for_update else stmt)
 
 
-def tasks_page(db: Session, shop_id: int, after_id: int | None, limit: int) -> list[Task]:
+def tasks_page(
+    db: Session, shop_id: int, after_id: int | None, limit: int, machine_id: int | None = None
+) -> list[Task]:
     stmt = select(Task).where(Task.shop_id == shop_id)
+    if machine_id is not None:
+        stmt = stmt.where(Task.machine_id == machine_id)
     if after_id is not None:
         stmt = stmt.where(Task.id > after_id)
     return list(db.scalars(stmt.order_by(Task.id).limit(limit + 1)))

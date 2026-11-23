@@ -357,6 +357,28 @@ export type BodyRecordNoteApiMachinesMachineIdNotesPost = {
 };
 
 /**
+ * Body_report_api_near_misses_post
+ */
+export type BodyReportApiNearMissesPost = {
+    /**
+     * Machineid
+     */
+    machineId: string;
+    /**
+     * Text
+     */
+    text?: string | null;
+    /**
+     * Audio
+     */
+    audio?: Blob | File | null;
+    /**
+     * Photo
+     */
+    photo?: Blob | File | null;
+};
+
+/**
  * BriefingForForeman
  */
 export type BriefingForForeman = {
@@ -968,6 +990,21 @@ export type EnvelopeMessagesPage = {
 };
 
 /**
+ * Envelope[NearMissOut]
+ */
+export type EnvelopeNearMissOut = {
+    /**
+     * Success
+     */
+    success?: true;
+    data: NearMissOut;
+    /**
+     * Message
+     */
+    message?: string;
+};
+
+/**
  * Envelope[NoneType]
  */
 export type EnvelopeNoneType = {
@@ -1114,6 +1151,21 @@ export type EnvelopePageMachineOut = {
      */
     success?: true;
     data: PageMachineOut;
+    /**
+     * Message
+     */
+    message?: string;
+};
+
+/**
+ * Envelope[Page[NearMissOut]]
+ */
+export type EnvelopePageNearMissOut = {
+    /**
+     * Success
+     */
+    success?: true;
+    data: PageNearMissOut;
     /**
      * Message
      */
@@ -1309,6 +1361,24 @@ export type EnvelopeUnionAssignmentOutNoneType = {
      */
     success?: true;
     data: AssignmentOut | null;
+    /**
+     * Message
+     */
+    message?: string;
+};
+
+/**
+ * Envelope[Union[NoticeForPoster, NoticeForWorker]]
+ */
+export type EnvelopeUnionNoticeForPosterNoticeForWorker = {
+    /**
+     * Success
+     */
+    success?: true;
+    /**
+     * Data
+     */
+    data: NoticeForPoster | NoticeForWorker;
     /**
      * Message
      */
@@ -2055,6 +2125,42 @@ export type MessagesPage = {
 };
 
 /**
+ * NearMissOut
+ */
+export type NearMissOut = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Workerid
+     */
+    workerId: string;
+    /**
+     * Machineid
+     */
+    machineId: string;
+    /**
+     * Text
+     */
+    text: {
+        [key: string]: string;
+    };
+    /**
+     * Photo
+     */
+    photo: string | null;
+    /**
+     * Createdat
+     */
+    createdAt: string;
+    /**
+     * Acknowledgedat
+     */
+    acknowledgedAt: string | null;
+};
+
+/**
  * NoteForWorker
  */
 export type NoteForWorker = {
@@ -2494,6 +2600,20 @@ export type PageMachineOut = {
      * Items
      */
     items: Array<MachineOut>;
+    /**
+     * Nextcursor
+     */
+    nextCursor: string | null;
+};
+
+/**
+ * Page[NearMissOut]
+ */
+export type PageNearMissOut = {
+    /**
+     * Items
+     */
+    items: Array<NearMissOut>;
     /**
      * Nextcursor
      */
@@ -4368,6 +4488,36 @@ export type CreateNoticeApiNoticesPostResponses = {
 
 export type CreateNoticeApiNoticesPostResponse = CreateNoticeApiNoticesPostResponses[keyof CreateNoticeApiNoticesPostResponses];
 
+export type GetNoticeApiNoticesNoticeIdGetData = {
+    body?: never;
+    path: {
+        /**
+         * Notice Id
+         */
+        notice_id: string;
+    };
+    query?: never;
+    url: '/api/notices/{notice_id}';
+};
+
+export type GetNoticeApiNoticesNoticeIdGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetNoticeApiNoticesNoticeIdGetError = GetNoticeApiNoticesNoticeIdGetErrors[keyof GetNoticeApiNoticesNoticeIdGetErrors];
+
+export type GetNoticeApiNoticesNoticeIdGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeUnionNoticeForPosterNoticeForWorker;
+};
+
+export type GetNoticeApiNoticesNoticeIdGetResponse = GetNoticeApiNoticesNoticeIdGetResponses[keyof GetNoticeApiNoticesNoticeIdGetResponses];
+
 export type UpdateNoticeApiNoticesNoticeIdPatchData = {
     body: NoticeUpdate;
     path: {
@@ -5256,6 +5406,12 @@ export type ListTasksApiTasksGetData = {
     path?: never;
     query?: {
         /**
+         * Machineid
+         *
+         * Only this Machine's Tasks
+         */
+        machineId?: string | null;
+        /**
          * Limit
          */
         limit?: number;
@@ -5465,3 +5621,130 @@ export type BriefingReceiptsApiBriefingsBriefingIdReceiptsGetResponses = {
 };
 
 export type BriefingReceiptsApiBriefingsBriefingIdReceiptsGetResponse = BriefingReceiptsApiBriefingsBriefingIdReceiptsGetResponses[keyof BriefingReceiptsApiBriefingsBriefingIdReceiptsGetResponses];
+
+export type ListReportsApiNearMissesGetData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Open
+         */
+        open?: boolean;
+        /**
+         * Limit
+         */
+        limit?: number;
+        /**
+         * Cursor
+         */
+        cursor?: string | null;
+    };
+    url: '/api/near-misses';
+};
+
+export type ListReportsApiNearMissesGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ListReportsApiNearMissesGetError = ListReportsApiNearMissesGetErrors[keyof ListReportsApiNearMissesGetErrors];
+
+export type ListReportsApiNearMissesGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopePageNearMissOut;
+};
+
+export type ListReportsApiNearMissesGetResponse = ListReportsApiNearMissesGetResponses[keyof ListReportsApiNearMissesGetResponses];
+
+export type ReportApiNearMissesPostData = {
+    body: BodyReportApiNearMissesPost;
+    headers: {
+        /**
+         * Idempotency-Key
+         */
+        'Idempotency-Key': string;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/near-misses';
+};
+
+export type ReportApiNearMissesPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ReportApiNearMissesPostError = ReportApiNearMissesPostErrors[keyof ReportApiNearMissesPostErrors];
+
+export type ReportApiNearMissesPostResponses = {
+    /**
+     * Successful Response
+     */
+    201: EnvelopeNearMissOut;
+};
+
+export type ReportApiNearMissesPostResponse = ReportApiNearMissesPostResponses[keyof ReportApiNearMissesPostResponses];
+
+export type AcknowledgeApiNearMissesReportIdAckPostData = {
+    body?: never;
+    path: {
+        /**
+         * Report Id
+         */
+        report_id: string;
+    };
+    query?: never;
+    url: '/api/near-misses/{report_id}/ack';
+};
+
+export type AcknowledgeApiNearMissesReportIdAckPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type AcknowledgeApiNearMissesReportIdAckPostError = AcknowledgeApiNearMissesReportIdAckPostErrors[keyof AcknowledgeApiNearMissesReportIdAckPostErrors];
+
+export type AcknowledgeApiNearMissesReportIdAckPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeNearMissOut;
+};
+
+export type AcknowledgeApiNearMissesReportIdAckPostResponse = AcknowledgeApiNearMissesReportIdAckPostResponses[keyof AcknowledgeApiNearMissesReportIdAckPostResponses];
+
+export type GetPhotoApiNearMissesReportIdPhotoGetData = {
+    body?: never;
+    path: {
+        /**
+         * Report Id
+         */
+        report_id: string;
+    };
+    query?: never;
+    url: '/api/near-misses/{report_id}/photo';
+};
+
+export type GetPhotoApiNearMissesReportIdPhotoGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetPhotoApiNearMissesReportIdPhotoGetError = GetPhotoApiNearMissesReportIdPhotoGetErrors[keyof GetPhotoApiNearMissesReportIdPhotoGetErrors];
+
+export type GetPhotoApiNearMissesReportIdPhotoGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};

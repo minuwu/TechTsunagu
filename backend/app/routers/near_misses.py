@@ -7,6 +7,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, File, Form, Header, Request, Response, UploadFile
 
 from app.api.auth import DbSession, now_utc, require
+from app.api.conditional import conditional_json
 from app.api.envelope import Envelope
 from app.api.pagination import Page, PageParams, page_params
 from app.media import MAX_AUDIO_BYTES, MAX_PHOTO_BYTES
@@ -45,9 +46,13 @@ def report(
     return Envelope(data=near_misses.create(db, who, int(machine_id), text, voice, image, key, ai, now_utc()))
 
 
-@router.get("/near-misses", summary="Near-miss Reports of your shop, newest first")
-def list_reports(who: Foreman, db: DbSession, page: Paging, open: bool = False) -> Envelope[Page[NearMissOut]]:
-    return Envelope(data=near_misses.list_reports(db, who, open, page))
+@router.get(
+    "/near-misses",
+    summary="Near-miss Reports of your shop, newest first; If-None-Match gives 304",
+    response_model=Envelope[Page[NearMissOut]],
+)
+def list_reports(who: Foreman, db: DbSession, page: Paging, request: Request, open: bool = False) -> Response:
+    return conditional_json(request, Envelope(data=near_misses.list_reports(db, who, open, page)))
 
 
 @router.post("/near-misses/{report_id}/ack", summary="Acknowledge a Near-miss Report")

@@ -307,6 +307,25 @@ def list_for_worker(db: Session, who: Principal, page: PageParams, now: datetime
     return Page(items=items, next_cursor=_next_cursor(rows, page.limit))
 
 
+def get_for_poster(db: Session, who: Principal, notice_id: int, now: datetime) -> NoticeForPoster:
+    """One of the Poster's own Notices, drafts too; anyone else's is 404, as in the list."""
+    n = repo.notice(db, district_of(who), notice_id)
+    if n is None or n.poster_id != _poster_id(db, who):
+        raise _not_found()
+    return _poster_view(db, n, now)
+
+
+def get_for_worker(db: Session, who: Principal, notice_id: int, now: datetime) -> NoticeForWorker:
+    """One published Notice of the Worker's district, without the answer key; a draft is 404, as in the list."""
+    district_id = district_of(who)
+    n = repo.notice(db, district_id, notice_id)
+    if n is None or n.status != "published":
+        raise _not_found()
+    events = repo.events_of(db, district_id, [n.id])[n.id]
+    receipt = repo.receipts_of(db, who.user_id or 0, [n.id]).get(n.id)
+    return _for_worker(n, events, receipt, now)
+
+
 def update(db: Session, who: Principal, notice_id: int, body: NoticeUpdate, now: datetime) -> NoticeForPoster:
     n = _own_draft(db, who, notice_id)
     if body.category is not None:

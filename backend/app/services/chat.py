@@ -532,9 +532,10 @@ def _task_out(t: Task, assignees: list[int]) -> TaskOut:
     )
 
 
-def list_tasks(db: Session, who: Principal, page: PageParams) -> Page[TaskOut]:
+def list_tasks(db: Session, who: Principal, page: PageParams, machine_id: int | None = None) -> Page[TaskOut]:
+    """The shop's Task Board, optionally only one Machine's Tasks (another shop's Machine id finds nothing)."""
     shop_id, _ = _me(who)
-    rows = repo.tasks_page(db, shop_id, page.after_id, page.limit)
+    rows = repo.tasks_page(db, shop_id, page.after_id, page.limit, machine_id)
     shown = rows[: page.limit]
     assignees = repo.assignees_of(db, shop_id, [t.id for t in shown])
     cursor = encode_cursor(shown[-1].id) if len(rows) > page.limit else None

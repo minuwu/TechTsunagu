@@ -212,6 +212,20 @@ def test_a_nudge_shows_and_is_rate_limited(client: TestClient, line: Line, fake_
     assert _poll(client, line, line.rahim)[0]["nudged"] is False
 
 
+def test_the_task_board_filters_by_machine(client: TestClient, line: Line, fake_ai: FakeAiClient) -> None:
+    _sent(client, line, fake_ai)  # one Task on the line's Machine
+    loose = {"title": {"ja": "床の清掃", "bn": "মেঝে পরিষ্কার", "en": "Clean the floor"}}
+    assert client.post("/api/tasks", headers=line.foreman, json=loose).status_code == 201  # no Machine
+
+    every = client.get("/api/tasks", headers=line.foreman).json()["data"]["items"]
+    mine = client.get("/api/tasks", headers=line.foreman, params={"machineId": str(line.machine_id)}).json()["data"]
+    none = client.get("/api/tasks", headers=line.foreman, params={"machineId": "999999"}).json()["data"]
+
+    assert len(every) == 2
+    assert [t["machineId"] for t in mine["items"]] == [str(line.machine_id)]
+    assert none["items"] == []
+
+
 def test_a_stale_task_move_is_refused(client: TestClient, line: Line, fake_ai: FakeAiClient) -> None:
     _sent(client, line, fake_ai)
     [task] = client.get("/api/tasks", headers=line.foreman).json()["data"]["items"]

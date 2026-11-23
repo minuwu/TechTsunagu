@@ -66,6 +66,22 @@ def test_a_report_is_translated_and_acknowledged(client: TestClient, floor: Floo
     assert client.get("/api/near-misses?open=true", headers=floor.foreman).json()["data"]["items"] == []
 
 
+def test_an_unchanged_list_is_a_304_and_a_new_report_is_not(
+    client: TestClient, floor: Floor, fake_ai: FakeAiClient
+) -> None:
+    first = client.get("/api/near-misses", headers=floor.foreman)
+    tag = first.headers["ETag"]
+    same = client.get("/api/near-misses", headers=floor.foreman | {"If-None-Match": tag})
+    fake_ai.queue("translate", {"text": "床が滑りやすい。"})
+    form = {"machineId": str(floor.machine_id), "text": "Floor is slippery"}
+    assert client.post("/api/near-misses", headers=floor.worker | _key(), data=form).status_code == 201
+
+    changed = client.get("/api/near-misses", headers=floor.foreman | {"If-None-Match": tag})
+
+    assert same.status_code == 304
+    assert changed.status_code == 200 and len(changed.json()["data"]["items"]) == 1
+
+
 def test_a_voice_report_is_kept_when_the_model_is_down(client: TestClient, floor: Floor) -> None:
     res = client.post(
         "/api/near-misses",

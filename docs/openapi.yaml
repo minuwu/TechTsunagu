@@ -1752,6 +1752,47 @@
       }
     },
     "/api/notices/{notice_id}": {
+      "get": {
+        "tags": [
+          "life"
+        ],
+        "summary": "One Notice: a Poster's own (drafts too), or a published one for a Worker",
+        "operationId": "get_notice_api_notices__notice_id__get",
+        "parameters": [
+          {
+            "name": "notice_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Notice Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Union_NoticeForPoster__NoticeForWorker__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
       "patch": {
         "tags": [
           "life"
@@ -3217,6 +3258,25 @@
         "operationId": "list_tasks_api_tasks_get",
         "parameters": [
           {
+            "name": "machineId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[1-9][0-9]{0,18}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only this Machine's Tasks",
+              "title": "Machineid"
+            },
+            "description": "Only this Machine's Tasks"
+          },
+          {
             "name": "limit",
             "in": "query",
             "required": false,
@@ -3623,7 +3683,7 @@
         "tags": [
           "work"
         ],
-        "summary": "Near-miss Reports of your shop, newest first",
+        "summary": "Near-miss Reports of your shop, newest first; If-None-Match gives 304",
         "operationId": "list_reports_api_near_misses_get",
         "parameters": [
           {
@@ -6248,6 +6308,37 @@
           "data"
         ],
         "title": "Envelope[Union[AssignmentOut, NoneType]]"
+      },
+      "Envelope_Union_NoticeForPoster__NoticeForWorker__": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NoticeForPoster"
+              },
+              {
+                "$ref": "#/components/schemas/NoticeForWorker"
+              }
+            ],
+            "title": "Data"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[Union[NoticeForPoster, NoticeForWorker]]"
       },
       "Envelope_Union_Page_BriefingForForeman___Page_BriefingForWorker___": {
         "properties": {
