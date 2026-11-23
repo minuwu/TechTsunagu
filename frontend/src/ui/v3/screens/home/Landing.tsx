@@ -221,7 +221,12 @@ export function Landing() {
           ))}
         </div>
         <p className="mt-4 text-sm text-muted-foreground">
-          <a href={MHLW} className="underline" rel="noreferrer" target="_blank">
+          <a
+            href={MHLW}
+            className="inline-flex min-h-11 items-center underline"
+            rel="noreferrer"
+            target="_blank"
+          >
             {m.lp_source()}
           </a>
         </p>

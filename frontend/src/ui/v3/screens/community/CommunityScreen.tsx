@@ -57,7 +57,7 @@ export function CommunityScreen() {
               {c.kind === 'photo' && (
                 <>
                   <label className="block space-y-1">
-                    <span>{m.flyer_photo()}</span>
+                    <span className="block">{m.flyer_photo()}</span>
                     <input
                       type="file"
                       accept="image/*"

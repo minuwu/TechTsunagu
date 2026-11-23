@@ -71,7 +71,7 @@ export function ForemanBoardScreen() {
                     <StatusChip status={f.status} />
                     <Link
                       to="/foreman/assign"
-                      className="text-primary underline"
+                      className="inline-flex min-h-11 items-center text-primary underline"
                     >
                       {m.reassign()}
                     </Link>
@@ -122,25 +122,25 @@ export function ForemanBoardScreen() {
                     </li>
                   )}
                 </ul>
-                <div className="flex flex-wrap gap-x-4 gap-y-1 border-t border-[var(--rule)] pt-3 text-sm font-bold">
+                <div className="flex flex-wrap gap-x-4 border-t border-[var(--rule)] pt-1 text-sm font-bold">
                   <Link
                     to="/foreman/record/$machineId"
                     params={{ machineId: r.machine.id }}
-                    className="text-primary underline"
+                    className="inline-flex min-h-11 items-center text-primary underline"
                   >
                     {m.record_note()}
                   </Link>
                   <Link
                     to="/foreman/library/$machineId"
                     params={{ machineId: r.machine.id }}
-                    className="text-primary underline"
+                    className="inline-flex min-h-11 items-center text-primary underline"
                   >
                     {m.library()}
                   </Link>
                   <Link
                     to="/panel/$machineId"
                     params={{ machineId: r.machine.id }}
-                    className="text-primary underline"
+                    className="inline-flex min-h-11 items-center text-primary underline"
                   >
                     {m.hub_panel()}
                   </Link>
@@ -159,7 +159,7 @@ export function ForemanBoardScreen() {
               <p className="mb-3">
                 <Link
                   to="/foreman/near-misses"
-                  className="font-bold text-primary underline"
+                  className="inline-flex min-h-11 items-center font-bold text-primary underline"
                 >
                   {m.open_near_misses({ count: b.openNearMisses })}
                 </Link>
