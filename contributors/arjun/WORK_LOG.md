@@ -4,6 +4,24 @@ Owner: Arjun Saha (GitHub handle TBD) — Role: Frontend design
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-23 (brand kit: wire it and make it better, from Minhaz)
+
+The Brand kit is on `main` in [`frontend/public/brand/`](../../frontend/public/brand/): the mascot **Nekko**, app icons, favicons, 22 Lottie animations, hero / footer / spot / social images, logos and tokens, each in two blues (`#1351AA` primary, `.iconblue` twin `#246DD4`). Open `frontend/public/brand/index.html` in a browser to skim everything. Start with [docs/brand/README.md](../../docs/brand/README.md); rules are in [SPEC.md](../../docs/brand/SPEC.md), the decision in [ADR 0013](../../docs/adr/0013-brand-kit-mascot-two-blues-vector-only.md). This comes **before** the entries below, after you finish what you have open.
+
+### Next (assigned)
+1. **Wire it in** (v3, the default kit; presentation only, A-01…A-09):
+   - Favicons, PWA manifest and theme colour: paste `favicon/head-snippet.html` into the root route head (`src/routes/__root.tsx`); add Open Graph / Twitter image tags (`images/social/og-default-1200.png`).
+   - Brand mark: Nekko / `identity/logo-*.svg` in the header, the PIN gate and the landing page.
+   - Landing (`Landing.tsx`): the 5 hero slides as a carousel (`images/hero/`, desktop and a separate mobile file; keep the left 45% / top 40% free for HTML text in ja / en / bn, no text is baked into images), the footer strip and CTA banner, the dividers.
+   - Spot illustrations: the four roles (`role-*`), the onboarding steps (`step-*`), and the empty / no-results / offline / 404 / error / success states (`state-*`).
+   - Lottie: add a player (`lottie-web` or `@lottiefiles/dotlottie-react`) and use `lottie/core/` for loading, success, fail and saving, `lottie/flow/` for the machine unlock, Check results and nudge, `lottie/empty/` for empty and error screens. Honour `prefers-reduced-motion` (show a still frame). Mind the bundle: load Lottie JSON lazily.
+2. **Change or enhance the Brand kit as you see fit.** It is a first pass: edit, redraw, replace or delete anything that does not work in the real screens. Keep: one blue per file (`#1351AA`, so `docs/brand/tools/recolor.py` can rebuild the Icon-blue twins), no text baked into images, shape-layer-only Lottie that passes `tools/lottie-check.cjs`, and a short note in `docs/brand/manifests/` when you change a group. `docs/brand/tools/generators/` has the scripts that built the Lottie, icons and scenes (reference, not turnkey). After changes run `recolor.py frontend/public/brand --render` then `gallery.py`. Known weak spots to start with: `logo-white` / `logo-black` (Nekko is an outline only), a faint smile on the 16 px favicon, hero slides 2 and 3 are light on cobalt, the `surprised` expression mouth overlaps the nose, and Nekko is small on mobile hero slides.
+3. Check every screen you touch against FRONTEND_REGULATIONS (F-01…F-53) and axe: alt text (`alt=""` for decorative art), contrast, reduced motion, 1280×800 / 1024×768 / 390×844.
+
+### Blockers / handoff
+- Minhaz's **v4 "Poster Modernist" kit** (cream / jet / cobalt, `ui/v4/`) is not on `main` yet, so wire into v3. The Brand kit is kit-independent: it moves to v4 later by swapping markup only.
+- Ask Minhaz before changing the Nekko master (`brand/master/`): every other asset is built from it.
+
 ## 2026-11-23 (desktop layouts, v3)
 
 ### Done
