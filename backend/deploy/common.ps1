@@ -33,8 +33,12 @@ function Wait-Ready {
     $fqdn = Invoke-Az containerapp show -n $App -g $Rg --query properties.configuration.ingress.fqdn -o tsv
     Start-Sleep -Seconds 30
     foreach ($i in 1..40) {
-        $latest = Invoke-Az containerapp show -n $App -g $Rg --query properties.latestRevisionName -o tsv
-        $health = Invoke-Az containerapp revision show -n $App -g $Rg --revision $latest --query properties.healthState -o tsv
+        # Right after an update the revision is being replaced and these reads can fail once: that is "not ready
+        # yet", not an error (the 10-minute limit below still ends a real failure).
+        try {
+            $latest = Invoke-Az containerapp show -n $App -g $Rg --query properties.latestRevisionName -o tsv
+            $health = Invoke-Az containerapp revision show -n $App -g $Rg --revision $latest --query properties.healthState -o tsv
+        } catch { $health = $null }
         if ($health -eq "Healthy") {
             try {
                 $null = Invoke-RestMethod "https://$fqdn/api/health/ready" -TimeoutSec 20

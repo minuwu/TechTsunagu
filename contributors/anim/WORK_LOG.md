@@ -8,7 +8,9 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 
 ### Completed
 - **XREQ-017 items 1-2 live** (reply to Minhaz): My QR, Contacts across shops, blocks, Contact Threads translated per side. Migration `21d9f849b5c9`. Details and the one change (`token` only on create or rotate) are in the XREQ-017 Fulfillment block. 6 API tests incl. silent block and "the employer cannot read personal threads"; 359 tests pass; contract and frontend types regenerated.
-- Azure CLI 2.93 installed (uv tool) for operations; waiting for the browser sign-in.
+- Azure CLI 2.93 installed (uv tool) and signed in (Azure for Students, `wakatta-rg`).
+- **Firebase key (XREQ-014)** stored as the Container App secret `firebase-service-account` with the new `deploy/set-firebase-key.ps1` (never printed; refuses a key inside the repo); env `FIREBASE_PROJECT_ID=daily-wizdom`. New revision healthy, live smoke 12/12.
+- `deploy/common.ps1` `Wait-Ready`: a failed read while the revision is being replaced now means "not ready yet" (it aborted the Firebase script after the secret was already set).
 - FYI Arjun: `npm run typecheck` on `main` fails in `src/ui/v4/screens/home/Landing.tsx` (`lp_all_courses`, `lp_label_access` missing from the messages) with or without my change.
 
 ### Next
