@@ -20,6 +20,7 @@ import type {
 import { gradeCheck, tokyoDate } from '@/domain/wakatta'
 import { isValidRrule } from '@/domain/calendar'
 import { ApiError, USE_MOCK, request } from './api'
+import { applyScenario } from './mocks/scenario'
 import type { Db } from './mocks/seed'
 import { readDb, resetDb, update, wait } from './mocks/store'
 import * as ai from './mocks/ai'
@@ -28,6 +29,15 @@ export type { Db }
 export type Collection = keyof Db
 export { SENPAI_REPLIES, ASK_VOICE_TRANSCRIPT } from './mocks/ai'
 export { SHOP_NAME, FOREMAN_NAME } from './mocks/seed'
+export {
+  SCENARIOS,
+  controlsShown,
+  getScenario,
+  isScenario,
+  setScenario,
+  subscribeScenario,
+  type Scenario,
+} from './mocks/scenario'
 
 const PATHS: Record<Collection, string> = {
   workers: '/api/workers',
@@ -68,7 +78,7 @@ const uid = (prefix: string) =>
 const nowIso = () => new Date().toISOString()
 
 export async function list<K extends Collection>(key: K): Promise<Db[K]> {
-  if (USE_MOCK) return readDb()[key]
+  if (USE_MOCK) return applyScenario(readDb()[key])
   return request<Db[K]>(PATHS[key])
 }
 

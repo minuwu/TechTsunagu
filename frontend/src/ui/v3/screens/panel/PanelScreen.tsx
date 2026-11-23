@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { pick } from '@/domain/wakatta'
 import { usePanel, type PanelState } from '@/features/panel'
 import { m } from '@/i18n/paraglide/messages'
+import { Mark } from '@/ui/v3/components/Icon'
 import { Moment } from '@/ui/v3/components/Moment'
 import { StatePlate } from '@/ui/v3/components/StatePlate'
 import { statusLabel } from '@/ui/v3/components/StatusChip'
@@ -21,6 +22,26 @@ export function PanelScreen() {
     return (
       <div aria-busy="true" className="skeleton min-h-[60vh] rounded-lg">
         <span className="sr-only">{m.loading()}</span>
+      </div>
+    )
+  if (p.unknown)
+    return (
+      <div role="status" aria-live="polite">
+        <StatePlate
+          state="idle"
+          size="lg"
+          className="min-h-[55vh]"
+          label={m.panel_unknown_word()}
+          art={
+            <span className="grid size-24 shrink-0 place-items-center rounded-full bg-card text-warning sm:size-28">
+              <Mark id="alert" className="size-12 sm:size-14" />
+            </span>
+          }
+        >
+          <p className="text-xl font-bold text-foreground">
+            {m.panel_unknown()}
+          </p>
+        </StatePlate>
       </div>
     )
   if (p.notFound || !p.machine) return <p>{m.machine_not_found()}</p>

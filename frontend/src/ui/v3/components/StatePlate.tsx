@@ -30,6 +30,7 @@ export function StatePlate({
   state,
   size = 'md',
   art,
+  label,
   children,
   className,
 }: {
@@ -37,6 +38,8 @@ export function StatePlate({
   size?: 'sm' | 'md' | 'lg'
   /** Shown instead of the mark, e.g. the unlock moment right after the plate turns Ready */
   art?: ReactNode
+  /** Replaces the state word, e.g. UNKNOWN when the Panel has no data */
+  label?: ReactNode
   children?: ReactNode
   className?: string
 }) {
@@ -89,7 +92,7 @@ export function StatePlate({
             lg ? 'text-5xl sm:text-7xl' : sm ? 'text-base' : 'text-xl',
           )}
         >
-          {plateWord(state)}
+          {label ?? plateWord(state)}
         </p>
         {children && (
           <div className={cn('min-w-0', lg ? 'space-y-3' : 'text-base')}>

@@ -82,6 +82,11 @@ export function ForemanBoardScreen() {
           )}
 
           <div className="grid gap-4 sm:grid-cols-2 xl:[grid-area:mach]">
+            {b.rows.length === 0 && (
+              <div className="sm:col-span-2">
+                <EmptyState>{m.board_empty()}</EmptyState>
+              </div>
+            )}
             {b.rows.map((r) => (
               <Card
                 key={r.machine.id}

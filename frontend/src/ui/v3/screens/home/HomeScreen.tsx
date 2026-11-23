@@ -5,7 +5,11 @@ import { useHub } from '@/features/hub'
 import { m } from '@/i18n/paraglide/messages'
 import { Landing } from './Landing'
 import { Card } from '@/ui/v3/components/Card'
-import { ConfirmDialog, Skeleton } from '@/ui/v3/components/Feedback'
+import {
+  ConfirmDialog,
+  EmptyState,
+  Skeleton,
+} from '@/ui/v3/components/Feedback'
 import { Mark } from '@/ui/v3/components/Icon'
 import { Spot } from '@/ui/v3/components/Spot'
 import { Button } from '@/ui/v3/components/ui/button'
@@ -62,8 +66,10 @@ export function HomeScreen() {
             className="lg:col-span-5"
           >
             <p className="mb-4 text-muted-foreground">{m.hub_worker_body()}</p>
-            {hub.workers.length === 0 ? (
+            {hub.loading ? (
               <RowsSkeleton />
+            ) : hub.workers.length === 0 ? (
+              <EmptyState>{m.hub_empty()}</EmptyState>
             ) : (
               <ul className="space-y-2">
                 {hub.workers.map((w) => (
@@ -95,8 +101,10 @@ export function HomeScreen() {
             <p className="mb-4 text-muted-foreground">
               {m.hub_machines_body()}
             </p>
-            {hub.machines.length === 0 ? (
+            {hub.loading ? (
               <RowsSkeleton />
+            ) : hub.machines.length === 0 ? (
+              <EmptyState>{m.hub_empty()}</EmptyState>
             ) : (
               <ul className="space-y-2">
                 {hub.machines.map((mc) => (
