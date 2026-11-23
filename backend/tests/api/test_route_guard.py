@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 
 from app.models.chat import FollowUp, MessageCheck
 from app.models.life import Ask, Event, Notice, SenpaiPair
-from app.models.personal import Contact
+from app.models.personal import Contact, ContactMessage
 from app.models.platform import Blob
 from app.models.scopes import Poster, Shop, User
 from app.models.scopes import Session as SessionRow
@@ -100,6 +100,8 @@ CALLS: dict[str, Call] = {
     "DELETE /api/blocks/{contact_id}": Call(),
     "GET /api/contacts/{contact_id}/messages": Call(),
     "POST /api/contacts/{contact_id}/messages": Call(json={"text": "hi", "lang": "bn"}),
+    "DELETE /api/contacts/{contact_id}/messages": Call(),
+    "DELETE /api/contacts/{contact_id}/messages/{message_id}": Call(rows={"message_id": "contact_message"}),
 }
 
 # The same shop, but not this Worker's own record.
@@ -114,6 +116,8 @@ COLLEAGUE_REFUSED: dict[str, int] = {
     "DELETE /api/blocks/{contact_id}": 404,
     "GET /api/contacts/{contact_id}/messages": 404,
     "POST /api/contacts/{contact_id}/messages": 404,
+    "DELETE /api/contacts/{contact_id}/messages": 404,
+    "DELETE /api/contacts/{contact_id}/messages/{message_id}": 404,
 }
 
 
@@ -246,6 +250,14 @@ def _life_rows(db: Session, s: Shop, worker: User, foreman: User, poster: User) 
     }
 
 
+def _personal_rows(db: Session, worker: User, peer: User) -> dict[str, int]:
+    message = ContactMessage(sender_id=worker.id, recipient_id=peer.id, text_src="hi", src_lang="bn")
+    return {
+        "contact_id": _save(db, Contact(owner_id=worker.id, peer_id=peer.id)).id,
+        "contact_message": _save(db, message).id,
+    }
+
+
 def _site(db: Session) -> Site:
     s = f.shop(db)
     foreman, worker, colleague = (f.user(db, s, role=r, must_change=False) for r in ("foreman", "worker", "worker"))
@@ -264,7 +276,7 @@ def _site(db: Session) -> Site:
     people = {"foreman": foreman, "worker": worker, "poster": poster}
     rows = {"foreman": foreman.id, "worker": worker.id, "worker_id": worker.id, "machine_id": machine.id}
     rows |= _work_rows(db, s, foreman, worker, machine) | _life_rows(db, s, worker, foreman, poster)
-    rows["contact_id"] = _save(db, Contact(owner_id=worker.id, peer_id=foreman.id)).id
+    rows |= _personal_rows(db, worker, foreman)
     headers = {role: _session(db, user) for role, user in people.items()} | {"panel": _session(db, None, machine)}
     return Site(headers, _session(db, colleague), _session(db, f.user(db, s)), rows)
 

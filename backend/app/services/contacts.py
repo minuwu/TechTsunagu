@@ -187,6 +187,20 @@ def read(db: Session, who: Principal, contact_id: int, after_id: int | None, now
     return ContactMessagesPage(items=items, next_cursor=cursor)
 
 
+def delete_message(db: Session, who: Principal, contact_id: int, message_id: int) -> None:
+    """ADR 0014. Blocking someone does not stop you deleting what is between you."""
+    me = _me(who)
+    if not repo.delete_messages(db, me, _own_contact(db, me, contact_id).peer_id, message_id):
+        raise _not_found()
+    db.commit()
+
+
+def delete_thread(db: Session, who: Principal, contact_id: int) -> None:
+    me = _me(who)
+    repo.delete_messages(db, me, _own_contact(db, me, contact_id).peer_id)
+    db.commit()
+
+
 def send(
     db: Session,
     who: Principal,
@@ -210,7 +224,7 @@ def send(
 
     translations: dict[str, str] = {}
     if delivered and target != body.lang:
-        text = translate(ai, body.text, body.lang, target, f"user:{me}", f"user:{me}", now)
+        text = translate(ai, body.text, body.lang, target, None, f"user:{me}", now)
         if text:  # at the AI cap the reader sees the original, never an error
             translations[target] = text
     row = ContactMessage(

@@ -4,9 +4,12 @@ from dataclasses import dataclass
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.ai.fake import FakeAiClient
+from app.models.personal import ContactMessage
+from app.models.platform import AiCache
 from tests import factories as f
 
 
@@ -123,3 +126,70 @@ def test_the_employer_cannot_read_personal_threads(client: TestClient, people: P
 
     assert client.get(f"/api/contacts/{mine}/messages", headers=people.foreman).status_code == 404
     assert client.get("/api/contacts", headers=people.foreman).json()["data"]["items"] == []
+
+
+def _texts(client: TestClient, who: dict[str, str], contact: str) -> list[str]:
+    items = client.get(f"/api/contacts/{contact}/messages", headers=who).json()["data"]["items"]
+    return [m["textSrc"] for m in items]
+
+
+def _say(client: TestClient, who: dict[str, str], contact: str, text: str) -> str:
+    res = client.post(f"/api/contacts/{contact}/messages", headers=who, json={"text": text, "lang": "en"})
+    message_id: str = res.json()["data"]["id"]
+    return message_id
+
+
+def test_a_message_you_sent_is_deleted_for_both(client: TestClient, db: Session, people: People) -> None:
+    mine, theirs = _connect(client, people)
+    sent = _say(client, people.rahim, mine, "secret")
+
+    res = client.delete(f"/api/contacts/{mine}/messages/{sent}", headers=people.rahim)
+
+    assert res.status_code == 200
+    assert _texts(client, people.rahim, mine) == _texts(client, people.nguyen, theirs) == []
+    assert client.get("/api/contacts", headers=people.nguyen).json()["data"]["items"][0]["unread"] == 0
+    assert db.get(ContactMessage, int(sent)) is None  # gone, not hidden
+    assert client.delete(f"/api/contacts/{mine}/messages/{sent}", headers=people.rahim).status_code == 404
+
+
+def test_a_message_you_received_is_deleted_only_on_your_side(client: TestClient, people: People) -> None:
+    mine, theirs = _connect(client, people)
+    sent = _say(client, people.rahim, mine, "hello")
+
+    res = client.delete(f"/api/contacts/{theirs}/messages/{sent}", headers=people.nguyen)
+
+    assert res.status_code == 200
+    assert (_texts(client, people.rahim, mine), _texts(client, people.nguyen, theirs)) == (["hello"], [])
+    [listed] = client.get("/api/contacts", headers=people.nguyen).json()["data"]["items"]
+    assert (listed["unread"], listed["lastMessageAt"]) == (0, None)
+
+
+def test_deleting_the_thread_keeps_only_the_other_persons_own_words(client: TestClient, people: People) -> None:
+    mine, theirs = _connect(client, people)
+    _say(client, people.rahim, mine, "from rahim")
+    _say(client, people.nguyen, theirs, "from nguyen")
+
+    assert client.delete(f"/api/contacts/{mine}/messages", headers=people.rahim).status_code == 200
+
+    assert _texts(client, people.rahim, mine) == []
+    assert _texts(client, people.nguyen, theirs) == ["from nguyen"]
+
+
+def test_you_can_delete_the_thread_of_someone_you_blocked(client: TestClient, db: Session, people: People) -> None:
+    _, theirs = _connect(client, people)
+    sent = _say(client, people.nguyen, theirs, "my words")
+    client.post("/api/blocks", headers=people.nguyen, json={"contactId": theirs})
+
+    assert client.delete(f"/api/contacts/{theirs}/messages", headers=people.nguyen).status_code == 200
+    assert db.get(ContactMessage, int(sent)) is None
+
+
+def test_personal_texts_are_never_kept_in_the_ai_cache(
+    client: TestClient, db: Session, people: People, fake_ai: FakeAiClient
+) -> None:
+    mine, _ = _connect(client, people)
+    fake_ai.queue("translate", {"text": "a private sentence"})
+
+    client.post(f"/api/contacts/{mine}/messages", headers=people.rahim, json={"text": "ব্যক্তিগত", "lang": "bn"})
+
+    assert fake_ai.calls == 1 and db.scalars(select(AiCache)).all() == []

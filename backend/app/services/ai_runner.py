@@ -51,7 +51,9 @@ class AiRequest[T: BaseModel]:
     prompt: Prompt
     parts: list[Part]
     schema: type[T]
-    scope: str  # "shop:<id>" or "district:<id>": one scope never reads another's cache
+    # "shop:<id>" or "district:<id>": one scope never reads another's cache. None: personal (ADR 0014), never cached,
+    # so deleting a message or a thread leaves no copy of it behind.
+    scope: str | None
     cache_input: bytes  # the input bytes plus anything that changes the answer (e.g. the glossary)
     caller: str  # "user:<id>" or "senpai:<pair id>": whose AI allowance this spends (§10.3)
     languages: tuple[str, ...] = DEFAULT_LANGUAGES  # the shop's languages besides ja (XREQ-011 item 5)
@@ -188,11 +190,12 @@ class AiRunner:
     def run[T: BaseModel](self, req: AiRequest[T], validate: Callable[[T], list[str]], now: datetime) -> AiResult[T]:
         # A cached answer from any model of the chain wins, best first: a filmed 3.8 Flash take is reused
         # even when 3.8 Flash is out of quota (AI_PLAN.md §3 step 1).
-        with self._sessions() as db:
-            for link in self._chain:
-                hit = repo.cached(db, self._key(req, link.client.model))
-                if hit is not None:
-                    return AiResult(req.schema.model_validate(hit.response), "cached")
+        if req.scope is not None:
+            with self._sessions() as db:
+                for link in self._chain:
+                    hit = repo.cached(db, self._key(req, link.client.model))
+                    if hit is not None:
+                        return AiResult(req.schema.model_validate(hit.response), "cached")
 
         retry_after = self._spend_allowance(req.caller, now)
         if retry_after is not None:
@@ -217,10 +220,11 @@ class AiRunner:
             if value is None:
                 continue
             model = link.client.model
-            with self._sessions() as db:
+            if req.scope is not None:
                 response = json.loads(value.model_dump_json())
-                repo.store(db, self._key(req, model), req.scope, req.pipeline, req.prompt.version, model, response)
-                db.commit()
+                with self._sessions() as db:
+                    repo.store(db, self._key(req, model), req.scope, req.pipeline, req.prompt.version, model, response)
+                    db.commit()
             if link is not self._chain[0]:
                 _log.info("ai answered by backup: %s", model, extra={"route": req.pipeline})
             return AiResult(value, outcome)
