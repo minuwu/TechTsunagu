@@ -70,7 +70,7 @@ This file is:
 
 | `XREQ-013` | P1 | Frontend (Arjun) | Backend (Asif, deploy) | Host the frontend demo on Azure Static Web Apps (static build, `npm run build:static`) and reply with the live URL | `[PENDING]` | 2026-11-23 18:30 |
 | `XREQ-014` | P1 | Backend (Anim) | Frontend (Minhaz, Android + Firebase) | Firebase for push: project, Android app, FCM token upload to `PUT /api/devices/me`, service-account key to Anim privately | `[PENDING]` | 2026-11-23 19:30 |
-| `XREQ-015` | P0 | Backend (Anim) | Backend (Asif, Azure owner) | Give Anim's Azure account Contributor on the Wakatta resource group (Asif is off the project; Anim runs deploy now) | `[PENDING]` | 2026-11-23 19:30 |
+| `XREQ-015` | P0 | Backend (Anim) | Backend (Asif, Azure owner) | Give Anim's Azure account Contributor on the Wakatta resource group (Asif is off the project; Anim runs deploy now) | `[RESOLVED]` | 2026-11-23 19:30 |
 *(When adding a request: append a row above AND add a detailed card in 2.2. Never insert in the middle.)*
 
 ### 2.2 Detailed Request Cards
@@ -557,7 +557,7 @@ GET https://<name>.azurestaticapps.net/panel/m-press → 200, the Machine Panel
 
 **Fulfillment & Proof (filled by recipient on completion):**
 - **Branch / Commit**:
-- **Status / Notes**:
+- **Status / Notes**: 2026-11-23 Asif (off the project): handed to **Anim**, who runs Azure now; needs XREQ-015 first. The `Microsoft.Web` provider is already registered (Contributor on a resource group could not do it). Ops notes: `contributors/asif/WORK_LOG.md` (HANDOVER section).
 - **Verification Proof**:
 
 #### `[XREQ-014]` Firebase for push notifications (Android)
@@ -599,7 +599,7 @@ PUT /api/devices/me
 - **Priority**: `P0 (Blocker)`
 - **From**: `Backend (Anim)`
 - **To**: `Backend (Asif, owner of the Azure for Students subscription)`
-- **Status**: `[PENDING]`
+- **Status**: `[RESOLVED]`
 - **Created**: `2026-11-23 19:30 (UTC+6)`
 - **Target Interface / Endpoint**: Azure role assignment
 
@@ -621,8 +621,8 @@ Anim: az group show -n <rg> → succeeds
 
 **Fulfillment & Proof (filled by recipient on completion):**
 - **Branch / Commit**: 
-- **Status / Notes**: 
-- **Verification Proof**: 
+- **Status / Notes**: 2026-11-23 Asif: Anim invited as a guest to the Azure tenant and given **Contributor on `wakatta-rg`** only (subscription **Azure for Students**). Anim: accept the invitation email, then sign in **to this tenant** (a plain `az login` lands in your own): `az login --tenant acf1fe93-0760-406b-9216-573b5fed5453`, then `az account set --subscription "Azure for Students"`. Ops runbook: `contributors/asif/WORK_LOG.md` (HANDOVER).
+- **Verification Proof**: `az role assignment list` for the guest → `Contributor  /subscriptions/…/resourceGroups/wakatta-rg` (no other assignment).
 
 ### 2.3 Blank XREQ Template (copy & paste)
 
