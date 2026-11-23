@@ -3334,6 +3334,129 @@
         ]
       }
     },
+    "/api/workers/me/learning": {
+      "get": {
+        "tags": [
+          "work"
+        ],
+        "summary": "Your Learning History: missed terms, newest first, and your streak",
+        "operationId": "my_learning_api_workers_me_learning_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 40
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Learning_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "worker"
+        ]
+      }
+    },
+    "/api/analytics/understanding": {
+      "get": {
+        "tags": [
+          "work"
+        ],
+        "summary": "Wakatta Status trend per day and per Worker, and the top missed terms",
+        "operationId": "understanding_api_analytics_understanding_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 90,
+              "minimum": 1,
+              "default": 30,
+              "title": "Days"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Understanding_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "foreman"
+        ]
+      }
+    },
     "/api/workers/{worker_id}/passport": {
       "get": {
         "tags": [
@@ -3551,6 +3674,67 @@
         "x-roles": [
           "foreman",
           "worker"
+        ]
+      }
+    },
+    "/api/messages/{message_id}": {
+      "patch": {
+        "tags": [
+          "chat"
+        ],
+        "summary": "Edit an unsent draft's Japanese; the AI translates it again (XREQ-022)",
+        "operationId": "edit_draft_api_messages__message_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "message_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Message Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DraftEdit"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_MessageForSender_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "foreman"
         ]
       }
     },
@@ -3886,6 +4070,128 @@
         },
         "x-roles": [
           "foreman"
+        ]
+      }
+    },
+    "/api/messages/{message_id}/reexplain/draft": {
+      "post": {
+        "tags": [
+          "chat"
+        ],
+        "summary": "See the Re-explanation before sending it; nothing is stored",
+        "operationId": "reexplain_draft_api_messages__message_id__reexplain_draft_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "message_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Message Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReexplainIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_ReexplainDraft_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "foreman"
+        ]
+      }
+    },
+    "/api/messages/{message_id}/ask": {
+      "post": {
+        "tags": [
+          "chat"
+        ],
+        "summary": "Worker: ask the Foreman to explain a term again (no AI)",
+        "operationId": "ask_foreman_api_messages__message_id__ask_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "message_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Message Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AskForemanIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_MessageForSender_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "worker"
         ]
       }
     },
@@ -5639,6 +5945,545 @@
           "worker"
         ]
       }
+    },
+    "/api/talk-threads": {
+      "get": {
+        "tags": [
+          "personal"
+        ],
+        "summary": "Your Talk Threads, newest first",
+        "operationId": "list_threads_api_talk_threads_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 40
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Page_TalkThreadOut__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "foreman",
+          "worker"
+        ]
+      },
+      "post": {
+        "tags": [
+          "personal"
+        ],
+        "summary": "Start a Talk Thread (title 1 to 40 characters)",
+        "operationId": "create_thread_api_talk_threads_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TalkThreadIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_TalkThreadOut_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "foreman",
+          "worker"
+        ]
+      }
+    },
+    "/api/talk-threads/{thread_id}": {
+      "patch": {
+        "tags": [
+          "personal"
+        ],
+        "summary": "Rename a Talk Thread",
+        "operationId": "rename_thread_api_talk_threads__thread_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "thread_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Thread Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TalkThreadIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_TalkThreadOut_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "foreman",
+          "worker"
+        ]
+      },
+      "delete": {
+        "tags": [
+          "personal"
+        ],
+        "summary": "Delete a Talk Thread and every entry (hard delete)",
+        "operationId": "delete_thread_api_talk_threads__thread_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "thread_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Thread Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "foreman",
+          "worker"
+        ]
+      }
+    },
+    "/api/talk-threads/{thread_id}/entries": {
+      "get": {
+        "tags": [
+          "personal"
+        ],
+        "summary": "A Talk Thread's entries, oldest first",
+        "operationId": "list_entries_api_talk_threads__thread_id__entries_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "thread_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Thread Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 40
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Page_TalkEntryOut__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "foreman",
+          "worker"
+        ]
+      },
+      "post": {
+        "tags": [
+          "personal"
+        ],
+        "summary": "What someone said (text or recording) → plain Japanese, the meaning, dialect words, replies (AI)",
+        "operationId": "add_entry_api_talk_threads__thread_id__entries_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "thread_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Thread Id"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_add_entry_api_talk_threads__thread_id__entries_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_TalkEntryOut_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "foreman",
+          "worker"
+        ]
+      }
+    },
+    "/api/talk-threads/{thread_id}/entries/{entry_id}": {
+      "patch": {
+        "tags": [
+          "personal"
+        ],
+        "summary": "Exactly one of: ownText (graded by AI), replyJa (the reply shown), confirmed (it got through)",
+        "operationId": "update_entry_api_talk_threads__thread_id__entries__entry_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "thread_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Thread Id"
+            }
+          },
+          {
+            "name": "entry_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Entry Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TalkEntryUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_TalkEntryOut_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "foreman",
+          "worker"
+        ]
+      },
+      "delete": {
+        "tags": [
+          "personal"
+        ],
+        "summary": "Delete one entry",
+        "operationId": "delete_entry_api_talk_threads__thread_id__entries__entry_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "thread_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Thread Id"
+            }
+          },
+          {
+            "name": "entry_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Entry Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "foreman",
+          "worker"
+        ]
+      }
     }
   },
   "components": {
@@ -5918,6 +6763,23 @@
         "additionalProperties": false,
         "type": "object",
         "title": "ApproveIn"
+      },
+      "AskForemanIn": {
+        "properties": {
+          "termJa": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Termja"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "termJa"
+        ],
+        "title": "AskForemanIn",
+        "description": "POST /messages/{id}/ask (XREQ-022): a Worker asks the Foreman to explain one term of a sent message again."
       },
       "AskOut": {
         "properties": {
@@ -6251,6 +7113,36 @@
           "openConfusions"
         ],
         "title": "BoardOut"
+      },
+      "Body_add_entry_api_talk_threads__thread_id__entries_post": {
+        "properties": {
+          "text": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          },
+          "audio": {
+            "anyOf": [
+              {
+                "type": "string",
+                "contentMediaType": "application/octet-stream"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Audio"
+          }
+        },
+        "type": "object",
+        "title": "Body_add_entry_api_talk_threads__thread_id__entries_post"
       },
       "Body_ask_knowledge_api_knowledge_asks_post": {
         "properties": {
@@ -7376,6 +8268,36 @@
         "type": "object",
         "title": "ContactUpdate"
       },
+      "DayCounts": {
+        "properties": {
+          "day": {
+            "type": "string",
+            "format": "date",
+            "title": "Day"
+          },
+          "green": {
+            "type": "integer",
+            "title": "Green"
+          },
+          "orange": {
+            "type": "integer",
+            "title": "Orange"
+          },
+          "red": {
+            "type": "integer",
+            "title": "Red"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "day",
+          "green",
+          "orange",
+          "red"
+        ],
+        "title": "DayCounts"
+      },
       "DeviceIn": {
         "properties": {
           "installId": {
@@ -7459,6 +8381,47 @@
           "lastSeenAt"
         ],
         "title": "DeviceOut"
+      },
+      "DialectTermOut": {
+        "properties": {
+          "dialect": {
+            "type": "string",
+            "title": "Dialect"
+          },
+          "plain": {
+            "type": "string",
+            "title": "Plain"
+          },
+          "meaning": {
+            "type": "string",
+            "title": "Meaning"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "dialect",
+          "plain",
+          "meaning"
+        ],
+        "title": "DialectTermOut"
+      },
+      "DraftEdit": {
+        "properties": {
+          "textJa": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Textja"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "textJa"
+        ],
+        "title": "DraftEdit",
+        "description": "PATCH /messages/{id} (XREQ-022): the Foreman's corrected Japanese for an unsent draft. The AI translates it and\nmakes the Check Questions again, as for a new draft."
       },
       "EffortOut": {
         "properties": {
@@ -8034,6 +8997,29 @@
         ],
         "title": "Envelope[KnowledgeAnswer]"
       },
+      "Envelope_Learning_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/Learning"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[Learning]"
+      },
       "Envelope_LoginOut_": {
         "properties": {
           "success": {
@@ -8587,6 +9573,52 @@
         ],
         "title": "Envelope[Page[SignOffOut]]"
       },
+      "Envelope_Page_TalkEntryOut__": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/Page_TalkEntryOut_"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[Page[TalkEntryOut]]"
+      },
+      "Envelope_Page_TalkThreadOut__": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/Page_TalkThreadOut_"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[Page[TalkThreadOut]]"
+      },
       "Envelope_Page_TaskOut__": {
         "properties": {
           "success": {
@@ -8702,6 +9734,29 @@
         ],
         "title": "Envelope[QrOut]"
       },
+      "Envelope_ReexplainDraft_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/ReexplainDraft"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[ReexplainDraft]"
+      },
       "Envelope_SenpaiPairCreated_": {
         "properties": {
           "success": {
@@ -8771,6 +9826,52 @@
         ],
         "title": "Envelope[SkillMatrix]"
       },
+      "Envelope_TalkEntryOut_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/TalkEntryOut"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[TalkEntryOut]"
+      },
+      "Envelope_TalkThreadOut_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/TalkThreadOut"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[TalkThreadOut]"
+      },
       "Envelope_TaskOut_": {
         "properties": {
           "success": {
@@ -8816,6 +9917,29 @@
           "data"
         ],
         "title": "Envelope[TodayWord]"
+      },
+      "Envelope_Understanding_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/Understanding"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[Understanding]"
       },
       "Envelope_Union_AssignmentOut__NoneType__": {
         "properties": {
@@ -10027,6 +11151,101 @@
           "attribution"
         ],
         "title": "KnowledgeSource"
+      },
+      "Learning": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/LearningItem"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "nextCursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nextcursor"
+          },
+          "streakDays": {
+            "type": "integer",
+            "title": "Streakdays"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items",
+          "nextCursor",
+          "streakDays"
+        ],
+        "title": "Learning"
+      },
+      "LearningItem": {
+        "properties": {
+          "followUpId": {
+            "type": "string",
+            "title": "Followupid"
+          },
+          "termJa": {
+            "type": "string",
+            "title": "Termja"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "clarified",
+              "understood"
+            ],
+            "title": "Status"
+          },
+          "missedAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Missedat"
+          },
+          "clarifiedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Clarifiedat"
+          },
+          "understoodAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Understoodat"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "followUpId",
+          "termJa",
+          "status",
+          "missedAt",
+          "clarifiedAt",
+          "understoodAt"
+        ],
+        "title": "LearningItem"
       },
       "LoginIn": {
         "properties": {
@@ -11885,6 +13104,64 @@
         ],
         "title": "Page[SignOffOut]"
       },
+      "Page_TalkEntryOut_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/TalkEntryOut"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "nextCursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nextcursor"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "title": "Page[TalkEntryOut]"
+      },
+      "Page_TalkThreadOut_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/TalkThreadOut"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "nextCursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nextcursor"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "title": "Page[TalkThreadOut]"
+      },
       "Page_TaskOut_": {
         "properties": {
           "items": {
@@ -12228,6 +13505,42 @@
         ],
         "title": "ReceiptWorker"
       },
+      "ReexplainDraft": {
+        "properties": {
+          "text": {
+            "additionalProperties": {
+              "type": "string",
+              "maxLength": 1000
+            },
+            "propertyNames": {
+              "enum": [
+                "ja",
+                "bn",
+                "en",
+                "vi",
+                "id",
+                "ne",
+                "my",
+                "tl",
+                "zh"
+              ]
+            },
+            "type": "object",
+            "title": "Text"
+          },
+          "question": {
+            "$ref": "#/components/schemas/CheckQuestion"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "text",
+          "question"
+        ],
+        "title": "ReexplainDraft",
+        "description": "POST /messages/{id}/reexplain/draft (XREQ-022): the simpler version to read and edit before sending.\n`text.ja` is the easy Japanese; the other languages are the explanation. Nothing is stored."
+      },
       "ReexplainIn": {
         "properties": {
           "userId": {
@@ -12240,6 +13553,44 @@
             "maxLength": 100,
             "minLength": 1,
             "title": "Termja"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string",
+                  "maxLength": 1000
+                },
+                "propertyNames": {
+                  "enum": [
+                    "ja",
+                    "bn",
+                    "en",
+                    "vi",
+                    "id",
+                    "ne",
+                    "my",
+                    "tl",
+                    "zh"
+                  ]
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          },
+          "question": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CheckQuestion"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "additionalProperties": false,
@@ -12248,7 +13599,28 @@
           "userId",
           "termJa"
         ],
-        "title": "ReexplainIn"
+        "title": "ReexplainIn",
+        "description": "POST /messages/{id}/reexplain. With `text` and `question` (the Foreman's edited draft from\n/reexplain/draft) it is sent as written and no model is called; without them the AI writes it (XREQ-022)."
+      },
+      "ReplyOptionOut": {
+        "properties": {
+          "ja": {
+            "type": "string",
+            "title": "Ja"
+          },
+          "meaning": {
+            "type": "string",
+            "title": "Meaning"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "ja",
+          "meaning"
+        ],
+        "title": "ReplyOptionOut",
+        "description": "A reply the Worker can show or read aloud. Proposed `replyOptions: [\"…\"]` became objects: the Worker also needs\nto know what the Japanese reply says (`meaning`, in their language)."
       },
       "RosterEntry": {
         "properties": {
@@ -12741,6 +14113,225 @@
         ],
         "title": "StepEdit"
       },
+      "TalkEntryOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "transcript": {
+            "type": "string",
+            "title": "Transcript"
+          },
+          "plainJa": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plainja"
+          },
+          "meaning": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Meaning"
+          },
+          "terms": {
+            "items": {
+              "$ref": "#/components/schemas/DialectTermOut"
+            },
+            "type": "array",
+            "title": "Terms"
+          },
+          "needsStaff": {
+            "type": "boolean",
+            "title": "Needsstaff"
+          },
+          "needsEdit": {
+            "type": "boolean",
+            "title": "Needsedit"
+          },
+          "ownText": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Owntext"
+          },
+          "grade": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "green",
+                  "orange",
+                  "red"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grade"
+          },
+          "replyOptions": {
+            "items": {
+              "$ref": "#/components/schemas/ReplyOptionOut"
+            },
+            "type": "array",
+            "title": "Replyoptions"
+          },
+          "replyJa": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Replyja"
+          },
+          "confirmed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confirmed"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "transcript",
+          "plainJa",
+          "meaning",
+          "terms",
+          "needsStaff",
+          "needsEdit",
+          "ownText",
+          "grade",
+          "replyOptions",
+          "replyJa",
+          "confirmed",
+          "createdAt"
+        ],
+        "title": "TalkEntryOut"
+      },
+      "TalkEntryUpdate": {
+        "properties": {
+          "ownText": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Owntext"
+          },
+          "replyJa": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Replyja"
+          },
+          "confirmed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confirmed"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "TalkEntryUpdate",
+        "description": "PATCH an entry with exactly one of: ownText (graded again), replyJa (the reply shown), confirmed (it got\nthrough or not)."
+      },
+      "TalkThreadIn": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Title"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "title"
+        ],
+        "title": "TalkThreadIn"
+      },
+      "TalkThreadOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updatedat"
+          },
+          "entryCount": {
+            "type": "integer",
+            "title": "Entrycount"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "updatedAt",
+          "entryCount"
+        ],
+        "title": "TalkThreadOut"
+      },
       "TaskCreate": {
         "properties": {
           "title": {
@@ -13026,6 +14617,25 @@
         "title": "TaskUpdate",
         "description": "PATCH /tasks/{id} with `If-Match: <version>`; only the fields sent change (`dueAt: null` clears it)."
       },
+      "TermCount": {
+        "properties": {
+          "termJa": {
+            "type": "string",
+            "title": "Termja"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "termJa",
+          "count"
+        ],
+        "title": "TermCount"
+      },
       "ThreadOut": {
         "properties": {
           "id": {
@@ -13125,6 +14735,44 @@
           "meaningJa"
         ],
         "title": "TodayWord"
+      },
+      "Understanding": {
+        "properties": {
+          "days": {
+            "type": "integer",
+            "title": "Days"
+          },
+          "trend": {
+            "items": {
+              "$ref": "#/components/schemas/DayCounts"
+            },
+            "type": "array",
+            "title": "Trend"
+          },
+          "perWorker": {
+            "items": {
+              "$ref": "#/components/schemas/WorkerCounts"
+            },
+            "type": "array",
+            "title": "Perworker"
+          },
+          "topTerms": {
+            "items": {
+              "$ref": "#/components/schemas/TermCount"
+            },
+            "type": "array",
+            "title": "Topterms"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "days",
+          "trend",
+          "perWorker",
+          "topTerms"
+        ],
+        "title": "Understanding"
       },
       "UserOut": {
         "properties": {
@@ -13234,6 +14882,40 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "WorkerCounts": {
+        "properties": {
+          "workerId": {
+            "type": "string",
+            "title": "Workerid"
+          },
+          "displayName": {
+            "type": "string",
+            "title": "Displayname"
+          },
+          "green": {
+            "type": "integer",
+            "title": "Green"
+          },
+          "orange": {
+            "type": "integer",
+            "title": "Orange"
+          },
+          "red": {
+            "type": "integer",
+            "title": "Red"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "workerId",
+          "displayName",
+          "green",
+          "orange",
+          "red"
+        ],
+        "title": "WorkerCounts"
       },
       "WrongQuestion": {
         "properties": {

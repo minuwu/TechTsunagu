@@ -61,9 +61,7 @@ def ask_out(a: Ask) -> AskOut:
     )
 
 
-def translate(
-    ai: AiRunner, text: str, source: str, target: str, scope: str | None, caller: str, now: datetime
-) -> str | None:
+def translate(ai: AiRunner, text: str, source: str, target: str, scope: str, caller: str, now: datetime) -> str | None:
     """One faithful translation, or None when the model is unavailable or the caller is over their AI allowance
     (either way the original is kept, never an error)."""
     request = AiRequest(

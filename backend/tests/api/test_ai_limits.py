@@ -8,10 +8,10 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from app.ai.chains import USER_LIMITS
 from app.ai.fake import FakeAiClient
 from app.models.scopes import Shop, User
 from app.repositories import accounts
+from app.services.ai_runner import USER_LIMITS
 from tests import factories as f
 
 WEBM = b"\x1a\x45\xdf\xa3" + b"0" * 64

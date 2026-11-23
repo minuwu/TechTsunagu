@@ -20,7 +20,7 @@ from zoneinfo import ZoneInfo
 from pydantic import BaseModel, ValidationError
 from sqlalchemy.orm import Session, sessionmaker
 
-from app.ai.chains import USER_LIMITS
+from app.ai.chains import Tier
 from app.ai.client import AiClient, AiUnavailable, Part, Prompt, QuotaExhausted
 from app.ai.schemas import DEFAULT_LANGUAGES
 from app.api.errors import ApiError
@@ -51,21 +51,36 @@ class AiRequest[T: BaseModel]:
     prompt: Prompt
     parts: list[Part]
     schema: type[T]
-    # "shop:<id>" or "district:<id>": one scope never reads another's cache. None: personal (ADR 0014), never cached,
-    # so deleting a message or a thread leaves no copy of it behind.
-    scope: str | None
+    # "shop:<id>" or "district:<id>": one scope never reads another's cache. "user:<id>" is personal (ADR 0014): never
+    # cached, so deleting a message or a thread leaves no copy of it behind.
+    scope: str
     cache_input: bytes  # the input bytes plus anything that changes the answer (e.g. the glossary)
-    caller: str  # "user:<id>" or "senpai:<pair id>": whose AI allowance this spends (§10.3)
     languages: tuple[str, ...] = DEFAULT_LANGUAGES  # the shop's languages besides ja (XREQ-011 item 5)
     # "degrade" when the service keeps the person's own words without the model: a message or a safety report is
     # never refused only because it could not be translated.
     over_limit: Literal["refuse", "degrade"] = "refuse"
+    # "user:<id>" or "senpai:<pair id>": whose AI allowance this spends (§10.3). A personal scope names its own caller.
+    caller: str = ""
+
+    def __post_init__(self) -> None:
+        if not self.caller and not self.is_personal:
+            raise ValueError(f"{self.pipeline}: a {self.scope} request must name its caller")
+
+    @property
+    def is_personal(self) -> bool:
+        return self.scope.startswith("user:")
 
 
 @dataclass(frozen=True)
 class AiResult[T: BaseModel]:
     value: T | None
     outcome: Outcome
+
+
+# (AI requests per minute, per day) for one user, so nobody can spend the shared budgets of app.ai.chains alone.
+# A cached answer is free; one request may cost a model two calls (the validation retry), so the day stays under half
+# of one model's daily budget.
+USER_LIMITS: dict[Tier, tuple[int, int]] = {"free": (10, 100), "paid": (10, 500)}
 
 
 class _Limiter:
@@ -190,14 +205,14 @@ class AiRunner:
     def run[T: BaseModel](self, req: AiRequest[T], validate: Callable[[T], list[str]], now: datetime) -> AiResult[T]:
         # A cached answer from any model of the chain wins, best first: a filmed 3.8 Flash take is reused
         # even when 3.8 Flash is out of quota (AI_PLAN.md §3 step 1).
-        if req.scope is not None:
+        if not req.is_personal:
             with self._sessions() as db:
                 for link in self._chain:
                     hit = repo.cached(db, self._key(req, link.client.model))
                     if hit is not None:
                         return AiResult(req.schema.model_validate(hit.response), "cached")
 
-        retry_after = self._spend_allowance(req.caller, now)
+        retry_after = self._spend_allowance(req.caller or req.scope, now)
         if retry_after is not None:
             _log.info("ai user limit reached", extra={"route": req.pipeline})
             if req.over_limit == "degrade":
@@ -220,7 +235,7 @@ class AiRunner:
             if value is None:
                 continue
             model = link.client.model
-            if req.scope is not None:
+            if not req.is_personal:
                 response = json.loads(value.model_dump_json())
                 with self._sessions() as db:
                     repo.store(db, self._key(req, model), req.scope, req.pipeline, req.prompt.version, model, response)

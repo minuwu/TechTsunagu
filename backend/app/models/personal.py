@@ -1,5 +1,5 @@
-"""Personal data (ADR 0014, XREQ-017, XREQ-018): My QR, Contacts, blocks, Contact Threads and Talk Threads. Scoped by
-user id, never by shop: a Foreman, a Poster and the Support Log have no route that reads these tables."""
+"""Personal data (ADR 0014, XREQ-017, XREQ-018): My QR, Contacts, blocks, Contact Threads and Talk Threads.
+Scoped by user id, never by shop: a Foreman, a Poster and the Support Log have no route that reads these tables."""
 
 import uuid
 
@@ -8,7 +8,6 @@ from sqlalchemy import (
     Boolean,
     CheckConstraint,
     ForeignKey,
-    ForeignKeyConstraint,
     Index,
     LargeBinary,
     Text,
@@ -19,7 +18,7 @@ from sqlalchemy import text as sql_text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import Base, CreatedAt, IdPk, Timestamp, TimestampOrNone
+from app.models.base import Base, CreatedAt, IdPk, TimestampOrNone
 from app.models.scopes import LANGS
 
 
@@ -90,52 +89,53 @@ class ContactMessage(Base):
 
 
 class TalkThread(Base):
-    """A Talk Thread: its owner's notes about real-life conversations with one person who is not in the app."""
+    """A Talk Thread (XREQ-018): the owner's own notebook about real-life conversations. Private to the owner (no shop,
+    no Foreman, no Support Log), never notifies; deleting it deletes every entry."""
 
     __tablename__ = "talk_threads"
     __table_args__ = (
         CheckConstraint("char_length(title) BETWEEN 1 AND 40", name="title_length"),
         UniqueConstraint("owner_id", "idempotency_key"),
-        UniqueConstraint("owner_id", "id"),
+        Index("ix_talk_threads_owner_id", "owner_id", "id"),
     )
 
     id: Mapped[IdPk]
     owner_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("users.id", ondelete="CASCADE"))
     title: Mapped[str] = mapped_column(Text)
-    idempotency_key: Mapped[uuid.UUID] = mapped_column(Uuid)
+    idempotency_key: Mapped[uuid.UUID | None] = mapped_column(Uuid)
     created_at: Mapped[CreatedAt]
-    updated_at: Mapped[Timestamp]
+    updated_at: Mapped[CreatedAt]
 
 
 class TalkEntry(Base):
-    """One exchange: what they said and what it means (AI), the owner's own understanding and reply. The recording
-    is never stored."""
+    """What someone said, explained (explain_utterance), the owner's own understanding graded (grade_understanding),
+    the reply they chose and whether it got through. On AI failure only the transcript is kept, with needs_edit."""
 
     __tablename__ = "talk_entries"
     __table_args__ = (
+        CheckConstraint("grade IS NULL OR grade IN ('green','orange','red')", name="grade"),
+        CheckConstraint(f"meaning_lang IN {LANGS}", name="meaning_lang"),
         CheckConstraint("char_length(transcript) <= 2000", name="transcript_length"),
-        CheckConstraint("char_length(own_text) <= 1000", name="own_text_length"),
-        CheckConstraint("char_length(reply_ja) <= 500", name="reply_ja_length"),
-        CheckConstraint("grade IN ('green','orange','red')", name="grade"),
-        CheckConstraint("confirmed IS NULL OR reply_ja IS NOT NULL", name="confirmed_has_reply"),
+        CheckConstraint("own_text IS NULL OR char_length(own_text) <= 1000", name="own_text_length"),
+        CheckConstraint("reply_ja IS NULL OR char_length(reply_ja) <= 500", name="reply_ja_length"),
         UniqueConstraint("owner_id", "idempotency_key"),
-        ForeignKeyConstraint(
-            ["owner_id", "thread_id"], ["talk_threads.owner_id", "talk_threads.id"], ondelete="CASCADE"
-        ),
-        Index("ix_talk_entries_owner_thread_id", "owner_id", "thread_id", "id"),
+        Index("ix_talk_entries_thread_id", "thread_id", "id"),
     )
 
     id: Mapped[IdPk]
-    owner_id: Mapped[int] = mapped_column(BigInteger)
-    thread_id: Mapped[int] = mapped_column(BigInteger)
+    thread_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("talk_threads.id", ondelete="CASCADE"))
+    owner_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("users.id", ondelete="CASCADE"))
     transcript: Mapped[str] = mapped_column(Text)
     plain_ja: Mapped[str | None] = mapped_column(Text)
     meaning: Mapped[str | None] = mapped_column(Text)
+    meaning_lang: Mapped[str] = mapped_column(Text)
     terms: Mapped[list[dict[str, str]]] = mapped_column(JSONB, server_default=sql_text("'[]'::jsonb"))
     reply_options: Mapped[list[dict[str, str]]] = mapped_column(JSONB, server_default=sql_text("'[]'::jsonb"))
+    needs_staff: Mapped[bool] = mapped_column(Boolean, server_default=sql_text("false"))
+    needs_edit: Mapped[bool] = mapped_column(Boolean, server_default=sql_text("false"))
     own_text: Mapped[str | None] = mapped_column(Text)
     grade: Mapped[str | None] = mapped_column(Text)
     reply_ja: Mapped[str | None] = mapped_column(Text)
     confirmed: Mapped[bool | None] = mapped_column(Boolean)
-    idempotency_key: Mapped[uuid.UUID] = mapped_column(Uuid)
+    idempotency_key: Mapped[uuid.UUID | None] = mapped_column(Uuid)
     created_at: Mapped[CreatedAt]

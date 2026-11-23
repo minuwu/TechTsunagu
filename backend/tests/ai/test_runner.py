@@ -7,14 +7,15 @@ from typing import Literal
 
 import pytest
 from pydantic import BaseModel
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.ai.chains import BUDGETS, USER_LIMITS, Tier
+from app.ai.chains import BUDGETS, Tier
 from app.ai.client import AiUnavailable, Part, Prompt, QuotaExhausted
 from app.ai.fake import FakeAiClient
 from app.api.errors import ApiError
-from app.models.platform import AiUsage
-from app.services.ai_runner import AiLimits, AiRequest, AiRunner, pacific_day
+from app.models.platform import AiCache, AiUsage
+from app.services.ai_runner import USER_LIMITS, AiLimits, AiRequest, AiRunner, pacific_day
 
 
 class Echo(BaseModel):
@@ -270,3 +271,21 @@ def test_no_user_can_spend_a_models_daily_budget_even_if_every_answer_is_retried
     flash_lite = BUDGETS[tier]["gemini-3.5-flash-lite"][0]
 
     assert USER_LIMITS[tier][1] * 2 < flash_lite
+
+
+def test_a_shop_request_must_name_its_caller() -> None:
+    with pytest.raises(ValueError, match="must name its caller"):
+        _request(caller="")
+
+
+def test_a_personal_request_is_never_cached_and_spends_its_owners_allowance(db: Session) -> None:
+    client = FakeAiClient({"echo": [{"word": "one"}, {"word": "two"}]})
+    runner = _limited(db, client, per_minute=2, per_day=50)
+    personal = replace(_request(), scope="user:7", caller="")
+
+    words = [runner.run(personal, _no_problems, NOW).value for _ in range(2)]
+
+    assert words == [Echo(word="one"), Echo(word="two")]
+    assert db.scalars(select(AiCache)).all() == []
+    with pytest.raises(ApiError):
+        runner.run(replace(_request(), caller="user:7"), _no_problems, NOW)

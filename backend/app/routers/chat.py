@@ -4,7 +4,7 @@ Thin: parse → service → envelope."""
 import uuid
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, Depends, File, Form, Header, Query, Request, Response, UploadFile
+from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, Header, Query, Request, Response, UploadFile
 
 from app.api.auth import DbSession, now_utc, require
 from app.api.conditional import conditional_json
@@ -15,11 +15,14 @@ from app.media import MAX_AUDIO_BYTES
 from app.schemas.chat import (
     AnswerResult,
     AnswersIn,
+    AskForemanIn,
+    DraftEdit,
     FollowUpOut,
     FollowUpUpdate,
     MessageForSender,
     MessagesPage,
     NudgeIn,
+    ReexplainDraft,
     ReexplainIn,
     SendIn,
     TaskCreate,
@@ -31,6 +34,7 @@ from app.schemas.common import IdIn
 from app.services import chat
 from app.services.ai_runner import AiRunner
 from app.services.auth import Principal
+from app.services.push import Pusher
 
 router = APIRouter(prefix="/api", tags=["chat"])
 Foreman = Annotated[Principal, Depends(require("foreman"))]
@@ -44,6 +48,18 @@ OptionalKey = Annotated[uuid.UUID | None, Header(alias="Idempotency-Key")]  # op
 def _ai(request: Request) -> AiRunner:
     runner: AiRunner = request.app.state.ai
     return runner
+
+
+def _pushed(
+    request: Request, later: BackgroundTasks, db: DbSession, who: Principal, data: MessageForSender
+) -> MessageForSender:
+    """Push a sent message after the response (XREQ-014); a draft or a replay pushes nothing."""
+    pusher: Pusher = request.app.state.push
+    if who.shop_id is not None:
+        # The request session would otherwise stay open (idle in transaction) until the push has finished.
+        db.close()
+        later.add_task(pusher.message_sent, who.shop_id, int(data.id))
+    return data
 
 
 @router.get(
@@ -62,12 +78,13 @@ def post_message(
     key: IdempotencyKey,
     db: DbSession,
     request: Request,
+    later: BackgroundTasks,
     text: Annotated[str | None, Form(max_length=2000)] = None,
     audio: Annotated[UploadFile | None, File()] = None,
 ) -> Envelope[MessageForSender]:
     voice = (audio.file.read(MAX_AUDIO_BYTES + 1) or None) if audio is not None else None
     data = chat.post_message(db, who, int(thread_id), text, voice, key, _ai(request), now_utc())
-    return Envelope(data=data)
+    return Envelope(data=_pushed(request, later, db, who, data))
 
 
 @router.get(
@@ -86,9 +103,20 @@ def poll_messages(
     return conditional_json(request, Envelope(data=page))
 
 
+@router.patch(
+    "/messages/{message_id}", summary="Edit an unsent draft's Japanese; the AI translates it again (XREQ-022)"
+)
+def edit_draft(
+    who: Foreman, message_id: IdIn, body: DraftEdit, db: DbSession, request: Request
+) -> Envelope[MessageForSender]:
+    return Envelope(data=chat.edit_draft(db, who, int(message_id), body, _ai(request), now_utc()))
+
+
 @router.post("/messages/{message_id}/send", summary="Send the edited draft; the Tasks kept go on the Task Board")
-def send_message(who: Foreman, message_id: IdIn, body: SendIn, db: DbSession) -> Envelope[MessageForSender]:
-    return Envelope(data=chat.send(db, who, int(message_id), body, now_utc()))
+def send_message(
+    who: Foreman, message_id: IdIn, body: SendIn, db: DbSession, request: Request, later: BackgroundTasks
+) -> Envelope[MessageForSender]:
+    return Envelope(data=_pushed(request, later, db, who, chat.send(db, who, int(message_id), body, now_utc())))
 
 
 @router.post("/messages/{message_id}/answers", summary="Answer a message's questions (-1 = not sure) → Wakatta Status")
@@ -113,14 +141,40 @@ def update_follow_up(who: Foreman, follow_up_id: IdIn, body: FollowUpUpdate, db:
 
 @router.post("/messages/{message_id}/reexplain", status_code=201, summary="Re-explain one term to one Worker (AI)")
 def reexplain(
-    who: Foreman, message_id: IdIn, body: ReexplainIn, db: DbSession, request: Request
+    who: Foreman, message_id: IdIn, body: ReexplainIn, db: DbSession, request: Request, later: BackgroundTasks
 ) -> Envelope[MessageForSender]:
-    return Envelope(data=chat.reexplain(db, who, int(message_id), body, _ai(request), now_utc()))
+    data = chat.reexplain(db, who, int(message_id), body, _ai(request), now_utc())
+    return Envelope(data=_pushed(request, later, db, who, data))
+
+
+@router.post(
+    "/messages/{message_id}/reexplain/draft", summary="See the Re-explanation before sending it; nothing is stored"
+)
+def reexplain_draft(
+    who: Foreman, message_id: IdIn, body: ReexplainIn, db: DbSession, request: Request
+) -> Envelope[ReexplainDraft]:
+    return Envelope(data=chat.reexplain_draft(db, who, int(message_id), body, _ai(request), now_utc()))
+
+
+@router.post(
+    "/messages/{message_id}/ask", status_code=201, summary="Worker: ask the Foreman to explain a term again (no AI)"
+)
+def ask_foreman(
+    who: Worker, message_id: IdIn, body: AskForemanIn, db: DbSession, request: Request, later: BackgroundTasks
+) -> Envelope[MessageForSender]:
+    data = chat.ask_foreman(db, who, int(message_id), body, now_utc())
+    return Envelope(data=_pushed(request, later, db, who, data))
 
 
 @router.post("/messages/{message_id}/nudge", summary="Show a Worker you are waiting for their answer (rate-limited)")
-def nudge(who: Foreman, message_id: IdIn, body: NudgeIn, db: DbSession) -> Envelope[None]:
+def nudge(
+    who: Foreman, message_id: IdIn, body: NudgeIn, db: DbSession, request: Request, later: BackgroundTasks
+) -> Envelope[None]:
     chat.nudge(db, who, int(message_id), body, now_utc())
+    pusher: Pusher = request.app.state.push
+    if who.shop_id is not None and who.user_id is not None:
+        db.close()  # as in _pushed
+        later.add_task(pusher.nudged, who.shop_id, int(message_id), int(body.user_id), who.user_id)
     return Envelope(data=None)
 
 

@@ -102,8 +102,34 @@ class FollowUpUpdate(CamelModel):
     note: Annotated[str, Field(max_length=500)] = ""
 
 
+class DraftEdit(CamelModel):
+    """PATCH /messages/{id} (XREQ-022): the Foreman's corrected Japanese for an unsent draft. The AI translates it and
+    makes the Check Questions again, as for a new draft."""
+
+    text_ja: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=2000)]
+
+
 class ReexplainIn(CamelModel):
+    """POST /messages/{id}/reexplain. With `text` and `question` (the Foreman's edited draft from
+    /reexplain/draft) it is sent as written and no model is called; without them the AI writes it (XREQ-022)."""
+
     user_id: IdIn
+    term_ja: TermJa
+    text: Translated | None = None
+    question: CheckQuestion | None = None
+
+
+class ReexplainDraft(CamelModel):
+    """POST /messages/{id}/reexplain/draft (XREQ-022): the simpler version to read and edit before sending.
+    `text.ja` is the easy Japanese; the other languages are the explanation. Nothing is stored."""
+
+    text: Translated
+    question: CheckQuestion
+
+
+class AskForemanIn(CamelModel):
+    """POST /messages/{id}/ask (XREQ-022): a Worker asks the Foreman to explain one term of a sent message again."""
+
     term_ja: TermJa
 
 

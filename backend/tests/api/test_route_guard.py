@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 
 from app.models.chat import FollowUp, MessageCheck
 from app.models.life import Ask, Event, Notice, SenpaiPair
-from app.models.personal import Contact, ContactMessage
+from app.models.personal import Contact, ContactMessage, TalkEntry, TalkThread
 from app.models.platform import Blob
 from app.models.scopes import Poster, Shop, User
 from app.models.scopes import Session as SessionRow
@@ -57,6 +57,7 @@ class Call:
     rows: dict[str, str] = field(default_factory=dict[str, str])
 
 
+TALK = {"thread_id": "talk_thread"}
 KEY = {"Idempotency-Key": str(uuid.uuid4())}
 CALLS: dict[str, Call] = {
     "PATCH /api/workers/{user_id}": Call(json={}, rows={"user_id": "worker"}),
@@ -100,12 +101,22 @@ CALLS: dict[str, Call] = {
     "DELETE /api/blocks/{contact_id}": Call(),
     "GET /api/contacts/{contact_id}/messages": Call(),
     "POST /api/contacts/{contact_id}/messages": Call(json={"text": "hi", "lang": "bn"}),
+    "PATCH /api/messages/{message_id}": Call(json={"textJa": "明日は8時集合です"}, rows={"message_id": "draft"}),
+    "POST /api/messages/{message_id}/reexplain/draft": Call(json={"userId": "{worker}", "termJa": "金型"}),
+    "POST /api/messages/{message_id}/ask": Call(json={"termJa": "金型"}),
+    "PATCH /api/talk-threads/{thread_id}": Call(json={"title": "山田さん"}, rows=TALK),
+    "DELETE /api/talk-threads/{thread_id}": Call(rows=TALK),
+    "GET /api/talk-threads/{thread_id}/entries": Call(rows=TALK),
+    "POST /api/talk-threads/{thread_id}/entries": Call(data={"text": "お茶ばちょうだい"}, rows=TALK),
+    "PATCH /api/talk-threads/{thread_id}/entries/{entry_id}": Call(json={"replyJa": "はい"}, rows=TALK),
+    "DELETE /api/talk-threads/{thread_id}/entries/{entry_id}": Call(rows=TALK),
     "DELETE /api/contacts/{contact_id}/messages": Call(),
     "DELETE /api/contacts/{contact_id}/messages/{message_id}": Call(rows={"message_id": "contact_message"}),
 }
 
 # The same shop, but not this Worker's own record.
 COLLEAGUE_REFUSED: dict[str, int] = {
+    "POST /api/messages/{message_id}/ask": 403,
     "POST /api/asks/{ask_id}/forward": 404,
     "GET /api/workers/{worker_id}/passport": 403,
     "POST /api/threads/{thread_id}/messages": 403,
@@ -117,6 +128,12 @@ COLLEAGUE_REFUSED: dict[str, int] = {
     "GET /api/contacts/{contact_id}/messages": 404,
     "POST /api/contacts/{contact_id}/messages": 404,
     "DELETE /api/contacts/{contact_id}/messages": 404,
+    "PATCH /api/talk-threads/{thread_id}": 404,
+    "DELETE /api/talk-threads/{thread_id}": 404,
+    "GET /api/talk-threads/{thread_id}/entries": 404,
+    "POST /api/talk-threads/{thread_id}/entries": 404,
+    "PATCH /api/talk-threads/{thread_id}/entries/{entry_id}": 404,
+    "DELETE /api/talk-threads/{thread_id}/entries/{entry_id}": 404,
     "DELETE /api/contacts/{contact_id}/messages/{message_id}": 404,
 }
 
@@ -252,7 +269,11 @@ def _life_rows(db: Session, s: Shop, worker: User, foreman: User, poster: User) 
 
 def _personal_rows(db: Session, worker: User, peer: User) -> dict[str, int]:
     message = ContactMessage(sender_id=worker.id, recipient_id=peer.id, text_src="hi", src_lang="bn")
+    talk = _save(db, TalkThread(owner_id=worker.id, title="山田さん"))
+    entry = TalkEntry(thread_id=talk.id, owner_id=worker.id, transcript="お茶ば", meaning_lang="bn")
     return {
+        "talk_thread": talk.id,
+        "entry_id": _save(db, entry).id,
         "contact_id": _save(db, Contact(owner_id=worker.id, peer_id=peer.id)).id,
         "contact_message": _save(db, message).id,
     }
@@ -348,7 +369,8 @@ def test_an_id_of_another_shop_is_not_found(client: TestClient, db: Session, op:
         assert _send(client, op, other.headers[role], home.rows) == expected, role
 
     # The same call by its rightful user gets through, so the refusals above are about who asked.
-    rightful = "worker" if "contact_id" in op else OPERATIONS[op][0]
+    personal = "/contacts/" in op or "/blocks/" in op or "/talk-threads/" in op  # the site rows belong to its Worker
+    rightful = "worker" if personal else OPERATIONS[op][0]
     assert _send(client, op, home.headers[rightful], home.rows) not in (401, 403, 404, 405, 422)
 
 

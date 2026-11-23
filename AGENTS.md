@@ -73,11 +73,11 @@ This file is:
 | `XREQ-015` | P0 | Backend (Anim) | Backend (Asif, Azure owner) | Give Anim's Azure account Contributor on the Wakatta resource group (Asif is off the project; Anim runs deploy now) | `[RESOLVED]` | 2026-11-23 19:30 |
 | `XREQ-016` | P0 | AI (Galib) | Frontend (Minhaz, Arjun; Android: Minhaz) | Chatbot screen on the Worker home and the Machine screen: `POST /api/knowledge/asks` (cited answer + self-check; emergency card; not covered → forward to Senpai) | `[IN_PROGRESS]` (web done; Android open) | 2026-11-23 23:00 |
 | `XREQ-017` | P1 | Frontend (Minhaz, Android app) | Backend (Anim), AI (Galib) | Contacts, My QR, Contact Threads (routes now live; Talk Threads and group controls moved to XREQ-018 and 019); notification list stays push-only | `[PENDING]` | 2026-11-23 19:50 |
-| `XREQ-018` | P1 | Frontend (Minhaz, Android app) | Backend (Anim), AI (Galib) | Talk Threads: threads and entries routes plus the two AI pipelines | `[IN_PROGRESS]` (Asif) | 2026-11-24 00:20 |
+| `XREQ-018` | P1 | Frontend (Minhaz, Android app) | Backend (Anim), AI (Galib) | Talk Threads: threads and entries routes plus the two AI pipelines | `[RESOLVED]` | 2026-11-23 23:56 |
 | `XREQ-019` | P2 | Frontend (Minhaz, Android app) | Backend (Anim) | Group controls on work Threads: create, members, roles, mute/pin/archive, leave, announce-only | `[PENDING]` | 2026-11-23 23:56 |
-| `XREQ-020` | P1 | Frontend (Minhaz, Android app) | Backend (Anim) | Worker can read own Follow-ups and Learning History; analytics trend and per-Worker counts | `[PENDING]` | 2026-11-23 23:56 |
+| `XREQ-020` | P1 | Frontend (Minhaz, Android app) | Backend (Anim) | Worker can read own Follow-ups and Learning History; analytics trend and per-Worker counts | `[DONE]` | 2026-11-24 00:10 |
 | `XREQ-021` | P2 | Frontend (Minhaz, Android app) | Backend (Anim) | Machine gaps: Remind a Worker, Idempotency-Key on overrides, Task filter by Machine | `[PENDING]` | 2026-11-23 23:56 |
-| `XREQ-022` | P1 | Frontend (Minhaz, Android app) | Backend (Anim), AI (Galib) | Chat: edit a draft before Send, Re-explanation draft and edit, term-linked Ask the Foreman | `[PENDING]` | 2026-11-23 23:56 |
+| `XREQ-022` | P1 | Frontend (Minhaz, Android app) | Backend (Anim), AI (Galib) | Chat: edit a draft before Send, Re-explanation draft and edit, term-linked Ask the Foreman | `[RESOLVED]` | 2026-11-23 23:56 |
 | `XREQ-023` | P2 | Frontend (Minhaz, Android app) | Backend (Anim) | Near-miss: Worker's own list, severity, Foreman translation, photo mark | `[PENDING]` | 2026-11-23 23:56 |
 | `XREQ-024` | P2 | Frontend (Minhaz, Android app) | Backend (Anim) | Foreman reads Asks; set Today's Word; Support Log JSON summary; transcript of voice Asks | `[PENDING]` | 2026-11-23 23:56 |
 | `XREQ-025` | P1 | Frontend (Minhaz, Android app) | Backend (Anim, Azure) | Host the release APK and run the release routine behind GET /app/config | `[PENDING]` | 2026-11-23 23:56 |
@@ -603,8 +603,8 @@ PUT /api/devices/me
 
 **Fulfillment & Proof (filled by recipient on completion):**
 - **Branch / Commit**: 
-- **Status / Notes**: 2026-11-23 Minhaz: steps 1-3 partly done. Used the existing Firebase project **`daily-wizdom`** (number 206569521303; Spark, shared with the Pocket Japanese app) instead of a new `wakatta` project. Android app registered: package `com.techtsunagu.wakatta`, app id `1:206569521303:android:7afa3e8321fc042f9e29d2`. `android/app/google-services.json` downloaded (gitignored). Catalog already has `firebase-bom` 35.2.0 (latest) and `firebase-messaging`; `google-services` plugin bumped to 4.6.0 and declared in the root `build.gradle.kts`. **Not done:** the `:app` module is not scaffolded yet (WP-0A), so the plugin is not applied and steps 4-6 (token upload service, permission, channel) wait for it. Step 7 (service-account key) is the user's to generate and send to Anim privately. **Anim:** project id for the sender is `daily-wizdom`; note the key from this project can reach the Pocket Japanese app's Firebase data too, so store it only as the Azure secret. A dedicated project was tried and failed (Google project quota exceeded); to limit the risk, generate the key for a new service account with only the role "Firebase Cloud Messaging API Admin" (Google Cloud console → IAM & Admin → Service accounts), not the default Firebase Admin SDK account. 2026-11-23 Anim: key received privately; stored only as the Container App secret `firebase-service-account` (env `FIREBASE_SERVICE_ACCOUNT_B64`, `FIREBASE_PROJECT_ID=daily-wizdom`) with `backend/deploy/set-firebase-key.ps1` (checks type and project id without printing, refuses a file inside the repo). App package `com.techtsunagu.wakatta`. Next: the FCM sender in the backend.
-- **Verification Proof**: 
+- **Status / Notes**: 2026-11-23 Minhaz: steps 1-3 partly done. Used the existing Firebase project **`daily-wizdom`** (number 206569521303; Spark, shared with the Pocket Japanese app) instead of a new `wakatta` project. Android app registered: package `com.techtsunagu.wakatta`, app id `1:206569521303:android:7afa3e8321fc042f9e29d2`. `android/app/google-services.json` downloaded (gitignored). Catalog already has `firebase-bom` 35.2.0 (latest) and `firebase-messaging`; `google-services` plugin bumped to 4.6.0 and declared in the root `build.gradle.kts`. **Not done:** the `:app` module is not scaffolded yet (WP-0A), so the plugin is not applied and steps 4-6 (token upload service, permission, channel) wait for it. Step 7 (service-account key) is the user's to generate and send to Anim privately. **Anim:** project id for the sender is `daily-wizdom`; note the key from this project can reach the Pocket Japanese app's Firebase data too, so store it only as the Azure secret. A dedicated project was tried and failed (Google project quota exceeded); to limit the risk, generate the key for a new service account with only the role "Firebase Cloud Messaging API Admin" (Google Cloud console → IAM & Admin → Service accounts), not the default Firebase Admin SDK account. 2026-11-23 Anim: key received privately; stored only as the Container App secret `firebase-service-account` (env `FIREBASE_SERVICE_ACCOUNT_B64`, `FIREBASE_PROJECT_ID=daily-wizdom`) with `backend/deploy/set-firebase-key.ps1` (checks type and project id without printing, refuses a file inside the repo). App package `com.techtsunagu.wakatta`. Next: the FCM sender in the backend. 2026-11-24 Anim: **sender live in the backend** (`app/push.py`, `app/services/push.py`). FCM HTTP v1 with the service account; push is off when `FIREBASE_*` is unset. Sent after the response (never delays the API), to phones with `notificationsEnabled` and a live session only. **What the phone gets** (notification + data, ids only, never message text): `chat_message` when a message is sent into a work Thread (Worker message, Foreman Send, Re-explanation to that Worker only, ask-the-Foreman), to every member but the sender, channel `messages`, TTL 24 h; `nudge` to that Worker, channel `safety`, TTL 2 h. `data` = `{v:"1", type, eventId, sentAt, threadId, messageId}` (all strings; drop a repeated `eventId`). Title/body in the account language (ja or en; other languages fall back to en until reviewed), e.g. 「山口 隆さんからメッセージ」. A retried POST pushes once; a token FCM calls UNREGISTERED or invalid is deleted. No `link` yet: the host is XREQ-026. Contact and Talk Threads never push (contract §1.4). **Minhaz, to test end to end:** create channels `messages` and `safety`, register with `PUT /api/devices/me` after sign-in, then have a Worker post in the Line 2 Thread: the Foreman's phone gets one push.
+- **Verification Proof**: `tests/api/test_push.py` (6: ids only and never the text, sender and muted phones skipped, one push per retried POST, Nudge to one Worker, dead token removed, signed-out phone skipped, unsent draft skipped), `tests/test_push_client.py` (7: FCM answers → sent/gone/retry/failed, both-or-neither settings, key for another project refused at startup); full suite 389 passed; ruff, pyright strict, lint-imports clean. The live call to FCM is not tested yet: no phone has registered (`devices` empty).
 
 #### `[XREQ-015]` Azure access for Anim (Contributor on the Wakatta resource group)
 - **Priority**: `P0 (Blocker)`
@@ -747,7 +747,7 @@ Push (XREQ-014): a new Contact message sends one generic push "New message from 
 - **Priority**: `P1 (High)`
 - **From**: `Frontend (Minhaz, Android app)`
 - **To**: `Backend (Anim)`, `AI (Galib)`
-- **Status**: `[IN_PROGRESS]` (Asif, branch `asif/backend-hardening`)
+- **Status**: `[RESOLVED]`
 - **Created**: `2026-11-23 23:56 (UTC+6)`
 - **Target Interface / Endpoint**: `/api/talk-threads` (none of it exists in `docs/openapi.yaml` yet, 82 paths)
 
@@ -760,9 +760,9 @@ Split out of XREQ-017 item 3 so it can be answered alone. The Android app has th
 ```
 
 **Fulfillment & Proof (filled by recipient on completion):**
-- **Branch / Commit**: 
-- **Status / Notes**: 
-- **Verification Proof**: 
+- **Branch / Commit**: `main` (Galib, 2026-11-24: routes and tables as well as the two AI pipelines, so the Android app can switch tonight). Migration `f440ca5739ea` (`talk_threads`, `talk_entries`).
+- **Status / Notes**: All 8 routes as proposed (Foreman and Worker; another user's thread is a 404; hard delete; nothing notifies; no Foreman, Poster or Support Log route reads them). `POST /entries` is multipart: `text` **or** `audio` (same formats as notes), optional `Idempotency-Key`. **One change from the proposal:** `replyOptions` is `[{ja, meaning}]`, not `["…"]`: the Worker also needs to know what the Japanese reply says (`meaning` is in their language). `terms` is `[{dialect, plain, meaning}]` as proposed. `needsStaff` is a fixed word rule (`app/domain/talk.py`: pain, illness, falls, appetite, breathing, medicine, toilet), never the model. AI down: the entry keeps the transcript (typed text; empty for a recording) with `needsEdit: true`, `meaning: null`; a grade the model cannot make is `grade: null`. `PATCH` an entry with exactly one of `ownText` (graded again), `replyJa` (clears `confirmed`), `confirmed` (else 422). Rate limit: 10 entries or grades a minute per user (429). Prompts `explain_utterance.v1` (Kyushu dialect aware; never lists a word that was not said, checked in code) and `grade_understanding.v1`.
+- **Verification Proof**: `tests/api/test_talk.py` (5: explain → grade → reply → confirm; AI down keeps the transcript; an invented dialect word is retried; privacy against another Worker and the Foreman; rename, delete, idempotent create, validation) and `tests/test_talk_rules.py`; full backend suite, ruff, pyright strict, import-linter green; `docs/openapi.yaml` regenerated. **Live (Groq gpt-oss-120b; Gemini was 503 all night):** the prototype's 3 Kyushu sentences were explained correctly (いたか→痛い, けん→ので, せんばい→しません, お茶ば→お茶を, ばってん→でも), the staff flag set for pain and appetite, a staff reply offered; grading 7 of 8 as expected. The 8th ("Her knee hurts so no walk today" → orange) came from a meaning written as "Your knee hurts"; the prompt now says the meaning is in the speaker's words. Not re-run live: Groq's free daily limit was used up and Gemini was 503.
 
 #### `[XREQ-019]` Group controls on work Threads
 
@@ -786,7 +786,7 @@ Split out of XREQ-017 item 4. Today a Foreman cannot create a group Thread, rena
 - **Priority**: `P1 (High)`
 - **From**: `Frontend (Minhaz, Android app)`
 - **To**: `Backend (Anim)`
-- **Status**: `[PENDING]`
+- **Status**: `[DONE]`
 - **Created**: `2026-11-23 23:56 (UTC+6)`
 - **Target Interface / Endpoint**: `GET /api/follow-ups` (foreman only today), new `GET /api/workers/me/learning`, new analytics read
 
@@ -794,9 +794,9 @@ Split out of XREQ-017 item 4. Today a Foreman cannot create a group Thread, rena
 The still-open item 1 of XREQ-011. (1) `GET /follow-ups` is Foreman-only, so a Worker cannot see their own open and clarified Follow-ups; the `learning` screen needs it. Please allow a Worker to read their own (filtered by the token, never another user's), or add `GET /workers/me/learning` returning the Worker's timeline `{items:[{termJa, missedAt, clarifiedAt|null, understoodAt|null, status}], streakDays}`. (2) The `analytics` screen needs the understanding trend and per-Worker counts: a read such as `GET /analytics/understanding?days=30` returning `{trend:[{day,green,orange,red}], perWorker:[{workerId,displayName,green,orange,red}], topTerms:[{termJa,count}]}` (Foreman only). `GET /heatmap` and `GET /metrics/effort` already cover part of it.
 
 **Fulfillment & Proof (filled by recipient on completion):**
-- **Branch / Commit**: 
-- **Status / Notes**: 
-- **Verification Proof**: 
+- **Branch / Commit**: `main` (this commit)
+- **Status / Notes**: 2026-11-24 Anim. (1) **`GET /api/workers/me/learning`** (Worker only; `?limit=&cursor=`) → `{items:[{followUpId, termJa, status, missedAt, clarifiedAt, understoodAt}], nextCursor, streakDays}`, newest first, only the caller's own Follow-ups (from the token). `GET /follow-ups` stays Foreman-only. One `resolved_at` is stored, so a Follow-up that went clarified → understood shows only `understoodAt`. `streakDays`: Tokyo days in a row with a passed Check or a green Chat answer, ending today (a run that ended yesterday still counts until today is over). (2) **`GET /api/analytics/understanding?days=30`** (Foreman only, `days` 1–90, default 30) → `{days, trend:[{day, green, orange, red}] (one entry per Tokyo day, oldest first, zeros filled), perWorker:[{workerId, displayName, green, orange, red}] (every active Worker of the shop), topTerms:[{termJa, count}] (top 10 Follow-up terms)}`. Counts are Chat Wakatta Status answers; Work Check misses per Machine stay in `GET /heatmap`. No migration.
+- **Verification Proof**: `tests/api/test_learning.py` (6: own items only, clarified/understood dates, streak after a green answer, cursor paging, trend/per-Worker/top terms on the seed, 403 for the wrong role, 422 for `days=91`, another shop sees none), `tests/domain/test_learning_rules.py` (5); full suite 372 passed; ruff, pyright strict, lint-imports clean; `docs/openapi.yaml` and frontend types regenerated.
 
 #### `[XREQ-021]` Machine screen gaps: Remind a Worker, override idempotency, Tasks by Machine
 
@@ -820,7 +820,7 @@ The still-open item 1 of XREQ-011. (1) `GET /follow-ups` is Foreman-only, so a W
 - **Priority**: `P1 (High)`
 - **From**: `Frontend (Minhaz, Android app)`
 - **To**: `Backend (Anim)`, `AI (Galib)`
-- **Status**: `[PENDING]`
+- **Status**: `[RESOLVED]`
 - **Created**: `2026-11-23 23:56 (UTC+6)`
 - **Target Interface / Endpoint**: `POST /api/threads/{id}/messages`, `POST /api/messages/{id}/send`, `POST /api/messages/{id}/reexplain`
 
@@ -828,9 +828,9 @@ The still-open item 1 of XREQ-011. (1) `GET /follow-ups` is Foreman-only, so a W
 The Foreman's flow is: dictate, see the transcript, edit, then send (Auto-send Countdown). The live routes create a draft from `text` or `audio` and `POST /messages/{id}/send` publishes it, but there is no way to **edit the draft text** between the two. Needed: `PATCH /messages/{id}` `{text}` on an unsent draft, which re-runs translation and Check Question generation (or says clearly in the Fulfillment block that `needsEdit` drafts are re-created by posting again). **Re-explanation:** `ReexplainIn` takes only `{userId, termJa}`; the app lets the Foreman see the simpler version first, edit it, and then send. Please add a draft step (`POST /messages/{id}/reexplain/draft` returning `{easyJa, explanation: Tri, question: {prompt: Tri, options: [Tri], termId}}`) or accept the edited `easyJa`, `explanation` and question in `ReexplainIn`. **Ask the Foreman:** a Worker taps "ask again" on a term; no route creates a message of kind `ask` (contract D-24): either add it (`POST /messages/{id}/ask` `{termJa}`) or tell us it is dropped.
 
 **Fulfillment & Proof (filled by recipient on completion):**
-- **Branch / Commit**: 
-- **Status / Notes**: 
-- **Verification Proof**: 
+- **Branch / Commit**: `main` (Galib, 2026-11-24, Galib built the routes as well as the AI part, so the Android app is unblocked tonight).
+- **Status / Notes**: All three, names as proposed except where noted. (1) **`PATCH /api/messages/{id}` `{textJa}`** (Foreman, own unsent draft): runs `draft_message` again on the corrected Japanese and returns the draft like the POST (translations, questions, `taskDrafts`); the AI down → `needsEdit: true` with the Foreman's text; already sent → `409 ALREADY_SENT`. (2) **`POST /api/messages/{id}/reexplain/draft` `{userId, termJa}`** returns `{text, question}` and stores nothing: `text.ja` is the easy Japanese (your `easyJa`), the other languages are the explanation, `question` is a full `CheckQuestion` (with `termId`, `correctIndex`). Then **`POST /reexplain`** accepts the edited `text` and `question` (both or neither, else 422) and sends them as written with no model call; without them it works as before. (3) **`POST /api/messages/{id}/ask` `{termJa}`** (Worker, 201): a fixed sentence, no AI (「〇〇がわかりません。もう一度教えてください。」 / "I don't understand ..."), kind `ask`, `refMessageId` = the message, and one open Follow-up on the term for the Foreman (asking twice opens one).
+- **Verification Proof**: `tests/api/test_chat.py` (4 new tests: edit re-translates, edit without the model, re-explanation draft then edited send, Worker ask + Follow-up + roles); full backend suite, ruff, pyright strict, import-linter green; `docs/openapi.yaml` regenerated (3 new paths).
 
 #### `[XREQ-023]` Near-miss Reports: Worker's own list, severity, translation for the Foreman
 

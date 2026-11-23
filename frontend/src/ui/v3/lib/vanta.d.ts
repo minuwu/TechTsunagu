@@ -12,8 +12,3 @@ declare module 'vanta/dist/vanta.waves.min' {
   const WAVES: Waves | { default: Waves }
   export default WAVES
 }
-
-// three r134 (the release Vanta targets) has no bundled types; the kit only hands the namespace to Vanta.
-declare module 'three' {
-  export const REVISION: string
-}

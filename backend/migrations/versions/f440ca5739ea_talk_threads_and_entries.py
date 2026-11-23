@@ -1,8 +1,8 @@
-"""personal: talk threads, message deletion
+"""talk threads and entries
 
-Revision ID: 8c7910a440e4
+Revision ID: f440ca5739ea
 Revises: 21d9f849b5c9
-Create Date: 2026-11-24 00:28:26.543518
+Create Date: 2026-11-24 00:07:20.739814
 
 """
 
@@ -14,7 +14,7 @@ from alembic import op
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = "8c7910a440e4"
+revision: str = "f440ca5739ea"
 down_revision: str | Sequence[str] | None = "21d9f849b5c9"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -28,25 +28,26 @@ def upgrade() -> None:
         sa.Column("id", sa.BigInteger(), sa.Identity(always=True), nullable=False),
         sa.Column("owner_id", sa.BigInteger(), nullable=False),
         sa.Column("title", sa.Text(), nullable=False),
-        sa.Column("idempotency_key", sa.Uuid(), nullable=False),
+        sa.Column("idempotency_key", sa.Uuid(), nullable=True),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
+        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.CheckConstraint("char_length(title) BETWEEN 1 AND 40", name=op.f("ck_talk_threads_title_length")),
         sa.ForeignKeyConstraint(
             ["owner_id"], ["users.id"], name=op.f("fk_talk_threads_owner_id_users"), ondelete="CASCADE"
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_talk_threads")),
-        sa.UniqueConstraint("owner_id", "id", name=op.f("uq_talk_threads_owner_id_id")),
         sa.UniqueConstraint("owner_id", "idempotency_key", name=op.f("uq_talk_threads_owner_id_idempotency_key")),
     )
+    op.create_index("ix_talk_threads_owner_id", "talk_threads", ["owner_id", "id"], unique=False)
     op.create_table(
         "talk_entries",
         sa.Column("id", sa.BigInteger(), sa.Identity(always=True), nullable=False),
-        sa.Column("owner_id", sa.BigInteger(), nullable=False),
         sa.Column("thread_id", sa.BigInteger(), nullable=False),
+        sa.Column("owner_id", sa.BigInteger(), nullable=False),
         sa.Column("transcript", sa.Text(), nullable=False),
         sa.Column("plain_ja", sa.Text(), nullable=True),
         sa.Column("meaning", sa.Text(), nullable=True),
+        sa.Column("meaning_lang", sa.Text(), nullable=False),
         sa.Column(
             "terms", postgresql.JSONB(astext_type=sa.Text()), server_default=sa.text("'[]'::jsonb"), nullable=False
         ),
@@ -56,33 +57,35 @@ def upgrade() -> None:
             server_default=sa.text("'[]'::jsonb"),
             nullable=False,
         ),
+        sa.Column("needs_staff", sa.Boolean(), server_default=sa.text("false"), nullable=False),
+        sa.Column("needs_edit", sa.Boolean(), server_default=sa.text("false"), nullable=False),
         sa.Column("own_text", sa.Text(), nullable=True),
         sa.Column("grade", sa.Text(), nullable=True),
         sa.Column("reply_ja", sa.Text(), nullable=True),
         sa.Column("confirmed", sa.Boolean(), nullable=True),
-        sa.Column("idempotency_key", sa.Uuid(), nullable=False),
+        sa.Column("idempotency_key", sa.Uuid(), nullable=True),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.CheckConstraint("grade IN ('green','orange','red')", name=op.f("ck_talk_entries_grade")),
-        sa.CheckConstraint("char_length(own_text) <= 1000", name=op.f("ck_talk_entries_own_text_length")),
-        sa.CheckConstraint("char_length(reply_ja) <= 500", name=op.f("ck_talk_entries_reply_ja_length")),
+        sa.CheckConstraint("grade IS NULL OR grade IN ('green','orange','red')", name=op.f("ck_talk_entries_grade")),
+        sa.CheckConstraint(
+            "meaning_lang IN ('ja','bn','en','vi','id','ne','my','tl','zh')", name=op.f("ck_talk_entries_meaning_lang")
+        ),
         sa.CheckConstraint("char_length(transcript) <= 2000", name=op.f("ck_talk_entries_transcript_length")),
         sa.CheckConstraint(
-            "confirmed IS NULL OR reply_ja IS NOT NULL", name=op.f("ck_talk_entries_confirmed_has_reply")
+            "own_text IS NULL OR char_length(own_text) <= 1000", name=op.f("ck_talk_entries_own_text_length")
+        ),
+        sa.CheckConstraint(
+            "reply_ja IS NULL OR char_length(reply_ja) <= 500", name=op.f("ck_talk_entries_reply_ja_length")
         ),
         sa.ForeignKeyConstraint(
-            ["owner_id", "thread_id"],
-            ["talk_threads.owner_id", "talk_threads.id"],
-            name=op.f("fk_talk_entries_owner_id_thread_id_talk_threads"),
-            ondelete="CASCADE",
+            ["owner_id"], ["users.id"], name=op.f("fk_talk_entries_owner_id_users"), ondelete="CASCADE"
+        ),
+        sa.ForeignKeyConstraint(
+            ["thread_id"], ["talk_threads.id"], name=op.f("fk_talk_entries_thread_id_talk_threads"), ondelete="CASCADE"
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_talk_entries")),
         sa.UniqueConstraint("owner_id", "idempotency_key", name=op.f("uq_talk_entries_owner_id_idempotency_key")),
     )
-    op.create_index("ix_talk_entries_owner_thread_id", "talk_entries", ["owner_id", "thread_id", "id"], unique=False)
-    op.add_column(
-        "contact_messages",
-        sa.Column("recipient_deleted", sa.Boolean(), server_default=sa.text("false"), nullable=False),
-    )
+    op.create_index("ix_talk_entries_thread_id", "talk_entries", ["thread_id", "id"], unique=False)
     # ### end Alembic commands ###
 
     # Least privilege, as in the earlier migrations: the app role gets DML on the new tables, never DDL.
@@ -90,15 +93,12 @@ def upgrade() -> None:
     op.execute(f'GRANT SELECT, INSERT, UPDATE, DELETE ON talk_threads, talk_entries TO "{app_role}"')
     op.execute(f'GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO "{app_role}"')
 
-    # Personal texts are no longer cached (a deleted message must not survive in ai_cache); nothing reads these rows.
-    op.execute("DELETE FROM ai_cache WHERE scope LIKE 'user:%'")
-
 
 def downgrade() -> None:
     """Downgrade schema."""
     # ### commands auto generated by Alembic - please adjust! ###
-    op.drop_column("contact_messages", "recipient_deleted")
-    op.drop_index("ix_talk_entries_owner_thread_id", table_name="talk_entries")
+    op.drop_index("ix_talk_entries_thread_id", table_name="talk_entries")
     op.drop_table("talk_entries")
+    op.drop_index("ix_talk_threads_owner_id", table_name="talk_threads")
     op.drop_table("talk_threads")
     # ### end Alembic commands ###
