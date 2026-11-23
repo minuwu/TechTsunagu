@@ -247,6 +247,21 @@ def test_an_unchanged_poll_is_a_304(client: TestClient, line: Line, fake_ai: Fak
     assert again.status_code == 304
 
 
+@pytest.mark.parametrize("path", ["/api/threads", "/api/tasks"])
+def test_unchanged_threads_and_tasks_are_a_304(
+    client: TestClient, line: Line, fake_ai: FakeAiClient, path: str
+) -> None:
+    _sent(client, line, fake_ai)
+    first = client.get(path, headers=line.rahim)
+    assert first.status_code == 200 and first.headers["ETag"]
+
+    again = client.get(path, headers=line.rahim | {"If-None-Match": first.headers["ETag"]})
+    stale = client.get(path, headers=line.rahim | {"If-None-Match": '"not-the-tag"'})
+
+    assert again.status_code == 304 and again.content == b""
+    assert stale.status_code == 200 and stale.json() == first.json()
+
+
 def test_outsiders_and_other_shops_are_kept_out(
     client: TestClient, db: Session, line: Line, fake_ai: FakeAiClient
 ) -> None:

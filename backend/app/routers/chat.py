@@ -7,6 +7,7 @@ from typing import Annotated, Literal
 from fastapi import APIRouter, Depends, File, Form, Header, Query, Request, Response, UploadFile
 
 from app.api.auth import DbSession, now_utc, require
+from app.api.conditional import conditional_json
 from app.api.envelope import Envelope
 from app.api.errors import ApiError
 from app.api.pagination import Page, PageParams, page_params
@@ -30,7 +31,6 @@ from app.schemas.common import IdIn
 from app.services import chat
 from app.services.ai_runner import AiRunner
 from app.services.auth import Principal
-from app.services.floor import etag
 
 router = APIRouter(prefix="/api", tags=["chat"])
 Foreman = Annotated[Principal, Depends(require("foreman"))]
@@ -45,9 +45,13 @@ def _ai(request: Request) -> AiRunner:
     return runner
 
 
-@router.get("/threads", summary="Your Threads with unread counts, newest activity first")
-def list_threads(who: ShopMember, db: DbSession) -> Envelope[list[ThreadOut]]:
-    return Envelope(data=chat.list_threads(db, who))
+@router.get(
+    "/threads",
+    summary="Your Threads with unread counts, newest activity first; If-None-Match gives 304",
+    response_model=Envelope[list[ThreadOut]],
+)
+def list_threads(who: ShopMember, db: DbSession, request: Request) -> Response:
+    return conditional_json(request, Envelope(data=chat.list_threads(db, who)))
 
 
 @router.post("/threads/{thread_id}/messages", status_code=201, summary="Foreman: voice/text → AI draft. Worker: sent")
@@ -78,11 +82,7 @@ def poll_messages(
     after: Annotated[IdIn | None, Query()] = None,
 ) -> Response:
     page = chat.messages(db, who, int(thread_id), int(after) if after else None, now_utc())
-    body = Envelope(data=page).model_dump_json(by_alias=True)
-    tag = etag(body)
-    if request.headers.get("if-none-match") == tag:
-        return Response(status_code=304, headers={"ETag": tag})
-    return Response(body, media_type="application/json", headers={"ETag": tag, "Cache-Control": "no-cache"})
+    return conditional_json(request, Envelope(data=page))
 
 
 @router.post("/messages/{message_id}/send", summary="Send the edited draft; the Tasks kept go on the Task Board")
@@ -123,9 +123,13 @@ def nudge(who: Foreman, message_id: IdIn, body: NudgeIn, db: DbSession) -> Envel
     return Envelope(data=None)
 
 
-@router.get("/tasks", summary="The Task Board of your shop")
-def list_tasks(who: ShopMember, db: DbSession, page: Paging) -> Envelope[Page[TaskOut]]:
-    return Envelope(data=chat.list_tasks(db, who, page))
+@router.get(
+    "/tasks",
+    summary="The Task Board of your shop; If-None-Match gives 304",
+    response_model=Envelope[Page[TaskOut]],
+)
+def list_tasks(who: ShopMember, db: DbSession, page: Paging, request: Request) -> Response:
+    return conditional_json(request, Envelope(data=chat.list_tasks(db, who, page)))
 
 
 @router.post("/tasks", status_code=201, summary="Add a Task by hand")
