@@ -16,10 +16,10 @@ Source: https://github.com/tengbao/vanta (`vanta@0.5.24`, last release 2022). Ef
 The brand mark is the Megane bridge, so the hero sits on slow night water.
 ```ts
 { waveHeight: 13, waveSpeed: 0.55, zoom: 0.9, mouseControls: true, touchControls: false, gyroControls: false }
-dark:  { color: 0x1a2150, shininess: 32 }   // just above the night --tile, crests catch indigo
-light: { color: 0xc3cdf0, shininess: 55 }   // daylight: pale indigo water
+dark:  { color: 0x15284f, shininess: 32 }   // harbour night: navy just above the --tile, crests catch cobalt
+light: { color: 0xc9d6ea, shininess: 50 }   // porcelain day (default): pale cobalt water
 ```
-The theme toggle calls `effect.setOptions(LOOK[theme])`; no re-init. Alternatives that also fit: `FOG` (aurora-like, matches v3's glows, shader only), `NET` (technical). Avoid `BIRDS` and `CELLS` for this brand.
+The theme toggle calls `effect.setOptions(LOOK[theme])`; no re-init. Alternatives that also fit: `FOG` (soft harbour mist, shader only), `NET` (technical). Avoid `BIRDS` and `CELLS` for this brand.
 
 ## Rules
 1. **One hero only.** Never on Worker, Foreman, Panel or form screens. WebGL costs battery on a factory phone.

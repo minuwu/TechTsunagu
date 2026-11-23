@@ -4,6 +4,7 @@ import { m } from '@/i18n/paraglide/messages'
 import { ping } from '@/lib/audio'
 import { usePersisted } from '@/lib/persisted'
 import { startSmoothScroll } from './lib/motion'
+import { useTheme } from './lib/theme'
 import { BridgeMark } from './components/Brand'
 import { Toaster } from './components/Feedback'
 import { LocaleSwitcher } from './components/LocaleSwitcher'
@@ -146,7 +147,7 @@ const toggle =
 
 export function Layout({ children }: { children: ReactNode }) {
   const path = useLocation({ select: (l) => l.pathname })
-  const [theme, setTheme] = usePersisted('wakatta.theme', 'dark')
+  const [theme, setTheme] = useTheme()
   const [soundPref, setSound] = usePersisted('wakatta.sound', 'on')
   const sound = soundPref === 'on'
   const light = theme === 'light'
@@ -164,7 +165,7 @@ export function Layout({ children }: { children: ReactNode }) {
       >
         {m.skip_to_main()}
       </a>
-      <header className="sticky top-0 z-30 bg-[var(--shell)]/70 text-[var(--shell-foreground)] backdrop-blur-md">
+      <header className="sticky top-0 z-30 bg-[var(--shell)]/95 text-[var(--shell-foreground)] backdrop-blur-md">
         <div
           className={`${frame} flex items-center justify-between gap-3 py-2`}
         >
@@ -172,7 +173,7 @@ export function Layout({ children }: { children: ReactNode }) {
             to="/"
             className="flex min-w-0 items-center gap-3 rounded-md py-1 focus-visible:outline-[var(--shell-foreground)]"
           >
-            <BridgeMark className="w-10 text-[var(--indigo)]" />
+            <BridgeMark className="w-10 text-[var(--shell-accent)]" />
             <span className="display sr-only text-xl sm:not-sr-only sm:truncate">
               {m.app_name()}
             </span>

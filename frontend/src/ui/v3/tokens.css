@@ -1,9 +1,10 @@
-/* Kit v3 look: "Rover Villa" base. Deep night surfaces, one indigo action colour, glowing accents,
-   frosted-glass floating tab bar, generative sound and spring motion (docs/ROVERVILLA_COURSE_PLATFORM_SPEC.md §2.5).
-   Dark is the default; [data-theme='light'] on the .v3 wrapper is the daylight variant, so the kit is
-   not dark-only (F-18). Colour carries meaning (JIS Z 9103): red = Lock / Confusion, green = Ready / valid,
-   amber = expiring / caution, indigo = action. Same variable names as every kit; utilities that read the
-   values are mapped in theme/base.css (A-06). Every kit-only class v2 defined keeps its name. */
+/* Kit v3 look: "Nagasaki porcelain" (docs/design-system.md). Porcelain surfaces and harbour-navy ink by day,
+   harbour night after dark; the action colour is the brand's Site cobalt #1351AA (ADR 0013), the blue of
+   Hasami porcelain. Sea-glass teal is the Life side; vermilion is a seal accent only, never an action colour,
+   because red means Lock / danger here (JIS Z 9103, F-35). Colour carries meaning: red = Lock / Confusion,
+   green = Ready / valid, amber = expiring / caution, cobalt = action. Porcelain is the default; the Layout sets
+   data-theme='light' | 'dark' on the .v3 wrapper, so the kit is not single-theme (F-18). Same variable names
+   as every kit; utilities that read the values are mapped in theme/base.css (A-06). */
 
 :root {
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -11,89 +12,93 @@
   --radius: 0.75rem;
 }
 
-/* Night (default) */
+/* Porcelain (default) */
 :root,
 .v3 {
-  --background: oklch(0.15 0.03 272);
-  --foreground: oklch(0.96 0.01 270);
-  --card: oklch(0.21 0.035 270);
-  --card-foreground: oklch(0.96 0.01 270);
-  --primary: oklch(0.74 0.14 275); /* indigo: action, light enough for text on night panels (F-21) */
-  --primary-foreground: oklch(0.16 0.04 272);
-  --secondary: oklch(0.26 0.04 270);
-  --secondary-foreground: oklch(0.94 0.01 270);
-  --muted: oklch(0.26 0.04 270);
-  --muted-foreground: oklch(0.78 0.03 270);
-  --accent: oklch(0.3 0.07 275);
-  --accent-foreground: oklch(0.96 0.02 275);
-  --destructive: oklch(0.72 0.17 25); /* red: Lock, Confusion, error */
-  --success: oklch(0.78 0.15 160); /* green: Ready, valid Sign-off */
-  --warning: oklch(0.82 0.14 80); /* amber: expiring, caution */
-  --life: oklch(0.78 0.11 195); /* teal: the Life side */
-  --border: oklch(0.55 0.05 270); /* 3:1 for controls (F-35) */
-  --input: oklch(0.55 0.05 270);
-  --ring: oklch(0.82 0.12 275);
+  --background: oklch(0.972 0.006 80); /* porcelain */
+  --foreground: oklch(0.23 0.045 258); /* harbour ink */
+  --card: oklch(0.995 0.002 80);
+  --card-foreground: oklch(0.23 0.045 258);
+  --primary: #1351aa; /* Site cobalt, the one brand blue (ADR 0013); white on it is 7.2:1 */
+  --primary-foreground: oklch(0.99 0.003 80);
+  --secondary: oklch(0.94 0.008 80);
+  --secondary-foreground: oklch(0.26 0.045 258);
+  --muted: oklch(0.945 0.007 80);
+  --muted-foreground: oklch(0.45 0.03 258);
+  --accent: oklch(0.94 0.025 245); /* cobalt wash: hover and selected rows */
+  --accent-foreground: oklch(0.32 0.11 258);
+  --destructive: #b3261e; /* red: Lock, Confusion, error (brand Danger) */
+  --success: #1e6b3a; /* green: Ready, valid Sign-off (brand Success) */
+  --warning: #8a5300; /* amber: expiring, caution (brand Warning) */
+  --life: oklch(0.5 0.08 195); /* sea-glass: the Life side */
+  --border: oklch(0.6 0.025 255); /* 3:1 for controls (F-35) */
+  --input: oklch(0.6 0.025 255);
+  --ring: #1351aa;
 
-  --rule: oklch(0.3 0.04 270);
-  --shell: oklch(0.12 0.03 272);
-  --shell-raised: oklch(0.24 0.04 272);
-  --shell-foreground: oklch(0.97 0.01 270);
-  --shell-muted: oklch(0.8 0.03 270);
-  --indigo: oklch(0.72 0.14 275);
-  --glass: oklch(0.2 0.035 272 / 0.78);
-  --glass-edge: oklch(0.6 0.06 272 / 0.4);
+  --rule: oklch(0.89 0.008 80);
+  --shell: oklch(0.22 0.05 258); /* harbour navy: header, splash */
+  --shell-raised: oklch(0.3 0.055 258);
+  --shell-foreground: oklch(0.97 0.006 80);
+  --shell-muted: oklch(0.8 0.025 250);
+  --shell-accent: oklch(0.82 0.07 200); /* sea-glass mark on navy */
+  --indigo: #1351aa; /* legacy name: the kit's accent ink (eyebrows, marks on light ground) */
+  --seal: oklch(0.57 0.19 33); /* vermilion seal: one small editorial mark per view, never an action */
+  --glass: oklch(0.995 0.002 80 / 0.82);
+  --glass-edge: oklch(0.7 0.03 255 / 0.45);
+  --shadow-sm: 0 1px 2px oklch(0.25 0.05 258 / 0.08);
+  --shadow-md: 0 10px 24px -12px oklch(0.25 0.05 258 / 0.22);
+  --shadow-lg: 0 24px 48px -16px oklch(0.25 0.05 258 / 0.28);
+  --tile: oklch(0.995 0.002 80);
+  --tile-hover: oklch(0.975 0.012 250);
+  --tile-border: oklch(0.88 0.012 250);
+  --tile-border-hover: oklch(0.6 0.12 258);
+  --aurora-a: oklch(0.9 0.035 250 / 0.55); /* faint cobalt light over the harbour */
+  --aurora-b: oklch(0.92 0.04 195 / 0.45); /* faint sea-glass */
+}
+
+/* Harbour night */
+.v3[data-theme='dark'] {
+  --background: oklch(0.16 0.03 258);
+  --foreground: oklch(0.96 0.008 80);
+  --card: oklch(0.21 0.035 258);
+  --card-foreground: oklch(0.96 0.008 80);
+  --primary: oklch(0.74 0.12 252); /* cobalt lifted for night panels (F-21) */
+  --primary-foreground: oklch(0.17 0.04 258);
+  --secondary: oklch(0.26 0.035 258);
+  --secondary-foreground: oklch(0.94 0.01 80);
+  --muted: oklch(0.26 0.035 258);
+  --muted-foreground: oklch(0.78 0.025 250);
+  --accent: oklch(0.29 0.06 255);
+  --accent-foreground: oklch(0.96 0.02 250);
+  --destructive: oklch(0.72 0.17 25);
+  --success: oklch(0.78 0.15 160);
+  --warning: oklch(0.82 0.14 80);
+  --life: oklch(0.8 0.09 195);
+  --border: oklch(0.56 0.04 255);
+  --input: oklch(0.56 0.04 255);
+  --ring: oklch(0.8 0.11 252);
+  --rule: oklch(0.3 0.035 258);
+  --shell: oklch(0.12 0.03 258);
+  --shell-raised: oklch(0.24 0.04 258);
+  --shell-foreground: oklch(0.97 0.006 80);
+  --shell-muted: oklch(0.8 0.025 250);
+  --shell-accent: oklch(0.8 0.08 200);
+  --indigo: oklch(0.74 0.12 252);
+  --seal: oklch(0.68 0.17 35);
+  --glass: oklch(0.2 0.035 258 / 0.78);
+  --glass-edge: oklch(0.6 0.05 255 / 0.4);
   --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.35);
   --shadow-md: 0 8px 24px -8px oklch(0 0 0 / 0.6);
   --shadow-lg: 0 24px 56px -12px oklch(0 0 0 / 0.75);
-  --tile: oklch(0.21 0.035 270);
-  --tile-hover: oklch(0.25 0.05 273);
-  --tile-border: oklch(0.34 0.05 272);
-  --tile-border-hover: oklch(0.6 0.13 275);
-  --aurora-a: oklch(0.45 0.18 285 / 0.45);
-  --aurora-b: oklch(0.55 0.12 200 / 0.28);
+  --tile: oklch(0.21 0.035 258);
+  --tile-hover: oklch(0.25 0.045 256);
+  --tile-border: oklch(0.34 0.045 257);
+  --tile-border-hover: oklch(0.62 0.11 252);
+  --aurora-a: oklch(0.42 0.1 255 / 0.45);
+  --aurora-b: oklch(0.55 0.09 195 / 0.25);
 }
 
-/* Daylight */
-.v3[data-theme='light'] {
-  --background: oklch(0.975 0.012 275);
-  --foreground: oklch(0.22 0.05 272);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.22 0.05 272);
-  --primary: oklch(0.48 0.2 275);
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.95 0.015 275);
-  --secondary-foreground: oklch(0.26 0.05 272);
-  --muted: oklch(0.95 0.015 275);
-  --muted-foreground: oklch(0.45 0.04 270);
-  --accent: oklch(0.93 0.035 275);
-  --accent-foreground: oklch(0.3 0.1 275);
-  --destructive: oklch(0.5 0.19 25);
-  --success: oklch(0.48 0.12 155);
-  --warning: oklch(0.5 0.12 68);
-  --life: oklch(0.48 0.08 195);
-  --border: oklch(0.58 0.04 270);
-  --input: oklch(0.58 0.04 270);
-  --ring: oklch(0.48 0.2 275);
-  --rule: oklch(0.9 0.015 275);
-  --shell: oklch(0.98 0.008 275);
-  --shell-raised: oklch(0.93 0.02 275);
-  --shell-foreground: oklch(0.22 0.05 272);
-  --shell-muted: oklch(0.45 0.04 270);
-  --indigo: oklch(0.42 0.16 275);
-  --glass: oklch(1 0 0 / 0.78);
-  --glass-edge: oklch(0.7 0.05 272 / 0.5);
-  --shadow-sm: 0 1px 2px oklch(0.26 0.07 272 / 0.1);
-  --shadow-md: 0 8px 24px -8px oklch(0.26 0.07 272 / 0.2);
-  --shadow-lg: 0 24px 56px -12px oklch(0.26 0.07 272 / 0.3);
-  --tile: oklch(0.985 0.01 275);
-  --tile-hover: oklch(0.955 0.03 275);
-  --tile-border: oklch(0.86 0.04 275);
-  --tile-border-hover: oklch(0.65 0.13 275);
-  --aurora-a: oklch(0.85 0.09 285 / 0.5);
-  --aurora-b: oklch(0.9 0.07 200 / 0.4);
-}
-
-/* The ground: night sky with two slow glows (CSS only; still under reduced motion) */
+/* The ground: two faint harbour lights over the background (CSS only; still under reduced motion) */
 .v3-ground {
   background:
     radial-gradient(60rem 36rem at 15% -10%, var(--aurora-a), transparent 60%),
@@ -104,7 +109,7 @@
 }
 
 ::selection {
-  background: oklch(0.55 0.2 275 / 0.5);
+  background: oklch(0.6 0.13 255 / 0.35);
   color: var(--foreground);
 }
 html {

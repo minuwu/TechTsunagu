@@ -1,10 +1,9 @@
 import { useEffect, useRef } from 'react'
 import type { VantaEffect } from 'vanta/dist/vanta.waves.min'
 import { reducedMotion, saveData } from '@/ui/v3/lib/motion'
+import type { Theme } from '@/ui/v3/lib/theme'
 
-type Theme = 'dark' | 'light'
-
-// Nagasaki harbour at night under the Megane bridge: slow, low swell; the kit's indigo catches the light.
+// Nagasaki harbour under the Megane bridge: slow, low swell in the kit's navy and cobalt.
 const BASE = {
   mouseControls: true, // the camera leans a little toward the pointer
   touchControls: false, // never fight a thumb that is scrolling
@@ -18,8 +17,8 @@ const BASE = {
   zoom: 0.9,
 }
 const LOOK: Record<Theme, { color: number; shininess: number }> = {
-  dark: { color: 0x1a2150, shininess: 32 }, // just above the night --tile, so the crests read
-  light: { color: 0xc3cdf0, shininess: 55 }, // daylight: pale indigo water
+  dark: { color: 0x15284f, shininess: 32 }, // harbour night: navy just above the --tile, crests catch cobalt
+  light: { color: 0xc9d6ea, shininess: 50 }, // porcelain day: pale cobalt water
 }
 
 const SAMPLE_MS = 2000
@@ -45,9 +44,9 @@ export function HarbourWaves({ theme }: { theme: Theme }) {
       const exported = mod.default
       const WAVES = typeof exported === 'function' ? exported : exported.default
       const start: Theme =
-        el.closest('[data-theme]')?.getAttribute('data-theme') === 'light'
-          ? 'light'
-          : 'dark'
+        el.closest('[data-theme]')?.getAttribute('data-theme') === 'dark'
+          ? 'dark'
+          : 'light'
       try {
         effect.current = WAVES({ el, THREE, ...BASE, ...LOOK[start] })
       } catch (err) {

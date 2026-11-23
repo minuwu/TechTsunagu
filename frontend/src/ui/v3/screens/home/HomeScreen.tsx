@@ -44,7 +44,7 @@ export function HomeScreen() {
         <p className="mb-6 flex flex-wrap items-center gap-3 text-muted-foreground">
           {m.hub_sub()}
           {hub.isMock && (
-            <span className="inline-flex items-center gap-2 rounded-full border border-[var(--rule)] bg-[var(--shell-raised)] px-3 py-1 text-sm font-bold">
+            <span className="inline-flex items-center gap-2 rounded-full border border-[var(--rule)] bg-muted px-3 py-1 text-sm font-bold">
               <span
                 aria-hidden="true"
                 className="size-2 rounded-full bg-[var(--life)]"
