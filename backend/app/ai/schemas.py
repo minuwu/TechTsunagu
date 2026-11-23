@@ -94,6 +94,8 @@ class NoticeDraft(AiModel):
 class AskDraft(AiModel):
     """Passed through app.domain.grounding.ground() before a service stores it."""
 
+    question_text: Text
+    """The Worker's question in their own language: for a voice Ask the transcript, which is what a Senpai receives."""
     covered: bool
     answer: AiTri | None
     source_notice_ids: list[str]
