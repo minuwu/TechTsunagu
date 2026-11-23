@@ -99,6 +99,34 @@ export type AnswersIn = {
 };
 
 /**
+ * AppConfig
+ *
+ * GET /app/config (public). The app blocks below `minVersion` and offers `downloadUrl` (check `sha256`).
+ */
+export type AppConfig = {
+    /**
+     * Minversion
+     */
+    minVersion: string;
+    /**
+     * Latestversion
+     */
+    latestVersion: string;
+    /**
+     * Downloadurl
+     */
+    downloadUrl: string | null;
+    /**
+     * Sha256
+     */
+    sha256: string | null;
+    /**
+     * Servertime
+     */
+    serverTime: string;
+};
+
+/**
  * ApproveIn
  */
 export type ApproveIn = {
@@ -658,6 +686,54 @@ export type ConfusionOut = {
 };
 
 /**
+ * DeviceIn
+ */
+export type DeviceIn = {
+    /**
+     * Installid
+     */
+    installId: string;
+    /**
+     * Platform
+     */
+    platform: 'android';
+    /**
+     * Fcmtoken
+     */
+    fcmToken: string;
+    /**
+     * Appversion
+     */
+    appVersion: string;
+    /**
+     * Osapilevel
+     */
+    osApiLevel?: number | null;
+    /**
+     * Locale
+     */
+    locale?: string | null;
+    /**
+     * Notificationsenabled
+     */
+    notificationsEnabled: boolean;
+};
+
+/**
+ * DeviceOut
+ */
+export type DeviceOut = {
+    /**
+     * Registered
+     */
+    registered: boolean;
+    /**
+     * Lastseenat
+     */
+    lastSeenAt: string;
+};
+
+/**
  * EffortOut
  *
  * How much work the AI saves a Foreman (architecture §9.3); every share is 0..1, null when there is no data.
@@ -713,6 +789,21 @@ export type EnvelopeAnswerResult = {
      */
     success?: true;
     data: AnswerResult;
+    /**
+     * Message
+     */
+    message?: string;
+};
+
+/**
+ * Envelope[AppConfig]
+ */
+export type EnvelopeAppConfig = {
+    /**
+     * Success
+     */
+    success?: true;
+    data: AppConfig;
     /**
      * Message
      */
@@ -810,6 +901,21 @@ export type EnvelopeConfusionOut = {
 };
 
 /**
+ * Envelope[DeviceOut]
+ */
+export type EnvelopeDeviceOut = {
+    /**
+     * Success
+     */
+    success?: true;
+    data: DeviceOut;
+    /**
+     * Message
+     */
+    message?: string;
+};
+
+/**
  * Envelope[EffortOut]
  */
 export type EnvelopeEffortOut = {
@@ -893,6 +999,21 @@ export type EnvelopeHeatmap = {
      */
     success?: true;
     data: Heatmap;
+    /**
+     * Message
+     */
+    message?: string;
+};
+
+/**
+ * Envelope[InterviewOut]
+ */
+export type EnvelopeInterviewOut = {
+    /**
+     * Success
+     */
+    success?: true;
+    data: InterviewOut;
     /**
      * Message
      */
@@ -1368,6 +1489,21 @@ export type EnvelopeTaskOut = {
 };
 
 /**
+ * Envelope[TodayWord]
+ */
+export type EnvelopeTodayWord = {
+    /**
+     * Success
+     */
+    success?: true;
+    data: TodayWord;
+    /**
+     * Message
+     */
+    message?: string;
+};
+
+/**
  * Envelope[Union[AssignmentOut, NoneType]]
  */
 export type EnvelopeUnionAssignmentOutNoneType = {
@@ -1437,6 +1573,21 @@ export type EnvelopeUnionPageNoticeForPosterPageNoticeForWorker = {
 };
 
 /**
+ * Envelope[Union[SenpaiPairOut, NoneType]]
+ */
+export type EnvelopeUnionSenpaiPairOutNoneType = {
+    /**
+     * Success
+     */
+    success?: true;
+    data: SenpaiPairOut | null;
+    /**
+     * Message
+     */
+    message?: string;
+};
+
+/**
  * Envelope[UserOut]
  */
 export type EnvelopeUserOut = {
@@ -1499,6 +1650,42 @@ export type EnvelopeListGlossaryOut = {
      * Data
      */
     data: Array<GlossaryOut>;
+    /**
+     * Message
+     */
+    message?: string;
+};
+
+/**
+ * Envelope[list[InterviewDue]]
+ */
+export type EnvelopeListInterviewDue = {
+    /**
+     * Success
+     */
+    success?: true;
+    /**
+     * Data
+     */
+    data: Array<InterviewDue>;
+    /**
+     * Message
+     */
+    message?: string;
+};
+
+/**
+ * Envelope[list[InterviewOut]]
+ */
+export type EnvelopeListInterviewOut = {
+    /**
+     * Success
+     */
+    success?: true;
+    /**
+     * Data
+     */
+    data: Array<InterviewOut>;
     /**
      * Message
      */
@@ -1747,6 +1934,34 @@ export type GlossaryOut = {
      * En
      */
     en: string;
+    /**
+     * Translations
+     */
+    translations: {
+        [key: string]: string;
+    };
+};
+
+/**
+ * GlossaryUpdate
+ *
+ * PATCH /glossary/{id}: only the fields sent change; `translations` adds or replaces languages.
+ */
+export type GlossaryUpdate = {
+    /**
+     * Ja
+     */
+    ja?: string | null;
+    /**
+     * Reading
+     */
+    reading?: string | null;
+    /**
+     * Translations
+     */
+    translations?: {
+        [key: string]: string;
+    } | null;
 };
 
 /**
@@ -1829,6 +2044,92 @@ export type Heatmap = {
      * Rows
      */
     rows: Array<HeatRow>;
+};
+
+/**
+ * InterviewDue
+ */
+export type InterviewDue = {
+    /**
+     * Workerid
+     */
+    workerId: string;
+    /**
+     * Displayname
+     */
+    displayName: string;
+    /**
+     * Lastheldon
+     */
+    lastHeldOn: string | null;
+    /**
+     * Dueon
+     */
+    dueOn: string;
+    /**
+     * Status
+     */
+    status: 'ok' | 'soon' | 'overdue';
+};
+
+/**
+ * InterviewIn
+ */
+export type InterviewIn = {
+    /**
+     * Heldon
+     */
+    heldOn: string;
+    /**
+     * Method
+     */
+    method: 'face' | 'online';
+    /**
+     * Onlineconsentat
+     */
+    onlineConsentAt?: string | null;
+    /**
+     * Noteja
+     */
+    noteJa?: string;
+};
+
+/**
+ * InterviewOut
+ */
+export type InterviewOut = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Workerid
+     */
+    workerId: string;
+    /**
+     * Heldon
+     */
+    heldOn: string;
+    /**
+     * Method
+     */
+    method: 'face' | 'online';
+    /**
+     * Onlineconsentat
+     */
+    onlineConsentAt: string | null;
+    /**
+     * Noteja
+     */
+    noteJa: string;
+    /**
+     * Recordedby
+     */
+    recordedBy: string;
+    /**
+     * Createdat
+     */
+    createdAt: string;
 };
 
 /**
@@ -3364,6 +3665,32 @@ export type ThreadOut = {
 };
 
 /**
+ * TodayWord
+ */
+export type TodayWord = {
+    /**
+     * Date
+     */
+    date: string;
+    /**
+     * Language
+     */
+    language: 'ja' | 'bn' | 'en' | 'vi' | 'id' | 'ne' | 'my' | 'tl' | 'zh';
+    /**
+     * Word
+     */
+    word: string;
+    /**
+     * Reading
+     */
+    reading: string;
+    /**
+     * Meaningja
+     */
+    meaningJa: string;
+};
+
+/**
  * UserOut
  */
 export type UserOut = {
@@ -4436,6 +4763,36 @@ export type AddGlossaryApiGlossaryPostResponses = {
 
 export type AddGlossaryApiGlossaryPostResponse = AddGlossaryApiGlossaryPostResponses[keyof AddGlossaryApiGlossaryPostResponses];
 
+export type UpdateGlossaryApiGlossaryTermIdPatchData = {
+    body: GlossaryUpdate;
+    path: {
+        /**
+         * Term Id
+         */
+        term_id: string;
+    };
+    query?: never;
+    url: '/api/glossary/{term_id}';
+};
+
+export type UpdateGlossaryApiGlossaryTermIdPatchErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UpdateGlossaryApiGlossaryTermIdPatchError = UpdateGlossaryApiGlossaryTermIdPatchErrors[keyof UpdateGlossaryApiGlossaryTermIdPatchErrors];
+
+export type UpdateGlossaryApiGlossaryTermIdPatchResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeGlossaryOut;
+};
+
+export type UpdateGlossaryApiGlossaryTermIdPatchResponse = UpdateGlossaryApiGlossaryTermIdPatchResponses[keyof UpdateGlossaryApiGlossaryTermIdPatchResponses];
+
 export type ListPostersApiPostersGetData = {
     body?: never;
     path?: never;
@@ -4978,6 +5335,12 @@ export type ListMeetupsApiMeetupsGetResponse = ListMeetupsApiMeetupsGetResponses
 
 export type WorkerMeetupApiMeetupsPostData = {
     body: MeetupCreate;
+    headers?: {
+        /**
+         * Idempotency-Key
+         */
+        'Idempotency-Key'?: string | null;
+    };
     path?: never;
     query?: never;
     url: '/api/meetups';
@@ -5000,6 +5363,22 @@ export type WorkerMeetupApiMeetupsPostResponses = {
 };
 
 export type WorkerMeetupApiMeetupsPostResponse = WorkerMeetupApiMeetupsPostResponses[keyof WorkerMeetupApiMeetupsPostResponses];
+
+export type MySenpaiPairApiSenpaiPairsMeGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/senpai-pairs/me';
+};
+
+export type MySenpaiPairApiSenpaiPairsMeGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeUnionSenpaiPairOutNoneType;
+};
+
+export type MySenpaiPairApiSenpaiPairsMeGetResponse = MySenpaiPairApiSenpaiPairsMeGetResponses[keyof MySenpaiPairApiSenpaiPairsMeGetResponses];
 
 export type SenpaiViewApiSenpaiTokenGetData = {
     body?: never;
@@ -5506,6 +5885,12 @@ export type ListTasksApiTasksGetResponse = ListTasksApiTasksGetResponses[keyof L
 
 export type CreateTaskApiTasksPostData = {
     body: TaskCreate;
+    headers?: {
+        /**
+         * Idempotency-Key
+         */
+        'Idempotency-Key'?: string | null;
+    };
     path?: never;
     query?: never;
     url: '/api/tasks';
@@ -5811,3 +6196,172 @@ export type GetPhotoApiNearMissesReportIdPhotoGetResponses = {
      */
     200: unknown;
 };
+
+export type InterviewsDueApiInterviewsDueGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/interviews/due';
+};
+
+export type InterviewsDueApiInterviewsDueGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeListInterviewDue;
+};
+
+export type InterviewsDueApiInterviewsDueGetResponse = InterviewsDueApiInterviewsDueGetResponses[keyof InterviewsDueApiInterviewsDueGetResponses];
+
+export type WorkerInterviewsApiWorkersWorkerIdInterviewsGetData = {
+    body?: never;
+    path: {
+        /**
+         * Worker Id
+         */
+        worker_id: string;
+    };
+    query?: never;
+    url: '/api/workers/{worker_id}/interviews';
+};
+
+export type WorkerInterviewsApiWorkersWorkerIdInterviewsGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type WorkerInterviewsApiWorkersWorkerIdInterviewsGetError = WorkerInterviewsApiWorkersWorkerIdInterviewsGetErrors[keyof WorkerInterviewsApiWorkersWorkerIdInterviewsGetErrors];
+
+export type WorkerInterviewsApiWorkersWorkerIdInterviewsGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeListInterviewOut;
+};
+
+export type WorkerInterviewsApiWorkersWorkerIdInterviewsGetResponse = WorkerInterviewsApiWorkersWorkerIdInterviewsGetResponses[keyof WorkerInterviewsApiWorkersWorkerIdInterviewsGetResponses];
+
+export type RecordInterviewApiWorkersWorkerIdInterviewsPostData = {
+    body: InterviewIn;
+    headers?: {
+        /**
+         * Idempotency-Key
+         */
+        'Idempotency-Key'?: string | null;
+    };
+    path: {
+        /**
+         * Worker Id
+         */
+        worker_id: string;
+    };
+    query?: never;
+    url: '/api/workers/{worker_id}/interviews';
+};
+
+export type RecordInterviewApiWorkersWorkerIdInterviewsPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type RecordInterviewApiWorkersWorkerIdInterviewsPostError = RecordInterviewApiWorkersWorkerIdInterviewsPostErrors[keyof RecordInterviewApiWorkersWorkerIdInterviewsPostErrors];
+
+export type RecordInterviewApiWorkersWorkerIdInterviewsPostResponses = {
+    /**
+     * Successful Response
+     */
+    201: EnvelopeInterviewOut;
+};
+
+export type RecordInterviewApiWorkersWorkerIdInterviewsPostResponse = RecordInterviewApiWorkersWorkerIdInterviewsPostResponses[keyof RecordInterviewApiWorkersWorkerIdInterviewsPostResponses];
+
+export type TodayWordApiTodayWordGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/today-word';
+};
+
+export type TodayWordApiTodayWordGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeTodayWord;
+};
+
+export type TodayWordApiTodayWordGetResponse = TodayWordApiTodayWordGetResponses[keyof TodayWordApiTodayWordGetResponses];
+
+export type AppConfigApiAppConfigGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/app/config';
+};
+
+export type AppConfigApiAppConfigGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeAppConfig;
+};
+
+export type AppConfigApiAppConfigGetResponse = AppConfigApiAppConfigGetResponses[keyof AppConfigApiAppConfigGetResponses];
+
+export type UnregisterDeviceApiDevicesMeDeleteData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * Installid
+         */
+        installId: string;
+    };
+    url: '/api/devices/me';
+};
+
+export type UnregisterDeviceApiDevicesMeDeleteErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UnregisterDeviceApiDevicesMeDeleteError = UnregisterDeviceApiDevicesMeDeleteErrors[keyof UnregisterDeviceApiDevicesMeDeleteErrors];
+
+export type UnregisterDeviceApiDevicesMeDeleteResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeNoneType;
+};
+
+export type UnregisterDeviceApiDevicesMeDeleteResponse = UnregisterDeviceApiDevicesMeDeleteResponses[keyof UnregisterDeviceApiDevicesMeDeleteResponses];
+
+export type RegisterDeviceApiDevicesMePutData = {
+    body: DeviceIn;
+    path?: never;
+    query?: never;
+    url: '/api/devices/me';
+};
+
+export type RegisterDeviceApiDevicesMePutErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type RegisterDeviceApiDevicesMePutError = RegisterDeviceApiDevicesMePutErrors[keyof RegisterDeviceApiDevicesMePutErrors];
+
+export type RegisterDeviceApiDevicesMePutResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeDeviceOut;
+};
+
+export type RegisterDeviceApiDevicesMePutResponse = RegisterDeviceApiDevicesMePutResponses[keyof RegisterDeviceApiDevicesMePutResponses];

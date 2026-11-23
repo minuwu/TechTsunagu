@@ -23,6 +23,7 @@ from app.schemas.work import (
     EffortOut,
     GlossaryIn,
     GlossaryOut,
+    GlossaryUpdate,
     MachineDetail,
     MachineIn,
     MachineOut,
@@ -188,3 +189,8 @@ def list_glossary(who: ShopMember, db: DbSession) -> Envelope[list[GlossaryOut]]
 @router.post("/glossary", status_code=201, summary="Add a Glossary Term")
 def add_glossary(who: Foreman, body: GlossaryIn, db: DbSession) -> Envelope[GlossaryOut]:
     return Envelope(data=floor.add_glossary(db, who, body))
+
+
+@router.patch("/glossary/{term_id}", summary="Edit a Glossary Term or add a translation for a shop language")
+def update_glossary(who: Foreman, term_id: IdIn, body: GlossaryUpdate, db: DbSession) -> Envelope[GlossaryOut]:
+    return Envelope(data=floor.update_glossary(db, who, int(term_id), body))

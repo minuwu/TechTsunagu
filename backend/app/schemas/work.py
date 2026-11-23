@@ -205,12 +205,24 @@ class GlossaryIn(CamelModel):
     en: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=80)]
 
 
+class GlossaryUpdate(CamelModel):
+    """PATCH /glossary/{id}: only the fields sent change; `translations` adds or replaces languages."""
+
+    ja: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=40)] | None = None
+    reading: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=40)] | None = None
+    translations: (
+        dict[Lang, Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=80)]] | None
+    ) = None
+
+
 class GlossaryOut(CamelModel):
     id: str
     ja: str
     reading: str
     bn: str
     en: str
+    translations: dict[str, str]
+    """Every language the term has (one per shop language, XREQ-011 item 4); `bn` / `en` stay for current clients."""
 
 
 class EffortOut(CamelModel):
