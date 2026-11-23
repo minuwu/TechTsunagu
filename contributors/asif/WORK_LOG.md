@@ -38,7 +38,7 @@ Healthy and `/api/health/ready` answers. On start the container (`backend/jobs/s
 ### 3. Operations (PowerShell, from the repo root)
 
 Needs the Azure CLI signed in (`az login` in a browser; the device-code login is blocked by the tenant's security
-defaults) and **Contributor on `wakatta-rg`**. If `az` is missing: the official installer, or
+defaults) and **Contributor on `wakatta-rg`** (sign in with `az login --tenant acf1fe93-0760-406b-9216-573b5fed5453`). If `az` is missing: the official installer, or
 `uv tool install --prerelease=allow "azure-cli>=2.70"` (the scripts find either). Each command waits until the API is
 healthy again.
 
@@ -103,7 +103,7 @@ Demo accounts (seeded, fictional): shop `SASEBO01` Foreman 山口 隆 PIN `24681
 
 | Item | Owner | State |
 |---|---|---|
-| XREQ-015: Azure access for Anim | Asif | Waiting for Anim's Microsoft account email; then guest invite + **Contributor on `wakatta-rg`** only |
+| XREQ-015: Azure access for Anim | Anim | **Done**: guest + Contributor on `wakatta-rg`. Accept the invitation email, then `az login --tenant acf1fe93-0760-406b-9216-573b5fed5453` and `az account set --subscription "Azure for Students"` |
 | XREQ-013: host the web demo (Static Web Apps) | **Anim** (after XREQ-015) | Provider `Microsoft.Web` already registered (Contributor could not); East Asia is allowed |
 | XREQ-001: frontend on the real API (sign-in, token, list shape) | Minhaz | Backend side done and verified; checklist in `docs/FRONTEND_API_HANDOVER.md` |
 | XREQ-014: Firebase push | Minhaz → Anim | Pending |
@@ -119,7 +119,7 @@ Supabase is free. Scale to zero after the demo (command in §3).
 ### 8. First hour for the new owner (Anim)
 
 1. `git pull`; read this section and `backend/deploy/SUPABASE.md`.
-2. Once you have Contributor: `az login` → `az group show -n wakatta-rg` succeeds.
+2. Accept the Azure invitation email; `az login --tenant acf1fe93-0760-406b-9216-573b5fed5453`; `az account set --subscription "Azure for Students"` → `az group show -n wakatta-rg` succeeds.
 3. `cd backend && .venv\Scripts\python scripts\smoke.py https://wakatta-api.agreeablestone-840cfb57.japaneast.azurecontainerapps.io --origin http://localhost:3000` → 13/13.
 4. Push any small backend change and watch `backend-ci` → `backend-deploy` go green in Actions.
 
