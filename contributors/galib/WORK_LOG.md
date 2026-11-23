@@ -18,11 +18,16 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
   | Groq `whisper-large-v3-turbo` | ok | 0.6 s | 2/4 (保護眼鏡, のぎす: other script; "measure in 2 places" garbled) |
 
   Takeaways: audio + JSON works on every model that answered; 3.5 Flash-Lite is the strong everyday model; the 503 shows why the chain (AI_PLAN.md §3) must skip a busy model, not only an exhausted one; Whisper stays the last voice fallback (it loses shop words). I retry 3.8 later.
+- **Benchmark of free non-Gemini models** on our real `build_note` task (6 eval notes, one with a planted instruction; scored by `app.domain.ai_checks`, one retry like `AiRunner`): Gemini 3.5 and 3.1 Flash-Lite 6/6; Groq `gpt-oss-120b` 5/6 and ignored the planted line; Groq Qwen 3.8 27B 6/6 but **copied the planted instruction into the steps** and is a preview model; `gpt-oss-20b` 1/6. Also checked: OpenRouter free (50 calls/day), Hugging Face ($0.10/month), PLaMo, Kotoba-Whisper, Cloudflare, Mistral, Cerebras; none worth it now. → `gpt-oss-120b` is the backup.
+- **Found and fixed: every real Gemini call returned HTTP 400** (`response_schema` rejects `additionalProperties`, which `extra="forbid"` adds). **PR #8, merged:** the fix plus XREQ-003 items 1–4: model chain (`AI_CHAIN=dev|demo`), per-model budgets (`AI_TIER=free|paid`, `app/ai/chains.py`), cache reuse across the chain, Groq backup (Whisper → gpt-oss-120b, on when `GROQ_API_KEY` is set). CI green; verified live.
+- **Team decision: Bangla is dropped, Japanese + English only.** Not yet changed in code (prompts, `AiTri`, glossary seed, screens still have `bn`).
+- **Paid AI proposal** (shared with Asif and Minhaz as a page): Gemini paid Tier 1 (main) + Groq Developer plan (backup). About $3 (৳375) for the next week (~1,000 calls), about $9 (৳1,125) a month (~3,000 calls). Pay now: $10 (৳1,250) Google prepay; cap $20 (৳2,500).
 
 ### Blockers / handoff
-- **Asif:** I am sending you the Gemini and Groq keys by private message for the Azure secrets (`GEMINI_API_KEY`, `GROQ_API_KEY`). Please answer **XREQ-003** (model chain, Groq Whisper step, `httpx`, `transcribed`); the voice ladder waits on it.
-- **Anim:** I build `draft_message`, `translate`, `reexplain` (XREQ-006) next and add `question_text` to `AskDraft` for your voice Asks. Is `answer_ask` returning your `GroundedAnswer` OK? No reply by **Mon 03:00** → I build to [WS1_INTEGRATION_PLAN.md](WS1_INTEGRATION_PLAN.md).
-- **Everyone:** who reads Bengali best and can score the AI eval outputs on Monday?
+- **Asif:** PR #8 changed your runner and settings (constructor and `run()` unchanged, no service changes). For Azure: `AI_MODE=gemini`, `AI_CHAIN=demo`, secrets `GEMINI_API_KEY` and `GROQ_API_KEY` (keys by private message), `AI_TIER=paid` once billing is on. BACKEND_ARCHITECTURE §10.3/§10.4 still name `GEMINI_MODEL` / `AI_DAILY_BUDGET`. The `transcribed` value for `ai_outcome` still needs your migration (less urgent now: the backup writes a full draft).
+- **Anim:** your Chat AI (XREQ-006) is good; I add the missing checks (glossary lock on the message, a due time is never guessed, the Re-explanation question is on the missed term) in a small PR that touches `_draft_problems` in `services/chat.py`.
+- **Minhaz:** please OK the AI budget (৳1,250 now, ৳2,500 cap) and say whose card we use; some Bangladeshi cards are refused, so try today.
+- **Everyone, Bangla dropped:** please stop adding Bengali. I change the AI side (schemas, checks, prompts v2, fixtures); Asif/Anim `AI_LANGUAGES` and the glossary seed; Minhaz/Arjun the screens.
 
 ## 2026-11-22 (proto → production handoff from Minhaz)
 
