@@ -2,6 +2,8 @@
 $ErrorActionPreference = "Stop"
 $Rg = "wakatta-rg"; $Loc = "japaneast"; $EnvName = "wakatta-env"; $App = "wakatta-api"; $Identity = "wakatta-id"
 $Image = "techtsunagu-api"; $DbAdmin = "wakattaadmin"
+# Browser origins allowed by CORS (comma-separated). Add the hosted frontend here and run deploy/set-cors.ps1.
+$FrontendOrigins = "http://localhost:3000"
 
 # Use `az` from PATH; otherwise the uv-installed CLI (uv tool install --prerelease=allow "azure-cli>=2.70").
 $UvAz = Join-Path $env:APPDATA "uv\tools\azure-cli\Scripts\python.exe"
@@ -20,18 +22,23 @@ function New-Secret([int]$n) {
     [System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
     -join ($bytes | ForEach-Object { $chars[$_ % 64] })
 }
-# Start a manual Container Apps Job and wait for its execution to finish.
-function Wait-Job($name) {
-    $exec = Invoke-Az containerapp job start -n $name -g $Rg --query name -o tsv
-    foreach ($i in 1..90) {
-        Start-Sleep -Seconds 10
-        $status = Invoke-Az containerapp job execution show -n $name -g $Rg --job-execution-name $exec `
-            --query properties.status -o tsv
-        if ($status -eq "Succeeded") { Step "$name succeeded"; return }
-        if ($status -eq "Failed") { throw "$name failed. Logs: az containerapp job logs show -n $name -g $Rg --container $name" }
+# Wait until the newest revision of the API is the ready one and /api/health/ready answers; returns the host name.
+# (Right after an update the old revision still answers, so its health alone proves nothing.)
+function Wait-Ready {
+    $fqdn = Invoke-Az containerapp show -n $App -g $Rg --query properties.configuration.ingress.fqdn -o tsv
+    foreach ($i in 1..40) {
+        $rev = @(Invoke-Az containerapp show -n $App -g $Rg `
+                --query "[properties.latestRevisionName, properties.latestReadyRevisionName]" -o tsv)
+        if ($rev[0] -and $rev[0] -eq $rev[1]) {
+            try {
+                $null = Invoke-RestMethod "https://$fqdn/api/health/ready" -TimeoutSec 10
+                Write-Host "[$(Get-Date -Format HH:mm:ss)] ready: https://$fqdn (revision $($rev[0]))"
+                return $fqdn
+            } catch { }
+        }
+        Start-Sleep -Seconds 15
     }
-    throw "$name still running after 15 min"
+    throw "not ready after 10 min. Logs: az containerapp logs show -n $App -g $Rg --tail 80"
 }
-function Test-Job($name) { [bool](Invoke-Az containerapp job list -g $Rg --query "[?name=='$name'].name" -o tsv) }
 function Get-Acr { Invoke-Az acr list -g $Rg --query "[0].name" -o tsv }
 function Get-DbServer { Invoke-Az postgres flexible-server list -g $Rg --query "[0].name" -o tsv }

@@ -2,10 +2,10 @@
 # the first CI build. Run it twice: once now (infrastructure + CI identity), once after the first image is in the registry.
 #   - registry + two managed identities: wakatta-id (the apps pull images) and wakatta-ci (GitHub Actions deploys,
 #     via OIDC: no stored passwords or tokens)
-#   - PostgreSQL B1ms; roles/database created by a job INSIDE Azure, so no laptop ever needs port 5432
-#   - jobs wakatta-migrate (alembic) and wakatta-seed (demo data; re-run to reset the demo), and the API app
-# The API only gets the least-privilege wakatta_app credential. Secrets are generated here, stored only as
-# Container App / Job secrets, and never printed.
+#   - PostgreSQL B1ms, reachable only from Azure services, so no laptop ever needs port 5432
+#   - the API app. Azure for Students only gets "express" environments (no Jobs), so the first container start
+#     creates the roles and database, every start migrates, and the demo seed runs on request (backend/jobs/start.py)
+# Secrets are generated here, stored only as Container App secrets, and never printed.
 # Usage: powershell -ExecutionPolicy Bypass -File backend\deploy\azure-setup.ps1
 . "$PSScriptRoot\common.ps1"
 $CiIdentity = "wakatta-ci"
@@ -51,16 +51,16 @@ if (-not $acr) {
 $acrId = Invoke-Az acr show -n $acr --query id -o tsv
 Grant $idPrincipal AcrPull $acrId
 Grant $ciPrincipal AcrPush $acrId
-# Least privilege for CI: a custom role limited to Container Apps and their jobs in this resource group (plus attaching
+# Least privilege for CI: a custom role limited to Container Apps in this resource group (plus attaching
 # the existing pull identity). No rights over PostgreSQL, the registry, other identities or role assignments.
 # listSecrets stays inside Microsoft.App/containerApps/*: `az containerapp update` reads the secrets to preserve them.
 $roleName = "Wakatta CI Deployer"
 $roleFile = Join-Path ([IO.Path]::GetTempPath()) "wakatta-ci-role.json"
 @{
     Name = $roleName
-    Description = "Roll and migrate the Wakatta API: Container Apps, jobs and the pull identity, in one resource group."
+    Description = "Roll the Wakatta API: Container Apps and the pull identity, in one resource group."
     Actions = @(
-        "Microsoft.App/containerApps/*", "Microsoft.App/jobs/*", "Microsoft.App/locations/*/read",
+        "Microsoft.App/containerApps/*", "Microsoft.App/locations/*/read",
         "Microsoft.App/managedEnvironments/read", "Microsoft.App/managedEnvironments/join/action",
         "Microsoft.ManagedIdentity/userAssignedIdentities/read",
         "Microsoft.ManagedIdentity/userAssignedIdentities/*/assign/action",
@@ -104,7 +104,7 @@ if (-not $db) {
 foreach ($rule in (Invoke-Az postgres flexible-server firewall-rule list -g $Rg -s $db --query "[?starts_with(name, 'FirewallIPAddress')].name" -o tsv)) {
     Invoke-Az postgres flexible-server firewall-rule delete -g $Rg -s $db -n $rule --yes -o none
 }
-# 0.0.0.0 = Azure-hosted clients only (the API and the jobs), still behind TLS and 32-char random passwords.
+# 0.0.0.0 = Azure-hosted clients only (the API), still behind TLS and 32-char random passwords.
 # Follow-up: VNet-integrate the environment and give the server private access, then drop this rule.
 Invoke-Az postgres flexible-server firewall-rule create -g $Rg -s $db -n AllowAzureServices `
     --start-ip-address 0.0.0.0 --end-ip-address 0.0.0.0 -o none
@@ -121,8 +121,22 @@ Write-Output ""
 Write-Output "CI identity (not secrets; they go in .github/workflows/backend-deploy.yml):"
 Write-Output "  AZURE_CLIENT_ID=$ciClient  AZURE_TENANT_ID=$tenant  AZURE_SUBSCRIPTION_ID=$sub  ACR=$acr"
 
+# Removes the first-boot credential and the demo-wipe flag from the app, then rotates the admin password so any
+# copy left in an old revision is useless. Safe to call when they are already gone.
+function Remove-Bootstrap {
+    Step "removing the bootstrap credential and seed flag; rotating the admin password"
+    if (-not (Invoke-Az containerapp list -g $Rg --query "[?name=='$App'].name" -o tsv)) { return }  # create failed: nothing to clean
+    $present = @(Invoke-Az containerapp show -n $App -g $Rg --query "properties.template.containers[0].env[].name" -o tsv)
+    $leftover = @("ADMIN_DATABASE_URL", "ADMIN_USER", "OWNER_PASSWORD", "APP_PASSWORD", "SEED_ON_START") | Where-Object { $present -contains $_ }
+    if ($leftover) { Invoke-Az containerapp update -n $App -g $Rg --remove-env-vars @leftover -o none }
+    $secrets = @(Invoke-Az containerapp secret list -n $App -g $Rg --query "[].name" -o tsv)
+    $leftSecrets = @("admin-url", "owner-pw", "app-pw") | Where-Object { $secrets -contains $_ }
+    if ($leftSecrets) { Invoke-Az containerapp secret remove -n $App -g $Rg --secret-names @leftSecrets -o none }
+    Invoke-Az postgres flexible-server update -g $Rg -n $db --admin-password (New-Secret 32) -o none
+}
+
 if (Invoke-Az containerapp list -g $Rg --query "[?name=='$App'].name" -o tsv) {
-    Step "$App already exists: setup is complete (CI ships code from now on)"; return
+    Remove-Bootstrap; Step "$App already exists: setup is complete (CI ships code from now on)"; return
 }
 
 # Newest commit-tagged image (never the mutable "latest"). The repository does not exist until CI pushes one.
@@ -134,7 +148,9 @@ if (-not $ref) {
 $ref = "$acr.azurecr.io/${Image}:$ref"
 Step "using image $ref"
 
-# Fresh credentials. The admin password is reset here and only the dbinit job ever holds it.
+# Fresh credentials. Express environments have no Jobs, so the first container start does the one-off work
+# (backend/jobs/start.py): roles + database with the admin credential, migrations, demo seed. The admin credential
+# and the seed flag are removed right after, and the admin password is rotated so the old value is useless.
 $adminPw = New-Secret 32; $ownerPw = New-Secret 32; $appPw = New-Secret 32; $pepper = New-Secret 48
 Step "reset the database admin password"
 Invoke-Az postgres flexible-server update -g $Rg -n $db --admin-password $adminPw -o none
@@ -143,43 +159,22 @@ $ownerUrl = "postgresql+psycopg://wakatta_owner:$ownerPw@${dbHost}:5432/wakatta?
 $appUrl = "postgresql+psycopg://wakatta_app:$appPw@${dbHost}:5432/wakatta?sslmode=require"
 $adminUrl = "postgresql://${DbAdmin}:$adminPw@${dbHost}:5432/postgres?sslmode=require"
 
-# Jobs run scripts that ship in the image (backend/jobs), because the CLI cannot pass shell flags such as -c.
-$registry = @("--registry-server", "$acr.azurecr.io", "--registry-identity", $idRes)
-$jobBase = @("--environment", $EnvName, "--trigger-type", "Manual", "--replica-retry-limit", "0", "--parallelism", "1",
-    "--replica-completion-count", "1", "--image", $ref) + $registry + @("--mi-user-assigned", $idRes)
-$ownerEnv = @("MIGRATION_DATABASE_URL=secretref:migration-database-url", "APP_DB_ROLE=wakatta_app", "PIN_PEPPER=secretref:pin-pepper")
-
-Step "job wakatta-dbinit (roles + database)"
-if (Test-Job wakatta-dbinit) { Invoke-Az containerapp job delete -n wakatta-dbinit -g $Rg --yes -o none }
-Invoke-Az containerapp job create -n wakatta-dbinit -g $Rg @jobBase --replica-timeout 600 --cpu 0.25 --memory 0.5Gi `
-    --secrets "admin-url=$adminUrl" "owner-pw=$ownerPw" "app-pw=$appPw" `
-    --env-vars "ADMIN_DATABASE_URL=secretref:admin-url" "OWNER_PASSWORD=secretref:owner-pw" "APP_PASSWORD=secretref:app-pw" "ADMIN_USER=$DbAdmin" `
-    --command "python" --args "/app/jobs/dbinit.py" -o none
-Wait-Job wakatta-dbinit
-# The admin password only ever lived in this job; drop the job so nothing keeps it.
-Invoke-Az containerapp job delete -n wakatta-dbinit -g $Rg --yes -o none
-
-foreach ($job in @(
-        @{ name = "wakatta-migrate"; command = "alembic"; args = @("upgrade", "head") },
-        @{ name = "wakatta-seed"; command = "python"; args = @("/app/jobs/seed_reset.py") })) {
-    Step "job $($job.name)"
-    if (Test-Job $job.name) { Invoke-Az containerapp job delete -n $job.name -g $Rg --yes -o none }
-    Invoke-Az containerapp job create -n $job.name -g $Rg @jobBase --replica-timeout 900 --cpu 0.5 --memory 1.0Gi `
-        --secrets "migration-database-url=$ownerUrl" "pin-pepper=$pepper" --env-vars @ownerEnv `
-        --command $job.command --args @($job.args) -o none
-    Wait-Job $job.name
+Step "container app ${App}: first boot creates the database, migrates and seeds"
+try {
+    Invoke-Az containerapp create -n $App -g $Rg --environment $EnvName --image $ref `
+        --registry-server "$acr.azurecr.io" --registry-identity $idRes --user-assigned $idRes `
+        --target-port 8000 --ingress external --min-replicas 1 --max-replicas 1 --cpu 0.5 --memory 1.0Gi `
+        --secrets "database-url=$appUrl" "migration-database-url=$ownerUrl" "pin-pepper=$pepper" `
+        "admin-url=$adminUrl" "owner-pw=$ownerPw" "app-pw=$appPw" `
+        --env-vars "DATABASE_URL=secretref:database-url" "MIGRATION_DATABASE_URL=secretref:migration-database-url" `
+        "PIN_PEPPER=secretref:pin-pepper" "APP_DB_ROLE=wakatta_app" "FRONTEND_ORIGIN=$FrontendOrigins" `
+        "LOG_LEVEL=INFO" "AI_MODE=fake" `
+        "ADMIN_DATABASE_URL=secretref:admin-url" "ADMIN_USER=$DbAdmin" "OWNER_PASSWORD=secretref:owner-pw" `
+        "APP_PASSWORD=secretref:app-pw" "SEED_ON_START=reset" -o none
+    $null = Wait-Ready
+} finally {
+    # Runs even if the first boot failed: never leave the admin credential or the wipe flag on the app.
+    Remove-Bootstrap
 }
-
-Step "container app $App (app role only)"
-Invoke-Az containerapp create -n $App -g $Rg --environment $EnvName --image $ref @registry --user-assigned $idRes `
-    --target-port 8000 --ingress external --min-replicas 1 --max-replicas 1 --cpu 0.5 --memory 1.0Gi `
-    --secrets "database-url=$appUrl" "pin-pepper=$pepper" `
-    --env-vars "DATABASE_URL=secretref:database-url" "PIN_PEPPER=secretref:pin-pepper" `
-    "FRONTEND_ORIGIN=http://localhost:3000" "DEMO_MODE=true" "LOG_LEVEL=INFO" "AI_MODE=fake" -o none
-
-$fqdn = Invoke-Az containerapp show -n $App -g $Rg --query properties.configuration.ingress.fqdn -o tsv
-foreach ($i in 1..30) {
-    try { $null = Invoke-RestMethod "https://$fqdn/api/health/ready" -TimeoutSec 10; Step "ready: https://$fqdn"; return }
-    catch { Start-Sleep -Seconds 10 }
-}
-throw "not ready after 5 min. Logs: az containerapp logs show -n $App -g $Rg --tail 50"
+$fqdn = Wait-Ready
+Step "done: https://$fqdn/api  (demo: shop SASEBO01, Foreman PIN 246810, Workers PIN 2468)"

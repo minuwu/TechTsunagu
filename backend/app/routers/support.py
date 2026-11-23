@@ -30,6 +30,7 @@ from app.services.auth import Principal
 router = APIRouter(prefix="/api", tags=["life"])
 Foreman = Annotated[Principal, Depends(require("foreman"))]
 Worker = Annotated[Principal, Depends(require("worker"))]
+ShopMember = Annotated[Principal, Depends(require("foreman", "worker"))]
 Paging = Annotated[PageParams, Depends(page_params)]
 IdempotencyKey = Annotated[uuid.UUID, Header(alias="Idempotency-Key")]
 # The Senpai link token is 43 url-safe characters (secrets.token_urlsafe(32)); demo tokens are shorter.
@@ -78,6 +79,11 @@ def create_pair(who: Foreman, body: SenpaiPairCreate, db: DbSession) -> Envelope
 def revoke_pair(who: Foreman, pair_id: IdIn, db: DbSession) -> Envelope[None]:
     senpai.revoke_pair(db, who, int(pair_id), now_utc())
     return Envelope(data=None)
+
+
+@router.get("/meetups", summary="Meet-ups, newest first (Workers: their own; Foremen: the shop's)")
+def list_meetups(who: ShopMember, db: DbSession, page: Paging) -> Envelope[Page[MeetupOut]]:
+    return Envelope(data=senpai.list_meetups(db, who, page))
 
 
 @router.post("/meetups", status_code=201, summary="Log a Meet-up with your Senpai")
