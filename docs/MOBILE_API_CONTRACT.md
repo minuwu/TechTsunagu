@@ -6,9 +6,9 @@ This file is the endpoint-by-endpoint contract for the whole prototype (Worker, 
 
 How the claims here were checked:
 
-- `docs/openapi.yaml` (JSON despite the extension) was parsed with a script and compared with the `@router` decorators in `backend/app/routers/*.py`: both give the same 52 operations on 43 paths (check printed in section 1).
+- `docs/openapi.yaml` (JSON despite the extension) was parsed with a script and compared with the `@router` decorators in `backend/app/routers/*.py`: both give the same 76 operations on 64 paths (check printed in section 1).
 - Request and response models come from `backend/app/schemas/*.py`; what the web client sends comes from `frontend/src/services/wakatta.ts` and `frontend/src/domain/wakatta.ts`.
-- Planned endpoints come from [BACKEND_ARCHITECTURE.md](BACKEND_ARCHITECTURE.md) section 9.3 and `AGENTS.md` XREQ-001..007. `new` endpoints come from `.agent-bridge/specs/android/handoff-backend-additions.md` (the "handoff"); they are proposals.
+- Planned endpoints come from [BACKEND_ARCHITECTURE.md](BACKEND_ARCHITECTURE.md) section 9.3 and `AGENTS.md` XREQ-001..007. `new` endpoints come from a local backend-additions handoff note (not in the repo, `.agent-bridge/` is git-ignored; its content is restated in sections 4.8 to 4.11 below); they are proposals.
 - Where a source is silent the text says `UNKNOWN` and the item is in section 7.2.
 - Citations are `path:line`. `BA` below means `docs/BACKEND_ARCHITECTURE.md`; `AG` means `AGENTS.md`.
 
@@ -20,14 +20,14 @@ Contents: 1 Status legend and counts · 2 Conventions · 3 Common shapes · 4 En
 
 | Status | Meaning | Count |
 | :--- | :--- | :--- |
-| `live` | Operation is in `docs/openapi.yaml` (generated from the FastAPI routes) and in the routers. Safe to code against. | 52 |
-| `planned` | In `BA` 9.3 or an XREQ, not in `docs/openapi.yaml`. The XREQ id is named when there is one. Shapes are the spec's, not code. | 32 |
+| `live` | Operation is in `docs/openapi.yaml` (generated from the FastAPI routes) and in the routers. Safe to code against. | 76 |
+| `planned` | In `BA` 9.3 or an XREQ, not in `docs/openapi.yaml`. The XREQ id is named when there is one. Shapes are the spec's, not code. | 9 |
 | `new` | From the handoff file only. No XREQ yet. Every path, field and rule can still change. | 29 |
-| **Total** | | 113 |
+| **Total** | | 114 |
 
-`live` is counted in operations (method + path). The same operations are 43 paths in `docs/openapi.yaml`. `todayWord` on the live `GET /api/senpai/{token}` is a `new` field on a live endpoint; it is listed under 4.10 and does not change the counts.
+`live` is counted in operations (method + path). The same operations are 64 paths in `docs/openapi.yaml`. `todayWord` on the live `GET /api/senpai/{token}` is a `new` field on a live endpoint; it is listed under 4.10 and does not change the counts. Revision 2 (2026-11-23, after the merge with `origin/main`): the live API grew from 52 operations on 43 paths to 76 on 64 (Chat, Briefings, Skill views, Panel Overrides, Knowledge Library, Sign-off list, effort metrics); 23 endpoints moved from `planned` to `live` and one live route (`POST /api/briefings`, E-114) was not in any plan.
 
-Verification result (script run on 2026-11-23, see the report that came with this file): the 52 `live` operations equal the `docs/openapi.yaml` operations and the router decorators exactly (0 missing, 0 extra); the 32 `planned` operations equal (BA 9.3 plus the XREQ-003 and XREQ-005 routes) minus the live ones; the 29 `new` operations come from the handoff and overlap no live or planned one; the 34 screen ids, 27 Bus events and 49 `shortcut:` comments each appear exactly once in tables 5.1 to 5.3.
+Verification result (script run on 2026-11-23, revision 2): the 76 `live` operations equal the `docs/openapi.yaml` operations and the router decorators exactly (0 missing, 0 extra); the 9 `planned` operations equal (BA 9.3 plus the XREQ-003 and XREQ-005 routes) minus the live ones; the 29 `new` operations come from the handoff and overlap no live or planned one; the 34 screen ids, 27 Bus events and 49 `shortcut:` comments each appear exactly once in tables 5.1 to 5.3.
 
 Each endpoint below starts with a heading of the form `#### E-nnn METHOD /path` and a line `Status: live|planned|new`. Role letters: **F** Foreman, **W** Worker, **P** Community Poster, **D** Machine Panel device session, **S** Senpai link token, **pub** no token. Role rules for live routes are from the `require(...)` guards in the routers; for planned ones from `BA` 3.2 and 9.3.
 
@@ -89,12 +89,14 @@ val WakattaJson = Json {
 }
 ```
 
-The client must never send a field that is not in the request model; the backend answers 422 for any extra key. Do not serialize UI-only state into a request DTO. Two requests need an explicit `null` and so must be encoded with a second `Json { explicitNulls = true }` instance (or a hand-built body):
+The client must never send a field that is not in the request model; the backend answers 422 for any extra key. Do not serialize UI-only state into a request DTO. Four requests need an explicit `null` and so must be encoded with a second `Json { explicitNulls = true }` instance (or a hand-built body):
 
 | Request | Field | Why |
 | :--- | :--- | :--- |
-| `PUT /api/shift-assignments` | `workerId: null` | required field; `null` clears the slot (`backend/app/schemas/work.py:161-165`, `backend/app/routers/work.py:147`) |
+| `PUT /api/shift-assignments` | `workerId: null` | required field; `null` clears the slot (`backend/app/schemas/work.py:161-165`, `backend/app/routers/work.py:178`) |
 | `PATCH /api/notices/{id}/events/{eventId}` | `rrule: null` | `null` makes the Event one-off; an omitted key keeps the old rule (the service uses `model_fields_set`, `backend/app/schemas/notices.py:52-60`, `backend/app/services/notices.py:325`) |
+| `PATCH /api/tasks/{id}` | `dueAt: null` | `null` clears the due time; an omitted key keeps it (the service checks `model_fields_set`, `backend/app/services/chat.py:570`; `backend/app/schemas/chat.py:133-139`) |
+| `POST /api/machines/{id}/overrides` | `workerId: null` | required field; `null` means anyone (`backend/app/schemas/work.py:116-122`) |
 
 ### 2.5 Tolerant enum decoding
 
@@ -117,16 +119,16 @@ Header `Idempotency-Key: <UUID v4>`, one new UUID per user action, stored on dis
 
 | Routes | Status | Missing key |
 | :--- | :--- | :--- |
-| `POST /machines/{id}/notes`, `POST /checks`, `POST /notices`, `POST /asks` | live, required | `422 VALIDATION_ERROR` (FastAPI header validation; `docs/openapi.yaml` marks the parameter required) |
-| `POST /briefings/draft`, `POST /near-misses`, `POST /threads/{id}/messages` (XREQ-005) | planned, required | `422` expected |
+| `POST /machines/{id}/notes`, `POST /checks`, `POST /notices`, `POST /asks`, `POST /briefings/draft`, `POST /threads/{id}/messages` | live, required | `422 VALIDATION_ERROR` (FastAPI header validation; `docs/openapi.yaml` marks the parameter required) |
+| `POST /near-misses` | planned, required (XREQ-001 item 4) | `422` expected |
 | new creates: `POST /contacts`, `POST /talk-threads`, `POST /contacts/{id}/messages`, `POST /talk-threads/{id}/entries`, `POST /workers/{id}/interviews`, `POST /threads` | new, "Idempotency-Key on creates" (handoff section 2; interviews table has `idempotency_key`) | `UNKNOWN` which of these the backend will require |
-| `POST /meetups`, `POST /senpai/{token}/meetups`, `POST /tasks`, `POST /receipts` | no key in code or spec | the app must make these safe to retry itself (see 7.2, Q-10) |
+| `POST /meetups`, `POST /senpai/{token}/meetups`, `POST /tasks`, `POST /receipts`, `POST /briefings` (publish), `POST /messages/{id}/reexplain` | no key in code or spec | the app must make these safe to retry itself (see 7.2, Q-10); a repeated `POST /briefings` or `/messages/{id}/send` answers `409` because it already happened |
 
-Replay behaviour as coded: a replayed note draft returns the stored draft (`backend/app/services/notes.py:72-74`); the route is declared `status_code=201`, so a replay is also `201`, not the `200` that BA 8.2 describes. Reusing a key on a Check for a different target is `409 IDEMPOTENCY_KEY_REUSED` (`backend/app/services/floor.py:192`, `backend/app/services/notices.py:438`): never reuse a key for a different action.
+Replay behaviour as coded: a replayed note draft returns the stored draft (`backend/app/services/notes.py:73-75`); the route is declared `status_code=201`, so a replay is also `201`, not the `200` that BA 8.2 describes. Reusing a key on a Check for a different target is `409 IDEMPOTENCY_KEY_REUSED` (`backend/app/services/floor.py:192`, `backend/app/services/notices.py:438`): never reuse a key for a different action.
 
 ### 2.8 ETag and polling
 
-Only one live route supports conditional requests: `GET /api/machines/{id}/panel` (`backend/app/routers/work.py:73-81`). Send `If-None-Match: <last ETag, with its quotes>`; a `304` has no body and an `ETag` header, and means "no change". The ETag is `"` + 32 hex characters + `"`. Panel polls every 2 s (BA 1 at `BA:53`). Planned: the Foreman Board every 5 s with ETag (BA 8.5 at `BA:401`, BA 17 item 15; the live `GET /api/board` has no ETag, see D-07), and chat `GET /api/threads/{id}/messages?after=` every 2 s with ETag and `If-None-Match` (AG XREQ-005 item 3, `AGENTS.md:228`). No SSE or WebSocket exists or is planned. Foreground and background polling intervals and battery rules are in the platform contract.
+Two live routes support conditional requests: `GET /api/machines/{id}/panel` (`backend/app/routers/work.py:76-85`) and `GET /api/threads/{id}/messages?after=` (`backend/app/routers/chat.py:68-85`). Send `If-None-Match: <last ETag, with its quotes>`; a `304` has no body and an `ETag` header, and means "no change". The ETag is `"` + 32 hex characters + `"`. Panel and chat poll every 2 s (BA 1 at `BA:53`; AG XREQ-005 item 3, `AGENTS.md:228`). Planned: the Foreman Board every 5 s with ETag (BA 8.5 at `BA:401`, BA 17 item 15; the live `GET /api/board`, `GET /api/threads` and `GET /api/tasks` have no ETag, see D-07). No SSE or WebSocket exists or is planned. Foreground and background polling intervals and battery rules are in the platform contract.
 
 ### 2.9 What the app must DO for each error
 
@@ -144,11 +146,11 @@ Codes come from `BA` 9.2 (`BA:421-438`), the live code (`backend/app/api/errors.
 | 409 | `VERSION_CHANGED` | the Note Version is no longer current (`backend/app/services/floor.py:205`) | Discard the in-progress Check, reload `GET /machines/{id}`, show the new Note, restart the Check. Never queue a Check offline. |
 | 409 | `EVENTS_NOT_CONFIRMED` | publish with an unconfirmed or invalid Event (Poster) | Show which Event blocks publishing: `details` is `{eventId, reason}` with `reason` `not_confirmed` or a recurrence reason (`backend/app/services/notices.py:354-355`). |
 | 409 | `NO_ACTIVE_PAIR` | forward an Ask without a Senpai | Tell the Worker to ask the Foreman for a Senpai. |
-| 409 | `NEEDS_EDIT` (extra, `backend/app/services/notes.py:181`, `backend/app/services/notices.py:358`) | approve or publish a draft the AI could not finish | Open the editor; the user must fill the missing steps or questions. |
+| 409 | `NEEDS_EDIT` (extra, `backend/app/services/notes.py:182`, `backend/app/services/notices.py:358`) | approve or publish a draft the AI could not finish | Open the editor; the user must fill the missing steps or questions. |
 | 409 | `IDEMPOTENCY_KEY_REUSED` (extra) | same key, different Check target | Client bug: generate a new UUID per user action. |
-| 409 | `ALREADY_SENT` (XREQ-005, not in BA 9.2) | `POST /messages/{id}/send` twice | Treat as success, refresh the message. |
+| 409 | `ALREADY_SENT` (live, extra, `backend/app/services/chat.py:349`) | `POST /messages/{id}/send` twice | Treat as success, refresh the message. |
 | 409 | `THREAD_LOCKED` (new, handoff section 1) | edit or leave a locked group (Safety notices) | Disable the action; explain the thread is managed by the shop. |
-| 412 | `VERSION_CONFLICT` (XREQ-005, not in BA 9.2) | Task moved by someone else (`If-Match` stale) | Re-fetch the Task Board and show the card where it now is. |
+| 412 | `VERSION_CONFLICT` (live, extra, `backend/app/services/chat.py:567`) | Task moved by someone else (`If-Match` stale) | Re-fetch the Task Board and show the card where it now is. |
 | 413 | `PAYLOAD_TOO_LARGE` | body over 10 MB, audio over 8 MB, photo over its limit | Shorten the recording or re-compress the photo; limits are in the platform contract. |
 | 415 | `UNSUPPORTED_MEDIA_TYPE` | magic bytes are not allowed | Re-encode (AAC in MP4, JPEG). |
 | 422 | `VALIDATION_ERROR` | schema validation, missing `Idempotency-Key`, a bad cursor, a Check with the wrong number of answers | Show per-field messages from `details.fields[].loc`. For an Event date `details.reason` is `unsupported_rule`, `past` or `no_upcoming` (AG XREQ-002 item 2). |
@@ -157,6 +159,7 @@ Codes come from `BA` 9.2 (`BA:421-438`), the live code (`backend/app/api/errors.
 | 500 | `INTERNAL_ERROR` | anything else | Generic message; retry a read once; never auto-retry a write without its `Idempotency-Key`. |
 | 503 | `BUSY` | database pool exhausted; `Retry-After: 2` | Back off and retry with the same key. |
 | 503 | `NOT_READY` (extra, `backend/app/routers/health.py:26`) | `/health/ready` and the DB is down; `Retry-After: 5` | Show "server unavailable". |
+| 503 | `AI_UNAVAILABLE` (extra, `backend/app/services/chat.py:480`) | a Re-explanation could not be made now | Tell the Foreman to explain the term in person; no retry loop. |
 | any | `HTTP_ERROR` (extra, `errors.py:71`) | any status without a mapped code | Use the HTTP status only. |
 
 AI trouble is never a 5xx: a degraded AI result is a normal `201` with `needsEdit: true` and, for Asks, `covered: false` (`BA:438`, `BA:570-578`).
@@ -286,7 +289,7 @@ Status: `live` · Roles: F · Request and response as E-010. Screens: none in th
 #### E-014 `GET /api/machines`
 Status: `live` · Roles: F W · Poll/ETag: none · Screens: `machines`, `home`, `scan`, `machine`
 Request: `?limit=&cursor=`. Response 200: page of `<MachineOut>`. `activeWorkerId` is the Worker present at the Machine now (Presence).
-Note: there is no per-Worker Lock or Ready field here; see D-09 and Ask B-01.
+Note: there is no per-Worker Lock or Ready field here; a Worker reads their own from the Skill Passport (E-043).
 
 #### E-015 `POST /api/machines`
 Status: `live` · Roles: F · Screens: none in the prototype
@@ -301,82 +304,93 @@ Status: `live` · Roles: W · Idempotency: none (idempotent by nature: last scan
 Request: no body (the Worker is taken from the token; the web client's `{workerId}` body is wrong, D-13). Response 200: `data: null`. Presence lasts 10 minutes on the Panel (`BA:315`).
 
 #### E-018 `GET /api/machines/{id}/panel`
-Status: `live` · Roles: **D, F only** (a Worker gets `403 FORBIDDEN`, `backend/app/routers/work.py:40`) · Poll/ETag: poll every 2 s with `If-None-Match`, `304` when unchanged · Screens: `panel` (Foreman view), the Panel device mode
+Status: `live` · Roles: **D, F only** (a Worker gets `403 FORBIDDEN`, `backend/app/routers/work.py:44`) · Poll/ETag: poll every 2 s with `If-None-Match`, `304` when unchanged · Screens: `panel` (Foreman view), the Panel device mode
 Response 200: `<PanelOut>` with headers `ETag: "<32 hex>"` and `Cache-Control: no-cache`. Response 304: empty body.
-Errors: `404`. The Worker's own Lock or Ready is NOT available from this route; see D-09.
+Errors: `404`. The Worker's own Lock or Ready is NOT available from this route; use E-043 (D-09).
 
 #### E-019 `POST /api/machines/{id}/panel-token`
 Status: `live` · Roles: F · Screens: none in the prototype ("Use this device as the Panel")
 Request: no body. Response 200: `{"success":true,"data":{"token":"opaque","expiresAt":"..."},"message":"ok"}`. The token is a read-only session for one Machine, 180 days (`backend/app/services/auth.py:21`).
 
 #### E-020 `POST /api/machines/{id}/overrides`
-Status: `planned` (BA 9.3 at `BA:476`) · Roles: F · Screens: `panel` (Foreman "allow without Sign-off")
-Request: `{workerId | null, minutes ≤ 480, reason}` (reason 3 to 200 characters, `BA:252`). Response: a Panel Override; fields `UNKNOWN`. Errors: `UNKNOWN`.
+Status: `live` · Roles: F · Screens: `panel` (Foreman "allow without Sign-off") · Idempotency: none (each call starts an override)
+Request: `{"workerId":"12","minutes":60,"reason":"Line is stopped otherwise"}`; `workerId` is required and `null` means anyone (send an explicit `null`, 2.4); `minutes` 1 to 480; `reason` 3 to 200 characters (`backend/app/schemas/work.py:116-122`).
+Response 201: `{"id":"6","machineId":"2","workerId":"12","by":"山口 隆","reason":"..","startsAt":"..","endsAt":"..","revokedAt":null}`. The Panel then shows `state: "override"`. Errors: `404` unknown Machine or Worker; `422`.
 
 #### E-021 `DELETE /api/machines/{id}/overrides/{overrideId}`
-Status: `planned` (`BA:477`) · Roles: F · Screens: `panel` · Ends an override early. Response and errors `UNKNOWN`.
+Status: `live` · Roles: F · Screens: `panel` · Ends an override early; idempotent (ending an ended override returns it unchanged). Response 200: the override as in E-020 with `revokedAt` set. Errors: `404`.
 
 #### E-022 `GET /api/machines/{id}/versions`
-Status: `planned` (`BA:479`) · Roles: F · Screens: none in the prototype (Knowledge Library) · Paged, newest first. Item shape `UNKNOWN` (likely `NoteVersionOut`).
+Status: `live` · Roles: F · Screens: none in the prototype (Knowledge Library) · Request `?limit=&cursor=`. Response 200: page of `<NoteVersionOut>`, newest first. Errors: `404`.
 
 ### 4.3 Notes, Checks, Sign-offs
 
 #### E-023 `POST /api/machines/{id}/notes`
 Status: `live` · Roles: F · Idempotency: `Idempotency-Key` required · Polling: none, the AI runs inline (15 s typical, 45 s cap; BA 8.5) · Screens: none in the prototype (see Q-05)
 Request: multipart; field `text` (max 2000 characters) or file `audio`; one of the two.
-Response 201: `<NoteVersionOut>` (status `draft`). A degraded AI result is still `201` with `needsEdit: true` and `aiOutcome: "degraded"` holding the typed text only (`backend/app/services/notes.py:116-119`).
+Response 201: `<NoteVersionOut>` (status `draft`). A degraded AI result is still `201` with `needsEdit: true` and `aiOutcome: "degraded"` holding the typed text only (`backend/app/services/notes.py:117-120`).
 Errors: `404` machine; `413`, `415` (audio over 8 MB or a format other than webm, ogg or mp4); `422` neither text nor audio; `422` missing key.
 
 #### E-024 `GET /api/note-versions/{id}`
-Status: `live` · Roles: F · Screens: `note` (Foreman view) · Response 200: `<NoteVersionOut>` with `correctIndex`. Note: `approvedBy` is not in the model (D-12).
+Status: `live` · Roles: F · Screens: `note` (Foreman view) · Response 200: `<NoteVersionOut>` with `correctIndex` and `approvedBy` (display name of the approving Foreman, `null` until approved; XREQ-004 provenance line).
 
 #### E-025 `PATCH /api/note-versions/{id}`
 Status: `live` · Roles: F · Request: `{"index":0,"ja":"..."}` (`index` 0 to 11, `ja` 1 to 1000 characters). Response 200: `<NoteVersionOut>`. Errors: `409 CONFLICT` only a draft can be edited; `422` no such step.
 
 #### E-026 `POST /api/note-versions/{id}/approve`
-Status: `live` · Roles: F · Request: `{"changeKind":"safety"}` or `"wording"` (default `safety`; the first version of a Machine is always `safety`). Response 200: `<NoteVersionOut>` (status `approved`). Errors: `409 CONFLICT` only a draft; `409 NEEDS_EDIT` steps or questions missing (`backend/app/services/notes.py:178-181`).
+Status: `live` · Roles: F · Request: `{"changeKind":"safety"}` or `"wording"` (default `safety`; the first version of a Machine is always `safety`). Response 200: `<NoteVersionOut>` (status `approved`). Errors: `409 CONFLICT` only a draft; `409 NEEDS_EDIT` steps or questions missing (`backend/app/services/notes.py:179-182`).
 
 #### E-027 `POST /api/checks`
-Status: `live` · Roles: W · Idempotency: required · Polling: none · Screens: `note` (kind `note`), `notice` (kind `notice`), `briefing-card` (kind `briefing`, not served yet: D-14), `panel`/`machines` (result changes Lock to Ready)
+Status: `live` · Roles: W · Idempotency: required · Polling: none · Screens: `note` (kind `note`), `notice` (kind `notice`), `briefing-card` (kind `briefing`), `panel`/`machines` (result changes Lock to Ready)
 Request: `{"target":{"kind":"note","id":"41"},"language":"bn","answers":[1,0,2]}`. `kind` is `note`, `briefing` or `notice`; `answers` has 1 to 3 values, each 0 to 2, in question order; `language` must be one the shop uses (or `ja`). The Worker comes from the token; the web client's `workerId` field is wrong (D-13).
-Response 200: `<CheckResult>`. A pass on a `note` creates the Sign-off; each wrong answer on a `note` creates a Confusion for the Foreman. The response lists wrong questions without `correctIndex`.
-Errors: `409 VERSION_CHANGED` (a new Note Version was approved mid-Check: reload and redo); `409 IDEMPOTENCY_KEY_REUSED`; `404`; `422` wrong answer count or range, or `kind: "briefing"` today (`backend/app/services/floor.py:185`).
+Response 200: `<CheckResult>`. A pass on a `note` creates the Sign-off; each wrong answer on a `note` creates a Confusion for the Foreman. The response lists wrong questions without `correctIndex`. The route dispatches on `kind`: `notice` to the Notice service, `briefing` to the Briefing service, `note` to the Work service (`backend/app/routers/work.py:123-130`).
+Errors: `409 VERSION_CHANGED` (a new Note Version was approved mid-Check: reload and redo); `409 IDEMPOTENCY_KEY_REUSED`; `404`; `422` wrong answer count or range. For `kind: "briefing"` and `"notice"` the result has `signOff: null` and `wrong` holds the single question (`backend/app/services/briefings.py:220-223`).
 Offline rule: never queue or apply optimistically (the verdict decides Lock/Ready; BA 7.3 at `BA:317-323`).
 
 #### E-028 `GET /api/sign-offs`
-Status: `planned` (`BA:484`) · Roles: F (W own) · Screens: `me`, `skills` (passport dates) · Paged. Item shape `UNKNOWN` (the web `SignOff` type has `id, workerId, machineId, noteVersionId, passedAt`, `frontend/src/domain/wakatta.ts:99-105`; the live `SignOffOut` in `CheckResult` has the same five fields).
+Status: `live` · Roles: F (shop) and W (own only) · Screens: `me`, `skills` (passport dates) · Request `?limit=&cursor=`. Response 200: page of `{"id":"9","workerId":"12","machineId":"2","noteVersionId":"41","passedAt":"..."}`, newest first.
 
 #### E-029 `GET /api/metrics/effort`
-Status: `planned` (`BA:482`) · Roles: F · Screens: `analytics` (partly) · Response shape `UNKNOWN`: "median seconds from draft to approval, median edits per draft, share of drafts the AI produced cleanly, Checks passed first time".
+Status: `live` · Roles: F · Screens: `analytics` (partly) · Response 200: `{"drafts":12,"approved":9,"medianSecondsToApprove":84.0,"medianEditsPerDraft":1.0,"cleanAiShare":0.75,"firstTryPassShare":0.8}`. The four last fields are `null` when there is no data; shares are 0 to 1 (`backend/app/schemas/work.py:EffortOut`).
 
 ### 4.4 Briefings and receipts
 
-All Briefing routes are `planned`; none is in `docs/openapi.yaml` and no router exists (`backend/app/routers/life.py:109` says "WS6 adds Briefings").
+The Briefing routes now exist (`backend/app/routers/briefings.py`, `docs/openapi.yaml`). The publish step is `POST /api/briefings` with the reviewed draft in the body; the `PATCH /api/briefings/{id}` and `POST /api/briefings/{id}/publish` routes of BA 9.3 are not built (E-031, E-032 stay `planned` and may never be).
 
 #### E-030 `POST /api/briefings/draft`
-Status: `planned` (`BA:489`; XREQ-001 item 5, `AGENTS.md:83`) · Roles: F · Idempotency: required · Screens: `briefing`
-Request: multipart `audio` or `text`. Response: draft Briefing; exact fields `UNKNOWN`. Per `BA:253` a Briefing has `text` (Tri), `question`, `needsEdit`, status `draft`. The web `Briefing` type is `{id, text: Tri, question, createdAt}` (`frontend/src/domain/wakatta.ts:117-122`).
+Status: `live` (BA 9.3 at `BA:489`; XREQ-001 item 5, `AGENTS.md:83`) · Roles: F · Idempotency: required · Polling: none, AI inline · Screens: `briefing`
+Request: multipart; `text` (max 2000) or file `audio`; one of the two. Response 201: `<BriefingForForeman>`:
+```json
+{ "success": true, "data": { "id": "41", "text": { "ja": "..", "en": ".." }, "status": "draft", "createdAt": "..", "publishedAt": null,
+  "transcriptJa": "..", "question": { "id": "q1", "termId": null, "prompt": { "ja": ".." }, "options": [ {}, {}, {} ], "correctIndex": 1 }, "needsEdit": false }, "message": "ok" }
+```
+A degraded AI result is still `201` with `needsEdit: true`; the Foreman must fill every field marked 「（ここを入力してください）」 before publishing. Errors: `422` neither text nor audio, or missing key; `413`, `415`.
 
 #### E-031 `PATCH /api/briefings/{id}`
-Status: `planned` (`BA:490`; XREQ-001 item 5, `AGENTS.md:83`) · Roles: F · Request `{text?, question?}`. Response `UNKNOWN`. Screens: `briefing`.
+Status: `planned` (`BA:490`; XREQ-001 item 5, `AGENTS.md:83`) · Roles: F · Not built: edits are sent in the E-114 body instead. Screens: `briefing`. Request and response `UNKNOWN`.
 
 #### E-032 `POST /api/briefings/{id}/publish`
-Status: `planned` (`BA:491`; XREQ-001 item 5, `AGENTS.md:83`) · Roles: F · Screens: `briefing` · Bus: `briefing:new`. Response and errors `UNKNOWN`.
+Status: `planned` (`BA:491`; XREQ-001 item 5, `AGENTS.md:83`) · Roles: F · Not built: use E-114. Screens: `briefing`.
 
 #### E-033 `GET /api/briefings`
-Status: `planned` (`BA:492`) · Roles: F W · Poll: `UNKNOWN` · Screens: `briefing-card`, `home`, `briefing-board`. Published Briefings, paged. Worker items must have no `correctIndex`.
+Status: `live` · Roles: F W · Poll: none stated (on screen open and with push) · Screens: `briefing-card`, `home`, `briefing-board` · Bus: `briefing:new`
+Request: `?limit=&cursor=`. Response 200: a page; for a Foreman every Briefing as `<BriefingForForeman>` (with `correctIndex`), for a Worker the published ones as `BriefingForWorker`: `id`, `text`, `status`, `createdAt`, `publishedAt`, `question` (no `correctIndex`), `opened`, `passed`. Two DTO classes by role (D-19).
 
 #### E-034 `GET /api/receipts`
-Status: `planned` (`BA:494`) · Roles: F · Request `?target=` (format `UNKNOWN`) · Screens: `briefing-board`. Who opened and passed. Overlaps E-035 (D-15).
+Status: `planned` (`BA:494`) · Roles: F · Request `?target=` (format `UNKNOWN`) · Superseded by E-035 in code; probably never built (D-15).
 
 #### E-035 `GET /api/briefings/{id}/receipts`
-Status: `planned` (XREQ-003 item 5, `AGENTS.md:162,168-179`) · Roles: F · Poll: `UNKNOWN` · Screens: `briefing-board` · Bus: `briefing:seen`, `briefing:answer`
-Response 200: `{"understood":[{"id":"12","displayName":"Rahim Uddin"}],"openedOnly":[...],"notOpened":[...]}` inside the envelope. Errors: `403`; `404` another shop; `409` Briefing still a draft.
+Status: `live` (XREQ-003 item 5, `AGENTS.md:162`) · Roles: F · Poll: none stated · Screens: `briefing-board` · Bus: `briefing:seen`, `briefing:answer`
+Response 200: `{"understood":[{"id":"12","name":"Rahim Uddin"}],"openedOnly":[...],"notOpened":[...]}`; every active Worker of the shop is in exactly one group; `openedOnly` also holds Workers who answered wrongly. The key is `name`, not `displayName` as in the XREQ-003 sample (D-15). Errors: `403`; `404`.
 
 #### E-036 `POST /api/receipts`
-Status: `live` · Roles: W · Idempotency: none, idempotent by design · Screens: `notice` (`briefing-card` once Briefings exist) · Bus: `briefing:seen`
-Request: `{"target":{"kind":"notice","id":"7"}}` (`kind` `briefing` or `notice`). Response 200: `data: null`.
-Errors: `422` for `kind: "briefing"` today ("Briefing receipts are not available yet", `backend/app/routers/life.py:109`); `404`.
+Status: `live` · Roles: W · Idempotency: none, idempotent by design · Screens: `notice`, `briefing-card` · Bus: `briefing:seen`
+Request: `{"target":{"kind":"briefing","id":"41"}}` (`kind` `briefing` or `notice`). Response 200: `data: null`. Errors: `404` (a draft Briefing or another shop's).
+
+#### E-114 `POST /api/briefings`
+Status: `live` · Roles: F · Idempotency: none; a repeat after success is `409 CONFLICT` "already published", so treat that 409 as success after re-reading · Screens: `briefing` · Bus: `briefing:new`
+Request: the reviewed draft: `{"id":"41","text":{"ja":"..","en":".."},"question":{<CheckQuestion with correctIndex>},"createdAt":"..."}` (`createdAt` optional and ignored; `backend/app/schemas/briefings.py:BriefingPublishIn`). Response 200: `<BriefingForForeman>` with `status: "published"`.
+Errors: `409 NEEDS_EDIT` placeholder text still present; `409 CONFLICT` already published; `404`; `422`.
 
 ### 4.5 Near-miss Reports
 
@@ -401,17 +415,17 @@ Status: `live` · Roles: F · Poll: every 5 s planned (BA 8.5), no ETag in code 
 Response 200: `{"date":"2026-11-23","openConfusions":2,"machines":[{"id":"2","code":"press-2","name":{...},"versionNo":3,"openConfusions":1,"assignments":[{"shift":"day","workerId":"12","displayName":"Rahim Uddin","status":"valid","flag":false}]}]}`. `status` is `valid|expiring|expired|none`; `flag` is true when assigned without a valid Sign-off.
 
 #### E-041 `GET /api/skill-matrix`
-Status: `planned` (`BA:487`) · Roles: F · Screens: `skills` · One aggregate object (Worker x Machine grid; fields `UNKNOWN`).
+Status: `live` · Roles: F · Screens: `skills` · Response 200: `{"machines":[{"id":"2","code":"press-2","name":{...}}],"rows":[{"workerId":"12","displayName":"Rahim Uddin","cells":[{"machineId":"2","status":"valid","passedAt":"..."}]}]}`. `status` is `valid|expiring|expired|none`; `passedAt` is `null` for `none`. Every active Worker and every Machine of the shop.
 
 #### E-042 `GET /api/heatmap`
-Status: `planned` (`BA:487`) · Roles: F · Screens: `analytics` · One aggregate (Confusions by Glossary Term and Machine; fields `UNKNOWN`).
+Status: `live` · Roles: F · Screens: `analytics` · Response 200: `{"machines":[...],"rows":[{"termId":"5","ja":"玉掛け","reading":"たまがけ","translations":{"bn":"..","en":".."},"cells":[{"machineId":"2","count":3}],"total":3}]}`. Only terms with at least one Confusion, most confused first.
 
 #### E-043 `GET /api/workers/{id}/passport`
-Status: `planned` (`BA:488`) · Roles: F, W (self) · Screens: `me`, `machines`, `machine`, `panel` (Worker), `home` · Skill Passport: the Worker's own Machines with Sign-off dates. Shape `UNKNOWN`. This is the only planned route that could give a Worker their own Ready or Locked state (D-09).
+Status: `live` · Roles: F (any Worker), W (self only; another Worker's id is `403 FORBIDDEN`) · Screens: `me`, `machines`, `machine`, `panel` (Worker), `home` · Response 200: `{"workerId":"12","displayName":"Rahim Uddin","machines":[{"id":"2","code":"press-2","name":{...}}],"cells":[{"machineId":"2","status":"valid","passedAt":"..."}]}`. This is the Worker's own Ready (valid or expiring) or Locked (expired or none) per Machine. It does not include an active Panel Override; only the Panel route (E-018, not open to Workers) shows `override`.
 
 #### E-044 `GET /api/confusions`
 Status: `live` · Roles: F · Poll: `UNKNOWN` · Screens: `analytics`, `home`, `learning` (Foreman side) · Bus: `confusion:new`
-Request: `?open=true&limit=&cursor=`. Response 200: page of `{"id":"3","checkId":"9","questionId":"q2","termId":"5","machineId":"2","workerId":"12","createdAt":"...","acknowledgedAt":null}`.
+Request: `?open=true&limit=&cursor=`. Response 200: page of `{"id":"3","checkId":"9","messageId":null,"questionId":"q2","termId":"5","machineId":"2","workerId":"12","createdAt":"...","acknowledgedAt":null}`. A Confusion comes from a Work Check (`checkId` and `machineId` set, `messageId` null) or from a Chat message's Check (`messageId` set, `checkId` and `machineId` null); the three fields are nullable (`backend/app/schemas/work.py:149-160`).
 
 #### E-045 `POST /api/confusions/{id}/ack`
 Status: `live` · Roles: F · Response 200: `<ConfusionOut>` (shape above). Screens: `analytics`. Errors: `404`.
@@ -436,65 +450,66 @@ Status: `live` · Roles: F · Screens: `machine`, `skills` (assign)
 Request: `{"machineId":"2","shift":"day","date":"2026-11-23","workerId":"12"}`; `date` optional (defaults to today); `workerId` is required and `null` clears the slot (send an explicit `null`, 2.4). Response 200: `<AssignmentOut>` or `null` when cleared.
 
 ---
-### 4.7 Chat (XREQ-005, planned)
+### 4.7 Chat (XREQ-005, live)
 
-All routes here are `planned` under XREQ-005 (status `[PENDING]`, `AGENTS.md:61,216-261`): no router, schema or table exists yet. The shapes below are the XREQ's examples; every other field is `UNKNOWN`. Tables: `threads`, `thread_members`, `messages` (kind `voice|text|ask|reexplain`, `stage` 0 to 5, `needs_edit`), `message_checks`, `message_answers`, `follow_ups`, `tasks` (`AGENTS.md:226`). The six stages are Transcribed, Translated, Check Questions made, Tasks extracted, Sent to Workers, Answers in (`prototypes/wakatta/parts/skeleton.html:279` `WK_STAGES`). The Auto-send Countdown is client-side: the app calls `/send` unless the Foreman cancels (`AGENTS.md:227`).
+Built as WS12 (`backend/app/routers/chat.py`, `backend/app/schemas/chat.py`) and in `docs/openapi.yaml`. The XREQ-005 row in `AGENTS.md` still reads `[PENDING]` (`AGENTS.md:61`) although the routes exist; the XREQ-006 AI half also reads `[PENDING]` there (`AGENTS.md:62`). The six stages are Transcribed, Translated, Check Questions made, Tasks extracted, Sent to Workers, Answers in (`prototypes/wakatta/parts/skeleton.html:279`; `stage` 0 to 5). The Auto-send Countdown is client-side: the app calls `/send` unless the Foreman cancels. No route creates a message of `kind: "ask"` (the enum has it; D-24).
+
+Shared message fields (`MessageForSender`, `MessageForWorker`): `id`, `threadId`, `fromUserId`, `kind` (`voice|text|ask|reexplain`), `language`, `stage`, `needsEdit`, `transcriptJa` (nullable), `text` (a map: `ja` plus translations; empty for a degraded draft), `toUserId` and `refMessageId` (nullable), `createdAt`, `sentAt` (nullable). The Foreman's view adds `questions` (with `correctIndex`) and `taskDrafts` (only on the response to `POST`; they are not stored). The Worker's view adds `questions` (without `correctIndex`), `myStatus` (`green|orange|red|null`) and `nudged`.
 
 #### E-051 `GET /api/threads`
-Status: `planned` (XREQ-005 item 3, `AGENTS.md:228`) · Roles: F W · Poll: `UNKNOWN` interval (no ETag stated for the list) · Screens: `chats`, `home`, tab badge · Bus: `msg:new`
-Response: each Thread with unread count and last message; exact fields `UNKNOWN`.
+Status: `live` · Roles: F W members · Poll: none stated, no ETag (B-11) · Screens: `chats`, `home`, tab badge · Bus: `msg:new`
+Response 200: **bare array**, newest activity first: `[{"id":"7","titleJa":"Line 2 · プレス班","kind":"group","memberIds":["12","13"],"unread":2,"lastMessageAt":"..."}]` (`kind` `group|direct`; `lastMessageAt` nullable).
 
 #### E-052 `GET /api/threads/{id}/messages`
-Status: `planned` (XREQ-005 item 3) · Roles: F W members only · Poll: **every 2 s with `ETag` / `If-None-Match`, `304` when unchanged** · Screens: `chat` · Bus: `msg:new`, `wk:stage`, `check:answer`, `wk:read`, `ask:foreman`, `ask:foremanReply`, `wk:reexplain`
-Request: `?after=` (id or cursor: `UNKNOWN`). Response: messages as in E-053. Worker responses never contain `correctIndex`.
-Errors: `403 FORBIDDEN` not a member; `404` another shop.
+Status: `live` · Roles: F W members only · Poll: **every 2 s with `If-None-Match`, `304` when unchanged** · Screens: `chat` · Bus: `msg:new`, `wk:stage`, `check:answer`, `wk:read`, `wk:reexplain`
+Request: `?after=<message id>` (a string id; omit for the first page). Response 200: `{"items":[<message>...]}` (no `nextCursor`; the client keeps the highest message id it has seen) with `ETag` and `Cache-Control: no-cache`. Reading moves the member's unread marker.
+Errors: `403 FORBIDDEN` not in this Thread; `404`.
 
 #### E-053 `POST /api/threads/{id}/messages`
-Status: `planned` (XREQ-005 item 2, `AGENTS.md:227,237`) · Roles: F (Foreman send); a Worker's own message (typed text, or voice in their language, translated to Japanese) is described in item 3 but the route is not named (`UNKNOWN`, Q-04) · Idempotency: required · Polling: none, the AI runs inline · Screens: `chat` · Bus: `msg:new`
-Request (Foreman): multipart, file `audio` or field `text`, header `Idempotency-Key`.
-Response (stage 3 draft), from `AGENTS.md:247-251`:
-```json
-{ "success": true, "data": { "id": "91", "threadId": "7", "stage": 3, "needsEdit": false,
-  "transcriptJa": "明日の朝8時から、2号プレスの金型交換をします。…",
-  "text": { "ja": "…", "bn": "…", "en": "Tomorrow from 8:00 we change the die on Press #2. …" },
-  "questions": [ { "q": { "ja": "…", "en": "…" }, "options": ["…"], "correctIndex": 1, "termJa": null } ],
-  "taskDrafts": [ { "title": { "ja": "…" }, "assigneeIds": ["12", "13"], "dueAt": "2026-11-23T08:00:00+09:00", "machineId": "2" } ] } }
-```
-The question shape in this example (`q`, `termJa`) differs from the live `CheckQuestion` (`prompt`, `termId`, string `id`) (D-18). A degraded AI result is a `201` with `needsEdit: true`, the transcript only or empty, never a 5xx (`AGENTS.md:227`).
+Status: `live` · Roles: F W members (`require("foreman","worker")`) · Idempotency: required (a repeat returns the stored message) · Polling: none, AI inline · Screens: `chat` · Bus: `msg:new`
+Request: multipart; `text` (max 2000) or file `audio`, exactly one. Response 201: `<MessageForSender>`.
+- Foreman: becomes a draft at stage 3 (or stage 0 with `needsEdit: true` when the AI is down) with `transcriptJa`, `text`, `questions` and `taskDrafts`; nothing is sent until E-054.
+- Worker: the message is translated to Japanese and sent at once (stage 4); `transcriptJa` is `null` when the model is down.
+Errors: `403` not a member; `404`; `422` both or neither source, or missing key; `413`, `415`.
 
 #### E-054 `POST /api/messages/{id}/send`
-Status: `planned` (XREQ-005 item 2, `AGENTS.md:238-240`) · Roles: F · Idempotency: `UNKNOWN` (`409 ALREADY_SENT` on a repeat) · Screens: `chat` (Auto-send Countdown end) · Bus: `msg:new`, `task:update`, `wk:stage`
-Request: `{"text":{"ja":"…","bn":"…","en":"…"},"questions":["…"],"tasks":[{"title":{"ja":"…"},"assigneeIds":["12","13"],"dueAt":"2026-11-23T08:00:00+09:00","machineId":"2"}]}` (the edited text, questions and the Task drafts the Foreman kept). Moves the message to stage 4 and creates the Tasks. Response `UNKNOWN`. Errors: `409 ALREADY_SENT`, `422`.
+Status: `live` · Roles: F (the author) · Idempotency: none; a repeat is `409 ALREADY_SENT` (treat as success) · Screens: `chat` (Auto-send Countdown end) · Bus: `msg:new`, `task:update`, `wk:stage`
+Request: `{"text":{"ja":"..","en":".."},"questions":[<CheckQuestion with correctIndex>],"tasks":[{"title":{"ja":".."},"assigneeIds":["12"],"dueAt":"2026-11-23T08:00:00+09:00","machineId":"2"}]}` (up to 3 questions and 10 tasks; `tasks` items are `TaskDraft`: `assigneeIds` default empty, `dueAt` and `machineId` nullable). Response 200: `<MessageForSender>` at stage 4; the kept Tasks are on the Task Board.
+Errors: `409 ALREADY_SENT`; `404` not the author's; `422` assignees or Machine not of this shop. Note: `questions` here are full `CheckQuestion` objects, not strings as in the XREQ-005 sample (D-18).
 
 #### E-055 `POST /api/messages/{id}/answers`
-Status: `planned` (XREQ-005 item 4, `AGENTS.md:229,241-243,253-255`) · Roles: W · Idempotency: one answer per message and user (a repeat is idempotent) · Screens: `chat`, `home` (Checks waiting) · Bus: `check:answer`, `followup:new`
-Request: `{"answers":[1,1,-1]}` (`-1` means "not sure"). Response 200: `{"success":true,"data":{"status":"orange","followUpIds":["4"]},"message":"ok"}` with `status` `green|orange|red`. A wrong or "not sure" answer on a question with a term creates a Confusion and a Follow-up. Errors: `403`, `404`, `422`.
-Note: `-1` is valid here but `POST /api/checks` accepts only 0 to 2.
+Status: `live` · Roles: W · Idempotency: one answer per message and user (a repeat is idempotent) · Screens: `chat`, `home` (Checks waiting) · Bus: `check:answer`, `followup:new`
+Request: `{"answers":[1,1,-1]}` (1 to 3 values; each 0 to 2, or `-1` for "not sure"; this route accepts `-1`, `POST /checks` does not). Response 200: `{"status":"orange","followUpIds":["4"]}`; `status` `green|orange|red`. A wrong or "not sure" answer on a question with a term creates a Confusion and a Follow-up.
+Errors: `403`; `404`; `422` the message has no questions, or a wrong answer count.
 
 #### E-056 `GET /api/follow-ups`
-Status: `planned` (XREQ-005 item 5, `AGENTS.md:230`) · Roles: F (Worker access `UNKNOWN`, see Q-07) · Request `?status=` (`open|clarified|understood`) · Screens: `followups`, `home` · Bus: `followup:new`, `followup:resolve`. Response `UNKNOWN`.
+Status: `live` · Roles: F only (a Worker gets 403; Q-07) · Poll: none stated · Screens: `followups`, `home` · Bus: `followup:new`, `followup:resolve`
+Request: `?status=open|clarified|understood&limit=&cursor=`. Response 200: page of `{"id":"4","messageId":"91","userId":"12","displayName":"Rahim Uddin","termJa":"金型交換","status":"open","note":"","createdAt":"..","resolvedAt":null}`, newest first.
 
 #### E-057 `PATCH /api/follow-ups/{id}`
-Status: `planned` (`AGENTS.md:230`) · Roles: F · Screens: `followups` · Bus: `followup:resolve`. Request and response `UNKNOWN` (fields in the table: `status`, `note`, `resolved_by`, `resolved_at`).
+Status: `live` · Roles: F · Screens: `followups` · Bus: `followup:resolve`
+Request: `{"status":"clarified","note":"explained in person"}` (`status` `clarified|understood`; `note` up to 500, default empty). Response 200: `<FollowUpOut>`. Errors: `409 CONFLICT` an impossible move (for example from `understood`); `404`.
 
 #### E-058 `POST /api/messages/{id}/reexplain`
-Status: `planned` (XREQ-005 item 5, `AGENTS.md:230`; AI by XREQ-006) · Roles: F · Idempotency: `UNKNOWN` · Screens: `followups`, `chat` · Bus: `wk:reexplain`
-Request: `{"userId":"12","termJa":"金型交換"}`. Sends a simpler explanation and one new question to that Worker only; passing it moves the Follow-up to `understood`. Response `UNKNOWN`.
+Status: `live` (AI side: XREQ-006) · Roles: F · Idempotency: none · Polling: none, AI inline · Screens: `followups`, `chat` · Bus: `wk:reexplain`
+Request: `{"userId":"12","termJa":"金型交換"}` (`termJa` 1 to 100). Response 201: `<MessageForSender>` of `kind: "reexplain"`, sent to that Worker only with one new question. Errors: `422` that Worker is not in the Thread; `503 AI_UNAVAILABLE` "explain it in person" (a normal outcome, not a bug); `404`.
 
 #### E-059 `POST /api/messages/{id}/nudge`
-Status: `planned` (XREQ-005 item 5, `AGENTS.md:230`) · Roles: F · Screens: `chat` · Bus: `wk:nudge`
-Request: `{"userId":"12"}`. Rate-limited (`429 RATE_LIMITED`) and audited. Response `UNKNOWN`.
+Status: `live` · Roles: F · Screens: `chat` · Bus: `wk:nudge`
+Request: `{"userId":"12"}`. Response 200: `data: null`. Errors: `429 RATE_LIMITED` with `Retry-After: 600` (one Nudge per message and Worker in 10 minutes); `422` not in the Thread.
 
 #### E-060 `GET /api/tasks`
-Status: `planned` (XREQ-005 item 6, `AGENTS.md:231`) · Roles: F W · Poll: `UNKNOWN` · Screens: `board`, `home`, `task`, `machine` · Bus: `task:update`
-Response: Tasks (translated title, column `todo|doing|done`, assignees, `due_at`, machine, `from_message_id`, `version`; `AGENTS.md:226`). Wire names `UNKNOWN`. A filter by Machine is not specified (`machine` screen lists a Machine's tasks, Q-12).
+Status: `live` · Roles: F W · Poll: none stated, no ETag (B-11) · Screens: `board`, `home`, `task`, `machine` · Bus: `task:update`
+Request: `?limit=&cursor=` (no filter by Machine; Q-12). Response 200: page of `{"id":"3","title":{"ja":"..","en":".."},"column":"todo","assigneeIds":["12"],"dueAt":null,"machineId":"2","fromMessageId":"91","version":1,"updatedAt":".."}`; `column` `todo|doing|done`.
 
 #### E-061 `POST /api/tasks`
-Status: `planned` (`AGENTS.md:231`) · Roles: F W ("every Worker in the shop can move cards"; who may create is `UNKNOWN`) · Idempotency: none stated · Screens: `board` (new task), `nearmiss-detail` (task from a Near-miss) · Bus: `task:update`. Request `UNKNOWN`.
+Status: `live` · Roles: **F only** · Idempotency: none (a retry can add a card twice, D-20) · Screens: `board` (new task), `nearmiss-detail` (task from a Near-miss) · Bus: `task:update`
+Request: `{"title":{"ja":".."},"assigneeIds":["12"],"dueAt":null,"machineId":null}` (`title` needs `ja`). Response 201: `<TaskOut>`. Errors: `422` assignees or Machine not of this shop.
 
 #### E-062 `PATCH /api/tasks/{id}`
-Status: `planned` (`AGENTS.md:231`) · Roles: F W · Screens: `board`, `task` · Bus: `task:update`
-Request `{"column":"doing","assigneeIds":["12"],"dueAt":"..."}` with header `If-Match: <version>`. Errors: `412 VERSION_CONFLICT` (stale move: reload the board).
+Status: `live` · Roles: F W (every Worker may move cards) · Screens: `board`, `task` · Bus: `task:update`
+Request: header **`If-Match: <version>`** (required; the number from `TaskOut.version`, quotes allowed, else `422`) and body with any of `{"column":"doing","assigneeIds":["12"],"dueAt":"..."}`. `"dueAt": null` clears the due time (explicit null, 2.4). Response 200: `<TaskOut>` with `version` plus one.
+Errors: `412 VERSION_CONFLICT` someone moved it first (reload the board); `404`; `422`.
 
 ### 4.8 Group controls (new)
 
@@ -699,23 +714,23 @@ Screen ids are the keys of `SCREENS` in `prototypes/wakatta/parts/*.js` (34 ids;
 
 | Screen id | Role | R / W (endpoints) | Notes |
 | :--- | :--- | :--- | :--- |
-| `chat` | F W | R: E-052 messages (poll 2 s, ETag), E-046 glossary, E-056 follow-ups (F). W: E-053 send (F; Worker route UNKNOWN), E-054 send, E-055 answers, E-058 reexplain, E-059 nudge, E-047 add term; group controls E-063..E-070 | all Pending except glossary; stages 0 to 5 in the message |
-| `home` | F W | F: E-040 board, E-056 follow-ups, E-038 near-misses (open count), E-060 tasks, E-052 (tally of Wakatta Status). W: E-033 briefings, E-051 threads (Checks waiting), E-060 tasks, E-043 passport, E-089 notices (pending count) | the Worker's "My machines" Ready or Locked needs B-01 |
+| `chat` | F W | R: E-052 messages (poll 2 s, ETag), E-046 glossary, E-056 follow-ups (F). W: E-053 post (Foreman draft or Worker message), E-054 send, E-055 answers, E-058 reexplain, E-059 nudge, E-047 add term; group controls E-063..E-070 (Pending) | the Worker "ask the Foreman" message has no route (D-24); stages 0 to 5 in the message |
+| `home` | F W | F: E-040 board, E-056 follow-ups, E-038 near-misses (open count, Pending), E-060 tasks, E-052 (tally of Wakatta Status). W: E-033 briefings, E-051 threads (Checks waiting), E-060 tasks, E-043 passport, E-089 notices (pending count) | |
 | `chats` | F W | R: E-051 threads, E-074 contacts, E-080 talk-threads. W: E-081 new talk | personal threads are `new` |
 | `board` | F W | R: E-060 tasks. W: E-061, E-062 (`If-Match`) | this is the **Task Board**, not `GET /api/board` (E-040) |
-| `machines` | F W | R: E-014 machines; F: E-040 board; W: E-043 passport (Ready or Locked, B-01) | |
+| `machines` | F W | R: E-014 machines; F: E-040 board; W: E-043 passport (Ready or Locked) | |
 | `me` | F W | R: E-005 me; W: E-043 passport; F: E-008 workers, E-041 skill-matrix. W: E-007 logout, E-006 change PIN | settings (dark, large text, offline) are local |
 | `task` | F W | R: E-060 (no single-task route). W: E-062 | |
 | `machine` | F W | R: E-016 detail; F: E-040 board, E-049 assignments; W: E-043 passport; E-060 tasks of the Machine (filter UNKNOWN, Q-12) | opens the Machine Panel screen |
 | `scan` | W (F) | W: E-017 scan; R: E-016 detail | QR decode and payload: platform contract |
-| `panel` | F; W view | F: E-018 panel (poll 2 s, ETag), E-020 override, E-019 panel-token. W: Ready or Locked from E-043 (B-01) | a Worker gets 403 on E-018. the Remind button has no endpoint (B-07) |
+| `panel` | F; W view | F: E-018 panel (poll 2 s, ETag), E-020 override, E-021 end override, E-019 panel-token. W: Ready or Locked from E-043 | a Worker gets 403 on E-018 and so never sees an override. The Remind button has no endpoint (B-07) |
 | `note` | W (F read) | W (Worker): R E-016 (current Note), W E-027 (Check, kind "note"); F: R E-024 | Foreman recording and approving (E-023, E-025, E-026) has no prototype screen (Q-05) |
-| `nearmiss` | W | W: E-037 | all Pending |
+| `nearmiss` | W | W: E-037 | Pending |
 | `nearmiss-list` | F (W own) | R: E-038 | Worker's own list UNKNOWN (Q-09) |
 | `nearmiss-detail` | F (W own) | R: E-038 (no get-by-id route). W: E-039 ack, E-061 task from a report | |
-| `briefing` | F | W: E-030, E-031, E-032 | all Pending |
-| `briefing-board` | F | R: E-035 receipts, E-034 | Pending |
-| `briefing-card` | W | R: E-033. W: E-036 receipt (live, but 422 for briefings today), E-027 Check kind "briefing" (422 today) | Pending |
+| `briefing` | F | W: E-030 draft, E-114 publish (E-031, E-032 are not built) | |
+| `briefing-board` | F | R: E-035 receipts, E-033 | |
+| `briefing-card` | W | R: E-033. W: E-036 receipt, E-027 Check kind "briefing" | |
 | `life` | W (F, P) | W: R E-089 notices, E-094 events, E-096 asks. F: R E-110 today-word, E-098 pairs. P: R E-089 own, E-093 reach | reminders on Events are local |
 | `notice` | W | R: E-089 (item from the list). W: E-036 receipt, E-027 Check kind "notice" | no get-by-id route |
 | `notice-new` | P (prototype: F) | R: E-087 posters. W: E-088, E-090, E-091, E-092 | the prototype gates it on Foreman (D-21) |
@@ -729,8 +744,8 @@ Screen ids are the keys of `SCREENS` in `prototypes/wakatta/parts/*.js` (34 ids;
 | `notifications` | F W | no list endpoint (B-07); push in the platform contract | |
 | `onboarding` | F W | R: E-003 roster. W: E-004 login, E-006 PIN | scan and permissions: platform contract |
 | `analytics` | F | R: E-042 heatmap, E-029 effort (partial); trend and per-Worker bars have no endpoint (B-05). W: E-047 add term | |
-| `skills` | F | R: E-041 skill-matrix, E-040 board, E-008 workers. W: E-050 assign | Pending |
-| `followups` | F | R: E-056. W: E-057, E-058 | Pending |
+| `skills` | F | R: E-041 skill-matrix, E-040 board, E-008 workers. W: E-050 assign | |
+| `followups` | F | R: E-056. W: E-057, E-058 | |
 | `learning` | W (F) | no endpoint (B-08): Learning History is built from Confusions and Follow-ups, neither readable by a Worker | |
 | `course` | W | no backend (static): content and progress are local (`prototypes/wakatta/parts/F.js:1-4`) | |
 
@@ -740,12 +755,12 @@ The prototype's `Bus` fans an event out to both phones. In production there is n
 
 | Bus event | Prototype source | Replaced by | Carried by (receiver) |
 | :--- | :--- | :--- | :--- |
-| `ask:foreman` | `A.js:781` | message of kind `ask` in the Thread: route UNKNOWN (Q-04) | E-052 poll |
-| `ask:foremanReply` | `A.js:787` | Foreman reply message: route UNKNOWN (Q-04) | E-052 poll |
+| `ask:foreman` | `A.js:781` | no route: a message of kind `ask` is in the enum but nothing creates one (D-24); a Worker can post plain text with E-053 | E-052 poll |
+| `ask:foremanReply` | `A.js:787` | a Foreman message with E-053 then E-054 (the draft and send flow) | E-052 poll |
 | `ask:new` | `D.js:477` | E-095 (the response carries the Ask) | none (own Worker); Foreman view none (B-04) |
 | `ask:reply` | `D.js:481,882` | E-103 (Senpai web page) | E-096 poll (`senpaiReply`) |
 | `briefing:answer` | `C.js:620` | E-027 kind `briefing` | E-035 poll (F) |
-| `briefing:new` | `C.js:548` | E-032 publish | E-033 poll (W) + push |
+| `briefing:new` | `C.js:548` | E-114 publish | E-033 poll (W) + push |
 | `briefing:seen` | `C.js:633,662` | E-036 | E-035 poll (F) |
 | `check:answer` | `A.js:360,617` | E-055 | E-052 poll (F) |
 | `confusion:new` | `C.js:308` | server side effect of E-027 (kind `note`) and E-055 | E-044 poll (F) |
@@ -762,9 +777,9 @@ The prototype's `Bus` fans an event out to both phones. In production there is n
 | `notify` | `skeleton.html:353` | no endpoint; push (platform contract) | none (B-07) |
 | `notify:read` | `E.js:148,231` | local state; server read state UNKNOWN | none (B-07) |
 | `signoff` | `C.js:320` | server side effect of E-027 (kind `note`) | E-043, E-040, E-018 |
-| `task:update` | `A.js:955`, `B.js:273`, `B.init.js:29`, `C.js:474` | E-061, E-062 (Tasks from a message are created by E-054) | E-060 poll |
+| `task:update` | `A.js:955`, `B.js:273`, `B.init.js:29`, `C.js:474` | E-061 (Foreman), E-062 (Foreman or Worker); Tasks from a message are created by E-054 | E-060 poll |
 | `wk:nudge` | `A.js:599` | E-059 | push (the Worker is reminded) |
-| `wk:read` | `A.js:684,961` | UNKNOWN: no read-receipt route (B-08) | none |
+| `wk:read` | `A.js:684,961` | no read-receipt route; reading with E-052 only moves the member's own unread marker, and a Foreman sees only `myStatus` and `nudged`-style state through answers (B-08) | none |
 | `wk:reexplain` | `A.js:727` | E-058 | E-052 poll (that Worker) |
 | `wk:stage` | `A.js:954` | the `stage` field of the message (E-053, E-054) | E-052 poll |
 
@@ -844,7 +859,9 @@ Event names were extracted by script from `Bus.emit('...')` and `Bus.on('...')` 
 | Confusion, Glossary | `ConfusionDto`, `GlossaryTermDto(ja, reading, bn, en)` | glossary has fixed fields (D-05) |
 | Notice | `NoticeForPosterDto`, `NoticeForWorkerDto`, `EventDto`, `EventUpdateRequest`, `EventOccurrenceDto`, `NoticeReachDto`, `PosterDto` | two classes for `GET /notices` |
 | Ask, Senpai | `AskDto`, `SenpaiPairDto`, `SenpaiPairCreatedDto`, `MeetupDto`, `MeetupRequest` | |
-| Chat (planned) | `ThreadDto`, `MessageDto`, `MessageDraftDto`, `SendRequest`, `AnswerRequest`, `AnswerResultDto`, `FollowUpDto`, `TaskDto`, `TaskPatchRequest` | fields `UNKNOWN` until XREQ-005 lands |
+| Chat | `ThreadDto`, `MessageForSenderDto`, `MessageForWorkerDto`, `MessagesPageDto(items)`, `TaskDraftDto`, `SendRequest`, `AnswersRequest`, `AnswerResultDto`, `FollowUpDto`, `FollowUpUpdateRequest`, `ReexplainRequest`, `NudgeRequest`, `TaskDto`, `TaskCreateRequest`, `TaskUpdateRequest` | live; `GET /threads/{id}/messages` items are the sender or the worker class by role |
+| Briefing | `BriefingForForemanDto`, `BriefingForWorkerDto`, `BriefingPublishRequest`, `BriefingReceiptsDto`, `ReceiptWorkerDto(id, name)` | two classes for `GET /briefings` |
+| Skills, records | `SkillMatrixDto`, `SkillCellDto`, `HeatmapDto`, `HeatRowDto`, `PassportDto`, `OverrideRequest`, `OverrideDto`, `EffortDto`, `SignOffDto` | `OverrideRequest.workerId` needs explicit null |
 | New | `ContactDto`, `TalkThreadDto`, `TalkEntryDto`, `InterviewDto`, `TodayWordDto`, `GroupMemberDto` | fields `UNKNOWN` |
 
 ### 6.2 Enums (all with an `UNKNOWN` fallback, 2.5)
@@ -867,11 +884,11 @@ Event names were extracted by script from `Bus.emit('...')` and `Bus.on('...')` 
 | `SenpaiKind` | `coworker`, `jichikai` | `backend/app/schemas/senpai.py:11` |
 | `MeetupKind` | `coffee`, `event`, `drill`, `other` | same |
 | `MeetupLoggedBy` | `worker`, `senpai` | same |
-| `WakattaStatus` | `green`, `orange`, `red`, grey (waiting; wire value `UNKNOWN`) | GLOSSARY, `AGENTS.md:254` |
-| `MessageKind` | `voice`, `text`, `ask`, `reexplain`, plus `system` (new) | `AGENTS.md:226`, handoff section 1 |
-| `FollowUpStatus` | `open`, `clarified`, `understood` | `AGENTS.md:226` |
-| `TaskColumn` | `todo`, `doing`, `done` | `AGENTS.md:226` |
-| `ThreadKind` | `group`, `direct` | `AGENTS.md:226` |
+| `WakattaStatus` | `green`, `orange`, `red` on the wire; grey (waiting) is `myStatus: null` on `MessageForWorker` and `{status: "wait"}` is not sent | `backend/app/domain/chat.py:6`, `backend/app/schemas/chat.py` |
+| `MessageKind` | `voice`, `text`, `ask`, `reexplain` live; `system` is new (handoff section 1) | `backend/app/schemas/chat.py:11`, handoff section 1 |
+| `FollowUpStatus` | `open`, `clarified`, `understood` | `backend/app/domain/chat.py:7` |
+| `TaskColumn` | `todo`, `doing`, `done` | `backend/app/schemas/chat.py:12` |
+| `ThreadKind` | `group`, `direct` | `backend/app/schemas/chat.py:ThreadOut` |
 | `ThreadMemberRole` | `admin`, `member` | handoff section 1 |
 | `TalkGrade` | `green`, `orange`, `red` | handoff section 2 |
 | `InterviewMethod`, `InterviewStatus` | `face`, `online`; `ok`, `soon`, `overdue` | handoff section 3 |
@@ -879,7 +896,7 @@ Event names were extracted by script from `Bus.emit('...')` and `Bus.on('...')` 
 
 ### 6.3 Fields that are `Tri` (`Map<String, String>`)
 
-`MachineDto.name`, `BoardMachineDto.name`, `StepDto.text`, `CheckQuestion.prompt`, every item of `CheckQuestion.options`, `WrongQuestionDto.prompt`, `NoticeDto.title`, every item of `NoticeDto.steps`, `EventDto.title`, `EventOccurrenceDto.title`, `AskDto.answer`, `AskDto.senpaiReply`, `NoteVersionDto.backTranslation` (a map without `ja`, keys are the shop languages). Planned: message `text`, Task `title`, `taskDrafts[].title`. Not Tri: `GlossaryTermDto` (fixed `bn` and `en`), `AskDto.text` (the Worker's own words, one string), `ForwardedAsk.text` and `textJa`.
+`MachineDto.name`, `BoardMachineDto.name`, `StepDto.text`, `CheckQuestion.prompt`, every item of `CheckQuestion.options`, `WrongQuestionDto.prompt`, `NoticeDto.title`, every item of `NoticeDto.steps`, `EventDto.title`, `EventOccurrenceDto.title`, `AskDto.answer`, `AskDto.senpaiReply`, `NoteVersionDto.backTranslation` (a map without `ja`, keys are the shop languages). Chat: `Task.title` and `TaskDraft.title` are Tri; message `text` is a map `ja` plus translations (empty for a degraded draft). Briefing: `BriefingDto.text`. Heatmap `translations` is a map without `ja`. Not Tri: `GlossaryTermDto` (fixed `bn` and `en`), `AskDto.text` (the Worker's own words, one string), `ForwardedAsk.text` and `textJa`.
 
 ### 6.4 Ids
 
@@ -890,33 +907,33 @@ Every `id` and every `...Id` field is a `String`: `id`, `userId`, `workerId`, `m
 
 ### 7.1 Discrepancies
 
-Sources compared: `BA` (docs/BACKEND_ARCHITECTURE.md), `openapi` (docs/openapi.yaml), `routers` (backend/app/routers and schemas), `web` (frontend/src/services and domain), `proto` (prototypes/wakatta/parts). Where the live code and a document disagree, this contract follows the code and says so.
+Sources compared: `BA` (docs/BACKEND_ARCHITECTURE.md), `openapi` (docs/openapi.yaml), `routers` (backend/app/routers and schemas), `web` (frontend/src/services and domain), `proto` (prototypes/wakatta/parts). Where the live code and a document disagree, this contract follows the code and says so. Ids are stable across revisions: D-12 (`approvedBy`) and D-14 (Briefing checks and receipts) were resolved by the merge on 2026-11-23 and removed; D-09 and D-15 were narrowed.
 
 | Id | What differs | Evidence | What the app does |
 | :--- | :--- | :--- | :--- |
-| D-01 | Shift Assignments query param: BA says `?date=`, the live route and openapi use **`day`** | `BA:467`, `docs/openapi.yaml:1219`, `backend/app/routers/work.py:142` | send `day` |
+| D-01 | Shift Assignments query param: BA says `?date=`, the live route and openapi use **`day`** | `BA:467`, `docs/openapi.yaml` (parameter `day` of `/api/shift-assignments`), `backend/app/routers/work.py:173` | send `day` |
 | D-02 | A non-numeric id: BA 9.1 says 404; the live routes validate the id pattern and answer **422** (openapi lists 422 on every id route) | `BA:415`, `backend/app/schemas/common.py:13` | ids from the server are always numeric strings; treat a 422 on an id as a client bug |
-| D-03 | ADR 0011 says every list is a cursor page; four live lists are bare arrays: `/auth/roster`, `/glossary`, `/shift-assignments`, `/events` | `BA:418`, `backend/app/routers/auth.py:16`, `backend/app/routers/work.py:142,152`, `backend/app/routers/life.py:102` | decode those four as `List<T>`; do not add paging |
+| D-03 | ADR 0011 says every list is a cursor page; live bare arrays: `/auth/roster`, `/glossary`, `/shift-assignments`, `/events`, `/threads`. `GET /threads/{id}/messages` returns `{items}` with no `nextCursor` | `BA:418`, `backend/app/routers/auth.py:16`, `backend/app/routers/work.py:173,183`, `backend/app/routers/life.py:101`, `backend/app/routers/chat.py:49,73-76` | decode those as `List<T>` or `{items}`; do not add paging |
 | D-04 | BA 17 item 11 drops `Machine.activeWorkerId`; the live `MachineOut` still has `activeWorkerId` | `BA:723`, `backend/app/schemas/work.py:31` | read it if present; do not rely on it for the Panel |
-| D-05 | Glossary Terms are not a Tri: live `GlossaryOut` has fixed `bn` and `en`; BA 6.2 stores one translation per shop language. Also the note AI is fixed to `bn`, `en` | `backend/app/schemas/work.py:183-188`, `BA:246`, `backend/app/services/notes.py:27` | for a shop with `vi` the glossary and drafts have no `vi` yet (Ask B-16) |
-| D-06 | BA 9.2 lacks codes the code uses: `IDEMPOTENCY_KEY_REUSED`, `NEEDS_EDIT`, `NOT_READY`, `METHOD_NOT_ALLOWED`, `HTTP_ERROR`; XREQ-005 adds `ALREADY_SENT`, `VERSION_CONFLICT` (412); the handoff adds `THREAD_LOCKED` | `BA:421-438`, `backend/app/api/errors.py:17-30,71`, `AGENTS.md:256` | handle all of them (2.9) |
-| D-07 | BA 8.5 and BA 17 item 15 say the Foreman board has an `ETag` and `304`; the live `GET /board` has neither. Only `GET /machines/{id}/panel` does | `BA:401,727`, `backend/app/routers/work.py:73-81,136-137` | poll the board without `If-None-Match` until the backend adds it |
-| D-08 | BA 8.2 says a replayed create returns `200`; the live create routes are declared `201`, so a replay is also `201` | `BA:382`, `backend/app/routers/work.py:89-90`, `backend/app/services/notes.py:72-74` | treat `200` and `201` alike on creates |
-| D-09 | A Worker cannot read their own Lock or Ready: `GET /machines/{id}/panel` allows only Panel and Foreman, `MachineOut` has no per-Worker status, and the Skill Passport route is not built. The prototype's Worker `machines`, `machine`, `me`, `panel` and `home` all need it | `backend/app/routers/work.py:40`, `BA:111,488`, `prototypes/wakatta/parts/B.js:335-346` | blocked until Ask B-01 |
+| D-05 | Glossary Terms are not a Tri: live `GlossaryOut` has fixed `bn` and `en`; BA 6.2 stores one translation per shop language. The AI is fixed to `bn`, `en` in notes, asks and chat drafts (the model chain and the glossary lock on chat changed, the language set did not) | `backend/app/schemas/work.py:208-213`, `BA:246`, `backend/app/services/notes.py:27`, `backend/app/services/chat.py:52`, `backend/app/services/asks.py:26` | for a shop with `vi` the glossary and drafts have no `vi` yet (Ask B-16) |
+| D-06 | BA 9.2 lacks codes the code uses: `IDEMPOTENCY_KEY_REUSED`, `NEEDS_EDIT`, `NOT_READY`, `METHOD_NOT_ALLOWED`, `HTTP_ERROR`, `ALREADY_SENT`, `VERSION_CONFLICT` (412), `AI_UNAVAILABLE` (503); the handoff adds `THREAD_LOCKED` | `BA:421-438`, `backend/app/api/errors.py:17-30,71`, `backend/app/services/chat.py:349,480,567` | handle all of them (2.9) |
+| D-07 | BA 8.5 and BA 17 item 15 say the Foreman board has an `ETag` and `304`; only `GET /machines/{id}/panel` and `GET /threads/{id}/messages` do. `GET /board`, `/threads` and `/tasks` have none | `BA:401,727`, `backend/app/routers/work.py:76-85,167-168`, `backend/app/routers/chat.py:68-85` | poll those three without `If-None-Match` until the backend adds it (B-11) |
+| D-08 | BA 8.2 says a replayed create returns `200`; the live create routes are declared `201`, so a replay is also `201` | `BA:382`, `backend/app/routers/work.py:93-94`, `backend/app/services/notes.py:73-75` | treat `200` and `201` alike on creates |
+| D-09 | A Worker cannot call `GET /machines/{id}/panel` (Panel and Foreman only), so a Worker never sees an active Panel Override; their Ready or Locked comes from the Skill Passport (E-043), which has no override field. Resolved for Lock and Ready, open for the amber override state | `backend/app/routers/work.py:44`, `backend/app/services/skills.py:62-75`, `BA:312` | use E-043; show "override" only on Foreman and Panel devices |
 | D-10 | The web client is still on the old contract: `credentials: 'include'`, `POST /api/auth/pin`, Senpai reply `{reply}` (the API wants `{replyJa}`), `pairId` and `loggedBy` sent to `/meetups`, `Idempotency-Key` never sent | `frontend/src/services/wakatta.ts:54,411,423-427,463`; XREQ-001 and XREQ-002 are still pending (`AGENTS.md:57-58`) | follow this contract, not the web client |
 | D-11 | A voice Ask is saved with an empty `text`: `AskDto.text` is `""` for voice Asks, though the model docstring says "or the transcript of their voice question" | `backend/app/services/asks.py:134`, `backend/app/schemas/asks.py:27-28` | show the audio or a "voice question" label when `text` is empty |
-| D-12 | XREQ-003 item 6 asks for `approvedBy` on the Note Version; the live `NoteVersionOut` has `recordedBy` but no `approvedBy` | `AGENTS.md:163`, `backend/app/schemas/work.py:45-60` | omit the provenance "approved by" line until added |
 | D-13 | Web `scanMachine` and `submitCheck` send `workerId`; the API takes the Worker from the token and rejects unknown fields (422) | `frontend/src/services/wakatta.ts:80-85,153-159`, `BA:715` | never send `workerId` |
-| D-14 | `POST /checks` and `POST /receipts` accept `kind: "briefing"` in the schema (and BA 9.3) but answer 422 today because no Briefing exists | `backend/app/services/floor.py:185`, `backend/app/routers/life.py:109` | Briefing Checks wait for the Briefing routes (B-02) |
-| D-15 | Two Briefing receipt routes: BA `GET /receipts?target=` and XREQ-003 `GET /briefings/{id}/receipts` with a different response shape | `BA:494`, `AGENTS.md:162,168-179` | code against XREQ-003's shape; confirm with the backend |
+| D-15 | BA 9.3 still lists `GET /receipts?target=` (planned); the code has `GET /briefings/{id}/receipts` instead, and its worker entries use the key `name`, not `displayName` as in the XREQ-003 sample. BA 9.3 `PATCH /briefings/{id}` and `POST /briefings/{id}/publish` are replaced by `POST /briefings` | `BA:490-494`, `AGENTS.md:168-179`, `backend/app/schemas/briefings.py:41`, `backend/app/routers/briefings.py:45,50,59` | code against the live routes (E-035, E-114) |
 | D-16 | Photo limits: BA 11 says jpeg, png or webp up to 5 MB in; the code accepts JPEG only up to 2 MB. Audio limit 8 MB matches. HEIC is not accepted | `BA:605`, `backend/app/media.py:25,28`, `backend/app/models/platform.py:12` | compress to JPEG at or under 2 MB (details: platform contract) |
 | D-17 | The prototype's team code `PRESS-2F-4821` does not match the backend shop code `^[A-Z0-9]{8}$` (BA 6.1 and `ScopeCode`) | `prototypes/wakatta/parts/E.js:246`, `backend/app/schemas/auth.py:12` | use real 8-character codes only |
-| D-18 | XREQ-005's sample Check Question uses `q`, `options` as strings, `termJa`, `correctIndex`; the live `CheckQuestion` uses `id`, `prompt`, `options` (Tri objects), `termId` | `AGENTS.md:250`, `backend/app/schemas/common.py:35-45` | wait for the real schema (B-15) |
-| D-19 | `GET /notices` returns two different item shapes on one path (Poster: `question` with `correctIndex`; Worker: `question` without it, plus `opened`, `passed`); the openapi response is a union | `backend/app/routers/life.py:70-73`, `backend/app/schemas/notices.py` | two DTO classes chosen by role |
-| D-20 | `POST /meetups`, `POST /tasks` and `POST /receipts` have no `Idempotency-Key`; a retried `POST /meetups` can create two Meet-ups | `backend/app/routers/support.py:83-84`, BA 6.3 `meetups` row at `BA:265` | queue carefully; see Q-10 |
-| D-21 | The prototype lets the **Foreman** post Notices (`isPoster = () => FM`); the backend lets only the **Poster** role post (`PosterUser`) and refuses a Foreman token with 403 | `prototypes/wakatta/parts/D.js:213,638`, `backend/app/routers/life.py:32` | product decision: a Poster login in the app, or the backend allows Foremen (Q-02) |
-| D-22 | BA 12 says authenticated JSON gets `Cache-Control: no-store`; the code sets cache headers only on the Panel, blob and CSV responses | `BA:622`, `backend/app/routers/work.py:81`, `backend/app/routers/life.py:117`, `backend/app/routers/support.py:113` | the app must not rely on server cache headers |
+| D-18 | The XREQ-005 samples differ from the built schemas: `POST /messages/{id}/send` takes full `questions` objects (not strings) and `tasks`; a message `text` is a map and `questions` use `prompt`/`options`/`termId`, not `q`/`termJa`; `taskDrafts` appear only on the POST response | `AGENTS.md:237-251`, `backend/app/schemas/chat.py:70-76` | follow the schemas |
+| D-19 | `GET /notices` and `GET /briefings` each return two different item shapes on one path by role (Foreman or Poster: `question` with `correctIndex`; Worker: without it, plus `opened`, `passed`); the openapi response is a union | `backend/app/routers/life.py:69-73`, `backend/app/routers/briefings.py:50-56`, `backend/app/schemas/notices.py` | two DTO classes chosen by role |
+| D-20 | `POST /meetups`, `POST /tasks`, `POST /receipts` and `POST /briefings` (publish) have no `Idempotency-Key`; a retried `POST /meetups` or `POST /tasks` creates a duplicate, a retried publish answers `409` | `backend/app/routers/support.py:84`, `backend/app/routers/chat.py:132`, `backend/app/services/briefings.py:179`, BA 6.3 `meetups` row at `BA:265` | queue carefully; see Q-10 |
+| D-21 | The prototype lets the **Foreman** post Notices (`isPoster = () => FM`); the backend lets only the **Poster** role post (`PosterUser`) and refuses a Foreman token with 403 | `prototypes/wakatta/parts/D.js:213,638`, `backend/app/routers/life.py:31` | product decision: a Poster login in the app, or the backend allows Foremen (Q-02) |
+| D-22 | BA 12 says authenticated JSON gets `Cache-Control: no-store`; the code sets cache headers only on the Panel, chat poll, blob and CSV responses | `BA:622`, `backend/app/routers/work.py:85`, `backend/app/routers/chat.py:85`, `backend/app/routers/life.py:117`, `backend/app/routers/support.py:113` | the app must not rely on server cache headers |
 | D-23 | `docs/openapi.yaml` declares no security scheme and no roles, so Bearer and the role list cannot be generated from it; roles in this file come from the `require(...)` guards | `docs/openapi.yaml` (no `securitySchemes`), `backend/app/api/auth.py:42` | set the Bearer header in one OkHttp interceptor |
+| D-24 | `kind: "ask"` is in the message enum and the prototype's "ask the Foreman about a term" (`ask:foreman`) needs it, but no route creates one: `POST /threads/{id}/messages` makes only `voice` or `text` (Worker) or a draft (Foreman) | `backend/app/schemas/chat.py:11`, `backend/app/services/chat.py:245,307` | a Worker can send a plain message; the term link is lost (Ask B-22) |
+| D-25 | `AGENTS.md` still shows XREQ-005 and XREQ-006 as `[PENDING]` (and XREQ-001, 002, 004, 007), XREQ-003 as `[IN_PROGRESS]`, although the Chat routes (XREQ-005), Briefing receipts and `approvedBy` (XREQ-003 items 5 and 6) are built | `AGENTS.md:57-63` | status in `AGENTS.md` is not a guide to what is live; use `docs/openapi.yaml` (Ask B-26) |
 
 ### 7.2 Open questions
 
@@ -924,8 +941,7 @@ Sources compared: `BA` (docs/BACKEND_ARCHITECTURE.md), `openapi` (docs/openapi.y
 | :--- | :--- | :--- |
 | Q-01 | Staging and release base URLs; HTTPS host. Nothing in the repo records them (BA 15 plans Azure Container Apps) | section 2.1, App Links |
 | Q-02 | Does the Android app serve the Poster role? The prototype has no Poster user (D-21); the backend has one | scope of `notice-new`, E-087..E-093 |
-| Q-03 | How does a Worker see Lock or Ready for a Machine (Ask B-01)? Until then `machines`, `machine`, `me`, `panel` cannot be built for the Worker | all Worker Machine screens |
-| Q-04 | Which route does a Worker use to post a message, a voice reply or an "ask the Foreman" (`ask:foreman`)? XREQ-005 item 3 mentions the translation but names no route; `messages.kind` has `ask`. And what does `?after=` take (message id, time or cursor)? | `chat`, E-052, E-053 |
+| Q-04 | What is the term-linked "ask the Foreman" (`ask:foreman`) for Workers (D-24)? Message kind `ask` exists but no route sets it | `chat`, E-053 |
 | Q-05 | The prototype has no screen to record, edit or approve a Note Version. Is the Foreman's recording flow in the Android scope? E-023..E-026 are live | Foreman Machine screens |
 | Q-06 | Talk entries: the path to edit or delete one entry, and the route to read a Talk Thread's entries, are not named in the handoff | E-080, E-085, E-086 |
 | Q-07 | May a Worker read their own Follow-ups and Confusions (needed for `learning`)? XREQ-005 lists Follow-up routes as Foreman tools | `learning`, B-08 |
@@ -936,40 +952,38 @@ Sources compared: `BA` (docs/BACKEND_ARCHITECTURE.md), `openapi` (docs/openapi.y
 | Q-12 | Can `GET /tasks` be filtered by Machine (`machine` screen lists a Machine's Tasks)? | `machine` |
 | Q-13 | Calendar export: Android intents from `GET /events` data, or the planned `.ics` route (P2)? | `life` |
 | Q-14 | Support Log PDF: the server gives CSV only. Build a PDF on the device, or share the CSV? The on-screen counts need data the CSV does not give in JSON | `supportlog` |
-| Q-15 | Cursor and page size for `GET /api/threads/{id}/messages`, and how deletion of a message shows up | `chat` |
+| Q-15 | Page size and ordering for `GET /api/threads/{id}/messages?after=` (no `limit` parameter; an id after which all newer messages are returned) and how a deletion would show up (none exists) | `chat` |
 | Q-16 | Which of the `new` creates will require `Idempotency-Key` (handoff says "on creates")? | 2.7 |
-| Q-17 | Every other `UNKNOWN` in section 4: request and response shapes for E-020..E-022, E-028, E-029, E-030..E-034, E-037..E-039, E-041..E-043, E-048, E-051, E-054, E-056..E-061, E-063..E-086 and E-106..E-110; the `?target=` format of E-034; the wire value for a grey (waiting) Wakatta Status; whether the interview question list is translated per language; who may create groups (E-063) and Tasks (E-061); whether cloud TTS exists (shortcut `A.js:510`) | all of section 4 |
+| Q-17 | Every other `UNKNOWN` in section 4: request and response shapes for E-031, E-032, E-034, E-037..E-039, E-048 and E-063..E-086, E-106..E-110; the `?target=` format of E-034; the wire value for a grey (waiting) Wakatta Status on the Foreman side (a Worker sees `myStatus: null`); whether the interview question list is translated per language; who may create groups (E-063); whether cloud TTS exists (shortcut `A.js:510`) | all of section 4 |
 
 ---
 
 ## 8. Backend asks
 
-One row per ask. Owners are the suggested ones from the handoff (`handoff-backend-additions.md:35`: Asif tables and migration, Anim routes, services and tests, Galib AI pipelines) and `AGENTS.md` sections 5.3 to 5.5 (`AGENTS.md:531-541`).
+One row per ask. Owners are the suggested ones from the handoff (`handoff-backend-additions.md:35`: Asif tables and migration, Anim routes, services and tests, Galib AI pipelines) and `AGENTS.md` sections 5.3 to 5.5 (`AGENTS.md:531-541`). Ids are stable across revisions: B-01 (Worker Ready or Locked: the Passport is live), B-02 (Briefing routes) and B-10 (`approvedBy`) were resolved by the merge on 2026-11-23 and removed; B-15 was narrowed to the OpenAPI security scheme; B-05, B-08, B-12 and B-22 were narrowed. Q-03 was resolved in the same way.
 
 | Id | Item | Endpoint or field | Suggested owner |
 | :--- | :--- | :--- | :--- |
-| B-01 | Give a Worker their own Lock or Ready and Sign-off dates per Machine: build `GET /workers/{id}/passport` for the Worker, or add a `status` and `signedOffAt` for the caller to `MachineOut`, or let a Worker call `GET /machines/{id}/panel` for themselves (D-09) | E-043, E-014, E-018 | Anim |
-| B-02 | Build the Briefing routes and enable `kind: "briefing"` in `POST /checks` and `POST /receipts`; settle E-034 against E-035 (D-14, D-15) | E-030..E-036, E-027 | Anim (WS6), Galib (draft) |
 | B-03 | Build the Near-miss routes; add a get-by-id and a Worker's own list; decide severity and photo mark (Q-08, Q-09) | E-037..E-039 | Anim, Asif (table) |
 | B-04 | Let a Worker read their own Senpai pair (name, link status) and their Meet-ups; let a Foreman read Asks (the prototype's Foreman Ask screen) | new `GET /senpai-pairs/me` (name `UNKNOWN`), `GET /meetups` | Anim |
-| B-05 | An analytics read for the `analytics` screen: understanding trend, per-Worker green, orange, red counts, top missed terms | new route `UNKNOWN`; E-042 and E-029 cover part | Anim |
+| B-05 | An analytics read for the `analytics` screen: understanding trend, per-Worker green, orange, red counts over time. The heatmap (E-042) and effort metrics (E-029) now exist; the trend and per-Worker bars do not | new route `UNKNOWN` | Anim |
 | B-06 | A JSON summary of the Support Log (counts of Periodic Interviews, Meet-ups, Notice checks per Worker and month) so the screen need not parse the CSV | new route `UNKNOWN` next to E-111 | Anim |
 | B-07 | Decide notifications: a list with read state, or push only; a "remind this Worker" action for the Panel | E-051 area, new `GET /notifications` `UNKNOWN`; platform contract for push | Asif |
-| B-08 | Worker-readable read receipts, Follow-ups, Learning History and a streak source | `wk:read`, E-056, new `GET /workers/{id}/learning` `UNKNOWN` | Anim |
+| B-08 | Worker-readable Follow-ups, Learning History, read receipts and a streak source (`GET /follow-ups` is Foreman only) | `wk:read`, E-056, new `GET /workers/{id}/learning` `UNKNOWN` | Anim |
 | B-09 | Glossary: `PATCH /glossary/{id}`, a Tri-shaped term (`translations` per shop language) and an AI suggestion endpoint for the glossary sheet (D-05) | E-048, E-046, E-047 | Anim, Galib |
-| B-10 | Add `approvedBy` (display name) and keep `needsEdit` on `NoteVersionOut` (XREQ-003 item 6) | `NoteVersionOut` | Asif |
 | B-11 | ETag and `304` on `GET /board`, `GET /tasks`, `GET /threads`, `GET /near-misses` (D-07) | E-040, E-060, E-051, E-038 | Anim |
-| B-12 | `Idempotency-Key` on `POST /meetups`, `/tasks`, `/receipts` (D-20) | E-101, E-061, E-036 | Anim |
+| B-12 | `Idempotency-Key` on `POST /meetups`, `/tasks`, `/receipts`, `/briefings` (publish) (D-20) | E-101, E-061, E-036, E-114 | Anim |
 | B-13 | State the replay status of creates (200 or 201) in BA 8.2 or change the routes (D-08) | all `POST` creates | Asif |
 | B-14 | Update BA 9.2 with the codes in D-06 and 422 for a non-numeric id (D-02) | `docs/BACKEND_ARCHITECTURE.md` | Asif |
-| B-15 | Align XREQ-005 payloads with the live `CheckQuestion` (`prompt`, `options` as Tri, `termId`) and publish the real schemas as soon as the routes exist; regenerate `docs/openapi.yaml` with a Bearer security scheme and the planned routes (D-18, D-23) | E-053, E-054, `docs/openapi.yaml` | Anim, Asif |
+| B-15 | Regenerate `docs/openapi.yaml` with a Bearer security scheme and per-route roles so a client can be generated (D-23); the Chat and Briefing schemas now exist | `docs/openapi.yaml` | Asif |
 | B-16 | Per-shop languages in the AI pipelines (`AI_LANGUAGES`), so a `vi` shop gets `vi` text (D-05) | `backend/app/services/notes.py:27` | Galib |
 | B-17 | Keep a transcript for voice Asks (add `text` to `AskDraft`) (D-11) | E-095 | Galib, Anim |
 | B-18 | A get-one route for a Notice (the `notice` screen reads the whole list today) | new `GET /notices/{id}` | Anim |
 | B-19 | A Machine filter for Tasks (Q-12) | E-060 | Anim |
 | B-20 | Reconcile photo limits and formats between BA 11 and the code, and say what HEIC from Android should become (D-16) | `backend/app/media.py` | Asif |
 | B-21 | Publish staging and release base URLs and an HTTPS host (Q-01) | deployment | Asif |
-| B-22 | Name the Worker's message route and the `ask` kind in XREQ-005; say what `?after=` takes (Q-04, Q-15) | E-052, E-053 | Anim |
+| B-22 | Add the term-linked "ask the Foreman" message (kind `ask`) or drop that kind from the enum (D-24, Q-04) | E-053 | Anim |
 | B-23 | Fill the handoff gaps before building: wire names and response shapes for E-063..E-086 and E-106..E-110, the Talk entry paths and a read route for entries (Q-06), and which creates need `Idempotency-Key` (Q-16) | E-063..E-110 | Anim, Asif |
 | B-24 | Decide who may post Notices: Poster only (as coded) or also Foreman, as in the prototype (D-21) | E-088 | product owner, Anim |
 | B-25 | Push device registration and the version gate (`GET /app/config`) are specified in [MOBILE_PLATFORM_CONTRACT.md](MOBILE_PLATFORM_CONTRACT.md); they are not repeated here | platform contract | Asif |
+| B-26 | Update the XREQ statuses and fulfilment blocks in `AGENTS.md` (XREQ-005, XREQ-006, XREQ-003 items 5 and 6) to match what is built (D-25) | `AGENTS.md` | Anim, Asif |
