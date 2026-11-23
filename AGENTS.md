@@ -73,7 +73,7 @@ This file is:
 | `XREQ-015` | P0 | Backend (Anim) | Backend (Asif, Azure owner) | Give Anim's Azure account Contributor on the Wakatta resource group (Asif is off the project; Anim runs deploy now) | `[RESOLVED]` | 2026-11-23 19:30 |
 | `XREQ-016` | P0 | AI (Galib) | Frontend (Minhaz, Arjun; Android: Minhaz) | Chatbot screen on the Worker home and the Machine screen: `POST /api/knowledge/asks` (cited answer + self-check; emergency card; not covered → forward to Senpai) | `[IN_PROGRESS]` (web done; Android open) | 2026-11-23 23:00 |
 | `XREQ-017` | P1 | Frontend (Minhaz, Android app) | Backend (Anim), AI (Galib) | Contacts, My QR, Contact Threads (routes now live; Talk Threads and group controls moved to XREQ-018 and 019); notification list stays push-only | `[PENDING]` | 2026-11-23 19:50 |
-| `XREQ-018` | P1 | Frontend (Minhaz, Android app) | Backend (Anim), AI (Galib) | Talk Threads: threads and entries routes plus the two AI pipelines | `[PENDING]` | 2026-11-23 23:56 |
+| `XREQ-018` | P1 | Frontend (Minhaz, Android app) | Backend (Anim), AI (Galib) | Talk Threads: threads and entries routes plus the two AI pipelines | `[IN_PROGRESS]` (Asif) | 2026-11-24 00:20 |
 | `XREQ-019` | P2 | Frontend (Minhaz, Android app) | Backend (Anim) | Group controls on work Threads: create, members, roles, mute/pin/archive, leave, announce-only | `[PENDING]` | 2026-11-23 23:56 |
 | `XREQ-020` | P1 | Frontend (Minhaz, Android app) | Backend (Anim) | Worker can read own Follow-ups and Learning History; analytics trend and per-Worker counts | `[PENDING]` | 2026-11-23 23:56 |
 | `XREQ-021` | P2 | Frontend (Minhaz, Android app) | Backend (Anim) | Machine gaps: Remind a Worker, Idempotency-Key on overrides, Task filter by Machine | `[PENDING]` | 2026-11-23 23:56 |
@@ -747,7 +747,7 @@ Push (XREQ-014): a new Contact message sends one generic push "New message from 
 - **Priority**: `P1 (High)`
 - **From**: `Frontend (Minhaz, Android app)`
 - **To**: `Backend (Anim)`, `AI (Galib)`
-- **Status**: `[PENDING]`
+- **Status**: `[IN_PROGRESS]` (Asif, branch `asif/backend-hardening`)
 - **Created**: `2026-11-23 23:56 (UTC+6)`
 - **Target Interface / Endpoint**: `/api/talk-threads` (none of it exists in `docs/openapi.yaml` yet, 82 paths)
 
