@@ -48,6 +48,13 @@ def report_out(r: NearMissReport) -> NearMissOut:
     )
 
 
+def _replay(r: NearMissReport, worker_id: int) -> NearMissOut:
+    """A retry returns the first report, but only to the Worker who made it; the key is unique per shop."""
+    if r.worker_id != worker_id:
+        raise ApiError(409, "IDEMPOTENCY_KEY_REUSED", "This Idempotency-Key was already used for another report")
+    return report_out(r)
+
+
 def create(
     db: Session,
     who: Principal,
@@ -62,7 +69,7 @@ def create(
     shop_id, worker_id = _me(who)
     existing = repo.report_by_key(db, shop_id, key)
     if existing is not None:
-        return report_out(existing)
+        return _replay(existing, worker_id)
     text = text.strip() if text else None
     if bool(text) == bool(audio):
         raise ApiError(422, "VALIDATION_ERROR", "Send text or a recording, not both", {"fields": [{"loc": ["body"]}]})
@@ -84,7 +91,7 @@ def create(
 
     raced = repo.report_by_key(db, shop_id, key)
     if raced is not None:
-        return report_out(raced)
+        return _replay(raced, worker_id)
     blob_id = None
     if image is not None:
         b = Blob(

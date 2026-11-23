@@ -164,6 +164,13 @@ def _source_parts(kind: SourceKind, text: str | None, audio: bytes | None, image
     return [Part.text(f"<notice_source>{text}</notice_source>")]
 
 
+def _replay(db: Session, n: Notice, poster_id: int, now: datetime) -> NoticeForPoster:
+    """A retry returns the first draft, but only to its organisation; the key is unique per district."""
+    if n.poster_id != poster_id:
+        raise ApiError(409, "IDEMPOTENCY_KEY_REUSED", "This Idempotency-Key was already used for another Notice")
+    return _poster_view(db, n, now)
+
+
 def create_draft(
     db: Session,
     who: Principal,
@@ -178,7 +185,7 @@ def create_draft(
     district_id, poster_id = district_of(who), _poster_id(db, who)
     existing = repo.notice_by_key(db, district_id, key)
     if existing is not None:
-        return _poster_view(db, existing, now)
+        return _replay(db, existing, poster_id, now)
     text = text.strip() if text else None
     given = {"text": bool(text), "voice": bool(audio), "photo": bool(photo)}
     if not given[kind] or sum(given.values()) != 1:
@@ -203,7 +210,7 @@ def create_draft(
 
     raced = repo.notice_by_key(db, district_id, key)
     if raced is not None:
-        return _poster_view(db, raced, now)
+        return _replay(db, raced, poster_id, now)
     blob_id = None
     if image is not None:
         blob = Blob(

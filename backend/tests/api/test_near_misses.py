@@ -120,3 +120,15 @@ def test_another_shop_sees_none_of_it(client: TestClient, db: Session, floor: Fl
     form = {"machineId": str(floor.machine_id), "text": "x"}
     assert client.post("/api/near-misses", headers=other.worker | _key(), data=form).status_code == 404
     assert client.get("/api/near-misses", headers=floor.worker).status_code == 403  # Foremen read the list
+
+
+def test_another_workers_key_does_not_return_their_report(
+    client: TestClient, floor: Floor, fake_ai: FakeAiClient
+) -> None:
+    fake_ai.queue("translate", {"text": "床が濡れています。"})
+    key, form = _key(), {"machineId": str(floor.machine_id), "text": "Wet floor"}
+    assert client.post("/api/near-misses", headers=floor.worker | key, data=form).status_code == 201
+
+    res = client.post("/api/near-misses", headers=floor.other_worker | key, data=form)
+
+    assert res.status_code == 409 and res.json()["error"]["code"] == "IDEMPOTENCY_KEY_REUSED"

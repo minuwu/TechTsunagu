@@ -10,6 +10,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from app.ai.fake import FakeAiClient
+from app.models.life import Notice
 from app.models.scopes import Poster, User
 from tests import factories as f
 
@@ -248,3 +249,31 @@ def test_workers_cannot_write_notices(client: TestClient, town: Town) -> None:
     res = client.post("/api/notices", headers=town.worker | _key(), data={"sourceKind": "text", "text": "x"})
 
     assert res.status_code == 403
+
+
+def test_another_organisations_key_does_not_return_their_draft(
+    client: TestClient, db: Session, town: Town, fake_ai: FakeAiClient
+) -> None:
+    fake_ai.queue("build_notice", notice_answer())
+    key, body = _key(), {"sourceKind": "text", "text": "訓練"}
+    first = client.post("/api/notices", headers=town.poster | key, data=body)
+    assert first.status_code == 201
+    district_id = db.get(Notice, int(first.json()["data"]["id"])).district_id  # type: ignore[union-attr]
+    rival = Poster(district_id=district_id, name="別の団体", kind="city")
+    db.add(rival)
+    db.flush()
+    account = User(
+        role="poster",
+        display_name="別の担当",
+        language="ja",
+        district_id=district_id,
+        poster_id=rival.id,
+        pin_hash=f.user(db, f.shop(db), pin="2468", must_change=False).pin_hash,
+        pin_must_change=False,
+    )
+    db.add(account)
+    db.flush()
+
+    res = client.post("/api/notices", headers=_headers(client, account.id, "2468") | key, data=body)
+
+    assert res.status_code == 409 and res.json()["error"]["code"] == "IDEMPOTENCY_KEY_REUSED"
