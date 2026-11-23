@@ -173,7 +173,7 @@ def eval_asks(client: AiClient, model: str) -> list[Row]:
         for n in notices
     )
     sent = [n["id"] for n in notices]
-    prompt = render("answer_ask", 1, notices=block, glossary="[]")
+    prompt = render("answer_ask", 2, notices=block, glossary="[]")
     rows: list[Row] = []
     for case in _load("asks.json")["cases"]:
         row = Row("answer_ask", case["id"], model)

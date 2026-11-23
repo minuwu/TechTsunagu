@@ -98,7 +98,12 @@ def _pair(client: TestClient, shop: Shop) -> Json:
 
 
 def test_an_ask_is_answered_from_a_posted_notice(client: TestClient, shop: Shop, fake_ai: FakeAiClient) -> None:
-    answer = {"covered": True, "answer": _tri("朝8時まで"), "source_notice_ids": [str(shop.notice_id)]}
+    answer = {
+        "question_text": "ごみは何時までですか?",
+        "covered": True,
+        "answer": _tri("朝8時まで"),
+        "source_notice_ids": [str(shop.notice_id)],
+    }
     fake_ai.queue("answer_ask", answer)
 
     ask = _ask(client, shop)
@@ -109,7 +114,12 @@ def test_an_ask_is_answered_from_a_posted_notice(client: TestClient, shop: Shop,
 
 
 def test_an_answer_citing_no_sent_notice_is_not_covered(client: TestClient, shop: Shop, fake_ai: FakeAiClient) -> None:
-    invented = {"covered": True, "answer": _tri("火曜日"), "source_notice_ids": ["999999"]}
+    invented = {
+        "question_text": "ごみは何時までですか?",
+        "covered": True,
+        "answer": _tri("火曜日"),
+        "source_notice_ids": ["999999"],
+    }
     fake_ai.queue("answer_ask", invented)
     fake_ai.queue("answer_ask", invented)  # the one retry says the same
 
@@ -122,6 +132,26 @@ def test_without_the_model_an_ask_is_not_covered(client: TestClient, shop: Shop)
     ask = _ask(client, shop)
 
     assert ask["covered"] is False and ask["answer"] is None
+
+
+def test_a_voice_ask_keeps_its_transcript_and_forwards_it(
+    client: TestClient, shop: Shop, fake_ai: FakeAiClient
+) -> None:
+    heard = "আমার ফ্যান নষ্ট হয়ে গেছে।"
+    fake_ai.queue("answer_ask", {"question_text": heard, "covered": False, "answer": None, "source_notice_ids": []})
+    res = client.post(
+        "/api/asks",
+        headers=shop.worker | _key(),
+        files={"audio": ("q.ogg", b"OggS" + b"\x00" * 32, "audio/ogg")},
+    )
+    assert res.status_code == 201, res.text
+    ask = res.json()["data"]
+    assert ask["text"] == heard  # what the Worker said, not an empty string
+
+    _pair(client, shop)
+    fake_ai.queue("translate", {"text": "扇風機が壊れました。"})
+    assert client.post(f"/api/asks/{ask['id']}/forward", headers=shop.worker).json()["data"]["forwarded"] is True
+    assert heard in fake_ai.last_prompt_text  # the transcript, not "", went to the translation for the Senpai
 
 
 def test_the_senpai_answers_a_forwarded_ask(client: TestClient, shop: Shop, fake_ai: FakeAiClient) -> None:
