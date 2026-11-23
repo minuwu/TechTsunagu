@@ -11,6 +11,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { DOORS, type Door } from '@/domain/course'
 import { m } from '@/i18n/paraglide/messages'
 import { HarbourWaves } from '@/ui/v3/components/HarbourWaves'
+import { JapanMap } from '@/ui/v3/components/JapanMap'
 import { MOTION_OK, scrollToSection } from '@/ui/v3/lib/motion'
 import { useTheme } from '@/ui/v3/lib/theme'
 import { cn } from '@/ui/v3/lib/utils'
@@ -154,45 +155,54 @@ export function Landing() {
   ] as const
   return (
     <div ref={scope}>
-      <section className="card-surface door mb-14 bg-transparent! p-6 sm:min-h-[28rem] sm:p-10 lg:min-h-[32rem]">
+      {/* Hero: the Vanta waves are the sea, the Japan map lies on top. Wide screens: the map is the whole
+          background and the text stays left of it. Phones: the map gets its own block under the text. */}
+      <section className="card-surface door mb-14 flex flex-col bg-transparent! p-6 sm:p-10 lg:min-h-[38rem]">
         <HarbourWaves theme={theme} />
-        <p
-          data-hero
-          className="mb-3 flex items-center gap-2.5 font-bold text-[var(--indigo)]"
-        >
-          <span
-            aria-hidden="true"
-            className="size-2.5 shrink-0 rounded-[2px] bg-[var(--seal)]"
-          />
-          {m.lp_eyebrow()}
-        </p>
-        <h1
-          data-hero
-          className="display mb-5 max-w-[16em] text-4xl leading-tight text-balance sm:text-6xl"
-        >
-          {m.lp_h1()}
-        </h1>
-        <p
-          data-hero
-          className="mb-8 max-w-[38em] text-lg leading-relaxed text-pretty [word-break:auto-phrase] sm:text-xl"
-        >
-          {m.lp_lead()}
-        </p>
-        <div data-hero className="flex flex-wrap gap-3">
-          <a
-            href="#demo"
-            onClick={glide('demo')}
-            className="inline-flex min-h-12 items-center rounded-xl bg-primary px-6 font-bold text-primary-foreground shadow-[var(--shadow-md)] transition-transform duration-150 hover:scale-[1.03] active:scale-95"
+        <JapanMap className="relative -mx-6 -mb-6 mt-8 h-80 sm:-mx-10 sm:-mb-10 sm:h-96 lg:absolute lg:inset-0 lg:m-0 lg:h-auto" />
+        <div
+          aria-hidden="true"
+          className="hero-text-veil pointer-events-none absolute inset-0 z-[1] hidden lg:block"
+        />
+        <div className="relative z-10 order-first lg:max-w-[46%]">
+          <p
+            data-hero
+            className="mb-3 flex items-center gap-2.5 font-bold text-[var(--indigo)]"
           >
-            {m.lp_cta_demo()}
-          </a>
-          <a
-            href="#how"
-            onClick={glide('how')}
-            className="tile inline-flex min-h-12 items-center px-6 font-bold"
+            <span
+              aria-hidden="true"
+              className="size-2.5 shrink-0 rounded-[2px] bg-[var(--seal)]"
+            />
+            {m.lp_eyebrow()}
+          </p>
+          <h1
+            data-hero
+            className="display mb-5 max-w-[16em] text-4xl leading-tight text-balance sm:text-6xl"
           >
-            {m.lp_cta_how()}
-          </a>
+            {m.lp_h1()}
+          </h1>
+          <p
+            data-hero
+            className="mb-8 max-w-[38em] text-lg leading-relaxed text-pretty [word-break:auto-phrase] sm:text-xl"
+          >
+            {m.lp_lead()}
+          </p>
+          <div data-hero className="flex flex-wrap gap-3">
+            <a
+              href="#demo"
+              onClick={glide('demo')}
+              className="inline-flex min-h-12 items-center rounded-xl bg-primary px-6 font-bold text-primary-foreground shadow-[var(--shadow-md)] transition-transform duration-150 hover:scale-[1.03] active:scale-95"
+            >
+              {m.lp_cta_demo()}
+            </a>
+            <a
+              href="#how"
+              onClick={glide('how')}
+              className="tile inline-flex min-h-12 items-center px-6 font-bold"
+            >
+              {m.lp_cta_how()}
+            </a>
+          </div>
         </div>
       </section>
 

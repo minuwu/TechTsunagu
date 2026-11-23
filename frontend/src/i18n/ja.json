@@ -416,5 +416,8 @@
   "demo_loading": "読み込み中",
   "demo_empty": "データなし",
   "demo_error": "接続エラー",
-  "panel_unknown_word": "不明"
+  "panel_unknown_word": "不明",
+  "map_label": "日本地図。都道府県をクリックすると拡大します",
+  "map_all": "全国",
+  "map_pilot": "実証の場：佐世保市"
 }

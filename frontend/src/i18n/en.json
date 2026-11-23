@@ -416,5 +416,8 @@
   "demo_loading": "Loading",
   "demo_empty": "Empty",
   "demo_error": "Error",
-  "panel_unknown_word": "UNKNOWN"
+  "panel_unknown_word": "UNKNOWN",
+  "map_label": "Map of Japan. Click a prefecture to zoom in",
+  "map_all": "All Japan",
+  "map_pilot": "pilot site: Sasebo"
 }

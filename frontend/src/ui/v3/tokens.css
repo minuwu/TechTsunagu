@@ -430,6 +430,112 @@ input[type='file']::file-selector-button:hover {
   padding: 0.25rem;
 }
 
+/* Japan map (JapanMap.tsx): cobalt-washed land, cobalt coast (mixed in sRGB: an OKLCH mix of cobalt and
+   warm porcelain drifts through green), the focused prefecture deeper; the Sasebo pin
+   keeps its size on screen while the land is zoomed (--k is the zoom scale, set by d3-zoom). */
+.japan-pref {
+  fill: color-mix(in srgb, var(--primary) 10%, var(--card));
+  stroke: color-mix(in srgb, var(--primary) 60%, transparent);
+  stroke-width: 0.9;
+  vector-effect: non-scaling-stroke;
+  cursor: pointer;
+  transition: fill 180ms var(--ease-out);
+}
+.japan-pref:hover {
+  fill: color-mix(in srgb, var(--primary) 24%, var(--card));
+}
+.japan-pref.is-home {
+  fill: color-mix(in srgb, var(--primary) 32%, var(--card));
+}
+.japan-pref.is-focused {
+  fill: color-mix(in srgb, var(--primary) 46%, var(--card));
+}
+.japan-pin circle {
+  transform: scale(calc(1 / var(--k, 1)));
+  pointer-events: none;
+}
+.japan-pin-dot {
+  fill: var(--primary);
+  stroke: var(--card);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+.japan-pin-pulse {
+  fill: color-mix(in srgb, var(--primary) 35%, transparent);
+  animation: pin-pulse 2.4s var(--ease-out) infinite;
+}
+@keyframes pin-pulse {
+  from {
+    opacity: 0.9;
+    transform: scale(calc(0.6 / var(--k, 1)));
+  }
+  to {
+    opacity: 0;
+    transform: scale(calc(2.4 / var(--k, 1)));
+  }
+}
+.japan-tip {
+  position: absolute;
+  z-index: 20;
+  translate: -50% calc(-100% - 12px);
+  pointer-events: none;
+  border-radius: 6px;
+  background: var(--shell);
+  color: var(--shell-foreground);
+  padding: 0.2rem 0.55rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: var(--shadow-md);
+}
+.japan-chip {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  border: 1px solid var(--glass-edge);
+  border-radius: 999px;
+  background: var(--glass);
+  padding: 0 0.9rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+.japan-btn {
+  min-height: 2.75rem;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  border-radius: 0.7rem;
+  background: var(--card);
+  padding: 0 0.9rem;
+  font-weight: 700;
+  transition:
+    background-color 150ms,
+    transform 160ms var(--spring);
+}
+.japan-btn:hover {
+  border-color: var(--primary);
+}
+.japan-btn:active {
+  transform: scale(0.97);
+}
+.japan-btn[aria-pressed='true'] {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+/* Over the map, under the hero text (wide screens): zoomed-in land fades out behind the words.
+   pointer-events: none in the markup, so the map underneath stays clickable. */
+.hero-text-veil {
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--tile) 96%, transparent) 0%,
+    color-mix(in srgb, var(--tile) 85%, transparent) 38%,
+    transparent 52%
+  );
+}
+
 /* Lenis smooth scroll (lenis 1.3.27, dist/lenis.css): copied here because the kit loads one stylesheet */
 html.lenis,
 html.lenis body {
@@ -488,6 +594,9 @@ html.lenis body {
   .toast-enter,
   .skeleton,
   dialog.sheet[open] {
+    animation: none;
+  }
+  .japan-pin-pulse {
     animation: none;
   }
   .tabbar-pill,
