@@ -1,5 +1,6 @@
 """The AI seam (ADR 0008): services and the runner see only this interface, never a vendor type."""
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Protocol, Self
 
@@ -39,6 +40,8 @@ class Part:
 class AiClient(Protocol):
     model: str
 
-    def generate(self, prompt: Prompt, parts: list[Part], schema: type[object]) -> str:
+    def generate(
+        self, prompt: Prompt, parts: list[Part], schema: type[object], languages: Sequence[str] = ("bn", "en")
+    ) -> str:
         """Returns the model's raw JSON text for `schema`; raises AiUnavailable or QuotaExhausted."""
         ...
