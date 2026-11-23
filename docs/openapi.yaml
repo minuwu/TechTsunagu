@@ -163,7 +163,17 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "x-roles": [
+          "foreman",
+          "worker",
+          "poster"
+        ]
       }
     },
     "/api/auth/me/pin": {
@@ -204,7 +214,17 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "x-roles": [
+          "foreman",
+          "worker",
+          "poster"
+        ]
       }
     },
     "/api/auth/logout": {
@@ -225,7 +245,17 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "x-roles": [
+          "foreman",
+          "worker",
+          "poster"
+        ]
       }
     },
     "/api/workers": {
@@ -235,6 +265,11 @@
         ],
         "summary": "Workers of your shop",
         "operationId": "list_workers_api_workers_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "limit",
@@ -287,7 +322,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       },
       "post": {
         "tags": [
@@ -295,6 +333,11 @@
         ],
         "summary": "Create a worker account",
         "operationId": "create_workers_api_workers_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -326,7 +369,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/workers/{user_id}": {
@@ -336,6 +382,11 @@
         ],
         "summary": "Rename, reset PIN or deactivate a worker",
         "operationId": "update_workers_api_workers__user_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "user_id",
@@ -379,7 +430,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/foremen": {
@@ -389,6 +443,11 @@
         ],
         "summary": "Foremans of your shop",
         "operationId": "list_foremen_api_foremen_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "limit",
@@ -441,7 +500,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       },
       "post": {
         "tags": [
@@ -449,6 +511,11 @@
         ],
         "summary": "Create a foreman account",
         "operationId": "create_foremen_api_foremen_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -480,7 +547,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/foremen/{user_id}": {
@@ -490,6 +560,11 @@
         ],
         "summary": "Rename, reset PIN or deactivate a foreman",
         "operationId": "update_foremen_api_foremen__user_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "user_id",
@@ -533,7 +608,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/machines": {
@@ -543,6 +621,11 @@
         ],
         "summary": "Machines of your shop",
         "operationId": "list_machines_api_machines_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "limit",
@@ -595,7 +678,11 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman",
+          "worker"
+        ]
       },
       "post": {
         "tags": [
@@ -603,6 +690,11 @@
         ],
         "summary": "Add a Machine",
         "operationId": "create_machine_api_machines_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -634,7 +726,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/machines/{machine_id}": {
@@ -644,6 +739,11 @@
         ],
         "summary": "A Machine and its current Note Version (no answers)",
         "operationId": "machine_detail_api_machines__machine_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "machine_id",
@@ -677,7 +777,11 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman",
+          "worker"
+        ]
       }
     },
     "/api/machines/{machine_id}/scan": {
@@ -687,6 +791,11 @@
         ],
         "summary": "The signed-in Worker is at this Machine (Presence)",
         "operationId": "scan_api_machines__machine_id__scan_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "machine_id",
@@ -720,7 +829,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "worker"
+        ]
       }
     },
     "/api/machines/{machine_id}/panel": {
@@ -730,6 +842,11 @@
         ],
         "summary": "Machine Panel state; send If-None-Match to get 304 when unchanged",
         "operationId": "panel_api_machines__machine_id__panel_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "machine_id",
@@ -763,7 +880,11 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "panel",
+          "foreman"
+        ]
       }
     },
     "/api/machines/{machine_id}/panel-token": {
@@ -773,6 +894,11 @@
         ],
         "summary": "Use this device as the Machine's Panel",
         "operationId": "panel_token_api_machines__machine_id__panel_token_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "machine_id",
@@ -806,7 +932,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/machines/{machine_id}/notes": {
@@ -816,6 +945,11 @@
         ],
         "summary": "Record a note → AI draft (never a 500)",
         "operationId": "record_note_api_machines__machine_id__notes_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "machine_id",
@@ -868,7 +1002,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/note-versions/{note_id}": {
@@ -878,6 +1015,11 @@
         ],
         "summary": "A Note Version with its answer key (Foreman)",
         "operationId": "get_note_api_note_versions__note_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "note_id",
@@ -911,7 +1053,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       },
       "patch": {
         "tags": [
@@ -919,6 +1064,11 @@
         ],
         "summary": "Edit one step of a draft",
         "operationId": "edit_note_api_note_versions__note_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "note_id",
@@ -962,7 +1112,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/note-versions/{note_id}/approve": {
@@ -972,6 +1125,11 @@
         ],
         "summary": "Approve: safety change (re-check) or wording change",
         "operationId": "approve_note_api_note_versions__note_id__approve_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "note_id",
@@ -1015,7 +1173,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/checks": {
@@ -1025,6 +1186,11 @@
         ],
         "summary": "Answer a Note Version's Check; graded on the server",
         "operationId": "submit_check_api_checks_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "Idempotency-Key",
@@ -1068,7 +1234,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "worker"
+        ]
       }
     },
     "/api/machines/{machine_id}/overrides": {
@@ -1078,6 +1247,11 @@
         ],
         "summary": "Panel Override: allow without a Sign-off",
         "operationId": "start_override_api_machines__machine_id__overrides_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "machine_id",
@@ -1121,7 +1295,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/machines/{machine_id}/overrides/{override_id}": {
@@ -1131,6 +1308,11 @@
         ],
         "summary": "End a Panel Override early",
         "operationId": "end_override_api_machines__machine_id__overrides__override_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "machine_id",
@@ -1174,7 +1356,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/machines/{machine_id}/versions": {
@@ -1184,6 +1369,11 @@
         ],
         "summary": "Knowledge Library: a Machine's Note Versions, newest first",
         "operationId": "list_versions_api_machines__machine_id__versions_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "machine_id",
@@ -1246,7 +1436,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/metrics/effort": {
@@ -1267,7 +1460,15 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/sign-offs": {
@@ -1277,6 +1478,11 @@
         ],
         "summary": "Sign-offs, newest first (Workers see their own)",
         "operationId": "list_sign_offs_api_sign_offs_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "limit",
@@ -1329,7 +1535,11 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman",
+          "worker"
+        ]
       }
     },
     "/api/confusions": {
@@ -1339,6 +1549,11 @@
         ],
         "summary": "Confusions, newest first",
         "operationId": "list_confusions_api_confusions_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "open",
@@ -1401,7 +1616,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/confusions/{confusion_id}/ack": {
@@ -1411,6 +1629,11 @@
         ],
         "summary": "Acknowledge a Confusion",
         "operationId": "ack_confusion_api_confusions__confusion_id__ack_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "confusion_id",
@@ -1444,7 +1667,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/board": {
@@ -1465,7 +1691,15 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/shift-assignments": {
@@ -1475,6 +1709,11 @@
         ],
         "summary": "Shift Assignments of a day (Workers see their own)",
         "operationId": "list_assignments_api_shift_assignments_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "day",
@@ -1515,7 +1754,11 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman",
+          "worker"
+        ]
       },
       "put": {
         "tags": [
@@ -1523,6 +1766,11 @@
         ],
         "summary": "Assign a Worker to a Machine and shift, or clear it with workerId null",
         "operationId": "set_assignment_api_shift_assignments_put",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -1554,7 +1802,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/glossary": {
@@ -1575,7 +1826,16 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "x-roles": [
+          "foreman",
+          "worker"
+        ]
       },
       "post": {
         "tags": [
@@ -1614,7 +1874,15 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/posters": {
@@ -1635,7 +1903,15 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "x-roles": [
+          "poster"
+        ]
       }
     },
     "/api/notices": {
@@ -1645,6 +1921,11 @@
         ],
         "summary": "Text, voice or flyer photo → AI draft with Events (never a 500)",
         "operationId": "create_notice_api_notices_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "Idempotency-Key",
@@ -1688,7 +1969,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "poster"
+        ]
       },
       "get": {
         "tags": [
@@ -1696,6 +1980,11 @@
         ],
         "summary": "Posters: their own Notices; Workers: the district's published Notices",
         "operationId": "list_notices_api_notices_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "limit",
@@ -1748,7 +2037,11 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "poster",
+          "worker"
+        ]
       }
     },
     "/api/notices/{notice_id}": {
@@ -1758,6 +2051,11 @@
         ],
         "summary": "One Notice: a Poster's own (drafts too), or a published one for a Worker",
         "operationId": "get_notice_api_notices__notice_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "notice_id",
@@ -1791,7 +2089,11 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "poster",
+          "worker"
+        ]
       },
       "patch": {
         "tags": [
@@ -1799,6 +2101,11 @@
         ],
         "summary": "Edit a draft Notice",
         "operationId": "update_notice_api_notices__notice_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "notice_id",
@@ -1842,7 +2149,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "poster"
+        ]
       }
     },
     "/api/notices/{notice_id}/events/{event_id}": {
@@ -1852,6 +2162,11 @@
         ],
         "summary": "Confirm or correct an Event of a draft",
         "operationId": "update_event_api_notices__notice_id__events__event_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "notice_id",
@@ -1905,7 +2220,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "poster"
+        ]
       }
     },
     "/api/notices/{notice_id}/publish": {
@@ -1915,6 +2233,11 @@
         ],
         "summary": "Publish; 409 EVENTS_NOT_CONFIRMED until every date is confirmed",
         "operationId": "publish_notice_api_notices__notice_id__publish_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "notice_id",
@@ -1948,7 +2271,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "poster"
+        ]
       }
     },
     "/api/notices/{notice_id}/reach": {
@@ -1958,6 +2284,11 @@
         ],
         "summary": "How many district Workers opened and understood it (counts only)",
         "operationId": "notice_reach_api_notices__notice_id__reach_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "notice_id",
@@ -1991,7 +2322,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "poster"
+        ]
       }
     },
     "/api/events": {
@@ -2001,6 +2335,11 @@
         ],
         "summary": "Dates of confirmed district Events in a range (at most 62 days)",
         "operationId": "list_events_api_events_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "from",
@@ -2044,7 +2383,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "worker"
+        ]
       }
     },
     "/api/receipts": {
@@ -2085,7 +2427,15 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "x-roles": [
+          "worker"
+        ]
       }
     },
     "/api/blobs/{blob_id}": {
@@ -2095,6 +2445,11 @@
         ],
         "summary": "A flyer photo of your district (JPEG, EXIF removed)",
         "operationId": "get_blob_api_blobs__blob_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "blob_id",
@@ -2121,7 +2476,11 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "poster",
+          "worker"
+        ]
       }
     },
     "/api/asks": {
@@ -2131,6 +2490,11 @@
         ],
         "summary": "Ask by text or voice; answered only from published Notices",
         "operationId": "create_ask_api_asks_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "Idempotency-Key",
@@ -2173,7 +2537,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "worker"
+        ]
       },
       "get": {
         "tags": [
@@ -2181,6 +2548,11 @@
         ],
         "summary": "Your own Asks, newest first",
         "operationId": "list_asks_api_asks_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "limit",
@@ -2233,7 +2605,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "worker"
+        ]
       }
     },
     "/api/asks/{ask_id}/forward": {
@@ -2243,6 +2618,11 @@
         ],
         "summary": "Send an Ask to your Senpai; 409 NO_ACTIVE_PAIR without one",
         "operationId": "forward_ask_api_asks__ask_id__forward_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "ask_id",
@@ -2276,7 +2656,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "worker"
+        ]
       }
     },
     "/api/senpai-pairs": {
@@ -2286,6 +2669,11 @@
         ],
         "summary": "Senpai pairs of your shop",
         "operationId": "list_pairs_api_senpai_pairs_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "limit",
@@ -2338,7 +2726,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       },
       "post": {
         "tags": [
@@ -2346,6 +2737,11 @@
         ],
         "summary": "Pair a Worker with a Senpai; the link token is shown once",
         "operationId": "create_pair_api_senpai_pairs_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -2377,7 +2773,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/senpai-pairs/{pair_id}": {
@@ -2387,6 +2786,11 @@
         ],
         "summary": "Revoke a Senpai link",
         "operationId": "revoke_pair_api_senpai_pairs__pair_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "pair_id",
@@ -2420,7 +2824,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/meetups": {
@@ -2430,6 +2837,11 @@
         ],
         "summary": "Meet-ups, newest first (Workers: their own; Foremen: the shop's)",
         "operationId": "list_meetups_api_meetups_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "limit",
@@ -2482,7 +2894,11 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman",
+          "worker"
+        ]
       },
       "post": {
         "tags": [
@@ -2490,6 +2906,11 @@
         ],
         "summary": "Log a Meet-up with your Senpai",
         "operationId": "worker_meetup_api_meetups_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -2521,7 +2942,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "worker"
+        ]
       }
     },
     "/api/senpai/{token}": {
@@ -2696,6 +3120,11 @@
         ],
         "summary": "Support Log for the 登録支援機関 (CSV, UTF-8 with BOM, not enveloped)",
         "operationId": "support_log_csv_api_support_log_csv_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "from",
@@ -2732,7 +3161,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/skill-matrix": {
@@ -2753,7 +3185,15 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/heatmap": {
@@ -2774,7 +3214,15 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/workers/{worker_id}/passport": {
@@ -2784,6 +3232,11 @@
         ],
         "summary": "Skill Passport: a Foreman sees any Worker, a Worker only self",
         "operationId": "passport_api_workers__worker_id__passport_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "worker_id",
@@ -2817,7 +3270,11 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman",
+          "worker"
+        ]
       }
     },
     "/api/threads": {
@@ -2838,7 +3295,16 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "x-roles": [
+          "foreman",
+          "worker"
+        ]
       }
     },
     "/api/threads/{thread_id}/messages": {
@@ -2848,6 +3314,11 @@
         ],
         "summary": "Foreman: voice/text → AI draft. Worker: sent",
         "operationId": "post_message_api_threads__thread_id__messages_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "thread_id",
@@ -2900,7 +3371,11 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman",
+          "worker"
+        ]
       },
       "get": {
         "tags": [
@@ -2908,6 +3383,11 @@
         ],
         "summary": "Poll messages after a cursor; send If-None-Match to get 304 when nothing changed",
         "operationId": "poll_messages_api_threads__thread_id__messages_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "thread_id",
@@ -2958,7 +3438,11 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman",
+          "worker"
+        ]
       }
     },
     "/api/messages/{message_id}/send": {
@@ -2968,6 +3452,11 @@
         ],
         "summary": "Send the edited draft; the Tasks kept go on the Task Board",
         "operationId": "send_message_api_messages__message_id__send_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "message_id",
@@ -3011,7 +3500,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/messages/{message_id}/answers": {
@@ -3021,6 +3513,11 @@
         ],
         "summary": "Answer a message's questions (-1 = not sure) → Wakatta Status",
         "operationId": "answer_message_api_messages__message_id__answers_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "message_id",
@@ -3064,7 +3561,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "worker"
+        ]
       }
     },
     "/api/follow-ups": {
@@ -3074,6 +3574,11 @@
         ],
         "summary": "Follow-ups of your shop, newest first",
         "operationId": "list_follow_ups_api_follow_ups_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "status",
@@ -3147,7 +3652,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/follow-ups/{follow_up_id}": {
@@ -3157,6 +3665,11 @@
         ],
         "summary": "Mark a Follow-up clarified or understood",
         "operationId": "update_follow_up_api_follow_ups__follow_up_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "follow_up_id",
@@ -3200,7 +3713,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/messages/{message_id}/reexplain": {
@@ -3210,6 +3726,11 @@
         ],
         "summary": "Re-explain one term to one Worker (AI)",
         "operationId": "reexplain_api_messages__message_id__reexplain_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "message_id",
@@ -3253,7 +3774,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/messages/{message_id}/nudge": {
@@ -3263,6 +3787,11 @@
         ],
         "summary": "Show a Worker you are waiting for their answer (rate-limited)",
         "operationId": "nudge_api_messages__message_id__nudge_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "message_id",
@@ -3306,7 +3835,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/tasks": {
@@ -3316,6 +3848,11 @@
         ],
         "summary": "The Task Board of your shop; If-None-Match gives 304",
         "operationId": "list_tasks_api_tasks_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "machineId",
@@ -3387,7 +3924,11 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman",
+          "worker"
+        ]
       },
       "post": {
         "tags": [
@@ -3395,6 +3936,11 @@
         ],
         "summary": "Add a Task by hand",
         "operationId": "create_task_api_tasks_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -3426,7 +3972,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/tasks/{task_id}": {
@@ -3436,6 +3985,11 @@
         ],
         "summary": "Move or edit a Task; If-Match: <version>, 412 when it changed meanwhile",
         "operationId": "update_task_api_tasks__task_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "task_id",
@@ -3488,7 +4042,11 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman",
+          "worker"
+        ]
       }
     },
     "/api/briefings/draft": {
@@ -3498,6 +4056,11 @@
         ],
         "summary": "Record a Briefing (voice or text) → AI draft (never a 500)",
         "operationId": "draft_briefing_api_briefings_draft_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "Idempotency-Key",
@@ -3540,7 +4103,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/briefings": {
@@ -3550,6 +4116,11 @@
         ],
         "summary": "Publish the reviewed draft (its edited text and question)",
         "operationId": "publish_briefing_api_briefings_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -3581,7 +4152,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       },
       "get": {
         "tags": [
@@ -3589,6 +4163,11 @@
         ],
         "summary": "Foremen: every Briefing with answers; Workers: published ones with their receipt",
         "operationId": "list_briefings_api_briefings_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "limit",
@@ -3641,7 +4220,11 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman",
+          "worker"
+        ]
       }
     },
     "/api/briefings/{briefing_id}/receipts": {
@@ -3651,6 +4234,11 @@
         ],
         "summary": "Who understood, who only opened it, who has not opened it",
         "operationId": "briefing_receipts_api_briefings__briefing_id__receipts_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "briefing_id",
@@ -3684,7 +4272,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/near-misses": {
@@ -3694,6 +4285,11 @@
         ],
         "summary": "Report a near miss by text or voice, with an optional photo",
         "operationId": "report_api_near_misses_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "Idempotency-Key",
@@ -3737,7 +4333,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "worker"
+        ]
       },
       "get": {
         "tags": [
@@ -3745,6 +4344,11 @@
         ],
         "summary": "Near-miss Reports of your shop, newest first; If-None-Match gives 304",
         "operationId": "list_reports_api_near_misses_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "open",
@@ -3807,7 +4411,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/near-misses/{report_id}/ack": {
@@ -3817,6 +4424,11 @@
         ],
         "summary": "Acknowledge a Near-miss Report",
         "operationId": "acknowledge_api_near_misses__report_id__ack_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "report_id",
@@ -3850,7 +4462,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/near-misses/{report_id}/photo": {
@@ -3860,6 +4475,11 @@
         ],
         "summary": "The report's photo (JPEG, EXIF removed)",
         "operationId": "get_photo_api_near_misses__report_id__photo_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "report_id",
@@ -3886,7 +4506,11 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman",
+          "worker"
+        ]
       }
     }
   },
@@ -10267,6 +10891,12 @@
           "prompt"
         ],
         "title": "WrongQuestion"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "type": "http",
+        "scheme": "bearer"
       }
     }
   }
