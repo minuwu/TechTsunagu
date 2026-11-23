@@ -58,7 +58,7 @@ This file is:
 | `XREQ-002` | P1 | Backend (Anim) | Frontend (Minhaz) | Life contract: Notices, Events, Asks, Senpai, Meet-ups (`backend/app/schemas/`) | `[PENDING]` | 2026-11-22 20:06 |
 | `XREQ-003` | P1 | AI (Galib) | Backend (Asif) | Review the free-AI plan: model chain, budgets, Groq Whisper, settings; Briefing receipts route ([AI_PLAN.md](contributors/galib/AI_PLAN.md)) | `[IN_PROGRESS]` | 2026-11-22 22:40 |
 | `XREQ-004` | P2 | AI (Galib) | Frontend (Minhaz, Arjun) | "Dictate instead" fallback, degraded-draft message, provenance line ([AI_PLAN.md](contributors/galib/AI_PLAN.md) §2, §8) | `[PENDING]` | 2026-11-22 22:40 |
-| `XREQ-005` | P1 | Frontend (Minhaz) | Backend (Anim, Asif) | Chat API: Threads, Messages (voice/text), Wakatta Status answers, Follow-ups, Re-explanation, Nudge, Tasks + Task Board | `[PENDING]` | 2026-11-22 17:55 |
+| `XREQ-005` | P1 | Frontend (Minhaz) | Backend (Anim, Asif) | Chat API: Threads, Messages (voice/text), Wakatta Status answers, Follow-ups, Re-explanation, Nudge, Tasks + Task Board | `[DONE]` | 2026-11-22 17:55 |
 | `XREQ-006` | P1 | Frontend (Minhaz) | AI (Galib) | Chat AI: voice → transcript → translation → Check Questions → Task extraction (`build_message`), Worker reply translation, Re-explanation | `[PENDING]` | 2026-11-22 17:55 |
 | `XREQ-007` | P1 | Frontend (Minhaz) | AI (Galib), Backend (Asif, Anim) | Pick the Japanese ⇄ English transcription and translation models by a bake-off on our own audio, not on free-tier quota | `[PENDING]` | 2026-11-23 03:48 |
 
@@ -222,7 +222,7 @@ No new error codes.
 - **Priority**: `P1 (High)`
 - **From**: Frontend (Minhaz)
 - **To**: Backend (Anim: routes, services, tests; Asif: tables and migration)
-- **Status**: `[PENDING]`
+- **Status**: `[DONE]`
 - **Created**: `2026-11-22 17:55 (UTC+6)`
 - **Target Interface / Endpoint**: new `routers/chat.py`, `services/chat.py`, `repositories/chat.py`; tables in the next migration
 
@@ -261,9 +261,9 @@ POST /api/messages/91/answers → 200
 Errors: `403 FORBIDDEN` (not a member of the Thread), `404 NOT_FOUND` (another shop), `409 ALREADY_SENT`, `412 VERSION_CONFLICT` (Task moved by someone else), `422 VALIDATION_ERROR`, `429 RATE_LIMITED` (Nudge).
 
 **Fulfillment & Proof (filled by recipient on completion):**
-- **Branch / Commit**: 
-- **Status / Notes**: 
-- **Verification Proof**: 
+- **Branch / Commit**: `main`: `e702961` (routes, items 2–6, 8), `729118f` (seed, item 7; Follow-up and Task scope fix after the security review)
+- **Status / Notes**: 2026-11-23 Anim. All routes as in the card. Differences: Task drafts live only in the POST response (no column; a retried POST returns none); a Worker moves any shop Task but only the Foreman changes assignees or `dueAt` (403); Follow-ups are listed and changed only by Foremen in that Thread; Nudge shows as `nudged` on the Worker's message (audit `nudge:<userId>`, one per 10 min); Re-explanation with the model down is 503 `AI_UNAVAILABLE`. `MessageDraft` / `Reexplanation` and `draft_message.v1` / `reexplain.v1` are a proposal for XREQ-006 so the routes run on the fake client; Galib owns tuning and the eval.
+- **Verification Proof**: `tests/api/test_chat.py` (11), `tests/domain/test_chat_rules.py` (11), `tests/seed/test_chat_seed.py` (2); full suite 312 passed; ruff, pyright strict, lint-imports clean; `docs/openapi.yaml` regenerated.
 
 #### `[XREQ-006]` Chat AI: transcription, translation, Check Questions, Task extraction
 - **Priority**: `P1 (High)`
