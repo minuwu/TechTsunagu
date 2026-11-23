@@ -129,7 +129,7 @@ def seed_work(db: Session, pepper: str, now: datetime) -> Refs:
             shop_id=note.shop_id,
             worker_id=worker_id,
             note_version_id=note.id,
-            language="bn",
+            language="en",
             answers=[int(str(q["correctIndex"])) for q in note.questions],
             passed=True,
             idempotency_key=_key(f"check-{i}"),

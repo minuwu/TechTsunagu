@@ -21,7 +21,7 @@ class FakeAiClient:
         self._script.setdefault(pipeline, deque()).append(answer)
 
     def generate(
-        self, prompt: Prompt, parts: list[Part], schema: type[object], languages: Sequence[str] = ("bn", "en")
+        self, prompt: Prompt, parts: list[Part], schema: type[object], languages: Sequence[str] = ("en",)
     ) -> str:
         self.calls += 1
         self.last_prompt_text = "\n".join([prompt.text, *(p.text_value or "" for p in parts)])

@@ -52,7 +52,7 @@ from app.services.auth import Principal
 NOTICE_PROMPT_VERSION = 3
 # shortcut: a Notice belongs to a district, not a shop, so its languages are fixed; use the union of the district
 # shops' languages (shops.languages) when a district has shops with other languages.
-AI_LANGUAGES = ("bn", "en")
+AI_LANGUAGES = ("en",)  # the team dropped Bengali (2026-11-23): Japanese + English
 LANGUAGES = ("ja", *AI_LANGUAGES)
 PLACEHOLDER = "（ここを入力してください）"  # a degraded draft's empty fields; publish refuses while one is left
 NEXT_DATES = 3

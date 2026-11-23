@@ -7,7 +7,6 @@
    "district": "d-minato",
    "name": "佐世保鋼材加工（架空）",
    "languages": [
-    "bn",
     "en"
    ]
   },
@@ -17,7 +16,6 @@
    "district": "d-minato",
    "name": "諫早精機（架空）",
    "languages": [
-    "bn",
     "en"
    ]
   }
@@ -43,21 +41,21 @@
    "key": "w-rahim",
    "shop": "s-sasebo",
    "name": "Rahim Uddin",
-   "language": "bn",
+   "language": "en",
    "pin": "2468"
   },
   {
    "key": "w-sadia",
    "shop": "s-sasebo",
    "name": "Sadia Akter",
-   "language": "bn",
+   "language": "en",
    "pin": "2468"
   },
   {
    "key": "w-tanvir",
    "shop": "s-sasebo",
    "name": "Tanvir Hasan",
-   "language": "bn",
+   "language": "en",
    "pin": "2468"
   },
   {

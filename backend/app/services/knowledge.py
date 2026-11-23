@@ -154,21 +154,24 @@ def ask(
         )
     db.commit()  # nothing is held open during the model calls (§8.3)
 
-    # Japanese or spoken questions are searched in English too: the public guides are the English editions.
+    # Japanese, Bengali or spoken questions are searched in English only: the public guides are the English editions,
+    # and Japanese pairs such as 「ください」 matched unrelated pages (the guide quotes Japanese phrases).
     query = text or ""
+    search_text = query
     if audio and mime:
         english = _english(ai, shop_id, Part.blob(audio, mime), spoken, hashlib.sha256(audio).digest(), now)
         if english is None:
             return _out("", False, None, [], None)
-        query = english
+        query = search_text = english
     elif any(not ch.isascii() for ch in query) and tokens(query):
         english = _english(ai, shop_id, Part.text(f"<source_text>{query}</source_text>"), spoken, query.encode(), now)
-        query = f"{query} {english or ''}"
+        if english:
+            query, search_text = f"{query} ({english})", english
     if is_emergency(query):
         return _card(query)
 
     sources, guide_pieces, chunks = _guides()
-    found = search(query, [*own, *guide_pieces], k=6)
+    found = search(search_text, [*own, *guide_pieces], k=6)
     if not found:
         return _out(query, False, None, [], None)
     for p in found:

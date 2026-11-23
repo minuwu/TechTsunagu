@@ -41,7 +41,7 @@ class AiClient(Protocol):
     model: str
 
     def generate(
-        self, prompt: Prompt, parts: list[Part], schema: type[object], languages: Sequence[str] = ("bn", "en")
+        self, prompt: Prompt, parts: list[Part], schema: type[object], languages: Sequence[str] = ("en",)
     ) -> str:
         """Returns the model's raw JSON text for `schema`; raises AiUnavailable or QuotaExhausted."""
         ...
