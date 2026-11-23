@@ -90,13 +90,13 @@ def seed_work(db: Session, pepper: str, now: datetime) -> Refs:
         approved_at = now - timedelta(days=n["approvedDaysAgo"])
         questions = [
             {
-                "id": q["key"],
+                "id": f"q{i}",  # the API's CheckQuestion id shape (q1, q2…), as AI drafts number them
                 "termId": str(refs[q["term"]]) if q["term"] else None,
                 "prompt": q["prompt"],
                 "options": q["options"],
                 "correctIndex": q["correctIndex"],
             }
-            for q in n["questions"]
+            for i, q in enumerate(n["questions"], start=1)
         ]
         note = NoteVersion(
             shop_id=machine.shop_id,

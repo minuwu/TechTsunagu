@@ -2612,6 +2612,91 @@
           }
         }
       }
+    },
+    "/api/skill-matrix": {
+      "get": {
+        "tags": [
+          "work"
+        ],
+        "summary": "Skill Matrix (力量表): every Worker × Machine with its Sign-off status",
+        "operationId": "skill_matrix_api_skill_matrix_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_SkillMatrix_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/heatmap": {
+      "get": {
+        "tags": [
+          "work"
+        ],
+        "summary": "Confusions per Glossary Term × Machine, most confused term first",
+        "operationId": "heatmap_api_heatmap_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Heatmap_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workers/{worker_id}/passport": {
+      "get": {
+        "tags": [
+          "work"
+        ],
+        "summary": "Skill Passport: a Foreman sees any Worker, a Worker only self",
+        "operationId": "passport_api_workers__worker_id__passport_get",
+        "parameters": [
+          {
+            "name": "worker_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Worker Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Passport_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -3757,6 +3842,29 @@
         ],
         "title": "Envelope[Health]"
       },
+      "Envelope_Heatmap_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/Heatmap"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[Heatmap]"
+      },
       "Envelope_LoginOut_": {
         "properties": {
           "success": {
@@ -4195,6 +4303,29 @@
         ],
         "title": "Envelope[PanelToken]"
       },
+      "Envelope_Passport_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/Passport"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[Passport]"
+      },
       "Envelope_SenpaiPairCreated_": {
         "properties": {
           "success": {
@@ -4240,6 +4371,29 @@
           "data"
         ],
         "title": "Envelope[SenpaiView]"
+      },
+      "Envelope_SkillMatrix_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/SkillMatrix"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[SkillMatrix]"
       },
       "Envelope_Union_AssignmentOut__NoneType__": {
         "properties": {
@@ -4734,6 +4888,96 @@
           "status"
         ],
         "title": "Health"
+      },
+      "HeatCell": {
+        "properties": {
+          "machineId": {
+            "type": "string",
+            "title": "Machineid"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "machineId",
+          "count"
+        ],
+        "title": "HeatCell"
+      },
+      "HeatRow": {
+        "properties": {
+          "termId": {
+            "type": "string",
+            "title": "Termid"
+          },
+          "ja": {
+            "type": "string",
+            "title": "Ja"
+          },
+          "reading": {
+            "type": "string",
+            "title": "Reading"
+          },
+          "translations": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Translations"
+          },
+          "cells": {
+            "items": {
+              "$ref": "#/components/schemas/HeatCell"
+            },
+            "type": "array",
+            "title": "Cells"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "termId",
+          "ja",
+          "reading",
+          "translations",
+          "cells",
+          "total"
+        ],
+        "title": "HeatRow"
+      },
+      "Heatmap": {
+        "properties": {
+          "machines": {
+            "items": {
+              "$ref": "#/components/schemas/SkillMachine"
+            },
+            "type": "array",
+            "title": "Machines"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/HeatRow"
+            },
+            "type": "array",
+            "title": "Rows"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "machines",
+          "rows"
+        ],
+        "title": "Heatmap",
+        "description": "GET /heatmap: Confusions per Glossary Term × Machine; only terms with at least one, most confused first."
       },
       "LoginIn": {
         "properties": {
@@ -6159,6 +6403,42 @@
         ],
         "title": "PanelWorker"
       },
+      "Passport": {
+        "properties": {
+          "workerId": {
+            "type": "string",
+            "title": "Workerid"
+          },
+          "displayName": {
+            "type": "string",
+            "title": "Displayname"
+          },
+          "machines": {
+            "items": {
+              "$ref": "#/components/schemas/SkillMachine"
+            },
+            "type": "array",
+            "title": "Machines"
+          },
+          "cells": {
+            "items": {
+              "$ref": "#/components/schemas/SkillCell"
+            },
+            "type": "array",
+            "title": "Cells"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "workerId",
+          "displayName",
+          "machines",
+          "cells"
+        ],
+        "title": "Passport",
+        "description": "GET /workers/{id}/passport: one Worker's Sign-off status on every Machine of the shop."
+      },
       "PinChangeIn": {
         "properties": {
           "currentPin": {
@@ -6519,6 +6799,124 @@
           "passedAt"
         ],
         "title": "SignOffOut"
+      },
+      "SkillCell": {
+        "properties": {
+          "machineId": {
+            "type": "string",
+            "title": "Machineid"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "valid",
+              "expiring",
+              "expired",
+              "none"
+            ],
+            "title": "Status"
+          },
+          "passedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Passedat"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "machineId",
+          "status",
+          "passedAt"
+        ],
+        "title": "SkillCell"
+      },
+      "SkillMachine": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "name": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Name"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "code",
+          "name"
+        ],
+        "title": "SkillMachine"
+      },
+      "SkillMatrix": {
+        "properties": {
+          "machines": {
+            "items": {
+              "$ref": "#/components/schemas/SkillMachine"
+            },
+            "type": "array",
+            "title": "Machines"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/SkillRow"
+            },
+            "type": "array",
+            "title": "Rows"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "machines",
+          "rows"
+        ],
+        "title": "SkillMatrix",
+        "description": "GET /skill-matrix: every active Worker × every Machine of the shop (力量表)."
+      },
+      "SkillRow": {
+        "properties": {
+          "workerId": {
+            "type": "string",
+            "title": "Workerid"
+          },
+          "displayName": {
+            "type": "string",
+            "title": "Displayname"
+          },
+          "cells": {
+            "items": {
+              "$ref": "#/components/schemas/SkillCell"
+            },
+            "type": "array",
+            "title": "Cells"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "workerId",
+          "displayName",
+          "cells"
+        ],
+        "title": "SkillRow"
       },
       "Step": {
         "properties": {
