@@ -257,6 +257,16 @@ export type AssignmentOut = {
 };
 
 /**
+ * BlockIn
+ */
+export type BlockIn = {
+    /**
+     * Contactid
+     */
+    contactId: string;
+};
+
+/**
  * BoardMachine
  */
 export type BoardMachine = {
@@ -304,6 +314,24 @@ export type BoardOut = {
      * Openconfusions
      */
     openConfusions: number;
+};
+
+/**
+ * Body_ask_knowledge_api_knowledge_asks_post
+ */
+export type BodyAskKnowledgeApiKnowledgeAsksPost = {
+    /**
+     * Text
+     */
+    text?: string | null;
+    /**
+     * Audio
+     */
+    audio?: Blob | File | null;
+    /**
+     * Machineid
+     */
+    machineId?: string | null;
 };
 
 /**
@@ -686,6 +714,142 @@ export type ConfusionOut = {
 };
 
 /**
+ * ContactCreate
+ */
+export type ContactCreate = {
+    /**
+     * Token
+     */
+    token: string;
+};
+
+/**
+ * ContactMessageIn
+ */
+export type ContactMessageIn = {
+    /**
+     * Text
+     */
+    text: string;
+    /**
+     * Lang
+     */
+    lang: 'ja' | 'bn' | 'en' | 'vi' | 'id' | 'ne' | 'my' | 'tl' | 'zh';
+};
+
+/**
+ * ContactMessageOut
+ */
+export type ContactMessageOut = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Fromme
+     */
+    fromMe: boolean;
+    /**
+     * Textsrc
+     */
+    textSrc: string;
+    /**
+     * Srclang
+     */
+    srcLang: 'ja' | 'bn' | 'en' | 'vi' | 'id' | 'ne' | 'my' | 'tl' | 'zh';
+    /**
+     * Text
+     */
+    text: string;
+    /**
+     * Createdat
+     */
+    createdAt: string;
+};
+
+/**
+ * ContactMessagesPage
+ */
+export type ContactMessagesPage = {
+    /**
+     * Items
+     */
+    items: Array<ContactMessageOut>;
+    /**
+     * Nextcursor
+     */
+    nextCursor: string | null;
+};
+
+/**
+ * ContactOut
+ */
+export type ContactOut = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Displayname
+     */
+    displayName: string;
+    /**
+     * Language
+     */
+    language: 'ja' | 'bn' | 'en' | 'vi' | 'id' | 'ne' | 'my' | 'tl' | 'zh';
+    /**
+     * Muted
+     */
+    muted: boolean;
+    /**
+     * Hidden
+     */
+    hidden: boolean;
+    /**
+     * Lastmessageat
+     */
+    lastMessageAt: string | null;
+    /**
+     * Unread
+     */
+    unread: number;
+    /**
+     * Createdat
+     */
+    createdAt: string;
+};
+
+/**
+ * ContactPreview
+ *
+ * GET /contacts/resolve: who a scanned QR belongs to. Never an id or a shop.
+ */
+export type ContactPreview = {
+    /**
+     * Displayname
+     */
+    displayName: string;
+    /**
+     * Language
+     */
+    language: 'ja' | 'bn' | 'en' | 'vi' | 'id' | 'ne' | 'my' | 'tl' | 'zh';
+};
+
+/**
+ * ContactUpdate
+ */
+export type ContactUpdate = {
+    /**
+     * Muted
+     */
+    muted?: boolean | null;
+    /**
+     * Hidden
+     */
+    hidden?: boolean | null;
+};
+
+/**
  * DeviceIn
  */
 export type DeviceIn = {
@@ -901,6 +1065,66 @@ export type EnvelopeConfusionOut = {
 };
 
 /**
+ * Envelope[ContactMessageOut]
+ */
+export type EnvelopeContactMessageOut = {
+    /**
+     * Success
+     */
+    success?: true;
+    data: ContactMessageOut;
+    /**
+     * Message
+     */
+    message?: string;
+};
+
+/**
+ * Envelope[ContactMessagesPage]
+ */
+export type EnvelopeContactMessagesPage = {
+    /**
+     * Success
+     */
+    success?: true;
+    data: ContactMessagesPage;
+    /**
+     * Message
+     */
+    message?: string;
+};
+
+/**
+ * Envelope[ContactOut]
+ */
+export type EnvelopeContactOut = {
+    /**
+     * Success
+     */
+    success?: true;
+    data: ContactOut;
+    /**
+     * Message
+     */
+    message?: string;
+};
+
+/**
+ * Envelope[ContactPreview]
+ */
+export type EnvelopeContactPreview = {
+    /**
+     * Success
+     */
+    success?: true;
+    data: ContactPreview;
+    /**
+     * Message
+     */
+    message?: string;
+};
+
+/**
  * Envelope[DeviceOut]
  */
 export type EnvelopeDeviceOut = {
@@ -1014,6 +1238,21 @@ export type EnvelopeInterviewOut = {
      */
     success?: true;
     data: InterviewOut;
+    /**
+     * Message
+     */
+    message?: string;
+};
+
+/**
+ * Envelope[KnowledgeAnswer]
+ */
+export type EnvelopeKnowledgeAnswer = {
+    /**
+     * Success
+     */
+    success?: true;
+    data: KnowledgeAnswer;
     /**
      * Message
      */
@@ -1249,6 +1488,21 @@ export type EnvelopePageConfusionOut = {
 };
 
 /**
+ * Envelope[Page[ContactOut]]
+ */
+export type EnvelopePageContactOut = {
+    /**
+     * Success
+     */
+    success?: true;
+    data: PageContactOut;
+    /**
+     * Message
+     */
+    message?: string;
+};
+
+/**
  * Envelope[Page[FollowUpOut]]
  */
 export type EnvelopePageFollowUpOut = {
@@ -1422,6 +1676,21 @@ export type EnvelopePassport = {
      */
     success?: true;
     data: Passport;
+    /**
+     * Message
+     */
+    message?: string;
+};
+
+/**
+ * Envelope[QrOut]
+ */
+export type EnvelopeQrOut = {
+    /**
+     * Success
+     */
+    success?: true;
+    data: QrOut;
     /**
      * Message
      */
@@ -2130,6 +2399,65 @@ export type InterviewOut = {
      * Createdat
      */
     createdAt: string;
+};
+
+/**
+ * KnowledgeAnswer
+ */
+export type KnowledgeAnswer = {
+    /**
+     * Question
+     */
+    question: string;
+    /**
+     * Covered
+     */
+    covered: boolean;
+    /**
+     * Emergency
+     */
+    emergency: boolean;
+    /**
+     * Answer
+     */
+    answer: {
+        [key: string]: string;
+    } | null;
+    /**
+     * Sources
+     */
+    sources: Array<KnowledgeSource>;
+    check: CheckQuestion | null;
+};
+
+/**
+ * KnowledgeSource
+ */
+export type KnowledgeSource = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Kind
+     */
+    kind: 'safety' | 'life' | 'note' | 'notice';
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Page
+     */
+    page: number | null;
+    /**
+     * Url
+     */
+    url: string | null;
+    /**
+     * Attribution
+     */
+    attribution: string | null;
 };
 
 /**
@@ -2895,6 +3223,20 @@ export type PageConfusionOut = {
 };
 
 /**
+ * Page[ContactOut]
+ */
+export type PageContactOut = {
+    /**
+     * Items
+     */
+    items: Array<ContactOut>;
+    /**
+     * Nextcursor
+     */
+    nextCursor: string | null;
+};
+
+/**
  * Page[FollowUpOut]
  */
 export type PageFollowUpOut = {
@@ -3168,6 +3510,30 @@ export type PosterOut = {
      * Kind
      */
     kind: 'jichikai' | 'city' | 'employer';
+};
+
+/**
+ * QrIn
+ */
+export type QrIn = {
+    /**
+     * Rotate
+     */
+    rotate?: boolean;
+};
+
+/**
+ * QrOut
+ */
+export type QrOut = {
+    /**
+     * Token
+     */
+    token: string | null;
+    /**
+     * Createdat
+     */
+    createdAt: string;
 };
 
 /**
@@ -6365,3 +6731,298 @@ export type RegisterDeviceApiDevicesMePutResponses = {
 };
 
 export type RegisterDeviceApiDevicesMePutResponse = RegisterDeviceApiDevicesMePutResponses[keyof RegisterDeviceApiDevicesMePutResponses];
+
+export type AskKnowledgeApiKnowledgeAsksPostData = {
+    body?: BodyAskKnowledgeApiKnowledgeAsksPost;
+    path?: never;
+    query?: never;
+    url: '/api/knowledge/asks';
+};
+
+export type AskKnowledgeApiKnowledgeAsksPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type AskKnowledgeApiKnowledgeAsksPostError = AskKnowledgeApiKnowledgeAsksPostErrors[keyof AskKnowledgeApiKnowledgeAsksPostErrors];
+
+export type AskKnowledgeApiKnowledgeAsksPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeKnowledgeAnswer;
+};
+
+export type AskKnowledgeApiKnowledgeAsksPostResponse = AskKnowledgeApiKnowledgeAsksPostResponses[keyof AskKnowledgeApiKnowledgeAsksPostResponses];
+
+export type MyQrApiMeQrPostData = {
+    body: QrIn;
+    path?: never;
+    query?: never;
+    url: '/api/me/qr';
+};
+
+export type MyQrApiMeQrPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type MyQrApiMeQrPostError = MyQrApiMeQrPostErrors[keyof MyQrApiMeQrPostErrors];
+
+export type MyQrApiMeQrPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeQrOut;
+};
+
+export type MyQrApiMeQrPostResponse = MyQrApiMeQrPostResponses[keyof MyQrApiMeQrPostResponses];
+
+export type ResolveApiContactsResolveGetData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * Token
+         */
+        token: string;
+    };
+    url: '/api/contacts/resolve';
+};
+
+export type ResolveApiContactsResolveGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ResolveApiContactsResolveGetError = ResolveApiContactsResolveGetErrors[keyof ResolveApiContactsResolveGetErrors];
+
+export type ResolveApiContactsResolveGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeContactPreview;
+};
+
+export type ResolveApiContactsResolveGetResponse = ResolveApiContactsResolveGetResponses[keyof ResolveApiContactsResolveGetResponses];
+
+export type ListContactsApiContactsGetData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Limit
+         */
+        limit?: number;
+        /**
+         * Cursor
+         */
+        cursor?: string | null;
+    };
+    url: '/api/contacts';
+};
+
+export type ListContactsApiContactsGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ListContactsApiContactsGetError = ListContactsApiContactsGetErrors[keyof ListContactsApiContactsGetErrors];
+
+export type ListContactsApiContactsGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopePageContactOut;
+};
+
+export type ListContactsApiContactsGetResponse = ListContactsApiContactsGetResponses[keyof ListContactsApiContactsGetResponses];
+
+export type AddContactApiContactsPostData = {
+    body: ContactCreate;
+    path?: never;
+    query?: never;
+    url: '/api/contacts';
+};
+
+export type AddContactApiContactsPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type AddContactApiContactsPostError = AddContactApiContactsPostErrors[keyof AddContactApiContactsPostErrors];
+
+export type AddContactApiContactsPostResponses = {
+    /**
+     * Successful Response
+     */
+    201: EnvelopeContactOut;
+};
+
+export type AddContactApiContactsPostResponse = AddContactApiContactsPostResponses[keyof AddContactApiContactsPostResponses];
+
+export type UpdateContactApiContactsContactIdPutData = {
+    body: ContactUpdate;
+    path: {
+        /**
+         * Contact Id
+         */
+        contact_id: string;
+    };
+    query?: never;
+    url: '/api/contacts/{contact_id}';
+};
+
+export type UpdateContactApiContactsContactIdPutErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UpdateContactApiContactsContactIdPutError = UpdateContactApiContactsContactIdPutErrors[keyof UpdateContactApiContactsContactIdPutErrors];
+
+export type UpdateContactApiContactsContactIdPutResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeContactOut;
+};
+
+export type UpdateContactApiContactsContactIdPutResponse = UpdateContactApiContactsContactIdPutResponses[keyof UpdateContactApiContactsContactIdPutResponses];
+
+export type BlockApiBlocksPostData = {
+    body: BlockIn;
+    path?: never;
+    query?: never;
+    url: '/api/blocks';
+};
+
+export type BlockApiBlocksPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type BlockApiBlocksPostError = BlockApiBlocksPostErrors[keyof BlockApiBlocksPostErrors];
+
+export type BlockApiBlocksPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeNoneType;
+};
+
+export type BlockApiBlocksPostResponse = BlockApiBlocksPostResponses[keyof BlockApiBlocksPostResponses];
+
+export type UnblockApiBlocksContactIdDeleteData = {
+    body?: never;
+    path: {
+        /**
+         * Contact Id
+         */
+        contact_id: string;
+    };
+    query?: never;
+    url: '/api/blocks/{contact_id}';
+};
+
+export type UnblockApiBlocksContactIdDeleteErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UnblockApiBlocksContactIdDeleteError = UnblockApiBlocksContactIdDeleteErrors[keyof UnblockApiBlocksContactIdDeleteErrors];
+
+export type UnblockApiBlocksContactIdDeleteResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeNoneType;
+};
+
+export type UnblockApiBlocksContactIdDeleteResponse = UnblockApiBlocksContactIdDeleteResponses[keyof UnblockApiBlocksContactIdDeleteResponses];
+
+export type ReadMessagesApiContactsContactIdMessagesGetData = {
+    body?: never;
+    path: {
+        /**
+         * Contact Id
+         */
+        contact_id: string;
+    };
+    query?: {
+        /**
+         * After
+         */
+        after?: string | null;
+    };
+    url: '/api/contacts/{contact_id}/messages';
+};
+
+export type ReadMessagesApiContactsContactIdMessagesGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ReadMessagesApiContactsContactIdMessagesGetError = ReadMessagesApiContactsContactIdMessagesGetErrors[keyof ReadMessagesApiContactsContactIdMessagesGetErrors];
+
+export type ReadMessagesApiContactsContactIdMessagesGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeContactMessagesPage;
+};
+
+export type ReadMessagesApiContactsContactIdMessagesGetResponse = ReadMessagesApiContactsContactIdMessagesGetResponses[keyof ReadMessagesApiContactsContactIdMessagesGetResponses];
+
+export type SendMessageApiContactsContactIdMessagesPostData = {
+    body: ContactMessageIn;
+    headers?: {
+        /**
+         * Idempotency-Key
+         */
+        'Idempotency-Key'?: string | null;
+    };
+    path: {
+        /**
+         * Contact Id
+         */
+        contact_id: string;
+    };
+    query?: never;
+    url: '/api/contacts/{contact_id}/messages';
+};
+
+export type SendMessageApiContactsContactIdMessagesPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type SendMessageApiContactsContactIdMessagesPostError = SendMessageApiContactsContactIdMessagesPostErrors[keyof SendMessageApiContactsContactIdMessagesPostErrors];
+
+export type SendMessageApiContactsContactIdMessagesPostResponses = {
+    /**
+     * Successful Response
+     */
+    201: EnvelopeContactMessageOut;
+};
+
+export type SendMessageApiContactsContactIdMessagesPostResponse = SendMessageApiContactsContactIdMessagesPostResponses[keyof SendMessageApiContactsContactIdMessagesPostResponses];

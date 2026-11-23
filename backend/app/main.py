@@ -22,6 +22,7 @@ from app.routers import (
     auth,
     briefings,
     chat,
+    contacts,
     health,
     interviews,
     knowledge,
@@ -37,7 +38,21 @@ from app.services.ai_runner import AiLimits, AiRunner
 # Every API router, in include order; app.openapi reads the same list to annotate the contract.
 ROUTERS = tuple(
     m.router
-    for m in (health, auth, users, work, life, support, skills, chat, briefings, near_misses, interviews, knowledge)
+    for m in (
+        health,
+        auth,
+        users,
+        work,
+        life,
+        support,
+        skills,
+        chat,
+        briefings,
+        near_misses,
+        interviews,
+        knowledge,
+        contacts,
+    )
 )
 
 
