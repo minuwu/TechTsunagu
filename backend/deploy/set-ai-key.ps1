@@ -17,6 +17,7 @@ if ($vals.GROQ_API_KEY) {
     $secrets += "groq-api-key=$($vals.GROQ_API_KEY)"
     $envVars += "GROQ_API_KEY=secretref:groq-api-key"
 }
+Wait-Idle
 Step "storing $($secrets.Count) AI key(s) as secrets; AI_MODE=gemini, AI_CHAIN=$Chain"
 Invoke-Az containerapp secret set -n $App -g $Rg --secrets @secrets -o none
 Invoke-Az containerapp update -n $App -g $Rg --set-env-vars @envVars -o none

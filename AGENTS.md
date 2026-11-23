@@ -102,7 +102,7 @@ Errors: `401 UNAUTHORIZED` (wrong PIN), `423 PIN_LOCKED` (`details.until`), `429
 
 **Fulfillment & Proof (filled by recipient on completion):**
 - **Branch / Commit**: 
-- **Status / Notes**: 
+- **Status / Notes**: 2026-11-23 Asif: the backend side is live on Azure and verified from outside (CORS from localhost:3000, roster, login, `/auth/me`, authenticated lists). Everything Minhaz needs is in [docs/FRONTEND_API_HANDOVER.md](docs/FRONTEND_API_HANDOVER.md): URL, sign-in flow, headers, list shape, the 5 path changes, demo accounts.
 - **Verification Proof**: 
 
 #### `[XREQ-002]` Life contract: Notices, Events, Asks, Senpai, Meet-ups

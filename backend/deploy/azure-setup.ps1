@@ -126,6 +126,7 @@ Write-Output "  AZURE_CLIENT_ID=$ciClient  AZURE_TENANT_ID=$tenant  AZURE_SUBSCR
 function Remove-Bootstrap {
     Step "removing the bootstrap credential and seed flag; rotating the admin password"
     if (-not (Invoke-Az containerapp list -g $Rg --query "[?name=='$App'].name" -o tsv)) { return }  # create failed: nothing to clean
+    Wait-Idle
     $present = @(Invoke-Az containerapp show -n $App -g $Rg --query "properties.template.containers[0].env[].name" -o tsv)
     $leftover = @("ADMIN_DATABASE_URL", "ADMIN_USER", "OWNER_PASSWORD", "APP_PASSWORD", "SEED_ON_START") | Where-Object { $present -contains $_ }
     if ($leftover) { Invoke-Az containerapp update -n $App -g $Rg --remove-env-vars @leftover -o none }
