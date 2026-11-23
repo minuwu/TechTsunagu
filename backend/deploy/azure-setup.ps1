@@ -18,10 +18,19 @@ foreach ($p in "Microsoft.App", "Microsoft.OperationalInsights", "Microsoft.DBfo
 Invoke-Az group create -n $Rg -l $Loc -o none
 $rgId = Invoke-Az group show -n $Rg --query id -o tsv
 
+# Retries because a just-created identity or custom role takes a short while to become visible to role assignment.
 function Grant($principal, $role, $scope) {
-    if (-not (Invoke-Az role assignment list --assignee $principal --scope $scope --role $role --query "[0].id" -o tsv)) {
-        Invoke-Az role assignment create --assignee-object-id $principal --assignee-principal-type ServicePrincipal `
-            --role $role --scope $scope -o none
+    foreach ($attempt in 1..12) {
+        try {
+            if (-not (Invoke-Az role assignment list --assignee $principal --scope $scope --role $role --query "[0].id" -o tsv)) {
+                Invoke-Az role assignment create --assignee-object-id $principal --assignee-principal-type ServicePrincipal `
+                    --role $role --scope $scope -o none
+            }
+            return
+        } catch {
+            if ($attempt -eq 12) { throw }
+            Start-Sleep -Seconds 10
+        }
     }
 }
 
@@ -116,8 +125,9 @@ if (Invoke-Az containerapp list -g $Rg --query "[?name=='$App'].name" -o tsv) {
     Step "$App already exists: setup is complete (CI ships code from now on)"; return
 }
 
-try { $ref = Invoke-Az acr repository show-tags -n $acr --repository $Image --orderby time_desc --top 1 -o tsv }
-catch { $ref = $null }  # the repository does not exist until CI pushes the first image
+# Newest commit-tagged image (never the mutable "latest"). The repository does not exist until CI pushes one.
+try { $ref = @(Invoke-Az acr repository show-tags -n $acr --repository $Image --orderby time_desc --top 5 -o tsv) | Where-Object { $_ -and $_ -ne "latest" } | Select-Object -First 1 }
+catch { $ref = $null }
 if (-not $ref) {
     Step "infrastructure ready. No image yet: push to main so CI builds it, then run this script again."; return
 }
