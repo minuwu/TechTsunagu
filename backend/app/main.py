@@ -18,11 +18,13 @@ from app.api.errors import install_error_handlers
 from app.api.limits import BodyLimitMiddleware
 from app.config import Settings
 from app.db import make_engine, make_session_factory
-from app.routers import auth, briefings, chat, health, life, near_misses, skills, support, users, work
+from app.routers import auth, briefings, chat, health, interviews, life, near_misses, skills, support, users, work
 from app.services.ai_runner import AiLimits, AiRunner
 
 # Every API router, in include order; app.openapi reads the same list to annotate the contract.
-ROUTERS = tuple(m.router for m in (health, auth, users, work, life, support, skills, chat, briefings, near_misses))
+ROUTERS = tuple(
+    m.router for m in (health, auth, users, work, life, support, skills, chat, briefings, near_misses, interviews)
+)
 
 
 def _limits(settings: Settings, model: str) -> AiLimits:

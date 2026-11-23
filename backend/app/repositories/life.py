@@ -240,3 +240,7 @@ def meetups_page(db: Session, shop_id: int, worker_id: int | None, before_id: in
     if before_id is not None:
         stmt = stmt.where(Meetup.id < before_id)
     return list(db.scalars(stmt.order_by(Meetup.id.desc()).limit(limit + 1)))
+
+
+def meetup_by_key(db: Session, shop_id: int, key: uuid.UUID) -> Meetup | None:
+    return db.scalar(select(Meetup).where(Meetup.shop_id == shop_id, Meetup.idempotency_key == key))

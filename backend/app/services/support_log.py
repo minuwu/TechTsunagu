@@ -9,6 +9,7 @@ from app.api.errors import ApiError
 from app.domain.recurrence import TOKYO
 from app.domain.support_log import SupportEvent, render_support_log
 from app.repositories import chat as chat_repo
+from app.repositories import interviews as interview_repo
 from app.repositories import life as repo
 from app.schemas.senpai import SupportLogQuery
 from app.services.auth import Principal
@@ -31,6 +32,10 @@ def export(db: Session, who: Principal, q: SupportLogQuery) -> bytes:
         content = f"「{fu.term_ja}」の確認（{said or ''}）"
         handling = f"{foreman}：{fu.note}" if fu.note else foreman
         events.append(SupportEvent("consultation", fu.resolved_at or fu.created_at, worker, content, handling, "Chat"))
+    for iv, worker, foreman in interview_repo.between(db, shop_id, q.from_, q.to):
+        how = "対面" if iv.method == "face" else "オンライン（本人同意済み）"
+        content = f"面談（{how}）{iv.note_ja}".strip()
+        events.append(SupportEvent("interview", iv.held_on, worker, content, foreman, "Foreman"))
     for m, worker, senpai in repo.meetups_between(db, shop_id, q.from_, q.to):
         content = f"{MEETUP_KINDS.get(m.kind, m.kind)}　{m.note}".strip()
         source = "Senpai" if m.logged_by == "senpai" else "Worker"

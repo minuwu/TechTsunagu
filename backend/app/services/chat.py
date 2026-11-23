@@ -554,8 +554,12 @@ def list_tasks(db: Session, who: Principal, page: PageParams, machine_id: int | 
     return Page(items=[_task_out(t, assignees[t.id]) for t in shown], next_cursor=cursor)
 
 
-def create_task(db: Session, who: Principal, body: TaskCreate) -> TaskOut:
+def create_task(db: Session, who: Principal, body: TaskCreate, key: uuid.UUID | None = None) -> TaskOut:
     shop_id, user_id = _me(who)
+    if key is not None and (done := repo.task_by_key(db, shop_id, key)) is not None:
+        if done.created_by != user_id:
+            raise ApiError(409, "IDEMPOTENCY_KEY_REUSED", "This Idempotency-Key was already used for another record")
+        return _task_out(done, repo.assignees_of(db, shop_id, [done.id])[done.id])  # a retry returns the first
     people, machine = [int(a) for a in body.assignee_ids], int(body.machine_id) if body.machine_id else None
     _check_people(db, shop_id, people, machine)
     row = Task(
@@ -564,6 +568,7 @@ def create_task(db: Session, who: Principal, body: TaskCreate) -> TaskOut:
         due_at=body.due_at,
         machine_id=machine,
         created_by=user_id,
+        idempotency_key=key,
     )
     db.add(row)
     db.flush()

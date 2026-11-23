@@ -4,6 +4,23 @@ Owner: Anim (`anim710`) — Role: Backend (WS10 Notices + Events, WS11 Asks + Se
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-23 (Asif is off the project: backend lead, database and deploy are mine)
+
+### Completed
+- **XREQ-008 (P0) `[DONE]`** (`df1606f`): `docs/openapi.yaml` declares `HTTPBearer` on every protected operation and `x-roles` per route (75 operations), from `require()` itself; `BACKEND_ARCHITECTURE` §8.2 replay status and §9.2 every error code the code returns; the card answers the base URL, demo shop, accounts and reset.
+- **XREQ-012 `[DONE]`**: live API on Supabase, smoke 12/12, SQL checks; XREQ-003 items 5-6 noted done.
+- **Migration `99f33c3ca2c7`** (schema is mine now): `periodic_interviews`, `devices`, optional `idempotency_key` on `meetups` and `tasks`; up → down → up clean; app role gets DML only.
+- **XREQ-010 (agreed subset)**: `GET /interviews/due`, `GET|POST /workers/{id}/interviews` (face/online with consent, no future date, optional Idempotency-Key, audited), Support Log **item 10** (the file now covers it; the "not covered" note keeps only 参考様式第3-6号), `GET /today-word` (`seed_data/phrasebook.json`, bn + en), `GET /senpai-pairs/me`. Contacts / QR / Talk Threads / group controls are "planned".
+- **XREQ-009**: `GET /app/config` (public, env-driven), `PUT|DELETE /devices/me` (upsert per install, shared token moves, 6/min, tied to the session); push only, no inbox; photos JPEG ≤ 2 MB (doc now matches code).
+- **XREQ-011**: optional Idempotency-Key on `POST /meetups`, `/tasks`; Notices: Posters only (decided).
+- **Requests out**: XREQ-014 (Minhaz: Firebase, step-by-step), XREQ-015 (Asif: Contributor on the resource group for Anim).
+- Verified: 342 tests pass; ruff, format, pyright strict, lint-imports clean; contract regenerated.
+
+### Blocked / next
+- **Azure (XREQ-015)**: until Asif grants Contributor, I cannot host the web demo (XREQ-013), set CORS for it, reset the demo or switch the AI chain before filming, or delete the old Azure PostgreSQL server. Code still deploys through `backend-deploy.yml`.
+- **XREQ-011 still open**: Worker's own Follow-ups / Learning History / analytics (item 1), `PATCH /glossary/{id}` (item 4).
+- **Firebase sender**: after Minhaz sends the service-account key privately (XREQ-014).
+
 ## 2026-11-23 (database on Supabase; I own the database now)
 
 ### Completed

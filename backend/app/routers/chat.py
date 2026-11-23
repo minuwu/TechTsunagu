@@ -38,6 +38,7 @@ Worker = Annotated[Principal, Depends(require("worker"))]
 ShopMember = Annotated[Principal, Depends(require("foreman", "worker"))]
 Paging = Annotated[PageParams, Depends(page_params)]
 IdempotencyKey = Annotated[uuid.UUID, Header(alias="Idempotency-Key")]
+OptionalKey = Annotated[uuid.UUID | None, Header(alias="Idempotency-Key")]  # optional: the web app sends none yet
 
 
 def _ai(request: Request) -> AiRunner:
@@ -140,8 +141,8 @@ def list_tasks(
 
 
 @router.post("/tasks", status_code=201, summary="Add a Task by hand")
-def create_task(who: Foreman, body: TaskCreate, db: DbSession) -> Envelope[TaskOut]:
-    return Envelope(data=chat.create_task(db, who, body))
+def create_task(who: Foreman, body: TaskCreate, db: DbSession, key: OptionalKey = None) -> Envelope[TaskOut]:
+    return Envelope(data=chat.create_task(db, who, body, key))
 
 
 @router.patch("/tasks/{task_id}", summary="Move or edit a Task; If-Match: <version>, 412 when it changed meanwhile")

@@ -412,11 +412,11 @@ Also: GZip for responses over 1 KB (Starlette's `GZipMiddleware`, no new depende
 
 ### 9.1 Conventions (ADR 0011; [API_SPEC.md §1](API_SPEC.md#1-conventions) is updated to match)
 - Envelope on every JSON response: `{success: true, data, message}` / `{success: false, error: {code, message, details}}`.
-- **camelCase** keys (Pydantic `alias_generator=to_camel`, `populate_by_name`). **Ids are strings** on the wire; a non-numeric id is a 404.
+- **camelCase** keys (Pydantic `alias_generator=to_camel`, `populate_by_name`). **Ids are strings** on the wire; a non-numeric id is a 422 (§9.2).
 - Unknown request fields are rejected (`extra="forbid"`), 422.
 - UTC ISO 8601 timestamps; dates `YYYY-MM-DD` in the shop timezone; nullable fields always present.
 - **Lists are cursor-paged:** `?limit=` (default 50, max 200) and `?cursor=`; `data` is `{items, nextCursor}` (`null` on the last page). The cursor is opaque (base64 of the last sort key and id).
-- Auth: `Authorization: Bearer <token>` on every route except `/api/health*`, `/api/auth/roster`, `/api/auth/login` and the `/api/senpai/{token}` family.
+- Auth: `Authorization: Bearer <token>` on every route except `/api/health*`, `/api/auth/roster`, `/api/auth/login`, `/api/app/config` (the Android version gate must answer before sign-in) and the `/api/senpai/{token}` family. Push is send-only: there is no notification inbox (XREQ-009 item 4, decided 2026-11-23).
 
 ### 9.2 Errors
 
@@ -615,8 +615,8 @@ The models and every budget live in one table, [`app/ai/chains.py`](../backend/a
 | Upload | Allowed (magic bytes, not the header) | Max | Processing |
 | :--- | :--- | :--- | :--- |
 | Audio (notes, briefings, notices, asks, near-miss) | webm/opus, ogg/opus, mp4/m4a | 8 MB (≈ 60 s) | hashed for the cache and idempotency, **never stored** |
-| Flyer photo | jpeg, png, webp (heic → 415 with "use JPEG") | 5 MB in | Pillow: auto-rotate, max 2048 px, re-encode JPEG, EXIF and GPS removed, ≤ 2 MB stored |
-| Near-miss photo | jpeg, png, webp | 5 MB in | same |
+| Flyer photo | **JPEG only** (anything else → 415 "use JPEG") | **2 MB** in | the client re-encodes to JPEG; the server removes APP1 (EXIF, GPS) and stores ≤ 2 MB (`app/media.py`; decided 2026-11-23, XREQ-009 item 5: no Pillow) |
+| Near-miss photo | JPEG only | 2 MB in | same |
 
 A 10 MB body limit applies before multipart parsing. Pillow's decompression-bomb guard stays on (`Image.MAX_IMAGE_PIXELS`).
 

@@ -233,3 +233,7 @@ def machine_ids(db: Session, shop_id: int, ids: list[int]) -> set[int]:
     if not ids:
         return set()
     return set(db.scalars(select(Machine.id).where(Machine.shop_id == shop_id, Machine.id.in_(ids))))
+
+
+def task_by_key(db: Session, shop_id: int, key: uuid.UUID) -> Task | None:
+    return db.scalar(select(Task).where(Task.shop_id == shop_id, Task.idempotency_key == key))

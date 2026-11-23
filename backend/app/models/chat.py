@@ -179,6 +179,7 @@ class Task(Base):
         shop_fk("from_message_id", "messages"),
         shop_fk("created_by", "users"),
         Index("ix_tasks_shop_column", "shop_id", "board_column"),
+        UniqueConstraint("shop_id", "idempotency_key"),
     )
 
     id: Mapped[IdPk]
@@ -192,6 +193,8 @@ class Task(Base):
     created_by: Mapped[int] = mapped_column(BigInteger)
     # Optimistic lock for `If-Match` (412 on a stale move): bump on every change.
     version: Mapped[int] = mapped_column(Integer, server_default=sql_text("1"))
+    # A retried offline create must not make two rows (XREQ-011 item 2); optional so the web app needs no change.
+    idempotency_key: Mapped[uuid.UUID | None] = mapped_column(Uuid)
     created_at: Mapped[CreatedAt]
     updated_at: Mapped[Timestamp] = mapped_column(server_default=sql_text("now()"))
 
