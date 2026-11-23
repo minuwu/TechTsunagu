@@ -56,10 +56,10 @@ This file is:
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | `XREQ-001` | P1 | Backend (Asif) | Frontend (Minhaz) | Auth, ids and list shape for the real API ([BACKEND_ARCHITECTURE.md §17](docs/BACKEND_ARCHITECTURE.md#17-frontend-contract-changes)) | `[PENDING]` | 2026-11-22 19:10 |
 | `XREQ-002` | P1 | Backend (Anim) | Frontend (Minhaz) | Life contract: Notices, Events, Asks, Senpai, Meet-ups (`backend/app/schemas/`) | `[PENDING]` | 2026-11-22 20:06 |
-| `XREQ-003` | P1 | AI (Galib) | Backend (Asif) | Review the free-AI plan: model chain, budgets, Groq Whisper, settings; Briefing receipts route ([AI_PLAN.md](contributors/galib/AI_PLAN.md)) | `[IN_PROGRESS]` | 2026-11-22 22:40 |
+| `XREQ-003` | P1 | AI (Galib) | Backend (Asif) | Review the free-AI plan: model chain, budgets, Groq Whisper, settings; Briefing receipts route ([AI_PLAN.md](contributors/galib/AI_PLAN.md)) | `[DONE]` | 2026-11-22 22:40 |
 | `XREQ-004` | P2 | AI (Galib) | Frontend (Minhaz, Arjun) | "Dictate instead" fallback, degraded-draft message, provenance line ([AI_PLAN.md](contributors/galib/AI_PLAN.md) §2, §8) | `[PENDING]` | 2026-11-22 22:40 |
 | `XREQ-005` | P1 | Frontend (Minhaz) | Backend (Anim, Asif) | Chat API: Threads, Messages (voice/text), Wakatta Status answers, Follow-ups, Re-explanation, Nudge, Tasks + Task Board | `[DONE]` | 2026-11-22 17:55 |
-| `XREQ-006` | P1 | Frontend (Minhaz) | AI (Galib) | Chat AI: voice → transcript → translation → Check Questions → Task extraction (`build_message`), Worker reply translation, Re-explanation | `[PENDING]` | 2026-11-22 17:55 |
+| `XREQ-006` | P1 | Frontend (Minhaz) | AI (Galib) | Chat AI: voice → transcript → translation → Check Questions → Task extraction (`build_message`), Worker reply translation, Re-explanation | `[IN_PROGRESS]` | 2026-11-22 17:55 |
 | `XREQ-007` | P1 | Frontend (Minhaz) | AI (Galib), Backend (Asif, Anim) | Pick the Japanese ⇄ English transcription and translation models by a bake-off on our own audio, not on free-tier quota | `[IN_PROGRESS]` | 2026-11-23 03:48 |
 
 | `XREQ-008` | P0 | Frontend (Minhaz, Android app) | Backend (Asif) | Hosted API: public base URL, test shop and accounts, health check, Bearer scheme in `openapi.yaml` | `[DONE]` | 2026-11-23 08:25 |
@@ -158,7 +158,7 @@ Errors: `404 NOT_FOUND` (wrong or revoked Senpai token), `409 NO_ACTIVE_PAIR` (f
 - **Priority**: `P1 (High)`
 - **From**: AI (Galib)
 - **To**: Backend (Asif)
-- **Status**: `[IN_PROGRESS]`
+- **Status**: `[DONE]`
 - **Created**: `2026-11-22 22:40 (UTC+6)`
 - **Target Interface / Endpoint**: `docs/BACKEND_ARCHITECTURE.md` §10.3, §10.4; `backend/.env.example`; `backend/pyproject.toml`; `app/ai/`
 
@@ -188,9 +188,9 @@ Authorization: Bearer <foreman token>
 Errors: `403 FORBIDDEN` (not a Foreman), `404 NOT_FOUND` (another shop's Briefing), `409` if the Briefing is still a draft.
 
 **Fulfillment & Proof (filled by recipient on completion):**
-- **Branch / Commit**: 
-- **Status / Notes**: 2026-11-23 Asif: **all 7 items accepted as written**, `httpx` approved as a runtime dependency. Galib builds items 1–4 and 7 (`AI_CHAIN`, ladder with Groq Whisper, per-model budgets, settings, `ai_pipelines.py`; the `transcribed` value for `note_versions.ai_outcome` needs a migration: ask Asif, schema owner). Asif builds items 5 (`GET /briefings/{id}/receipts`; the glossary already lives in `app/seed_data/`) and 6 (`approvedBy` on Note Version). `GROQ_API_KEY` is in `.env.example` and in Asif's local `.env`. Also decided: Anim takes Skill Matrix / Heatmap / Skill Passport (WS5) from Asif's list. 2026-11-23 Anim (Asif's items, Asif is off the project): item 5 done, `GET /briefings/{id}/receipts` in `backend/app/routers/briefings.py`; item 6 done, `approvedBy` on Note Version (`617e11e`). Galib's items 1–4 and 7 are his to close.
-- **Verification Proof**: 
+- **Branch / Commit**: `main`: `fec51b9` (PR #8: Gemini HTTP 400 fix, model chain, budgets, Groq backup), `b8b51df` (3.5 Flash-Lite first in `demo`), Briefing receipts `a962a99` (PR #10)
+- **Status / Notes**: 2026-11-23 Asif: **all 7 items accepted as written**, `httpx` approved as a runtime dependency. Galib builds items 1–4 and 7 (`AI_CHAIN`, ladder with Groq Whisper, per-model budgets, settings, `ai_pipelines.py`; the `transcribed` value for `note_versions.ai_outcome` needs a migration: ask Asif, schema owner). Asif builds items 5 (`GET /briefings/{id}/receipts`; the glossary already lives in `app/seed_data/`) and 6 (`approvedBy` on Note Version). `GROQ_API_KEY` is in `.env.example` and in Asif's local `.env`. Also decided: Anim takes Skill Matrix / Heatmap / Skill Passport (WS5) from Asif's list. 2026-11-23 Anim (Asif's items, Asif is off the project): item 5 done, `GET /briefings/{id}/receipts` in `backend/app/routers/briefings.py`; item 6 done, `approvedBy` on Note Version (`617e11e`). Galib's items 1–4 and 7 are his to close. 2026-11-23 Galib: items 1–4 done: `AI_CHAIN=dev|demo` and `AI_TIER=free|paid` with per-model budgets in `app/ai/chains.py`; the runner walks the chain, reuses a cached answer from any chain model, and ends with the Groq backup (Whisper → `openai/gpt-oss-120b`, on when `GROQ_API_KEY` is set). Item 7 (`ai_pipelines.py`) is superseded: Anim's services call the runner directly, and the checks live in `app/domain/ai_checks.py`. The `transcribed` value for `ai_outcome` is dropped: the Groq backup writes a full draft, not just a transcript.
+- **Verification Proof**: `tests/ai/test_runner.py` (chain cases), `tests/ai/test_groq.py`, `tests/ai/test_chains.py`; CI green; live calls on 2026-11-23 (Gemini fixed, Groq backup answered); local rehearsal with the demo seed: every filmed take OK.
 
 #### `[XREQ-004]` "Dictate instead", degraded-draft message and provenance line
 - **Priority**: `P2 (Normal)`
@@ -273,7 +273,7 @@ Errors: `403 FORBIDDEN` (not a member of the Thread), `404 NOT_FOUND` (another s
 - **Priority**: `P1 (High)`
 - **From**: Frontend (Minhaz)
 - **To**: AI (Galib)
-- **Status**: `[PENDING]`
+- **Status**: `[IN_PROGRESS]`
 - **Created**: `2026-11-22 17:55 (UTC+6)`
 - **Target Interface / Endpoint**: `app/services/ai_pipelines.py` (`draft_message`, `reexplain`, `translate`), `app/ai/schemas.py`, `app/prompts/build_message.v1.md`, `reexplain.v1.md`
 
@@ -300,9 +300,9 @@ draft_message(ai, *, shop_id, terms, members, machines, text=None, audio=None, n
 Fallback outcome `degraded`: `{ "transcriptJa": "…" , "needsEdit": true }` (`transcriptJa` may be empty).
 
 **Fulfillment & Proof (filled by recipient on completion):**
-- **Branch / Commit**: 
-- **Status / Notes**: 
-- **Verification Proof**: 
+- **Branch / Commit**: `main`: Anim's Chat AI `e702961` (schemas, `draft_message` and `reexplain` prompts, service); Galib's checks `10ed785` (PR #9); per-shop languages `0fe468f`; demo cache `b8b51df`
+- **Status / Notes**: 2026-11-23 Galib: items 1, 2, 4 done (Anim's pipelines + `message_problems`, `task_problems`, `reexplain_problems`: glossary lock, assignees and Machines checked, a due time only when one was said, the Re-explanation question on the missed term; the draft cache key includes the Tokyo date). Item 3: the chain ends with the Groq backup (Whisper → gpt-oss-120b); the bake-off (XREQ-007) recommends Whisper turbo as its own first step, still to build. Item 6: `app/ai/demo_warmup.py` warms the die-change message with the other filmed takes. **Left:** item 5, the 10 Chat eval messages scoring Task extraction.
+- **Verification Proof**: `tests/domain/test_ai_checks.py` (Chat cases), `tests/api/test_chat.py`; local rehearsal with real AI: the die-change message drafted in 7.9 s, then 0.0 s from the cache, also after `app.seed --reset`.
 
 #### `[XREQ-007]` Pick the Japanese ⇄ English transcription and translation models by a bake-off
 - **Priority**: `P1 (High)`
@@ -492,7 +492,7 @@ GET /api/tasks?machineId={id}
 
 **Fulfillment & Proof (filled by recipient on completion):**
 - **Branch / Commit**: 
-- **Status / Notes**:  2026-11-23 Anim: item 2 `Idempotency-Key` (optional) on `POST /meetups`, `/tasks`, `/workers/{id}/interviews` (migration `99f33c3ca2c7`); `/receipts` is idempotent by design; `/briefings` is Galib's. Item 3 decided: **Posters only** post Notices. Open: item 1 (own Follow-ups, Learning History, analytics) and item 4 (Glossary PATCH).
+- **Status / Notes**: 2026-11-23 Galib, item 5: per-shop AI languages done (`0fe468f`): every AI pipeline writes ja plus `shops.languages`, the model gets a schema with only those languages, and `language_problems` makes the retry fill a missing one. Notices stay on bn/en (a district has no shop languages yet). The voice-Ask transcript (`question_text`) was done by Arjun (`eadef5f`). Items 1–4, 6–7 are Anim's. 2026-11-23 Anim: item 2 `Idempotency-Key` (optional) on `POST /meetups`, `/tasks`, `/workers/{id}/interviews` (migration `99f33c3ca2c7`); `/receipts` is idempotent by design; `/briefings` is Galib's. Item 3 decided: **Posters only** post Notices. Open: item 1 (own Follow-ups, Learning History, analytics) and item 4 (Glossary PATCH).
 - **Verification Proof**: 
 
 #### `[XREQ-012]` Point the Azure API at the Supabase database
