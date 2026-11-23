@@ -11,6 +11,8 @@ COPY alembic.ini ./
 COPY migrations ./migrations
 COPY app ./app
 COPY jobs ./jobs
+# Supabase's root CA: the API verifies the database server (sslmode=verify-full).
+COPY certs ./certs
 
 FROM python:3.12-slim-bookworm
 RUN useradd --create-home --uid 10001 wakatta
