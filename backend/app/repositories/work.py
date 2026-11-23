@@ -3,7 +3,7 @@
 import uuid
 from datetime import date, datetime
 
-from sqlalchemy import delete, func, select
+from sqlalchemy import delete, func, select, text
 from sqlalchemy.dialects.postgresql import distinct_on, insert
 from sqlalchemy.orm import Session
 
@@ -213,3 +213,36 @@ def override(db: Session, shop_id: int, machine_id: int, override_id: int) -> Pa
             PanelOverride.shop_id == shop_id, PanelOverride.machine_id == machine_id, PanelOverride.id == override_id
         )
     )
+
+
+_NOTE_EFFORT = text(
+    """
+    SELECT count(*),
+           count(*) FILTER (WHERE status = 'approved'),
+           percentile_cont(0.5) WITHIN GROUP (ORDER BY extract(epoch FROM approved_at - created_at))
+               FILTER (WHERE status = 'approved'),
+           percentile_cont(0.5) WITHIN GROUP (ORDER BY edit_count) FILTER (WHERE status = 'approved'),
+           avg((ai_outcome = 'ok')::int) FILTER (WHERE ai_outcome <> 'typed')
+    FROM note_versions WHERE shop_id = :shop_id
+    """
+)
+# Each Worker's first Check on each Note Version, by insertion order.
+_FIRST_TRY = text(
+    """
+    SELECT avg(passed::int) FROM (
+        SELECT DISTINCT ON (worker_id, note_version_id) passed
+        FROM checks WHERE shop_id = :shop_id AND note_version_id IS NOT NULL
+        ORDER BY worker_id, note_version_id, id
+    ) AS first_checks
+    """
+)
+
+
+def effort(db: Session, shop_id: int) -> tuple[int, int, float | None, float | None, float | None, float | None]:
+    drafts, approved, seconds, edits, clean = db.execute(_NOTE_EFFORT, {"shop_id": shop_id}).one()
+    first_try = db.execute(_FIRST_TRY, {"shop_id": shop_id}).scalar_one()
+
+    def num(v: object) -> float | None:
+        return None if v is None else float(str(v))
+
+    return int(drafts), int(approved), num(seconds), num(edits), num(clean), num(first_try)

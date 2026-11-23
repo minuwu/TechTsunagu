@@ -211,3 +211,14 @@ class GlossaryOut(CamelModel):
     reading: str
     bn: str
     en: str
+
+
+class EffortOut(CamelModel):
+    """How much work the AI saves a Foreman (architecture §9.3); every share is 0..1, null when there is no data."""
+
+    drafts: int
+    approved: int
+    median_seconds_to_approve: float | None
+    median_edits_per_draft: float | None
+    clean_ai_share: float | None
+    first_try_pass_share: float | None

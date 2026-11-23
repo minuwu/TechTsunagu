@@ -9,7 +9,7 @@ from app.api.pagination import Page, PageParams, build_page
 from app.models.work import PanelOverride
 from app.repositories import accounts
 from app.repositories import work as repo
-from app.schemas.work import NoteVersionOut, OverrideIn, OverrideOut, SignOffOut
+from app.schemas.work import EffortOut, NoteVersionOut, OverrideIn, OverrideOut, SignOffOut
 from app.services.auth import Principal
 from app.services.notes import note_out, shop_of
 
@@ -94,3 +94,15 @@ def list_versions(db: Session, who: Principal, machine_id: int, page: PageParams
     last = rows[page.limit - 1].id if len(rows) > page.limit else None
     # shortcut: note_out looks up names per row (one small query each, bounded by the page size); batch if pages grow.
     return build_page([note_out(db, n) for n in rows], page.limit, last)
+
+
+def effort(db: Session, who: Principal) -> EffortOut:
+    drafts, approved, seconds, edits, clean, first_try = repo.effort(db, shop_of(who))
+    return EffortOut(
+        drafts=drafts,
+        approved=approved,
+        median_seconds_to_approve=seconds,
+        median_edits_per_draft=edits,
+        clean_ai_share=clean,
+        first_try_pass_share=first_try,
+    )

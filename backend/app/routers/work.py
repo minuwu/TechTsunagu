@@ -19,6 +19,7 @@ from app.schemas.work import (
     CheckIn,
     CheckResult,
     ConfusionOut,
+    EffortOut,
     GlossaryIn,
     GlossaryOut,
     MachineDetail,
@@ -139,6 +140,11 @@ def end_override(who: Foreman, machine_id: IdIn, override_id: IdIn, db: DbSessio
 @router.get("/machines/{machine_id}/versions", summary="Knowledge Library: a Machine's Note Versions, newest first")
 def list_versions(who: Foreman, machine_id: IdIn, db: DbSession, page: Paging) -> Envelope[Page[NoteVersionOut]]:
     return Envelope(data=records.list_versions(db, who, int(machine_id), page))
+
+
+@router.get("/metrics/effort", summary="Effort metrics: time to approve, edits, clean AI drafts, first-try Checks")
+def effort(who: Foreman, db: DbSession) -> Envelope[EffortOut]:
+    return Envelope(data=records.effort(db, who))
 
 
 @router.get("/sign-offs", summary="Sign-offs, newest first (Workers see their own)")
