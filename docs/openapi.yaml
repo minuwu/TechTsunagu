@@ -2011,7 +2011,7 @@
         "tags": [
           "life"
         ],
-        "summary": "The Worker opened a Notice (idempotent)",
+        "summary": "The Worker opened a Notice or a Briefing (idempotent)",
         "operationId": "open_receipt_api_receipts_post",
         "requestBody": {
           "content": {
@@ -3370,6 +3370,202 @@
           }
         }
       }
+    },
+    "/api/briefings/draft": {
+      "post": {
+        "tags": [
+          "briefings"
+        ],
+        "summary": "Record a Briefing (voice or text) → AI draft (never a 500)",
+        "operationId": "draft_briefing_api_briefings_draft_post",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_draft_briefing_api_briefings_draft_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_BriefingForForeman_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/briefings": {
+      "post": {
+        "tags": [
+          "briefings"
+        ],
+        "summary": "Publish the reviewed draft (its edited text and question)",
+        "operationId": "publish_briefing_api_briefings_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BriefingPublishIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_BriefingForForeman_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "briefings"
+        ],
+        "summary": "Foremen: every Briefing with answers; Workers: published ones with their receipt",
+        "operationId": "list_briefings_api_briefings_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 40
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Union_Page_BriefingForForeman___Page_BriefingForWorker___"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/briefings/{briefing_id}/receipts": {
+      "get": {
+        "tags": [
+          "briefings"
+        ],
+        "summary": "Who understood, who only opened it, who has not opened it",
+        "operationId": "briefing_receipts_api_briefings__briefing_id__receipts_get",
+        "parameters": [
+          {
+            "name": "briefing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Briefing Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_BriefingReceipts_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -4000,6 +4196,36 @@
         ],
         "title": "Body_create_notice_api_notices_post"
       },
+      "Body_draft_briefing_api_briefings_draft_post": {
+        "properties": {
+          "text": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          },
+          "audio": {
+            "anyOf": [
+              {
+                "type": "string",
+                "contentMediaType": "application/octet-stream"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Audio"
+          }
+        },
+        "type": "object",
+        "title": "Body_draft_briefing_api_briefings_draft_post"
+      },
       "Body_post_message_api_threads__thread_id__messages_post": {
         "properties": {
           "text": {
@@ -4059,6 +4285,257 @@
         },
         "type": "object",
         "title": "Body_record_note_api_machines__machine_id__notes_post"
+      },
+      "BriefingForForeman": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "text": {
+            "additionalProperties": {
+              "type": "string",
+              "maxLength": 1000
+            },
+            "propertyNames": {
+              "enum": [
+                "ja",
+                "bn",
+                "en",
+                "vi",
+                "id",
+                "ne",
+                "my",
+                "tl",
+                "zh"
+              ]
+            },
+            "type": "object",
+            "title": "Text"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "published"
+            ],
+            "title": "Status"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "publishedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Publishedat"
+          },
+          "transcriptJa": {
+            "type": "string",
+            "title": "Transcriptja"
+          },
+          "question": {
+            "$ref": "#/components/schemas/CheckQuestion"
+          },
+          "needsEdit": {
+            "type": "boolean",
+            "title": "Needsedit"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "text",
+          "status",
+          "createdAt",
+          "publishedAt",
+          "transcriptJa",
+          "question",
+          "needsEdit"
+        ],
+        "title": "BriefingForForeman"
+      },
+      "BriefingForWorker": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "text": {
+            "additionalProperties": {
+              "type": "string",
+              "maxLength": 1000
+            },
+            "propertyNames": {
+              "enum": [
+                "ja",
+                "bn",
+                "en",
+                "vi",
+                "id",
+                "ne",
+                "my",
+                "tl",
+                "zh"
+              ]
+            },
+            "type": "object",
+            "title": "Text"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "published"
+            ],
+            "title": "Status"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "publishedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Publishedat"
+          },
+          "question": {
+            "$ref": "#/components/schemas/CheckQuestionForWorker"
+          },
+          "opened": {
+            "type": "boolean",
+            "title": "Opened"
+          },
+          "passed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Passed"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "text",
+          "status",
+          "createdAt",
+          "publishedAt",
+          "question",
+          "opened",
+          "passed"
+        ],
+        "title": "BriefingForWorker"
+      },
+      "BriefingPublishIn": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]{0,18}$",
+            "title": "Id"
+          },
+          "text": {
+            "additionalProperties": {
+              "type": "string",
+              "maxLength": 1000
+            },
+            "propertyNames": {
+              "enum": [
+                "ja",
+                "bn",
+                "en",
+                "vi",
+                "id",
+                "ne",
+                "my",
+                "tl",
+                "zh"
+              ]
+            },
+            "type": "object",
+            "title": "Text"
+          },
+          "question": {
+            "$ref": "#/components/schemas/CheckQuestion"
+          },
+          "createdAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Createdat"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "text",
+          "question"
+        ],
+        "title": "BriefingPublishIn",
+        "description": "POST /briefings: the reviewed draft, edited text and question included (the frontend sends its Briefing)."
+      },
+      "BriefingReceipts": {
+        "properties": {
+          "understood": {
+            "items": {
+              "$ref": "#/components/schemas/ReceiptWorker"
+            },
+            "type": "array",
+            "title": "Understood"
+          },
+          "openedOnly": {
+            "items": {
+              "$ref": "#/components/schemas/ReceiptWorker"
+            },
+            "type": "array",
+            "title": "Openedonly"
+          },
+          "notOpened": {
+            "items": {
+              "$ref": "#/components/schemas/ReceiptWorker"
+            },
+            "type": "array",
+            "title": "Notopened"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "understood",
+          "openedOnly",
+          "notOpened"
+        ],
+        "title": "BriefingReceipts",
+        "description": "GET /briefings/{id}/receipts: every active Worker of the shop in exactly one group."
       },
       "CheckIn": {
         "properties": {
@@ -4568,6 +5045,52 @@
           "data"
         ],
         "title": "Envelope[BoardOut]"
+      },
+      "Envelope_BriefingForForeman_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/BriefingForForeman"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[BriefingForForeman]"
+      },
+      "Envelope_BriefingReceipts_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/BriefingReceipts"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[BriefingReceipts]"
       },
       "Envelope_CheckResult_": {
         "properties": {
@@ -5427,6 +5950,37 @@
           "data"
         ],
         "title": "Envelope[Union[AssignmentOut, NoneType]]"
+      },
+      "Envelope_Union_Page_BriefingForForeman___Page_BriefingForWorker___": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Page_BriefingForForeman_"
+              },
+              {
+                "$ref": "#/components/schemas/Page_BriefingForWorker_"
+              }
+            ],
+            "title": "Data"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[Union[Page[BriefingForForeman], Page[BriefingForWorker]]]"
       },
       "Envelope_Union_Page_NoticeForPoster___Page_NoticeForWorker___": {
         "properties": {
@@ -7475,6 +8029,64 @@
         ],
         "title": "Page[AskOut]"
       },
+      "Page_BriefingForForeman_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/BriefingForForeman"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "nextCursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nextcursor"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "title": "Page[BriefingForForeman]"
+      },
+      "Page_BriefingForWorker_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/BriefingForWorker"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "nextCursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nextcursor"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "title": "Page[BriefingForWorker]"
+      },
       "Page_ConfusionOut_": {
         "properties": {
           "items": {
@@ -8020,6 +8632,25 @@
           "id"
         ],
         "title": "ReceiptTarget"
+      },
+      "ReceiptWorker": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "ReceiptWorker"
       },
       "ReexplainIn": {
         "properties": {
