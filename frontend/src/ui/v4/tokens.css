@@ -1,0 +1,435 @@
+/* Kit v4 look: "Poster Modernist". Cream ground, jet-black type, one cobalt accent, hairline grid, 0px corners,
+   no shadows, no gradients, fast linear colour changes. Light only (the theme toggle is gone in this kit).
+   Same variable names as every kit; utilities that read the values are mapped in theme/base.css (A-06).
+   Colour carries meaning (JIS Z 9103): red = Lock / Confusion, green = Ready / valid, amber = expiring,
+   cobalt = action. Safety-sign pictograms keep the JIS/ISO colours; everything else stays cream, black, cobalt. */
+
+:root {
+  --ease-out: linear;
+  --spring: linear;
+  --radius: 0px;
+}
+
+:root,
+.v4 {
+  --background: #e3e2de; /* cream */
+  --foreground: #141414; /* jet black */
+  --card: #e3e2de;
+  --card-foreground: #141414;
+  --primary: #1351aa; /* cobalt */
+  --primary-foreground: #e3e2de;
+  --secondary: #141414;
+  --secondary-foreground: #e3e2de;
+  --muted: #d8d7d3;
+  --muted-foreground: #444343; /* secondary text */
+  --accent: #d1d0cc;
+  --accent-foreground: #141414;
+  --destructive: #b3261e;
+  --success: #1e6b3a;
+  --warning: #8a5300;
+  --life: #1351aa;
+  --border: #c7c7c7; /* hairline dividers */
+  --input: #141414; /* a control edge has to be seen */
+  --ring: #1351aa;
+
+  --rule: #c7c7c7;
+  --label: #7a7a7a; /* uppercase labels */
+  --shell: #e3e2de;
+  --shell-raised: #d8d7d3;
+  --shell-foreground: #141414;
+  --shell-muted: #444343;
+  --indigo: #1351aa;
+  --glass: #e3e2de;
+  --glass-edge: #c7c7c7;
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: none;
+  --tile: #e3e2de;
+  --tile-hover: rgb(255 255 255 / 0.2);
+  --tile-border: #c7c7c7;
+  --tile-border-hover: #141414;
+  --aurora-a: transparent;
+  --aurora-b: transparent;
+  --door-glow: transparent;
+}
+
+.v4-ground {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+/* Flat everywhere: no radius, no shadow, whatever a screen asked for (rounded-full keeps its dots round) */
+.v4 [class*='rounded-']:not(.rounded-full) {
+  border-radius: 0;
+}
+.v4 [class*='shadow-'] {
+  box-shadow: none;
+}
+
+::selection {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+html {
+  caret-color: var(--primary);
+  scrollbar-color: var(--border) transparent;
+  accent-color: var(--primary);
+}
+:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+}
+a {
+  text-underline-offset: 0.22em;
+  text-decoration-thickness: 1px;
+}
+
+/* Type: heavy sans, tight leading. Negative tracking is for Latin only; kana, kanji and Bengali keep their own rhythm. */
+.display {
+  font-family: 'Aileron', var(--font-sans);
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1.15;
+  font-feature-settings: 'palt';
+}
+.display:lang(en) {
+  letter-spacing: -0.03em;
+  line-height: 0.95;
+}
+.poster-h1,
+.poster-h2 {
+  font-family: 'Aileron', var(--font-sans);
+  font-weight: 800;
+  line-height: 1.05;
+  overflow-wrap: anywhere;
+}
+.poster-h1 {
+  font-size: clamp(2.75rem, 12.5vw, 9rem);
+}
+.poster-h2 {
+  font-size: clamp(2.25rem, 8vw, 5.5rem);
+}
+.poster-h1:lang(en),
+.poster-h2:lang(en) {
+  letter-spacing: -0.04em;
+  line-height: 0.88;
+}
+.poster-h1:lang(ja),
+.poster-h2:lang(ja) {
+  font-size: clamp(2.25rem, 9.5vw, 7rem);
+  line-height: 1.1;
+}
+.poster-h2:lang(ja) {
+  font-size: clamp(1.75rem, 6vw, 4.25rem);
+}
+.poster-h1:lang(bn),
+.poster-h2:lang(bn) {
+  font-size: clamp(2rem, 8vw, 6rem);
+  line-height: 1.4;
+}
+.poster-h2:lang(bn) {
+  font-size: clamp(1.625rem, 5.5vw, 4rem);
+}
+.poster-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--label);
+}
+.poster-index {
+  font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  font-size: 0.875rem;
+  color: var(--label);
+}
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+.harbour-line {
+  height: 1px;
+  background: var(--rule);
+}
+
+/* Colour changes only, 0.3s linear (spec) */
+.lift {
+  transition: background-color 300ms linear;
+}
+.lift:hover {
+  background: var(--tile-hover);
+}
+@keyframes page-in {
+  from {
+    opacity: 0;
+  }
+}
+.page-enter {
+  animation: page-in 300ms linear;
+}
+@keyframes plate-in {
+  from {
+    opacity: 0.4;
+  }
+}
+.plate-swing {
+  animation: plate-in 300ms linear;
+}
+@keyframes arc-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.arc-draw {
+  stroke-dasharray: 1;
+  animation: arc-draw 700ms linear both;
+}
+.arc-draw-late {
+  stroke-dasharray: 1;
+  animation: arc-draw 700ms 180ms linear both;
+}
+@keyframes splash-out {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  pointer-events: none;
+  animation: splash-out 300ms 900ms linear forwards;
+}
+@keyframes shimmer {
+  to {
+    opacity: 0.55;
+  }
+}
+.skeleton {
+  background: var(--muted);
+  animation: shimmer 900ms linear infinite alternate;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.spin {
+  animation: spin 800ms linear infinite;
+}
+@keyframes toast-in {
+  from {
+    opacity: 0;
+  }
+}
+.toast-enter {
+  animation: toast-in 240ms linear;
+}
+dialog.sheet {
+  border: 1px solid var(--foreground);
+  padding: 0;
+  max-width: min(32rem, calc(100vw - 2rem));
+  border-radius: 0;
+  background: var(--card);
+  color: var(--card-foreground);
+}
+dialog.sheet::backdrop {
+  background: rgb(20 20 20 / 0.55);
+}
+dialog.sheet[open] {
+  animation: toast-in 200ms linear;
+}
+[data-tip] {
+  position: relative;
+}
+[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  translate: -50% 0;
+  padding: 0.25rem 0.5rem;
+  background: var(--foreground);
+  color: var(--background);
+  font-size: 0.875rem;
+  line-height: 1.4;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 150ms linear;
+  z-index: 20;
+}
+[data-tip]:hover::after,
+[data-tip]:focus-visible::after {
+  opacity: 1;
+}
+input[type='file'] {
+  max-width: 100%;
+  font-size: 1rem;
+}
+input[type='file']::file-selector-button {
+  min-height: 2.75rem;
+  margin-inline-end: 0.75rem;
+  padding: 0 1rem;
+  border: 1px solid var(--foreground);
+  border-radius: 0;
+  background: var(--card);
+  color: var(--foreground);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+input[type='file']::file-selector-button:hover {
+  background: var(--foreground);
+  color: var(--background);
+}
+
+/* Cards and tiles: a hairline box on the ground; hover is a white wash (spec: white/20) */
+.card-surface {
+  background: var(--tile);
+  border: 1px solid var(--tile-border);
+  border-radius: 0;
+  transition: background-color 300ms linear;
+}
+.card-surface:hover {
+  background: var(--tile-hover);
+}
+.tile {
+  cursor: pointer;
+  background: var(--card);
+  border: 1px solid var(--tile-border);
+  border-radius: 0;
+  transition:
+    background-color 300ms linear,
+    border-color 300ms linear,
+    color 300ms linear;
+}
+.tile:hover {
+  background: var(--tile-hover);
+  border-color: var(--tile-border-hover);
+}
+.tile:active {
+  background: var(--foreground);
+  color: var(--background);
+}
+.inset-card {
+  background: var(--muted);
+  border: 1px solid var(--tile-border);
+  border-radius: 0;
+}
+.door {
+  position: relative;
+}
+.door::before {
+  content: none;
+}
+.glass {
+  background: var(--glass);
+  border: 1px solid var(--glass-edge);
+}
+
+/* The 12-column poster grid: columns 1-3 carry the label, 4-12 the content. One column on phones. */
+.poster-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  border-top: 1px solid var(--rule);
+}
+@media (min-width: 48rem) {
+  .poster-grid {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+  }
+  .poster-grid > .poster-side {
+    grid-column: 1 / span 3;
+    border-right: 1px solid var(--rule);
+  }
+  .poster-grid > .poster-main {
+    grid-column: 4 / span 9;
+  }
+}
+.poster-side {
+  padding: 1.5rem 1rem;
+}
+.poster-side > .poster-label {
+  position: sticky;
+  top: 8rem;
+}
+.poster-main {
+  min-width: 0;
+  padding: 1.5rem 0 3rem;
+}
+@media (min-width: 48rem) {
+  .poster-main {
+    padding: 2rem 0 4rem 2rem;
+  }
+}
+
+/* Typographic list item: hairline above, index left, big title that turns cobalt on hover */
+.poster-row {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  width: 100%;
+  min-height: 6rem;
+  padding: 1.25rem 0;
+  border-top: 1px solid var(--rule);
+  text-align: left;
+  color: var(--foreground);
+}
+.poster-row .poster-row-title {
+  font-family: 'Aileron', var(--font-sans);
+  font-weight: 700;
+  font-size: clamp(1.5rem, 4.5vw, 3rem);
+  line-height: 1.05;
+  transition: color 300ms linear;
+  overflow-wrap: anywhere;
+}
+.poster-row:lang(en) .poster-row-title {
+  letter-spacing: -0.03em;
+}
+.poster-row:hover .poster-row-title,
+.poster-row:focus-visible .poster-row-title {
+  color: var(--primary);
+}
+
+/* Tab bar: phones only, flat, hairline on top. Desktop navigates from the header. */
+.tabbar {
+  position: fixed;
+  inset: auto 0 0 0;
+  z-index: 40;
+  padding-bottom: env(safe-area-inset-bottom);
+  background: var(--background);
+  border-top: 1px solid var(--rule);
+}
+.tabbar a {
+  transition:
+    background-color 300ms linear,
+    color 300ms linear;
+}
+@media (min-width: 48rem) {
+  .tabbar {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-enter,
+  .plate-swing,
+  .arc-draw,
+  .arc-draw-late,
+  .toast-enter,
+  .skeleton,
+  dialog.sheet[open] {
+    animation: none;
+  }
+  .tile,
+  .tabbar a,
+  .poster-row-title {
+    transition: none;
+  }
+}
