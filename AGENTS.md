@@ -557,7 +557,7 @@ GET https://<name>.azurestaticapps.net/panel/m-press → 200, the Machine Panel
 
 **Fulfillment & Proof (filled by recipient on completion):**
 - **Branch / Commit**:
-- **Status / Notes**:
+- **Status / Notes**: 2026-11-23 Asif (off the project): handed to **Anim**, who runs Azure now; needs XREQ-015 first. The `Microsoft.Web` provider is already registered (Contributor on a resource group could not do it). Ops notes: `contributors/asif/WORK_LOG.md` (HANDOVER section).
 - **Verification Proof**:
 
 #### `[XREQ-014]` Firebase for push notifications (Android)
@@ -621,7 +621,7 @@ Anim: az group show -n <rg> → succeeds
 
 **Fulfillment & Proof (filled by recipient on completion):**
 - **Branch / Commit**: 
-- **Status / Notes**: 
+- **Status / Notes**: 2026-11-23 Asif: waiting for Anim's Microsoft account email; then a guest invite to the tenant and **Contributor on `wakatta-rg`** (subscription **Azure for Students**). Nothing else to share: no passwords. Full ops handover: `contributors/asif/WORK_LOG.md` (HANDOVER section).
 - **Verification Proof**: 
 
 ### 2.3 Blank XREQ Template (copy & paste)

@@ -4,25 +4,124 @@ Owner: Asif (`MdAsif-Hossain`) — Role: Backend (lead) / Services / Database
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
-## 2026-11-23 (request from Arjun: host the web demo, XREQ-013)
+## 2026-11-23 — HANDOVER: backend, Azure and database (Asif is off the project)
 
-- Please host the **frontend demo** on Azure Static Web Apps (Free) and reply with the URL in the XREQ-013 card: `cd frontend && npm ci && npm run build:static` → upload `frontend/.output/public`. Static only (demo data in the browser): no server, no secrets, no CORS change yet. Set `VITE_PUBLIC_URL` to the SWA URL at build time. Details and an optional CI recipe are in the card.
+Read this section top to bottom; it is meant to be enough without asking me. **Anim owns deploy and operations from
+now on** (XREQ-015). Everything below is on `main`.
 
-## 2026-11-23 (Azure deploy, live)
+### 1. What is live
 
-### Completed
-- **API live:** `https://wakatta-api.agreeablestone-840cfb57.japaneast.azurecontainerapps.io` (Japan East; Azure for Students). PostgreSQL 16 B1ms (Azure services only), Container App (1 replica), registry + managed identity (no tokens), real AI on (`AI_MODE=gemini`, `AI_CHAIN=dev`). Verified from outside: CORS from `localhost:3000`, roster, login, `/auth/me`, authenticated lists, 401 without a token.
-- **CI/CD:** `.github/workflows/backend-deploy.yml` runs after `backend-ci` passes on a push to `main`: OIDC sign-in (identity `wakatta-ci`, trusts only this repo's `main`, custom least-privilege role), image build into ACR, rollout, health wait. No stored secrets.
-- **Express environments (student subscriptions):** no Jobs, one revision name, no `latestReadyRevisionName`. So `backend/jobs/start.py` creates roles + database on first boot, migrates on every start, reloads the demo on request; the API holds the owner credential (documented tradeoff, architecture §15).
-- Ops scripts in `backend/deploy/`: `azure-setup.ps1` (one-time, re-runnable), `reset-demo.ps1` (before filming), `set-cors.ps1` (add the hosted frontend's origin), `set-ai-key.ps1` (`-Chain demo` for filming).
-- Fixes found on the way: seed question ids (500s), Check response built before commit, UTC sessions, `public` schema ownership on Azure Postgres, `GET /api/meetups`, CORS origin list.
-- **Database moved to Supabase (Anim's project, Tokyo) the same day:** `deploy/use-supabase.ps1` created our two roles through the Session pooler with TLS `verify-full`, migrated, seeded, and repointed the API; Anim's `scripts/smoke.py` passes 13/13 against the live URL; the Azure Postgres server is deleted. Anim's `dbinit` change (revoke `public` from the Data API roles, UTC on the app role) adopted. CI now sets `TEST_ADMIN_DATABASE_URL` so his `test_dbinit` runs.
-- **Handover to Minhaz:** [docs/FRONTEND_API_HANDOVER.md](../../docs/FRONTEND_API_HANDOVER.md), linked from XREQ-001.
+| Piece | Where | Notes |
+|---|---|---|
+| API | `https://wakatta-api.agreeablestone-840cfb57.japaneast.azurecontainerapps.io` | health: `/api/health/ready`; contract: `docs/openapi.yaml` |
+| Database | Supabase project `wakatta` (ref `jpajxyejcbtfivrylcaf`), Tokyo, free plan | runbook: `backend/deploy/SUPABASE.md` |
+| AI | Gemini (`AI_MODE=gemini`, `AI_CHAIN=dev` = Flash-Lite), Groq as fallback | keys are Container App secrets |
+| Azure | subscription **Azure for Students**, resource group **`wakatta-rg`**, region **Japan East** | the old Azure PostgreSQL server is **deleted** |
 
-### Next
-- When Minhaz hosts the frontend: `backend/deploy/set-cors.ps1 "http://localhost:3000,https://<host>"`.
-- Before filming: `reset-demo.ps1`, then `set-ai-key.ps1 -Chain demo`.
-- Follow-up hardening: VNet + private Postgres access, then drop the Azure-services firewall rule.
+Azure resources in `wakatta-rg`: Container App `wakatta-api` (exactly 1 replica), environment `wakatta-env`,
+registry `wakattaacr42338`, managed identities `wakatta-id` (pulls images; no tokens) and `wakatta-ci` (GitHub
+deploys), custom role **Wakatta CI Deployer** (Container Apps only). Verified live: Anim's
+`backend/scripts/smoke.py` **13/13** (health, sign-in for Foreman/Worker/Poster, 401 without a token, board, Skill
+Matrix, Notices without answer keys, Events, Chat ETag 304, Task Board, Senpai, Support Log CSV, Near-miss, CORS).
+
+### 2. How code ships (no manual deploy)
+
+Push to `main` → **`backend-ci`** (lint, types, import layers, tests on PostgreSQL 16) → on green,
+**`backend-deploy`**: signs in to Azure with **OIDC** (no stored password; trusts only this repo's `main`), builds
+the image into the registry tagged with the commit SHA, updates `wakatta-api`, waits until the new revision is
+Healthy and `/api/health/ready` answers. On start the container (`backend/jobs/start.py`) runs
+`alembic upgrade head`, so **a new migration ships with its code**.
+- Watch it: GitHub → Actions → `backend-deploy`. If red: `az containerapp logs show -n wakatta-api -g wakatta-rg --tail 80`.
+- Roll back: revert the commit and push; or point the app at an older image:
+  `az containerapp update -n wakatta-api -g wakatta-rg --image wakattaacr42338.azurecr.io/techtsunagu-api:<older sha>`.
+
+### 3. Operations (PowerShell, from the repo root)
+
+Needs the Azure CLI signed in (`az login` in a browser; the device-code login is blocked by the tenant's security
+defaults) and **Contributor on `wakatta-rg`**. If `az` is missing: the official installer, or
+`uv tool install --prerelease=allow "azure-cli>=2.70"` (the scripts find either). Each command waits until the API is
+healthy again.
+
+| When | Command |
+|---|---|
+| Before filming / after testers made a mess | `powershell -ExecutionPolicy Bypass -File backend\deploy\reset-demo.ps1` |
+| Filming / demo day: strongest model first | `...\set-ai-key.ps1 -Chain demo` (back to quota-saving: `-Chain dev`) |
+| The frontend gets a hosted address | `...\set-cors.ps1 "http://localhost:3000,https://<frontend host>"` (exact origins, no trailing `/`) |
+| Rotate the DB passwords / rebuild Supabase | `...\use-supabase.ps1` (needs `SUPABASE_DB_URL` in `backend/.env`; **reseeds**) |
+| Logs | `az containerapp logs show -n wakatta-api -g wakatta-rg --tail 80` |
+| After the hackathon (stop paying) | `az containerapp update -n wakatta-api -g wakatta-rg --min-replicas 0` |
+
+`azure-setup.ps1` is the one-time infrastructure script (identities, registry, OIDC trust, roles). It needs **Owner**
+rights (role assignments), so it is not needed or runnable with Contributor; everything it makes already exists.
+
+Demo accounts (seeded, fictional): shop `SASEBO01` Foreman 山口 隆 PIN `246810`, Workers PIN `2468`; district
+`MINATO26` Posters PIN `482615` / `739204`; other shop `ISAHAYA2` Foreman PIN `135790`; Senpai links
+`/api/senpai/demo-tanaka-7f3a9c`, `/api/senpai/demo-mori-2b8e41`.
+
+### 4. Secrets: where they live (never in git, never in chat)
+
+- **Azure Container App secrets** (`az containerapp secret list -n wakatta-api -g wakatta-rg` shows names only):
+  `database-url`, `migration-database-url`, `pin-pepper`, `gemini-api-key`, `groq-api-key`.
+- **GitHub**: none. The workflow has only non-secret IDs (client, tenant, subscription).
+- **Locally**: `backend/.env` (gitignored): `SUPABASE_DB_URL` (Session pooler URI with the DB password),
+  `GEMINI_API_KEY`, `GROQ_API_KEY`. `set-ai-key.ps1` and `use-supabase.ps1` read them and never print them.
+- **Demo PINs depend on `PIN_PEPPER`.** If the pepper changes, reseed (`use-supabase.ps1` does both), or no demo PIN works.
+
+### 5. Why it is built this way (gotchas we hit; do not undo)
+
+- **Azure for Students limits:** only 5 regions (japaneast, eastasia, koreacentral, indonesiacentral, malaysiawest);
+  **ACR Tasks blocked** (so images are built in GitHub Actions, not in Azure); new Container Apps environments are
+  **"express"**: **no Jobs**, one revision name (`wakatta-api--latest`), `latestReadyRevisionName` never filled.
+  Hence migrations at container start (`jobs/start.py`) and health checks on the revision's own state.
+- **Security tradeoff (documented):** without Jobs, the API container holds the DB owner credential to migrate;
+  `start.py` drops it from the serving process's environment before Uvicorn starts. Upgrade path: a non-express
+  environment and a migration Job.
+- **OIDC subject:** this repo sends the ID-based subject `repo:minuwu@84508269/TechTsunagu@1466841300:ref:refs/heads/main`
+  (not the plain name). The deploy job also runs only for a green **push** on this repo's own `main` (a fork PR
+  named `main` cannot deploy).
+- **Supabase:** connect through the **Session pooler** host `aws-0-ap-northeast-1.pooler.supabase.com:5432` (the
+  direct connection is IPv6-only; the `aws-1` host does not know this project). Roles sign in as
+  `<role>.jpajxyejcbtfivrylcaf`. TLS is `verify-full` against Supabase's own root CA in `backend/certs/` (valid to
+  2031). Data API roles (`anon`, `authenticated`) are locked out of our tables. **Free plan pauses after 7 idle
+  days**: open it the day before the demo.
+- **PowerShell 5.1:** any CLI line on stderr became a fatal error under `ErrorActionPreference=Stop`; `Invoke-Az` and
+  `use-supabase.ps1` relax it around the call and judge by exit code. Keep that if you edit the scripts.
+- The scripts wait if another rollout is changing the app (`Wait-Idle`): Azure allows one change at a time.
+
+### 6. Built and fixed this session (main commits)
+
+- Chat tables + migration (`9ca7da7`); Panel Override, Sign-off list, Knowledge Library, `approvedBy` (`617e11e`);
+  effort metrics (`ba69738`); `GET /api/meetups` (`3a02dce`); CORS origin list (`4d7e0e2`).
+- Fixes: seeded question ids caused 500s (`46b312a`, with Anim); Check response built before commit (`113bff6`);
+  UTC DB sessions (`71921a4`).
+- Deploy: CI/CD with OIDC (`73aca9f`, `7386334`, `043401b`, `90aafd1`), start-up migrations (`4d7e0e2`, `393c026`),
+  health-check fix (`8f891f8`), PowerShell fix (`e20c49c`), Supabase switch with `verify-full` (`cef15a7`,
+  `e90c74e`, `15b75cf`).
+- Frontend handover: [docs/FRONTEND_API_HANDOVER.md](../../docs/FRONTEND_API_HANDOVER.md) (linked from XREQ-001).
+
+### 7. Open items and owners
+
+| Item | Owner | State |
+|---|---|---|
+| XREQ-015: Azure access for Anim | Asif | Waiting for Anim's Microsoft account email; then guest invite + **Contributor on `wakatta-rg`** only |
+| XREQ-013: host the web demo (Static Web Apps) | **Anim** (after XREQ-015) | Provider `Microsoft.Web` already registered (Contributor could not); East Asia is allowed |
+| XREQ-001: frontend on the real API (sign-in, token, list shape) | Minhaz | Backend side done and verified; checklist in `docs/FRONTEND_API_HANDOVER.md` |
+| XREQ-014: Firebase push | Minhaz → Anim | Pending |
+| XREQ-011 item 1 (Worker's Follow-ups, history, analytics) | Anim | Not started |
+| CORS for the hosted frontend | Anim | `set-cors.ps1` once the URL exists |
+| Before filming | Anim | `reset-demo.ps1`, then `set-ai-key.ps1 -Chain demo`; check Supabase is awake |
+| Not yet exercised live on Supabase | Anim | creating Notes, Checks, Chat messages with real data (reads and logins are verified) |
+| Hardening (optional) | — | private networking for the DB; a non-express environment to move migrations to a Job |
+
+Costs (from the $100 student credit): Container App always on (~US$15–25/month), registry Basic (~US$5/month).
+Supabase is free. Scale to zero after the demo (command in §3).
+
+### 8. First hour for the new owner (Anim)
+
+1. `git pull`; read this section and `backend/deploy/SUPABASE.md`.
+2. Once you have Contributor: `az login` → `az group show -n wakatta-rg` succeeds.
+3. `cd backend && .venv\Scripts\python scripts\smoke.py https://wakatta-api.agreeablestone-840cfb57.japaneast.azurecontainerapps.io --origin http://localhost:3000` → 13/13.
+4. Push any small backend change and watch `backend-ci` → `backend-deploy` go green in Actions.
 
 ## 2026-11-23
 
