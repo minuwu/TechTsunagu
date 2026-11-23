@@ -154,8 +154,7 @@ function DemoSwitcher() {
   const demo = useDemoScenario()
   if (!demo.available) return null
   return (
-    <div
-      role="group"
+    <aside
       aria-label={m.demo_state()}
       className="glass fixed bottom-28 left-3 z-40 flex items-center gap-1 rounded-xl p-1 text-sm lg:bottom-4"
     >
@@ -173,7 +172,7 @@ function DemoSwitcher() {
           {SCENARIO_LABEL[s]()}
         </button>
       ))}
-    </div>
+    </aside>
   )
 }
 
@@ -184,7 +183,7 @@ function ConnectionBanner() {
   return (
     <div
       role="alert"
-      className="border-b border-warning/40 bg-[color-mix(in_oklch,var(--warning)_12%,var(--background))]"
+      className="border-b border-warning/40 bg-[color-mix(in_oklch,var(--warning)_12%,var(--background))] text-foreground"
     >
       <div
         className={`${frame} flex flex-wrap items-center gap-x-4 gap-y-2 py-2.5`}
@@ -300,8 +299,8 @@ export function Layout({ children }: { children: ReactNode }) {
           </div>
         </div>
         <div className="harbour-line" />
+        <ConnectionBanner />
       </header>
-      <ConnectionBanner />
       <main id="main" className={`${frame} flex-1 pt-6 pb-16 sm:pt-10`}>
         {/* Re-keyed per route so each screen settles in (page transition) */}
         <div key={path} className="page-enter">

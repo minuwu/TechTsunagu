@@ -26,22 +26,25 @@ export function PanelScreen() {
     )
   if (p.unknown)
     return (
-      <div role="status" aria-live="polite">
-        <StatePlate
-          state="idle"
-          size="lg"
-          className="min-h-[55vh]"
-          label={m.panel_unknown_word()}
-          art={
-            <span className="grid size-24 shrink-0 place-items-center rounded-full bg-card text-warning sm:size-28">
-              <Mark id="alert" className="size-12 sm:size-14" />
-            </span>
-          }
-        >
-          <p className="text-xl font-bold text-foreground">
-            {m.panel_unknown()}
-          </p>
-        </StatePlate>
+      <div className="space-y-4">
+        <h1 className="display text-3xl sm:text-4xl">{m.hub_panel()}</h1>
+        <div role="status" aria-live="polite">
+          <StatePlate
+            state="idle"
+            size="lg"
+            className="min-h-[55vh]"
+            label={m.panel_unknown_word()}
+            art={
+              <span className="grid size-24 shrink-0 place-items-center rounded-full bg-card text-warning sm:size-28">
+                <Mark id="alert" className="size-12 sm:size-14" />
+              </span>
+            }
+          >
+            <p className="text-xl font-bold text-foreground">
+              {m.panel_unknown()}
+            </p>
+          </StatePlate>
+        </div>
       </div>
     )
   if (p.notFound || !p.machine) return <p>{m.machine_not_found()}</p>
