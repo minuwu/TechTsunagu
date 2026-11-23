@@ -60,6 +60,12 @@ This file is:
 | `XREQ-004` | P2 | AI (Galib) | Frontend (Minhaz, Arjun) | "Dictate instead" fallback, degraded-draft message, provenance line ([AI_PLAN.md](contributors/galib/AI_PLAN.md) §2, §8) | `[PENDING]` | 2026-11-22 22:40 |
 | `XREQ-005` | P1 | Frontend (Minhaz) | Backend (Anim, Asif) | Chat API: Threads, Messages (voice/text), Wakatta Status answers, Follow-ups, Re-explanation, Nudge, Tasks + Task Board | `[PENDING]` | 2026-11-22 17:55 |
 | `XREQ-006` | P1 | Frontend (Minhaz) | AI (Galib) | Chat AI: voice → transcript → translation → Check Questions → Task extraction (`build_message`), Worker reply translation, Re-explanation | `[PENDING]` | 2026-11-22 17:55 |
+| `XREQ-007` | P1 | Frontend (Minhaz) | AI (Galib), Backend (Asif, Anim) | Pick the Japanese ⇄ English transcription and translation models by a bake-off on our own audio, not on free-tier quota | `[PENDING]` | 2026-11-23 03:48 |
+
+| `XREQ-008` | P0 | Frontend (Minhaz, Android app) | Backend (Asif) | Hosted API: public base URL, test shop and accounts, health check, Bearer scheme in `openapi.yaml` | `[PENDING]` | 2026-11-23 08:25 |
+| `XREQ-009` | P1 | Frontend (Minhaz, Android app) | Backend (Asif) | App platform routes: `GET /app/config` (version gate), device registration, notification list, photo limits | `[PENDING]` | 2026-11-23 08:25 |
+| `XREQ-010` | P1 | Frontend (Minhaz, Android app) | Backend (Anim, Asif) | Personal side: Contacts, My QR, Talk Threads, group controls, Periodic Interviews, Today's Word, Near-miss | `[PENDING]` | 2026-11-23 08:25 |
+| `XREQ-011` | P2 | Frontend (Minhaz, Android app) | Backend (Anim), AI (Galib) | Gaps in live routes: Worker reads, ETag and Idempotency-Key, get-one Notice, Glossary PATCH, analytics, per-shop AI languages, XREQ status upkeep | `[PENDING]` | 2026-11-23 08:25 |
 
 *(When adding a request: append a row above AND add a detailed card in 2.2. Never insert in the middle.)*
 
@@ -288,6 +294,197 @@ draft_message(ai, *, shop_id, terms, members, machines, text=None, audio=None, n
   "tasks": [{ "title": {"ja": "2号プレス 金型交換"}, "assigneeIds": ["12"], "dueAt": "2026-11-23T08:00:00+09:00", "machineId": "2" }] }
 ```
 Fallback outcome `degraded`: `{ "transcriptJa": "…" , "needsEdit": true }` (`transcriptJa` may be empty).
+
+**Fulfillment & Proof (filled by recipient on completion):**
+- **Branch / Commit**: 
+- **Status / Notes**: 
+- **Verification Proof**: 
+
+#### `[XREQ-007]` Pick the Japanese ⇄ English transcription and translation models by a bake-off
+- **Priority**: `P1 (High)`
+- **From**: Frontend (Minhaz)
+- **To**: AI (Galib: the bake-off and the choice), Backend (Asif, Anim: the seam)
+- **Status**: `[PENDING]`
+- **Created**: `2026-11-23 03:48 (UTC+6)`
+- **Target Interface / Endpoint**: `app/ai/` (model table, chain), `contributors/galib/AI_PLAN.md` §2 and §6, `docs/ai-eval.md`, `backend/tests/fixtures/ai/`
+
+**Requirement Details:**
+Japanese judges hear the demo, so a wrong transcript or a stiff translation costs more than a slow one. [AI_PLAN.md](contributors/galib/AI_PLAN.md) §2 picks models by free-tier quota (3.8 / 3.6 Flash, then the Flash-Lites, then Groq Whisper). Quota decides *when* a model is allowed; it should not decide *which* model is best at the core job. We need one model we can name and defend for each of these four tasks, with a fallback behind it:
+
+| Task | Direction | Where it runs |
+| :--- | :--- | :--- |
+| Transcribe | spoken ja (Foreman, Poster), spoken en (Worker) → text | voice ladder, XREQ-003 item 2 and XREQ-006 item 3 |
+| Translate | ja → en, en → ja (Bengali stays on the AI_PLAN §6 score) | `translate`, `draft_message`, `answer_ask`, Senpai replies |
+| Re-check | en / bn back into ja, so a Foreman can read what the Worker sees | back-translation in `app/ai/schemas.py` |
+| Extract | Check Questions and Tasks from the transcript, with the glossary lock | XREQ-006 items 1–2 |
+
+**What I found (2026-11-23), so you need not search again.** Public numbers do not settle it, which is why the bake-off is on our own audio:
+1. **Transcription, Japanese.** I found no independent head-to-head of Gemini against Whisper on Japanese. Vendor and paper figures disagree by test set: [Kotoba-Whisper's own card](https://huggingface.co/kotoba-tech/kotoba-whisper-v1.0/raw/main/README.md) claims large-v3 accuracy at about six times the speed and beats it on its own ReazonSpeech set, but large-v3 has the lower CER on another test set it lists (8.52 vs 9.44); the [Whale paper](https://arxiv.org/pdf/2506.01439) puts Whisper large-v3 at 16.5–18.4% CER on spontaneous speech (CSJ); an [IT-jargon test](https://scrapbox.io/tomiokario/ASR) found Whisper steadier on proper nouns than CER alone shows. Spontaneous factory speech with shop words looks like the hard case, not read speech.
+2. **A dedicated Gemini transcriber exists:** [`gemini-3.5-transcribe`](https://ai.google.dev/gemini-api/docs/models/gemini-3.5-transcribe) (Preview): `ja-JP` supported, audio up to one hour, speaker labels, word timestamps, and **custom vocabulary of up to 1,000 terms**, which could carry the shop Glossary into the transcript itself. I could not confirm its free-tier limit or price: please check. It is not in AI_PLAN.md today.
+3. **Translation, Japanese ⇄ English.** [WMT25's preliminary ranking](https://slator.com/wmt25-preliminary-results-gemini-2-5-pro-gpt-4-1-lead-ai-translation/) puts Gemini 2.5 Pro and GPT-4.1 on top, but it is automatic-metric and English → Japanese only (Japanese → English was not a main pair), and our Gemini 3.x models are newer than anything it tested. [JP-TL-Bench](https://arxiv.org/html/2601.00223v1) (70 items, both directions, Apache-2.0, code at `shisa-ai/jp-tl-bench`) is a usable public yardstick, but it needs a judge model; optional.
+
+**What to do:**
+1. **Galib: run the bake-off** on the same clips for every candidate, using the eval set already in `backend/tests/fixtures/ai/` plus the recordings below.
+   - *Transcription candidates:* `gemini-3.5-transcribe` (with the Glossary as custom vocabulary, and without), the Gemini chain's native audio input, Groq `whisper-large-v3` and `whisper-large-v3-turbo`. Record **20 Japanese clips** (Foreman spoken style, times like "明日の朝8時", names, the 10 shop words, 3 on a noisy phone speaker) and **10 English clips** (Worker speaking English, accented).
+   - *Score:* CER for Japanese and WER for English after one fixed normalisation (write it down), the shop-word hit rate, numbers and times correct, and median seconds. Count failures separately (timeout, empty, wrong language).
+   - *Translation candidates:* the chain models, plus any paid or free model you think is stronger (say what it costs). **30 sentences each way**, from real Notices, Briefings and Asks. Score: glossary-lock pass %, back-translation agreement, question validity, and a 1–3 score from a Japanese reader (meaning kept, polite register right, reads naturally). Ask a Japanese speaker, not a teammate reading Japanese as a second language.
+   - *Robustness:* 50 calls per finalist: JSON-valid %, 429 and 5xx rate, p95 seconds, silence / music / over-60-second audio, one prompt injection spoken in the clip.
+2. **Galib: choose** one primary and one fallback per task in the table above, write the numbers into `docs/ai-eval.md` (one row per model per task), and edit AI_PLAN.md §2 so the chains follow the result. If the best model is not free, say what a demo day costs; the AI_PLAN §5 pitch line says about $0.01 per instruction on the paid tier.
+3. **Asif and Anim: the seam.** Confirm that `app/ai/` can pick a model per *task* (transcribe, translate, extract), not one chain for everything, and that the model name used is stored on each result so the eval can say which model made which row. If `gemini-3.5-transcribe` or Whisper wins, transcription becomes its own step before the text path: tell Galib and Minhaz if that changes `ai_outcome` or the XREQ-005 message stages. No new endpoints are expected.
+4. **Deadline:** the choice and the numbers by **Tue 2026-11-24 10:00 (UTC+6)**, before the 14:00 filming window in AI_PLAN §7. Anything not finished by then: keep AI_PLAN §2 as it stands and say so in the proof block.
+
+**Expected Request (Payload / Query Params / Headers):**
+```python
+# app/ai/ model table: one line per task, so a swap is one line
+TASK_MODELS = {
+  "transcribe": ["<primary>", "<fallback>"],
+  "translate":  ["<primary>", "<fallback>"],
+  "extract":    ["<primary>", "<fallback>"],
+}
+```
+
+**Expected Response (Status Code + Payload / Error Codes):**
+```markdown
+| Task | Model | n | Error rate (CER / WER) | Shop-word hit % | JSON valid % | p95 s | Reader score (1–3) | Cost / 1k calls |
+| transcribe ja | gemini-3.5-transcribe + glossary | 20 | … | … | … | … | n/a | … |
+```
+No API or error-code change.
+
+**Fulfillment & Proof (filled by recipient on completion):**
+- **Branch / Commit**: 
+- **Status / Notes**: 
+- **Verification Proof**: 
+
+#### `[XREQ-008]` Hosted API: public base URL, test shop and accounts, Bearer scheme
+
+- **Priority**: `P0 (Blocker)`
+- **From**: `Frontend (Minhaz, Android app)`
+- **To**: `Backend (Asif)`
+- **Status**: `[PENDING]`
+- **Created**: `2026-11-23 08:25 (UTC+6)`
+- **Target Interface / Endpoint**: `https://<host>/api/health/ready`, `docs/openapi.yaml`
+
+**Requirement Details:**
+The native Android app ([ADR 0015](docs/adr/0015-native-android-app-in-android-folder.md), [MOBILE_API_CONTRACT.md](docs/MOBILE_API_CONTRACT.md)) can switch from mock to the real API for every area that is already live (Auth, Machines, Checks, Chat, Briefings, Board, Tasks, Notices, Asks, Senpai, Support Log: 76 operations on 64 paths). The repo records no host name: `backend-deploy.yml` reads it from `az containerapp show` at deploy time, so the app cannot be pointed at the API. Please reply in the Fulfillment block with:
+1. The public HTTPS base URL of `wakatta-api` (and the staging one if different), and confirm `GET /api/health/ready` answers 200 from outside Azure.
+2. One seeded **shop code** (8 characters), plus the seeded Foreman and Worker names, and the initial PIN rule, so the app's sign-in (`GET /auth/roster`, `POST /auth/login`) can be run against the hosted API. Do not paste real PINs into this file: say where they are.
+3. Whether the hosted database holds the seed data (`wakatta-seed` job) and how to reset it.
+4. Regenerate `docs/openapi.yaml` with a Bearer security scheme and the role per route (contract D-23, B-15) so a client can be generated.
+5. State the replay status of creates (200 or 201) in `BACKEND_ARCHITECTURE.md` 8.2, and add the codes the code already returns (`IDEMPOTENCY_KEY_REUSED`, `NEEDS_EDIT`, `NOT_READY`, `VERSION_CONFLICT`, `ALREADY_SENT`, `THREAD_LOCKED`, `AI_UNAVAILABLE`) and the 422 for a non-numeric id to section 9.2 (D-02, D-06, D-08).
+
+**Expected Request (Payload / Query Params / Headers):**
+```
+GET {base}/api/health/ready
+GET {base}/api/auth/roster?shopCode={code}
+```
+
+**Expected Response (Status Code + Payload / Error Codes):**
+```json
+{ "success": true, "data": { "status": "ready" } }
+```
+
+**Fulfillment & Proof (filled by recipient on completion):**
+- **Branch / Commit**: 
+- **Status / Notes**: 
+- **Verification Proof**: 
+
+#### `[XREQ-009]` App platform routes: version gate, device registration, notifications, photo limits
+
+- **Priority**: `P1 (High)`
+- **From**: `Frontend (Minhaz, Android app)`
+- **To**: `Backend (Asif)`
+- **Status**: `[PENDING]`
+- **Created**: `2026-11-23 08:25 (UTC+6)`
+- **Target Interface / Endpoint**: `GET /api/app/config`, `PUT /api/devices/{installId}`, `DELETE /api/devices/{installId}`, `GET /api/notifications`
+
+**Requirement Details:**
+Exact bodies, errors and the reasoning are in [MOBILE_PLATFORM_CONTRACT.md](docs/MOBILE_PLATFORM_CONTRACT.md) (asks B1 to B15) and section 8 of [MOBILE_API_CONTRACT.md](docs/MOBILE_API_CONTRACT.md) (B-07, B-20, B-25). The release APK is distributed directly (no Play Store), so:
+1. `GET /api/app/config` (no auth): `minVersion`, `latestVersion`, `downloadUrl`, `sha256` (the platform contract's `storeUrl` becomes `downloadUrl` plus `sha256`). The app blocks on `minVersion` and offers the update.
+2. Device registration for push (FCM token per install, per user), and deletion on sign-out.
+3. Push rule decided 2026-11-23: a Contact Thread message sends one generic "New message from <name>" with **no message text**; Talk Threads never notify; the payload carries ids only.
+4. A notification list with read state, or a decision that it is push only (B-07).
+5. Photo limits: `BACKEND_ARCHITECTURE.md` 11 says JPEG, PNG or WebP up to 5 MB; `backend/app/media.py` accepts JPEG up to 2 MB. Pick one. The app compresses to JPEG at or under 2 MB until you say otherwise (D-16, B-20).
+
+**Expected Request (Payload / Query Params / Headers):**
+```json
+{ "fcmToken": "string", "platform": "android", "appVersion": "1.0.0", "language": "bn" }
+```
+
+**Expected Response (Status Code + Payload / Error Codes):**
+```json
+{ "success": true, "data": { "minVersion": "1.0.0", "latestVersion": "1.0.0", "downloadUrl": "https://…", "sha256": "…" } }
+```
+
+**Fulfillment & Proof (filled by recipient on completion):**
+- **Branch / Commit**: 
+- **Status / Notes**: 
+- **Verification Proof**: 
+
+#### `[XREQ-010]` Personal side: Contacts, My QR, Talk Threads, group controls, Periodic Interviews, Today's Word, Near-miss
+
+- **Priority**: `P1 (High)`
+- **From**: `Frontend (Minhaz, Android app)`
+- **To**: `Backend (Anim, Asif)`
+- **Status**: `[PENDING]`
+- **Created**: `2026-11-23 08:25 (UTC+6)`
+- **Target Interface / Endpoint**: `/api/contacts`, `/api/me/qr`, `/api/talk-threads`, `/api/threads/{id}/members`, `/api/interviews`, `/api/today-word`, `/api/near-misses`
+
+**Requirement Details:**
+Product rules are in [ADR 0014](docs/adr/0014-personal-threads-outside-shop-scope-and-private-from-the-employer.md) (personal threads are outside shop scope and private from the employer; the QR carries an opaque, revocable token, never a user id) and the GLOSSARY terms Talk Thread, Contact, Contact Thread, My QR, Periodic Interview, Today's Word. The prototype is `prototypes/wakatta/` (screens `connect`, `connect-scan`, `pchat`, `interview`, `nearmiss*`). Paths, bodies and the reasoning for each item are in [MOBILE_API_CONTRACT.md](docs/MOBILE_API_CONTRACT.md) sections 4.8, 4.9, 4.11 and 4.5 (names marked `UNKNOWN` are proposals: change them and tell us). Items (contract ask ids in brackets):
+1. **Contacts and My QR** [B-23]: create or rotate My QR (token), resolve a scanned token to a Contact request, accept, list, block, unblock, remove. A scan must work across shops.
+2. **Contact Threads and Talk Threads** [B-23]: personal thread create, rename, delete, message list and send (Contact Threads are translated per side), Talk entries (what they said, meaning, own understanding and its grade, reply, confirmed) with edit and delete paths and a read route (Q-06). Never visible to Foreman or Poster routes.
+3. **Group controls** [section 4.8]: create a group Thread, add and remove members, rename, leave, mute, who may post.
+4. **Periodic Interviews** [B-06, B-23]: list due state per Worker (every 3 months, support item 10), create a record with a note, `online` with consent flag, no future date; and the JSON summary of the Support Log.
+5. **Today's Word** [B-04]: read the Worker's word for the Japanese side; set it.
+6. **Near-miss Reports** [B-03]: create (voice, photo, Machine), list (Foreman all, Worker own), get by id; settle severity and the photo mark (Q-08, Q-09).
+7. **Worker's own Senpai pair and Meet-ups** [B-04]: `GET /senpai-pairs/me`, `GET /meetups`.
+
+Reply with the real paths and shapes; the Android Fake repositories are built against the contract meanwhile and will be changed to match what you ship.
+
+**Expected Request (Payload / Query Params / Headers):**
+```json
+{ "token": "opaque-string-from-the-scanned-qr" }
+```
+
+**Expected Response (Status Code + Payload / Error Codes):**
+```json
+{ "success": true, "data": { "contactId": "123", "displayName": "string", "language": "en", "status": "pending" } }
+```
+Errors: 404 for a revoked or unknown token, 409 for an existing Contact, 403 for a blocked pair.
+
+**Fulfillment & Proof (filled by recipient on completion):**
+- **Branch / Commit**: 
+- **Status / Notes**: 
+- **Verification Proof**: 
+
+#### `[XREQ-011]` Gaps in live routes: Worker reads, ETag and Idempotency-Key, get-one Notice, Glossary PATCH, analytics, AI languages
+
+- **Priority**: `P2 (Normal)`
+- **From**: `Frontend (Minhaz, Android app)`
+- **To**: `Backend (Anim), AI (Galib)`
+- **Status**: `[PENDING]`
+- **Created**: `2026-11-23 08:25 (UTC+6)`
+- **Target Interface / Endpoint**: see the list; ids refer to section 8 of [MOBILE_API_CONTRACT.md](docs/MOBILE_API_CONTRACT.md)
+
+**Requirement Details:**
+Small additions that the Android screens need on top of routes that already exist. Each has its evidence (file and line) in the contract.
+1. **Anim, Worker reads:** a Worker reads their own Follow-ups and Learning History and a streak source (B-08); an analytics read for trend and per-Worker green, orange, red counts (B-05); a Machine filter on `GET /tasks` (B-19); a term-linked "ask the Foreman" message of kind `ask`, or drop the kind from the enum (B-22, D-24).
+2. **Anim, caching and retries:** ETag and 304 on `GET /board`, `/tasks`, `/threads`, `/near-misses` (B-11, D-07); `Idempotency-Key` on `POST /meetups`, `/tasks`, `/receipts`, `/briefings` (B-12, D-20), because a retried offline request must not create two rows.
+3. **Anim, Notices:** `GET /notices/{id}` (B-18); and decide who may post Notices: Poster only, as coded, or also Foreman, as in the prototype (B-24, D-21). Until you decide the app shows Notice posting to the Poster login only.
+4. **Anim, Glossary:** `PATCH /glossary/{id}` and a translation per shop language (B-09, D-05).
+5. **Galib, AI:** per-shop languages in the pipelines so a `vi` shop gets `vi` text (B-16, `backend/app/services/notes.py:27`); keep a transcript for voice Asks, `text` in `AskDraft` (B-17, D-11).
+6. **Anim, Asif, upkeep:** update the XREQ-005 and XREQ-006 status and fulfilment blocks and XREQ-003 items 5 and 6, which still read `[PENDING]` or `[IN_PROGRESS]` although the routes exist (B-26, D-25).
+
+**Expected Request (Payload / Query Params / Headers):**
+```
+GET /api/workers/{id}/learning
+GET /api/tasks?machineId={id}
+```
+
+**Expected Response (Status Code + Payload / Error Codes):**
+```json
+{ "success": true, "data": { "items": [], "nextCursor": null } }
+```
 
 **Fulfillment & Proof (filled by recipient on completion):**
 - **Branch / Commit**: 
