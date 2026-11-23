@@ -37,7 +37,7 @@ def test_header_says_what_the_export_does_not_cover() -> None:
     preamble = " ".join(cell for row in table[:3] for cell in row)
 
     assert "2026-11-01" in preamble and "2026-11-30" in preamble
-    assert "定期的な面談" in preamble and "参考様式第3-6号" in preamble
+    assert "参考様式第3-6号" in preamble and "定期的な面談" not in preamble  # item 10 is in the file now
     assert table[-1] == ["支援項目", "日時", "氏名", "内容", "対応・相手", "記録元"]
 
 
@@ -76,3 +76,15 @@ def test_cells_that_excel_would_run_as_formulas_are_escaped(text: str) -> None:
 
     assert row[3] == "'" + text
     assert row[2] == "'" + text
+
+
+def test_periodic_interviews_are_item_10_after_meetups() -> None:
+    events = [
+        SupportEvent("interview", date(2026, 11, 2), "Rahim", "面談（対面）", "山口", "Foreman"),
+        SupportEvent("exchange", date(2026, 11, 3), "Rahim", "お茶", "田中", "Worker"),
+    ]
+    rows = list(
+        csv.reader(io.StringIO(render_support_log(events, date(2026, 11, 1), date(2026, 11, 30)).decode("utf-8-sig")))
+    )
+    items = [r[0] for r in rows[4:]]
+    assert items == ["8 日本人との交流促進", "10 定期的な面談"]

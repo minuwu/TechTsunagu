@@ -1,13 +1,26 @@
 """Photos, AI cache and the AI daily budget (architecture §6.4)."""
 
+import uuid
 from datetime import date
 
-from sqlalchemy import BigInteger, CheckConstraint, Date, ForeignKey, Integer, LargeBinary, Text
+from sqlalchemy import (
+    BigInteger,
+    Boolean,
+    CheckConstraint,
+    Date,
+    ForeignKey,
+    Integer,
+    LargeBinary,
+    SmallInteger,
+    Text,
+    UniqueConstraint,
+    Uuid,
+)
 from sqlalchemy import text as sql_text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import Base, CreatedAt, IdPk
+from app.models.base import Base, CreatedAt, IdPk, Timestamp
 
 MAX_BLOB_BYTES = 2 * 1024 * 1024
 
@@ -51,3 +64,31 @@ class AiUsage(Base):
     model: Mapped[str] = mapped_column(Text, primary_key=True)
     calls: Mapped[int] = mapped_column(Integer, server_default=sql_text("0"))
     exhausted: Mapped[bool] = mapped_column(server_default=sql_text("false"))
+
+
+class Device(Base):
+    """An app install that can receive push (XREQ-009, MOBILE_PLATFORM_CONTRACT §1.3). Tied to the session that
+    registered it: when that session row goes, so does the device; a sender also skips revoked or expired sessions."""
+
+    __tablename__ = "devices"
+    __table_args__ = (
+        CheckConstraint("platform IN ('android')", name="platform"),
+        CheckConstraint("char_length(fcm_token) BETWEEN 1 AND 4096", name="fcm_token_length"),
+        UniqueConstraint("user_id", "install_id"),
+        UniqueConstraint("fcm_token"),  # a token belongs to one user at a time (shared phones)
+    )
+
+    id: Mapped[IdPk]
+    user_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    install_id: Mapped[uuid.UUID] = mapped_column(Uuid)
+    platform: Mapped[str] = mapped_column(Text)
+    fcm_token: Mapped[str] = mapped_column(Text)
+    app_version: Mapped[str] = mapped_column(Text)
+    os_api_level: Mapped[int | None] = mapped_column(SmallInteger)
+    locale: Mapped[str | None] = mapped_column(Text)
+    notifications_enabled: Mapped[bool] = mapped_column(Boolean)
+    session_token_hash: Mapped[bytes] = mapped_column(
+        LargeBinary, ForeignKey("sessions.token_hash", ondelete="CASCADE"), index=True
+    )
+    last_seen_at: Mapped[Timestamp]
+    created_at: Mapped[CreatedAt]

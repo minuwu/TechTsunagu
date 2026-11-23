@@ -44,3 +44,9 @@ class Settings(BaseSettings):
         return self
 
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"
+
+    # Android app gate (XREQ-009, GET /api/app/config): the app blocks below the minimum and offers the download.
+    app_min_version: Annotated[str, StringConstraints(pattern=r"^\d+\.\d+\.\d+$")] = "1.0.0"
+    app_latest_version: Annotated[str, StringConstraints(pattern=r"^\d+\.\d+\.\d+$")] = "1.0.0"
+    app_download_url: str | None = None  # the release APK (direct distribution, no Play Store)
+    app_sha256: Annotated[str | None, StringConstraints(pattern=r"^[0-9a-f]{64}$")] = None

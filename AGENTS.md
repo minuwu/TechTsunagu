@@ -421,7 +421,7 @@ Exact bodies, errors and the reasoning are in [MOBILE_PLATFORM_CONTRACT.md](docs
 
 **Fulfillment & Proof (filled by recipient on completion):**
 - **Branch / Commit**: 
-- **Status / Notes**: 
+- **Status / Notes**:  2026-11-23 Anim (Asif is off the project): (1) `GET /api/app/config` is live and public: `minVersion`, `latestVersion`, `downloadUrl`, `sha256`, `serverTime`, set by the env `APP_MIN_VERSION`, `APP_LATEST_VERSION`, `APP_DOWNLOAD_URL`, `APP_SHA256`; the app blocks below `minVersion` (the server-side 426 gate is planned). (2) `PUT /api/devices/me` and `DELETE /api/devices/me?installId=` are live (upsert per user + install, a shared token moves to the new user, 6 per minute, the row is tied to the registering session). Sending: XREQ-014 (Minhaz, Firebase). (3) Rule recorded for the sender. (4) **Push only, no notification list.** (5) **JPEG up to 2 MB** (code and architecture §11 now agree).
 - **Verification Proof**: 
 
 #### `[XREQ-010]` Personal side: Contacts, My QR, Talk Threads, group controls, Periodic Interviews, Today's Word, Near-miss
@@ -458,7 +458,7 @@ Errors: 404 for a revoked or unknown token, 409 for an existing Contact, 403 for
 
 **Fulfillment & Proof (filled by recipient on completion):**
 - **Branch / Commit**: 
-- **Status / Notes**: 
+- **Status / Notes**:  2026-11-23 Anim, scope agreed with the team: items 4, 5, 7 now; items 1-3 (Contacts, My QR, Talk Threads, group controls) are "planned" in the proposal. Live: `GET /api/interviews/due`, `GET|POST /api/workers/{id}/interviews` (`heldOn`, `method` face|online, `onlineConsentAt` required for online, `noteJa` ≤ 1000, optional `Idempotency-Key`, no future date; Support Log item 10), `GET /api/today-word`, `GET /api/senpai-pairs/me`. Item 6 (Near-miss) was already live.
 - **Verification Proof**: 
 
 #### `[XREQ-011]` Gaps in live routes: Worker reads, ETag and Idempotency-Key, get-one Notice, Glossary PATCH, analytics, AI languages
@@ -492,7 +492,7 @@ GET /api/tasks?machineId={id}
 
 **Fulfillment & Proof (filled by recipient on completion):**
 - **Branch / Commit**: 
-- **Status / Notes**: 
+- **Status / Notes**:  2026-11-23 Anim: item 2 `Idempotency-Key` (optional) on `POST /meetups`, `/tasks`, `/workers/{id}/interviews` (migration `99f33c3ca2c7`); `/receipts` is idempotent by design; `/briefings` is Galib's. Item 3 decided: **Posters only** post Notices. Open: item 1 (own Follow-ups, Learning History, analytics) and item 4 (Glossary PATCH).
 - **Verification Proof**: 
 
 #### `[XREQ-012]` Point the Azure API at the Supabase database

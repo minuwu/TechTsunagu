@@ -1,0 +1,25 @@
+{
+  "_comment": "Today's Word (XREQ-010, E-110): one everyday word of the Workers' language, shown to the Japanese side (Foreman, Senpai) so they can greet and reassure in it. Chosen by date. Keys are shop languages; each entry: word, reading (Latin letters), meaningJa.",
+  "bn": [
+    {"word": "ধন্যবাদ", "reading": "dhonnobad", "meaningJa": "ありがとう"},
+    {"word": "শুভ সকাল", "reading": "shubho shokal", "meaningJa": "おはよう"},
+    {"word": "কেমন আছেন?", "reading": "kemon achhen?", "meaningJa": "お元気ですか？"},
+    {"word": "বুঝেছি", "reading": "bujhechhi", "meaningJa": "わかりました"},
+    {"word": "আবার বলুন", "reading": "abar bolun", "meaningJa": "もう一度言ってください"},
+    {"word": "সাবধান", "reading": "shabdhan", "meaningJa": "気をつけて"},
+    {"word": "বিশ্রাম", "reading": "bishram", "meaningJa": "休憩"},
+    {"word": "সাহায্য", "reading": "shahajjo", "meaningJa": "助け・手伝い"},
+    {"word": "ভালো কাজ", "reading": "bhalo kaj", "meaningJa": "いい仕事ですね"},
+    {"word": "পানি", "reading": "pani", "meaningJa": "水"}
+  ],
+  "en": [
+    {"word": "Thank you", "reading": "thank you", "meaningJa": "ありがとう"},
+    {"word": "Good morning", "reading": "good morning", "meaningJa": "おはよう"},
+    {"word": "Are you OK?", "reading": "are you OK?", "meaningJa": "大丈夫ですか？"},
+    {"word": "Understood", "reading": "understood", "meaningJa": "わかりました"},
+    {"word": "One more time, please", "reading": "one more time, please", "meaningJa": "もう一度お願いします"},
+    {"word": "Be careful", "reading": "be careful", "meaningJa": "気をつけて"},
+    {"word": "Break time", "reading": "break time", "meaningJa": "休憩"},
+    {"word": "Good job", "reading": "good job", "meaningJa": "いい仕事ですね"}
+  ]
+}

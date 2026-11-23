@@ -159,6 +159,7 @@ class Meetup(Base):
         CheckConstraint("logged_by IN ('worker','senpai')", name="logged_by"),
         ForeignKeyConstraint(["shop_id", "pair_id"], ["senpai_pairs.shop_id", "senpai_pairs.id"]),
         Index("ix_meetups_shop_pair_day", "shop_id", "pair_id", sql_text("happened_on DESC")),
+        UniqueConstraint("shop_id", "idempotency_key"),
     )
 
     id: Mapped[IdPk]
@@ -168,4 +169,32 @@ class Meetup(Base):
     happened_on: Mapped[date] = mapped_column(Date)
     note: Mapped[str] = mapped_column(Text, server_default="")
     logged_by: Mapped[str] = mapped_column(Text)
+    # A retried offline create must not make two rows (XREQ-011 item 2); optional so the web app needs no change.
+    idempotency_key: Mapped[uuid.UUID | None] = mapped_column(Uuid)
+    created_at: Mapped[CreatedAt]
+
+
+class PeriodicInterview(Base):
+    """Support item 10 (定期的な面談): the 登録支援機関 meets each Worker at least every 3 months (research.md §1)."""
+
+    __tablename__ = "periodic_interviews"
+    __table_args__ = (
+        CheckConstraint("method IN ('face','online')", name="method"),
+        CheckConstraint("method = 'face' OR online_consent_at IS NOT NULL", name="online_needs_consent"),
+        CheckConstraint("char_length(note_ja) <= 1000", name="note_length"),
+        UniqueConstraint("shop_id", "idempotency_key"),
+        ForeignKeyConstraint(["shop_id", "worker_id"], ["users.shop_id", "users.id"]),
+        ForeignKeyConstraint(["shop_id", "recorded_by"], ["users.shop_id", "users.id"]),
+        Index("ix_periodic_interviews_shop_worker_held", "shop_id", "worker_id", sql_text("held_on DESC")),
+    )
+
+    id: Mapped[IdPk]
+    shop_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("shops.id"))
+    worker_id: Mapped[int] = mapped_column(BigInteger)
+    held_on: Mapped[date] = mapped_column(Date)
+    method: Mapped[str] = mapped_column(Text)
+    online_consent_at: Mapped[TimestampOrNone]
+    note_ja: Mapped[str] = mapped_column(Text, server_default="")
+    recorded_by: Mapped[int] = mapped_column(BigInteger)
+    idempotency_key: Mapped[uuid.UUID | None] = mapped_column(Uuid)
     created_at: Mapped[CreatedAt]

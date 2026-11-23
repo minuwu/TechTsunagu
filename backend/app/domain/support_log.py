@@ -10,17 +10,18 @@ from typing import Literal
 
 from app.domain.recurrence import TOKYO
 
-SupportItem = Literal["consultation", "exchange", "orientation", "panel_override"]
+SupportItem = Literal["consultation", "exchange", "interview", "orientation", "panel_override"]
 
 # Item numbers are the 義務的支援 items; the Panel Override is the shop's own safety record. Order = file order.
 ITEM_LABELS: dict[SupportItem, str] = {
     "consultation": "7 相談・苦情への対応",
     "exchange": "8 日本人との交流促進",
+    "interview": "10 定期的な面談",
     "orientation": "4 生活オリエンテーション（お知らせの確認）",
     "panel_override": "安全記録（パネル解除）",
 }
 HEADER = ["支援項目", "日時", "氏名", "内容", "対応・相手", "記録元"]
-NOT_COVERED = "この記録に含まれないもの：定期的な面談（項目10、3か月に1回以上）、定期届出（参考様式第3-6号）。"
+NOT_COVERED = "この記録に含まれないもの：定期届出（参考様式第3-6号）。"
 _FORMULA_START = ("=", "+", "-", "@", "\t", "\r")
 
 

@@ -2911,6 +2911,25 @@
             "HTTPBearer": []
           }
         ],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -2943,6 +2962,35 @@
             }
           }
         },
+        "x-roles": [
+          "worker"
+        ]
+      }
+    },
+    "/api/senpai-pairs/me": {
+      "get": {
+        "tags": [
+          "life"
+        ],
+        "summary": "Your own Senpai pair, or null (no link token)",
+        "operationId": "my_senpai_pair_api_senpai_pairs_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Union_SenpaiPairOut__NoneType__"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "x-roles": [
           "worker"
         ]
@@ -3941,6 +3989,25 @@
             "HTTPBearer": []
           }
         ],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -4512,6 +4579,312 @@
           "worker"
         ]
       }
+    },
+    "/api/interviews/due": {
+      "get": {
+        "tags": [
+          "life"
+        ],
+        "summary": "Periodic Interviews (support item 10): next due date per Worker",
+        "operationId": "interviews_due_api_interviews_due_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_list_InterviewDue__"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "x-roles": [
+          "foreman"
+        ]
+      }
+    },
+    "/api/workers/{worker_id}/interviews": {
+      "get": {
+        "tags": [
+          "life"
+        ],
+        "summary": "A Worker's past Periodic Interviews, newest first",
+        "operationId": "worker_interviews_api_workers__worker_id__interviews_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "worker_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Worker Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_list_InterviewOut__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "foreman"
+        ]
+      },
+      "post": {
+        "tags": [
+          "life"
+        ],
+        "summary": "Record a Periodic Interview",
+        "operationId": "record_interview_api_workers__worker_id__interviews_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "worker_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Worker Id"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InterviewIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_InterviewOut_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "foreman"
+        ]
+      }
+    },
+    "/api/today-word": {
+      "get": {
+        "tags": [
+          "life"
+        ],
+        "summary": "Today's Word: one word of the Workers' language for the Japanese side",
+        "operationId": "today_word_api_today_word_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_TodayWord_"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "x-roles": [
+          "foreman"
+        ]
+      }
+    },
+    "/api/app/config": {
+      "get": {
+        "tags": [
+          "life"
+        ],
+        "summary": "Android version gate (public): minimum and latest version, download link",
+        "operationId": "app_config_api_app_config_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_AppConfig_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/me": {
+      "put": {
+        "tags": [
+          "life"
+        ],
+        "summary": "Register this app install for push (upsert; 6 per minute)",
+        "operationId": "register_device_api_devices_me_put",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeviceIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_DeviceOut_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "foreman",
+          "worker"
+        ]
+      },
+      "delete": {
+        "tags": [
+          "life"
+        ],
+        "summary": "Forget this app install before signing out (idempotent)",
+        "operationId": "unregister_device_api_devices_me_delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "installId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Installid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "foreman",
+          "worker"
+        ]
+      }
     }
   },
   "components": {
@@ -4723,6 +5096,58 @@
           "answers"
         ],
         "title": "AnswersIn"
+      },
+      "AppConfig": {
+        "properties": {
+          "minVersion": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d+\\.\\d+$",
+            "title": "Minversion"
+          },
+          "latestVersion": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d+\\.\\d+$",
+            "title": "Latestversion"
+          },
+          "downloadUrl": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Downloadurl"
+          },
+          "sha256": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sha256"
+          },
+          "serverTime": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Servertime"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "minVersion",
+          "latestVersion",
+          "downloadUrl",
+          "sha256",
+          "serverTime"
+        ],
+        "title": "AppConfig",
+        "description": "GET /app/config (public). The app blocks below `minVersion` and offers `downloadUrl` (check `sha256`)."
       },
       "ApproveIn": {
         "properties": {
@@ -5882,6 +6307,90 @@
         "title": "ConfusionOut",
         "description": "From a Work Check (checkId and machineId set) or from a Chat message's Check (messageId set)."
       },
+      "DeviceIn": {
+        "properties": {
+          "installId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Installid"
+          },
+          "platform": {
+            "type": "string",
+            "const": "android",
+            "title": "Platform"
+          },
+          "fcmToken": {
+            "type": "string",
+            "maxLength": 4096,
+            "minLength": 1,
+            "title": "Fcmtoken"
+          },
+          "appVersion": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d+\\.\\d+$",
+            "title": "Appversion"
+          },
+          "osApiLevel": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 100.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Osapilevel"
+          },
+          "locale": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 35
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Locale"
+          },
+          "notificationsEnabled": {
+            "type": "boolean",
+            "title": "Notificationsenabled"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "installId",
+          "platform",
+          "fcmToken",
+          "appVersion",
+          "notificationsEnabled"
+        ],
+        "title": "DeviceIn"
+      },
+      "DeviceOut": {
+        "properties": {
+          "registered": {
+            "type": "boolean",
+            "title": "Registered"
+          },
+          "lastSeenAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Lastseenat"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "registered",
+          "lastSeenAt"
+        ],
+        "title": "DeviceOut"
+      },
       "EffortOut": {
         "properties": {
           "drafts": {
@@ -5995,6 +6504,29 @@
           "data"
         ],
         "title": "Envelope[AnswerResult]"
+      },
+      "Envelope_AppConfig_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/AppConfig"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[AppConfig]"
       },
       "Envelope_AskOut_": {
         "properties": {
@@ -6134,6 +6666,29 @@
         ],
         "title": "Envelope[ConfusionOut]"
       },
+      "Envelope_DeviceOut_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/DeviceOut"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[DeviceOut]"
+      },
       "Envelope_EffortOut_": {
         "properties": {
           "success": {
@@ -6271,6 +6826,29 @@
           "data"
         ],
         "title": "Envelope[Heatmap]"
+      },
+      "Envelope_InterviewOut_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/InterviewOut"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[InterviewOut]"
       },
       "Envelope_LoginOut_": {
         "properties": {
@@ -6986,6 +7564,29 @@
         ],
         "title": "Envelope[TaskOut]"
       },
+      "Envelope_TodayWord_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/TodayWord"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[TodayWord]"
+      },
       "Envelope_Union_AssignmentOut__NoneType__": {
         "properties": {
           "success": {
@@ -7109,6 +7710,36 @@
         ],
         "title": "Envelope[Union[Page[NoticeForPoster], Page[NoticeForWorker]]]"
       },
+      "Envelope_Union_SenpaiPairOut__NoneType__": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SenpaiPairOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[Union[SenpaiPairOut, NoneType]]"
+      },
       "Envelope_UserOut_": {
         "properties": {
           "success": {
@@ -7212,6 +7843,60 @@
           "data"
         ],
         "title": "Envelope[list[GlossaryOut]]"
+      },
+      "Envelope_list_InterviewDue__": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/InterviewDue"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[list[InterviewDue]]"
+      },
+      "Envelope_list_InterviewOut__": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/InterviewOut"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[list[InterviewOut]]"
       },
       "Envelope_list_RosterEntry__": {
         "properties": {
@@ -7750,6 +8435,159 @@
         ],
         "title": "Heatmap",
         "description": "GET /heatmap: Confusions per Glossary Term × Machine; only terms with at least one, most confused first."
+      },
+      "InterviewDue": {
+        "properties": {
+          "workerId": {
+            "type": "string",
+            "title": "Workerid"
+          },
+          "displayName": {
+            "type": "string",
+            "title": "Displayname"
+          },
+          "lastHeldOn": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lastheldon"
+          },
+          "dueOn": {
+            "type": "string",
+            "format": "date",
+            "title": "Dueon"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "soon",
+              "overdue"
+            ],
+            "title": "Status"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "workerId",
+          "displayName",
+          "lastHeldOn",
+          "dueOn",
+          "status"
+        ],
+        "title": "InterviewDue"
+      },
+      "InterviewIn": {
+        "properties": {
+          "heldOn": {
+            "type": "string",
+            "format": "date",
+            "title": "Heldon"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "face",
+              "online"
+            ],
+            "title": "Method"
+          },
+          "onlineConsentAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Onlineconsentat"
+          },
+          "noteJa": {
+            "type": "string",
+            "maxLength": 1000,
+            "title": "Noteja",
+            "default": ""
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "heldOn",
+          "method"
+        ],
+        "title": "InterviewIn"
+      },
+      "InterviewOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "workerId": {
+            "type": "string",
+            "title": "Workerid"
+          },
+          "heldOn": {
+            "type": "string",
+            "format": "date",
+            "title": "Heldon"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "face",
+              "online"
+            ],
+            "title": "Method"
+          },
+          "onlineConsentAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Onlineconsentat"
+          },
+          "noteJa": {
+            "type": "string",
+            "title": "Noteja"
+          },
+          "recordedBy": {
+            "type": "string",
+            "title": "Recordedby"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "workerId",
+          "heldOn",
+          "method",
+          "onlineConsentAt",
+          "noteJa",
+          "recordedBy",
+          "createdAt"
+        ],
+        "title": "InterviewOut"
       },
       "LoginIn": {
         "properties": {
@@ -10734,6 +11572,52 @@
           "lastMessageAt"
         ],
         "title": "ThreadOut"
+      },
+      "TodayWord": {
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "ja",
+              "bn",
+              "en",
+              "vi",
+              "id",
+              "ne",
+              "my",
+              "tl",
+              "zh"
+            ],
+            "title": "Language"
+          },
+          "word": {
+            "type": "string",
+            "title": "Word"
+          },
+          "reading": {
+            "type": "string",
+            "title": "Reading"
+          },
+          "meaningJa": {
+            "type": "string",
+            "title": "Meaningja"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "date",
+          "language",
+          "word",
+          "reading",
+          "meaningJa"
+        ],
+        "title": "TodayWord"
       },
       "UserOut": {
         "properties": {
