@@ -30,6 +30,8 @@ jobs:
     env:
       TEST_DATABASE_URL: postgresql+psycopg://wakatta_app:wakatta_app_dev@127.0.0.1:5432/wakatta_test
       TEST_MIGRATION_DATABASE_URL: postgresql+psycopg://wakatta_owner:wakatta_owner_dev@127.0.0.1:5432/wakatta_test
+      # Superuser of the same throwaway container, for tests/db/test_dbinit.py (it builds a Supabase-like server).
+      TEST_ADMIN_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/postgres
       APP_DB_ROLE: wakatta_app
     steps:
       # Actions pinned to full commit SHAs, as in backend-deploy.yml.

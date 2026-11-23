@@ -39,7 +39,7 @@ flowchart LR
     WEB[web: TanStack Start / Nitro SSR]
     API[api: FastAPI, exactly 1 replica]
   end
-  DB[(PostgreSQL Flexible Server B1ms)]
+  DB[(Supabase PostgreSQL, Tokyo)]
   G[Gemini API]
   Devices -- HTML --> WEB
   WEB -- SSR fetch, Bearer --> API
@@ -671,7 +671,7 @@ Coverage target 80% on `domain`, `services`, `repositories`, `ai` (G-22). CI `ba
 | Piece | Setting | Cost |
 | :--- | :--- | :--- |
 | Resource group | Japan East if the student subscription's region policy allows it, else the nearest allowed region | — |
-| PostgreSQL Flexible Server | Burstable B1ms, 32 GB, SSL required, database `wakatta`, roles `wakatta_owner` and `wakatta_app` | free 12 months (750 h/month) under Azure for Students |
+| Supabase PostgreSQL (free plan, Tokyo) | database `postgres` (shared with Supabase's own schemas), roles `wakatta_owner` and `wakatta_app` through the Session pooler (IPv4), TLS `verify-full` against Supabase's root CA (`backend/certs`), Data API roles locked out of `public`; the project pauses after 7 idle days and has no point-in-time recovery (the demo seed rebuilds it). Runbook: `backend/deploy/SUPABASE.md`. Replaced Azure Postgres on 2026-11-23 (team decision). | free |
 | Container Apps environment | Consumption plan | free monthly grant (180,000 vCPU-s, 360,000 GiB-s) |
 | `api` app | external ingress, port 8000, 0.5 vCPU / 1 GiB, **min 1 max 1** from Nov 24 to Nov 26 (no cold start on stage), min 0 while developing | an always-on replica exceeds the grant: a few dollars for the demo week from the $100 credit; check in the pricing calculator |
 | `web` app | Minhaz's Nitro build, same environment | same |

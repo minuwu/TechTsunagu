@@ -38,8 +38,12 @@ function Invoke-Py([hashtable]$Env, [string[]]$PyArgs) {
     foreach ($k in $Env.Keys) { Set-Item "Env:$k" $Env[$k] }
     try {
         Push-Location $backend
-        & $py @PyArgs
-        if ($LASTEXITCODE) { throw "python $($PyArgs -join ' ') failed (exit $LASTEXITCODE)" }
+        # As in Invoke-Az: Alembic logs INFO to stderr, which PowerShell 5.1 would treat as fatal under "Stop".
+        $ErrorActionPreference = "Continue"
+        & $py @PyArgs 2>&1 | ForEach-Object { "$_" }
+        $code = $LASTEXITCODE
+        $ErrorActionPreference = "Stop"
+        if ($code) { throw "python $($PyArgs -join ' ') failed (exit $code)" }
     } finally {
         Pop-Location
         foreach ($k in $Env.Keys) { Remove-Item "Env:$k" -ErrorAction SilentlyContinue }
@@ -57,8 +61,10 @@ Step "point the API at Supabase"
 Wait-Idle
 Invoke-Az containerapp secret set -n $App -g $Rg `
     --secrets "database-url=$appUrl" "migration-database-url=$ownerUrl" "pin-pepper=$pepper" -o none
-# Changing a plain setting starts a new revision, which reads the new secrets.
-Invoke-Az containerapp update -n $App -g $Rg --set-env-vars "DATABASE_HOST=$dbHost" -o none
+# Wires the settings to the secrets (also on a fresh app) and starts a new revision, which reads them.
+Invoke-Az containerapp update -n $App -g $Rg --set-env-vars "DATABASE_URL=secretref:database-url" `
+    "MIGRATION_DATABASE_URL=secretref:migration-database-url" "PIN_PEPPER=secretref:pin-pepper" `
+    "APP_DB_ROLE=wakatta_app" "DATABASE_HOST=$dbHost" -o none
 $fqdn = Wait-Ready
 $roster = Invoke-RestMethod "https://$fqdn/api/auth/roster?code=SASEBO01&role=foreman" -TimeoutSec 20
 Step "live on Supabase: roster has $(@($roster.data).Count) Foreman(s) at https://$fqdn"
