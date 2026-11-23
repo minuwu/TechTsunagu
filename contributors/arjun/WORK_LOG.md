@@ -4,6 +4,19 @@ Owner: Arjun Saha (GitHub handle TBD) — Role: Frontend design
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-23 (motion: Lenis, GSAP, Vanta in v3)
+
+### Done
+- **Lenis** smooth wheel scroll for the v3 kit, driven by GSAP's ticker (ScrollTrigger in sync); touch native; `anchors: false` so the skip link still moves focus; `scrollToSection()` for smooth in-page links that also move focus; `data-lenis-prevent` on the confirm dialog.
+- **Vanta WAVES** behind the landing hero ("Nagasaki harbour at night", dark and light colours follow the theme toggle). three r134 + Vanta lazy-loaded in their own chunk (about 153 KB gzipped); skipped under reduced motion or Data Saver; a frame-rate guard (under 24 fps for 2 s) falls back to the still sea; a veil keeps hero text at panel contrast.
+- **GSAP** landing motion: hero entrance after the splash, scroll reveals (opacity only, so nothing leaves the accessibility tree), count-up on the sourced 46.2%. All inside `gsap.matchMedia('(prefers-reduced-motion: no-preference)')`.
+- Fixed: the hero's "How it works" link pointed at `#how`, which no element had.
+- Skills for agents: `.claude/skills/lenis`, `gsap`, `vanta` (setup, theme options, a11y rules, pitfalls). FRONTEND_STACK S-02 lines added; `three` and `vanta` pinned exactly.
+- e2e runs with `reducedMotion: 'reduce'` (axe never sees a half-faded element); new test "landing with motion on" checks every reveal ends at full opacity. 11/11 in CI mode.
+
+### Next
+- The brand task below puts a 5-slide hero carousel on the landing page: decide with Minhaz whether the slides replace the Vanta waves or sit on top of them (waves as the slide backdrop).
+
 ## 2026-11-23 (brand kit: wire it and make it better, from Minhaz)
 
 The Brand kit is on `main` in [`frontend/public/brand/`](../../frontend/public/brand/): the mascot **Nekko**, app icons, favicons, 22 Lottie animations, hero / footer / spot / social images, logos and tokens, each in two blues (`#1351AA` primary, `.iconblue` twin `#246DD4`). Open `frontend/public/brand/index.html` in a browser to skim everything. Start with [docs/brand/README.md](../../docs/brand/README.md); rules are in [SPEC.md](../../docs/brand/SPEC.md), the decision in [ADR 0013](../../docs/adr/0013-brand-kit-mascot-two-blues-vector-only.md). This comes **before** the entries below, after you finish what you have open.

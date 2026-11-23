@@ -76,3 +76,28 @@ test.describe('unknown URL in a Japanese browser', () => {
     await expect(page.getByRole('link', { name: 'ホームに戻る' })).toBeVisible()
   })
 })
+
+// Landing motion (GSAP reveals, Lenis wheel scroll): with motion on, nothing may stay hidden after scrolling
+test.describe('landing with motion on', () => {
+  test.use({ reducedMotion: 'no-preference' })
+
+  test('every revealed block ends fully visible', async ({ page }) => {
+    await page.goto('/')
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+    for (let i = 0; i < 14; i++) {
+      await page.mouse.wheel(0, 700)
+      await page.waitForTimeout(120)
+    }
+    await expect
+      .poll(
+        () =>
+          page.$$eval(
+            '[data-reveal], [data-hero]',
+            (els) =>
+              els.filter((el) => getComputedStyle(el).opacity !== '1').length,
+          ),
+        { timeout: 8000 },
+      )
+      .toBe(0)
+  })
+})

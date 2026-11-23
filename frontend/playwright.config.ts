@@ -6,7 +6,13 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? 'github' : 'list',
-  use: { baseURL: 'http://localhost:3000', trace: 'on-first-retry' },
+  // Reduced motion by default: axe and screenshots see settled UI, never a half-faded reveal.
+  // Tests that check the motion itself opt back in with test.use({ reducedMotion: 'no-preference' }).
+  use: {
+    baseURL: 'http://localhost:3000',
+    trace: 'on-first-retry',
+    reducedMotion: 'reduce',
+  },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: {
     command: 'npm run build && npm start',
