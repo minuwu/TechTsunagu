@@ -125,6 +125,16 @@ class Translation(AiModel):
     text: Text
 
 
+class KnowledgeDraft(AiModel):
+    """answer_knowledge (the chatbot, RAG_PLAN.md): an answer only from the given sources, then one self-check.
+    Passed through app.domain.grounding.ground() before it is shown."""
+
+    covered: bool
+    answer: AiTri | None
+    source_ids: Annotated[list[str], Field(max_length=6)]
+    check: AiQuestion | None
+
+
 class AiTaskDraft(AiModel):
     """A Task the Foreman's message asks for; the service checks every id against the Thread and the shop."""
 

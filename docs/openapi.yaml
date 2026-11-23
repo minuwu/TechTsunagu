@@ -4946,6 +4946,54 @@
           "worker"
         ]
       }
+    },
+    "/api/knowledge/asks": {
+      "post": {
+        "tags": [
+          "knowledge"
+        ],
+        "summary": "Ask the chatbot (text or voice): answered only from cited sources, then one self-check; never a 500",
+        "operationId": "ask_knowledge_api_knowledge_asks_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_ask_knowledge_api_knowledge_asks_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_KnowledgeAnswer_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "x-roles": [
+          "worker"
+        ]
+      }
     }
   },
   "components": {
@@ -5543,6 +5591,48 @@
           "openConfusions"
         ],
         "title": "BoardOut"
+      },
+      "Body_ask_knowledge_api_knowledge_asks_post": {
+        "properties": {
+          "text": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          },
+          "audio": {
+            "anyOf": [
+              {
+                "type": "string",
+                "contentMediaType": "application/octet-stream"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Audio"
+          },
+          "machineId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[1-9][0-9]{0,18}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Machineid"
+          }
+        },
+        "type": "object",
+        "title": "Body_ask_knowledge_api_knowledge_asks_post"
       },
       "Body_create_ask_api_asks_post": {
         "properties": {
@@ -6910,6 +7000,29 @@
           "data"
         ],
         "title": "Envelope[InterviewOut]"
+      },
+      "Envelope_KnowledgeAnswer_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/KnowledgeAnswer"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[KnowledgeAnswer]"
       },
       "Envelope_LoginOut_": {
         "properties": {
@@ -8720,6 +8833,144 @@
           "createdAt"
         ],
         "title": "InterviewOut"
+      },
+      "KnowledgeAnswer": {
+        "properties": {
+          "question": {
+            "type": "string",
+            "title": "Question"
+          },
+          "covered": {
+            "type": "boolean",
+            "title": "Covered"
+          },
+          "emergency": {
+            "type": "boolean",
+            "title": "Emergency"
+          },
+          "answer": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string",
+                  "maxLength": 1000
+                },
+                "propertyNames": {
+                  "enum": [
+                    "ja",
+                    "bn",
+                    "en",
+                    "vi",
+                    "id",
+                    "ne",
+                    "my",
+                    "tl",
+                    "zh"
+                  ]
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answer"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/KnowledgeSource"
+            },
+            "type": "array",
+            "title": "Sources"
+          },
+          "check": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CheckQuestion"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "question",
+          "covered",
+          "emergency",
+          "answer",
+          "sources",
+          "check"
+        ],
+        "title": "KnowledgeAnswer"
+      },
+      "KnowledgeSource": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "safety",
+              "life",
+              "note",
+              "notice"
+            ],
+            "title": "Kind"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "page": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          },
+          "attribution": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attribution"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "title",
+          "page",
+          "url",
+          "attribution"
+        ],
+        "title": "KnowledgeSource"
       },
       "LoginIn": {
         "properties": {

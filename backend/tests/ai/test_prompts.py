@@ -13,6 +13,7 @@ PLACEHOLDERS = {
     "build_notice.v3.md": {"glossary", "today", "languages"},
     "answer_ask.v3.md": {"glossary", "notices", "languages"},
     "translate.v1.md": {"glossary", "source_lang", "target_lang"},
+    "answer_knowledge.v1.md": {"sources", "glossary", "languages"},
     "draft_message.v2.md": {"glossary", "members", "machines", "now", "languages"},
     "reexplain.v2.md": {"glossary", "term", "languages"},
 }

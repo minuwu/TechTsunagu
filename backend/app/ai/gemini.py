@@ -21,7 +21,10 @@ def _is_daily_quota(exc: errors.APIError) -> bool:
 class GeminiClient:
     def __init__(self, api_key: str, model: str, timeout_seconds: int) -> None:
         self.model = model
-        self._client = genai.Client(api_key=api_key, http_options=types.HttpOptions(timeout=timeout_seconds * 1000))
+        # One attempt: the SDK's own retries spent ~10 s on each busy (503) model before our chain could move on,
+        # so a request walked 4 busy models in ~45 s (seen 2026-11-23). AiRunner already retries and fails over.
+        options = types.HttpOptions(timeout=timeout_seconds * 1000, retry_options=types.HttpRetryOptions(attempts=1))
+        self._client = genai.Client(api_key=api_key, http_options=options)
 
     def generate(
         self, prompt: Prompt, parts: list[Part], schema: type[object], languages: Sequence[str] = DEFAULT_LANGUAGES

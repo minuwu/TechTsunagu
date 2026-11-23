@@ -71,6 +71,7 @@ This file is:
 | `XREQ-013` | P1 | Frontend (Arjun) | Backend (Asif, deploy) | Host the frontend demo on Azure Static Web Apps (static build, `npm run build:static`) and reply with the live URL | `[PENDING]` | 2026-11-23 18:30 |
 | `XREQ-014` | P1 | Backend (Anim) | Frontend (Minhaz, Android + Firebase) | Firebase for push: project, Android app, FCM token upload to `PUT /api/devices/me`, service-account key to Anim privately | `[PENDING]` | 2026-11-23 19:30 |
 | `XREQ-015` | P0 | Backend (Anim) | Backend (Asif, Azure owner) | Give Anim's Azure account Contributor on the Wakatta resource group (Asif is off the project; Anim runs deploy now) | `[RESOLVED]` | 2026-11-23 19:30 |
+| `XREQ-016` | P0 | AI (Galib) | Frontend (Minhaz, Arjun; Android: Minhaz) | Chatbot screen on the Worker home and the Machine screen: `POST /api/knowledge/asks` (cited answer + self-check; emergency card; not covered → forward to Senpai) | `[PENDING]` | 2026-11-23 20:00 |
 *(When adding a request: append a row above AND add a detailed card in 2.2. Never insert in the middle.)*
 
 ### 2.2 Detailed Request Cards
@@ -623,6 +624,46 @@ Anim: az group show -n <rg> → succeeds
 - **Branch / Commit**: 
 - **Status / Notes**: 2026-11-23 Asif: Anim invited as a guest to the Azure tenant and given **Contributor on `wakatta-rg`** only (subscription **Azure for Students**). Anim: accept the invitation email, then sign in **to this tenant** (a plain `az login` lands in your own): `az login --tenant acf1fe93-0760-406b-9216-573b5fed5453`, then `az account set --subscription "Azure for Students"`. Ops runbook: `contributors/asif/WORK_LOG.md` (HANDOVER).
 - **Verification Proof**: `az role assignment list` for the guest → `Contributor  /subscriptions/…/resourceGroups/wakatta-rg` (no other assignment).
+
+#### `[XREQ-016]` Chatbot screen: Worker home and Machine screen
+- **Priority**: `P0 (Blocker for the demo feature)`
+- **From**: `AI (Galib)`
+- **To**: `Frontend (Minhaz, Arjun; Android: Minhaz)`
+- **Status**: `[PENDING]`
+- **Created**: `2026-11-23 20:00 (UTC+6)`
+- **Target Interface / Endpoint**: `POST /api/knowledge/asks` (on `main`, in `docs/openapi.yaml`; plan: [RAG_PLAN.md](contributors/galib/RAG_PLAN.md))
+
+**Requirement Details:**
+One chatbot for the Worker (team decision 2026-11-23): it answers **only** from the shop's approved Note Versions, the district's published Notices, the MHLW manufacturing safety manual and the ISA *Guidebook on Living and Working* (English editions, Public Data License 1.0), cites them, and ends with one self-check question.
+1. **Where:** an ask box on the **Worker home** and on the **Machine screen** (send `machineId`, so that Machine's instruction ranks first). Text, or voice (`audio`, same formats as notes).
+2. **Covered:** show `answer[lang]` (ja + the Worker's language), the `sources` as chips (title, `page` when not null; `url` opens the guide), and the `attribution` line under the answer when present (the licence asks for it).
+3. **Self-check:** show `check` like a Check Question and grade it on the phone with `check.correctIndex`. It is practice: it never calls `/checks` and changes no Sign-off.
+4. **Not covered:** "No guide covers this yet." plus a button **Ask my Senpai**, which uses the existing `POST /api/asks` (`text`) and `POST /api/asks/{id}/forward`.
+5. **Emergency (`emergency: true`):** show `answer` as a red, fixed card (stop work, tell the Foreman, call 119). It is never written by AI.
+6. A model failure is `covered: false`, never a 500; voice may take 3–8 s (show a spinner).
+
+**Expected Request (Payload / Query Params / Headers):**
+```
+POST /api/knowledge/asks   (multipart, Worker session)
+text=Why must I stop the machine before cleaning it?   | audio=@q.webm     [machineId=1]
+```
+
+**Expected Response (Status Code + Payload / Error Codes):**
+```json
+{ "success": true, "data": {
+  "question": "Why must I stop the machine before cleaning it?", "covered": true, "emergency": false,
+  "answer": { "ja": "機械を掃除するときは、必ず事前に完全に止めてください。…", "bn": "…", "en": "Be sure to completely stop the machine before cleaning it. …" },
+  "sources": [ { "id": "mhlw-safety:p15:1", "kind": "safety", "title": "For Work Safety and Health: …", "page": 15,
+                 "url": "https://www.mhlw.go.jp/…/0000148471.pdf", "attribution": "出典：厚生労働省「…」… をもとに Wakatta? が抜粋・要約" } ],
+  "check": { "id": "q1", "termId": null, "prompt": { "ja": "…", "en": "What must you do when cleaning the machine?" },
+             "options": [ { "en": "Clean it after stopping the machine completely" }, { "en": "…" }, { "en": "…" } ], "correctIndex": 0 } } }
+```
+Errors: `403` (not a Worker), `413` / `415` (recording too long or wrong format), `422` (neither text nor audio).
+
+**Fulfillment & Proof (filled by recipient on completion):**
+- **Branch / Commit**: 
+- **Status / Notes**: 
+- **Verification Proof**: 
 
 ### 2.3 Blank XREQ Template (copy & paste)
 

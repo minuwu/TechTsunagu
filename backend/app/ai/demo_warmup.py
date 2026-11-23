@@ -42,6 +42,10 @@ FLYER = (
 )
 ASK = "Where do I go for the disaster drill, and what time?"  # answered by the seeded published drill Notice
 
+# The chatbot (RAG_PLAN.md): one safety question (MHLW guide) and one life question (the seeded drill Notice).
+CHATBOT_SAFETY = "Why must I stop the machine before cleaning it?"
+CHATBOT_LIFE = "When is the disaster drill and where?"
+
 Json = dict[str, Any]
 
 
@@ -74,7 +78,7 @@ class Api:
 
 def _verdict(take: str, data: Json) -> str:
     """What the draft says about the AI: a fallback draft means the take is not safe to film yet."""
-    if take == "ask":
+    if take in ("ask", "chatbot"):
         return "covered" if data.get("covered") else "NOT covered"
     if data.get("needsEdit"):
         return "FALLBACK (AI did not answer)"
@@ -108,6 +112,8 @@ def main(argv: Sequence[str] | None = None) -> None:
         ("briefing", "/api/briefings/draft", foreman, {"text": BRIEFING}),
         ("notice", "/api/notices", poster, {"sourceKind": "text", "text": FLYER}),
         ("ask", "/api/asks", worker, {"text": ASK}),
+        ("chatbot", "/api/knowledge/asks", worker, {"text": CHATBOT_SAFETY}),
+        ("chatbot", "/api/knowledge/asks", worker, {"text": CHATBOT_LIFE}),
     ]
     safe = True
     for take, path, who, form in takes:

@@ -12,6 +12,26 @@ runner (`app.ai.eval`) and the demo warm-up.
 
 ---
 
+## 0. Shipped 2026-11-23 (team decision: **one** chatbot, before submission)
+
+One bot for Work and Life: `POST /api/knowledge/asks` (Worker; text or voice; optional `machineId`). Screens: XREQ-016.
+- **Sources:** the shop's approved Note Versions (the Machine's own ranks first), the district's published Notices,
+  the MHLW manufacturing safety manual (English, 36 pieces) and the ISA *Guidebook on Living and Working* (English,
+  7th ed., 281 pieces), both Public Data License 1.0, built by `backend/tools/ingest_knowledge.py` into
+  `app/seed_data/knowledge.json`. Nagasaki City's guide needs permission for reuse, so it is **not** used.
+- **No database change:** BM25 search in memory (`app/domain/retrieval.py`); pgvector is possible on Supabase later.
+- **Answer:** `answer_knowledge.v1` through the normal AI chain, `ground()` (only cited, sent sources), language and
+  glossary checks, a self-check question; Japanese or spoken questions are also searched in English.
+- **Safety:** injury / fire / gas questions get a fixed card, never AI; medical, legal and visa questions are not covered.
+- **Verified live** (real Gemini, demo seed): cleaning safety → MHLW p.15; plasma cutter → the shop's instruction;
+  garbage → ISA p.142; earthquake (en and ja) → ISA p.128–129; drill → the seeded Notice; ramen → not covered;
+  bleeding → the emergency card. Two chatbot takes are in `app/ai/demo_warmup.py`.
+- Also fixed on the way: the Gemini SDK's own retries cost ~10 s per busy model, so `gemini.py` now makes one attempt
+  and lets `AiRunner` fail over (a busy model fails in ~2 s).
+
+The sections below are the full plan this v1 came from; phases 2–3 (pgvector, OCR of the manga materials, history)
+remain for after the hackathon.
+
 ## 1. Two knowledge bases
 
 | | **Safety Senpai** (Work tab) | **Life Guide** (Life tab) |
