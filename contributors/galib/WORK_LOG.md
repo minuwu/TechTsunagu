@@ -4,6 +4,18 @@ Owner: Galib (`Ga-lib`) — Role: AI / LLM
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-23 night (Asif's chatbot review)
+
+- **Bengali removed from AI output** (team decision): demo shops `languages = {en}`, workers Rahim/Sadia/Tanvir `en`,
+  district Notices and every AI default `("en",)`. Ready-written `bn` seed text stays but nothing asks the AI for it.
+  API shape unchanged. The saved demo answers must be warmed again after deploy (issue #14 step 3 does it).
+- **Chatbot eval:** `app/ai/eval_chatbot.py` + 18 cases in `tests/fixtures/ai/eval/knowledge.json` (en and ja; covered,
+  not covered, an injection, emergencies), through the real route. Result in `docs/ai-eval-chatbot.md`: every model
+  answer correct and cited, 0 wrong; Gemini 503s tonight left some rows unanswered (rerun on a calm Gemini).
+- **Search fix:** Japanese questions are searched with their English translation only (Japanese pairs such as
+  「ください」 matched unrelated guide pages).
+- `RAG_PLAN.md` §6 no longer says "pitch only"; issue #14 has the chatbot smoke-check note.
+
 ## 2026-11-23 (from Arjun: two AI fixes on `main`, please skim)
 
 - **Voice Ask transcript** (`eadef5f`, XREQ-011 item 5b, Anim's request): `AskDraft.question_text` (required); `answer_ask` is now **v2** (new cache key), the eval renders v2. A voice Ask stores the transcript, so `/forward` no longer sends the Senpai an empty message. Your Bangla-removal prompt for Asks can be v3.

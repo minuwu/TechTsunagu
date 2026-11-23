@@ -5,6 +5,7 @@ import { useCurrentWorker } from '@/features/session'
 import { m } from '@/i18n/paraglide/messages'
 import { ScreenSkeleton, Steps } from '@/ui/v4/components/Feedback'
 import { Card, PageTitle } from '@/ui/v4/components/Card'
+import { Chatbot } from '@/ui/v4/components/Chatbot'
 import { Icon, Mark } from '@/ui/v4/components/Icon'
 import { LangToggle } from '@/ui/v4/components/LangToggle'
 import { Question } from '@/ui/v4/components/Question'
@@ -190,6 +191,7 @@ export function MachineScreen() {
           {m.my_page()}
         </Link>
       </p>
+      <Chatbot workerId={c.worker.id} machineId={c.machine.id} lang={lang} />
     </>
   )
 }

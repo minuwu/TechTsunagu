@@ -7,6 +7,7 @@ import type {
   CheckQuestion,
   CheckTarget,
   GlossaryTerm,
+  KnowledgeAnswer,
   Lang,
   MeetupKind,
   NearMissReport,
@@ -403,6 +404,23 @@ export async function askQuestion(input: {
     db.asks.unshift(ask)
     return ask
   })
+}
+
+/** The chatbot (XREQ-016): answers only from cited guides, the shop's instructions and Notices. Nothing is stored. */
+export async function askChatbot(input: {
+  text: string
+  audio: Blob | null
+  machineId: string | null
+}): Promise<KnowledgeAnswer> {
+  if (!USE_MOCK)
+    return request<KnowledgeAnswer>('/api/knowledge/asks', multipart(input))
+  await wait(1200)
+  const text = input.audio ? 'How do I throw away garbage?' : input.text
+  const db = readDb()
+  return {
+    question: text,
+    ...ai.answerKnowledge(text, input.machineId, db.notes, db.notices),
+  }
 }
 
 export async function forwardAsk(askId: string) {

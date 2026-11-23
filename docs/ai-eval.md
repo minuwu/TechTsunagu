@@ -31,5 +31,13 @@ covered or not).
 
 - none
 
-Not scored here: how natural the Bengali and English read (a person reads `--json` output), voice input
+Not scored here: how natural the English reads (a person reads `--json` output), voice input
 (recorded audio cases are added separately) and flyer photos.
+
+## Chatbot
+
+The chatbot (`POST /api/knowledge/asks`) has its own eval through the running API: see
+[ai-eval-chatbot.md](ai-eval-chatbot.md) (`uv run python -m app.ai.eval_chatbot`).
+
+Languages: since 2026-11-23 the demo shops are Japanese + English only (`shops.languages = {en}`); the team dropped
+Bengali, so the AI writes no Bengali at all (this closes the "unchecked Bengali safety text" review point).

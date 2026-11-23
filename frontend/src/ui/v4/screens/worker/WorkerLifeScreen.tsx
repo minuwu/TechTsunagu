@@ -4,6 +4,7 @@ import { useWorkerLife } from '@/features/worker'
 import { m } from '@/i18n/paraglide/messages'
 import { ScreenSkeleton } from '@/ui/v4/components/Feedback'
 import { Card, PageTitle, inputClass } from '@/ui/v4/components/Card'
+import { Chatbot } from '@/ui/v4/components/Chatbot'
 import { LangToggle } from '@/ui/v4/components/LangToggle'
 import { WorkerTabs } from '@/ui/v4/components/Nav'
 import { OneQuestion } from '@/ui/v4/components/Question'
@@ -254,6 +255,7 @@ export function WorkerLifeScreen() {
           )}
         </Card>
       </div>
+      <Chatbot workerId={workerId} lang={l.lang} />
     </>
   )
 }

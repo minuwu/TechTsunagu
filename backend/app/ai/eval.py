@@ -32,7 +32,7 @@ from app.domain.recurrence import TOKYO, validate_event
 BACKEND = Path(__file__).resolve().parents[2]
 CASES = BACKEND / "tests" / "fixtures" / "ai" / "eval"
 REPORT = BACKEND.parent / "docs" / "ai-eval.md"
-LANGUAGES = ("bn", "en")  # the demo shop's languages (shops.languages); --languages changes them
+LANGUAGES = ("en",)  # the demo shops' languages (shops.languages); --languages changes them
 DEFAULT_MODELS = ("gemini-3.5-flash-lite", "gemini-3.1-flash-lite", GROQ_MODEL)
 
 Json = dict[str, Any]
@@ -235,7 +235,7 @@ def report(rows: Sequence[Row], models: Sequence[str], when: str) -> str:
     lines += ["- none"] if not failed else []
     lines += [
         "",
-        "Not scored here: how natural the Bengali and English read (a person reads `--json` output), voice input",
+        "Not scored here: how natural the English reads (a person reads `--json` output), voice input",
         "(recorded audio cases are added separately) and flyer photos.",
         "",
     ]

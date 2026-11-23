@@ -26,7 +26,7 @@ IconId = Literal[
     "calendar",
 ]
 
-DEFAULT_LANGUAGES = ("bn", "en")  # the demo shop's languages (shops.languages default)
+DEFAULT_LANGUAGES = ("en",)  # the demo shops' languages; the team dropped Bengali (2026-11-23)
 
 NoticeCategory = Literal["garbage", "disaster", "event", "duty", "other"]
 

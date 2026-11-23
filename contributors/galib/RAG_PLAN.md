@@ -1,6 +1,6 @@
 # RAG plan: Safety Senpai (Work) and Life Guide (Life)
 
-**Author** Galib (`Ga-lib`), AI / LLM · **Date** 2026-11-23 · **Status** proposal, to build **after the hackathon**
+**Author** Galib (`Ga-lib`), AI / LLM · **Date** 2026-11-23 · **Status** v1 shipped (§0); the rest is the plan for **after the hackathon**
 **Reviewers** Anim (backend: tables, routes), Minhaz and Arjun (frontend, Android)
 **Builds on** what is already on `main`: the Asks pipeline (`answer_ask` + `app.domain.grounding.ground()` + forward to
 Senpai), approved Note Versions, the AI chain (`app/ai/chains.py`), `ai_cache`, per-shop languages (ja + en), the eval
@@ -101,11 +101,11 @@ new approval is searchable at once.
 
 Requests to file when we start: **XREQ-016** (Anim: tables and routes) and **XREQ-017** (Minhaz/Arjun: screens).
 
-## 6. Order and time (after submission on 24 Nov)
+## 6. Order and time (phase 0 shipped; phases 1–3 after submission on 24 Nov)
 
 | Phase | What | Time |
 | :--- | :--- | :--- |
-| 0 (hackathon) | **Pitch only**: one slide "Safety Senpai: answers from official guides and your shop's instructions, then checks understanding" | now |
+| 0 (hackathon) | ~~Pitch only~~ **Shipped instead** (team decision, 2026-11-23): one bot for Work and Life, see §0 | done |
 | 1 | Life Guide first (lowest risk: extends Asks, same screen): ingest Nagasaki guide + CLAIR, retrieval, prompt, eval | 2–3 days |
 | 2 | Safety Senpai: MHLW manufacturing materials (OCR) + Note Versions, Machine-screen ask box, emergency card | 3–4 days |
 | 3 | Re-ingest job when a source changes; Foreman view of what is indexed; more languages per shop | 2 days |
@@ -133,3 +133,5 @@ Requests to file when we start: **XREQ-016** (Anim: tables and routes) and **XRE
 1. **Anim:** pgvector on our Supabase project: OK to enable the extension?
 2. **Minhaz:** Safety Senpai on the Machine screen, the Worker home, or both?
 3. **Everyone:** Life Guide first (phase 1) or Safety Senpai first? I suggest Life first (lower risk, same screen as Asks).
+
+**Answers (2026-11-23, Asif):** 1. pgvector on Supabase: **OK**, Anim enables it when phase 1 starts. 2 and 3: **Minhaz decides** (placement, one bot or two names, Life Guide or Safety Senpai first); the background he needs is in [contributors/minhaz/CHATBOT_FROM_ASIF.md](../minhaz/CHATBOT_FROM_ASIF.md), and his answers go in XREQ-016.
