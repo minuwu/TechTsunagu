@@ -173,18 +173,19 @@ function renderHome(el, anim) {
 const bump = {};
 const lastMsg = th => { const a = DATA.messages[th.id] || []; return a[a.length - 1]; };
 function threadAvatar(th) {
+  if (th.kind === 'talk') return `<span class="cl-av grp">${ic('mic', 'ic')}</span>`;
   if (th.members.length > 2) return `<span class="cl-av grp">${ic('groups', 'ic')}</span>`;
   const o = th.members.find(u => u !== ME) || th.members[0], u = DATA.users[o];
   return `<span class="cl-av" style="background:${u.color}">${esc(u.initials)}</span>`;
 }
 function renderChats(el, anim) {
   const c = $('.content', el); if (!c) return;
-  const list = DATA.threads.map((th, i) => ({th, i})).sort((a, b) => (bump[b.th.id] || 0) - (bump[a.th.id] || 0) || a.i - b.i).map(x => x.th);
+  const list = DATA.threads.map((th, i) => ({th, i})).sort((a, b) => (bump[b.th.id] || 0) - (bump[a.th.id] || 0) || a.i - b.i).map(x => x.th).filter(th => !th.kind || th.members.includes(ME)); // personal Threads (ADR 0014) show only to their members
   c.innerHTML = `<ul class="list${stag(anim)}" style="padding-top:4px">${list.map(th => {
     const m = lastMsg(th), fw = (DATA.messages[th.id] || []).filter(x => x.wk && DATA.users[x.from].role === 'foreman').pop();
-    const pre = m ? ((th.members.length > 2 ? short(m.from) + ': ' : m.from === ME ? t('あなた: ', 'You: ') : '') + textOf(m)) : t('メッセージはまだありません', 'No messages yet');
+    const pre = m ? th.kind ? (th.kind === 'talk' ? m.ja : textOf(m)) : ((th.members.length > 2 ? short(m.from) + ': ' : m.from === ME ? t('あなた: ', 'You: ') : '') + textOf(m)) : t('メッセージはまだありません', 'No messages yet');
     const fwS = fw ? worst(fw) : null;
-    return `<li><button class="cl-item${th.unread ? ' unread' : ''}" data-tap data-push="chat" ${param({thread: th.id})}>
+    return `<li><button class="cl-item${th.unread ? ' unread' : ''}" data-tap data-push="${th.kind ? 'pchat' : 'chat'}" ${param({thread: th.id})}>
       ${threadAvatar(th)}
       <div class="cl-mid"><div class="cl-title hm-ell">${esc(FM ? th.title : th.titleEn)}</div>
         <div class="cl-prev">${m && m.kind === 'voice' ? ic('mic', 'cl-mi') : ''}<span class="hm-ell">${esc(pre)}</span></div></div>
@@ -410,7 +411,8 @@ Object.assign(SCREENS, {
     } else renderHome(el, true);
   },
   chats(el) {
-    if (!el.dataset.ready) { el.dataset.ready = 1; shell(el, t('チャット', 'Chats'), '', `<button class="icon-btn" data-toast="${t('検索はプロトタイプでは未対応', 'Search is not in the prototype')}" aria-label="${t('検索', 'Search')}">${ic('search', 'ic')}</button>${bell()}`); }
+    if (!el.dataset.ready) { el.dataset.ready = 1; shell(el, t('チャット', 'Chats'), '', `<button class="icon-btn" data-push="connect" aria-label="${t('QRでつながる', 'Connect with QR')}">${ic('qr', 'ic')}</button><button class="icon-btn" data-toast="${t('検索はプロトタイプでは未対応', 'Search is not in the prototype')}" aria-label="${t('検索', 'Search')}">${ic('search', 'ic')}</button>${bell()}`); }
+    if (!$('.fab', el)) el.insertAdjacentHTML('beforeend', `<button class="fab" data-lf="newtalk" aria-label="${t('新しい会話', 'New talk')}">${ic('add', 'ic')}</button>`);
     renderChats(el, true);
   },
   board(el) { renderBoard(el, true); setupBoard(el); },
@@ -450,6 +452,7 @@ function refresh() {
   badge();
   if (window.uxRefresh) window.uxRefresh();
 }
+window.hmRefresh = refresh; // part D re-renders the Chats list after it changes a personal Thread
 Bus.on('msg:new', ({thread, msg}) => { bump[thread] = Date.now(); refresh(); setTimeout(refresh, 60); });
 Bus.on('wk:stage', () => refresh());
 // part C / D data changed: their own handlers run in the same tick, so re-render after them
