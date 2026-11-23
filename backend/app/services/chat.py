@@ -187,7 +187,7 @@ def _question(q: AiQuestion, n: int, terms: list[AiTerm]) -> dict[str, object]:
     }
 
 
-def _to_japanese(ai: AiRunner, parts: list[Part], source: str, scope: str, key: bytes, now: datetime) -> str | None:
+def to_japanese(ai: AiRunner, parts: list[Part], source: str, scope: str, key: bytes, now: datetime) -> str | None:
     request = AiRequest(
         pipeline="translate",
         prompt=render(
@@ -237,7 +237,7 @@ def post_message(
         text_ja = text
     else:
         parts = source or [Part.text(f"<source_text>{text}</source_text>")]
-        text_ja = _to_japanese(ai, parts, language, f"shop:{shop_id}", audio or (text or "").encode(), now)
+        text_ja = to_japanese(ai, parts, language, f"shop:{shop_id}", audio or (text or "").encode(), now)
     row = Message(
         shop_id=shop_id,
         thread_id=t.id,
