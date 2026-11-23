@@ -19,12 +19,20 @@ if ($user -notmatch '^postgres\.([a-z0-9]+)$' -or $u.Port -ne 5432) {
 }
 $ref = $Matches[1]
 $dbHost = $u.Host
-if ($u.Query -notmatch 'sslmode=') { $admin += $(if ($u.Query) { "&" } else { "?" }) + "sslmode=require" }
+
+# TLS with server verification: Supabase signs its pooler with its own root CA (backend/certs, from Supabase's
+# published download), so verify-full against it; whatever sslmode the .env string carries is replaced.
+$localCa = (Join-Path $backend "certs\supabase-prod-ca-2021.crt").Replace("\", "/")
+$imageCa = "/app/certs/supabase-prod-ca-2021.crt"
+function Get-Tls($ca) { "sslmode=verify-full&sslrootcert=$ca" }
+$admin = $admin.Split("?")[0] + "?" + (Get-Tls $localCa)
 
 $ownerPw = New-Secret 32; $appPw = New-Secret 32; $pepper = New-Secret 48
 # Through the pooler a role signs in as <role>.<project-ref>.
-$ownerUrl = "postgresql+psycopg://wakatta_owner.${ref}:$ownerPw@${dbHost}:5432/postgres?sslmode=require"
-$appUrl = "postgresql+psycopg://wakatta_app.${ref}:$appPw@${dbHost}:5432/postgres?sslmode=require"
+function Get-RoleUrl($role, $pw, $ca) { "postgresql+psycopg://$role.${ref}:$pw@${dbHost}:5432/postgres?" + (Get-Tls $ca) }
+$ownerLocal = Get-RoleUrl "wakatta_owner" $ownerPw $localCa
+$ownerUrl = Get-RoleUrl "wakatta_owner" $ownerPw $imageCa
+$appUrl = Get-RoleUrl "wakatta_app" $appPw $imageCa
 
 function Invoke-Py([hashtable]$Env, [string[]]$PyArgs) {
     foreach ($k in $Env.Keys) { Set-Item "Env:$k" $Env[$k] }
@@ -41,9 +49,9 @@ function Invoke-Py([hashtable]$Env, [string[]]$PyArgs) {
 Step "roles in Supabase (wakatta_owner creates tables, wakatta_app uses them)"
 Invoke-Py @{ ADMIN_DATABASE_URL = $admin; OWNER_PASSWORD = $ownerPw; APP_PASSWORD = $appPw; DB_NAME = "postgres" } @("jobs/dbinit.py")
 Step "migrate"
-Invoke-Py @{ MIGRATION_DATABASE_URL = $ownerUrl; APP_DB_ROLE = "wakatta_app" } @("-m", "alembic", "upgrade", "head")
+Invoke-Py @{ MIGRATION_DATABASE_URL = $ownerLocal; APP_DB_ROLE = "wakatta_app" } @("-m", "alembic", "upgrade", "head")
 Step "load the demo data"
-Invoke-Py @{ MIGRATION_DATABASE_URL = $ownerUrl; PIN_PEPPER = $pepper; PYTHONIOENCODING = "utf-8" } @("-m", "app.seed", "--reset")
+Invoke-Py @{ MIGRATION_DATABASE_URL = $ownerLocal; PIN_PEPPER = $pepper; PYTHONIOENCODING = "utf-8" } @("-m", "app.seed", "--reset")
 
 Step "point the API at Supabase"
 Wait-Idle
