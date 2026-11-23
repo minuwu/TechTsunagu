@@ -42,8 +42,35 @@ if (-not $acr) {
 $acrId = Invoke-Az acr show -n $acr --query id -o tsv
 Grant $idPrincipal AcrPull $acrId
 Grant $ciPrincipal AcrPush $acrId
-# Contributor on this resource group only: enough to roll the app and run the jobs, nothing else in the subscription.
-Grant $ciPrincipal Contributor $rgId
+# Least privilege for CI: a custom role limited to Container Apps and their jobs in this resource group (plus attaching
+# the existing pull identity). No rights over PostgreSQL, the registry, other identities or role assignments.
+# listSecrets stays inside Microsoft.App/containerApps/*: `az containerapp update` reads the secrets to preserve them.
+$roleName = "Wakatta CI Deployer"
+$roleFile = Join-Path ([IO.Path]::GetTempPath()) "wakatta-ci-role.json"
+@{
+    Name = $roleName
+    Description = "Roll and migrate the Wakatta API: Container Apps, jobs and the pull identity, in one resource group."
+    Actions = @(
+        "Microsoft.App/containerApps/*", "Microsoft.App/jobs/*", "Microsoft.App/locations/*/read",
+        "Microsoft.App/managedEnvironments/read", "Microsoft.App/managedEnvironments/join/action",
+        "Microsoft.ManagedIdentity/userAssignedIdentities/read",
+        "Microsoft.ManagedIdentity/userAssignedIdentities/*/assign/action",
+        "Microsoft.Resources/subscriptions/resourceGroups/read"
+    )
+    NotActions = @(); DataActions = @(); NotDataActions = @()
+    AssignableScopes = @($rgId)
+} | ConvertTo-Json -Depth 4 | Set-Content -Path $roleFile -Encoding UTF8
+if (Invoke-Az role definition list --name $roleName --query "[0].name" -o tsv) {
+    Invoke-Az role definition update --role-definition "@$roleFile" -o none
+} else {
+    Invoke-Az role definition create --role-definition "@$roleFile" -o none
+}
+Remove-Item $roleFile
+Grant $ciPrincipal $roleName $rgId
+# An earlier run granted the broad Contributor role: take it away.
+foreach ($a in (Invoke-Az role assignment list --assignee $ciPrincipal --scope $rgId --role Contributor --query "[].id" -o tsv)) {
+    if ($a) { Invoke-Az role assignment delete --ids $a -o none }
+}
 
 # Only a workflow running on the main branch of this repository can sign in as wakatta-ci.
 $subject = "repo:${GithubRepo}:ref:refs/heads/main"
