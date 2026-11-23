@@ -4,6 +4,16 @@ Owner: Minhaz (`minuwu`) — Role: Frontend / Full-Stack / Architecture
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-23 (brand kit)
+
+### Completed
+- Brand kit generated from the app-icon image: mascot **Nekko** traced to vectors (mask IoU 0.998), then app icons (25 variations), favicons and PWA manifest, wordmarks and logo variants, 22 Lottie animations (loading / success / fail / warning, machine unlock, Check right / wrong, understood stamp, empty / offline / 404, logo reveal, confetti), 5 hero slides (desktop + recomposed mobile), footer strips, dividers, CTA banners, 14 spot illustrations and social cards. All vector (no image model); every file has an Icon-blue twin. Assets only: nothing under `frontend/src` changed.
+- One folder to skim: `frontend/public/brand/` (open `index.html`). Spec, tools, per-group manifests and a prompt pack for external image generators are in `docs/brand/`. Decision: [ADR 0013](../../docs/adr/0013-brand-kit-mascot-two-blues-vector-only.md) (two blues, vector only, mixed style: a departure from the "all art cream / black / cobalt, 0 px" rule of the v4 design brief). Glossary: Brand section.
+
+### Next
+- Arjun wires it into v3 and may change or enhance the kit: see his [WORK_LOG](../arjun/WORK_LOG.md).
+- v4 kit (`ui/v4/`, local only) still to push; the Brand kit moves to it by swapping markup.
+
 ## 2026-11-23 (course library)
 
 ### Completed

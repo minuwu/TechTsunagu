@@ -4,6 +4,52 @@ Owner: Arjun Saha (GitHub handle TBD) — Role: Frontend design
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-23 (motion: Lenis, GSAP, Vanta in v3)
+
+### Done
+- **Lenis** smooth wheel scroll for the v3 kit, driven by GSAP's ticker (ScrollTrigger in sync); touch native; `anchors: false` so the skip link still moves focus; `scrollToSection()` for smooth in-page links that also move focus; `data-lenis-prevent` on the confirm dialog.
+- **Vanta WAVES** behind the landing hero ("Nagasaki harbour at night", dark and light colours follow the theme toggle). three r134 + Vanta lazy-loaded in their own chunk (about 153 KB gzipped); skipped under reduced motion or Data Saver; a frame-rate guard (under 24 fps for 2 s) falls back to the still sea; a veil keeps hero text at panel contrast.
+- **GSAP** landing motion: hero entrance after the splash, scroll reveals (opacity only, so nothing leaves the accessibility tree), count-up on the sourced 46.2%. All inside `gsap.matchMedia('(prefers-reduced-motion: no-preference)')`.
+- Fixed: the hero's "How it works" link pointed at `#how`, which no element had.
+- Skills for agents: `.claude/skills/lenis`, `gsap`, `vanta` (setup, theme options, a11y rules, pitfalls). FRONTEND_STACK S-02 lines added; `three` and `vanta` pinned exactly.
+- e2e runs with `reducedMotion: 'reduce'` (axe never sees a half-faded element); new test "landing with motion on" checks every reveal ends at full opacity. 11/11 in CI mode.
+
+### Next
+- The brand task below puts a 5-slide hero carousel on the landing page: decide with Minhaz whether the slides replace the Vanta waves or sit on top of them (waves as the slide backdrop).
+
+## 2026-11-23 (brand kit: wire it and make it better, from Minhaz)
+
+The Brand kit is on `main` in [`frontend/public/brand/`](../../frontend/public/brand/): the mascot **Nekko**, app icons, favicons, 22 Lottie animations, hero / footer / spot / social images, logos and tokens, each in two blues (`#1351AA` primary, `.iconblue` twin `#246DD4`). Open `frontend/public/brand/index.html` in a browser to skim everything. Start with [docs/brand/README.md](../../docs/brand/README.md); rules are in [SPEC.md](../../docs/brand/SPEC.md), the decision in [ADR 0013](../../docs/adr/0013-brand-kit-mascot-two-blues-vector-only.md). This comes **before** the entries below, after you finish what you have open.
+
+### Next (assigned)
+1. **Wire it in** (v3, the default kit; presentation only, A-01…A-09):
+   - Favicons, PWA manifest and theme colour: paste `favicon/head-snippet.html` into the root route head (`src/routes/__root.tsx`); add Open Graph / Twitter image tags (`images/social/og-default-1200.png`).
+   - Brand mark: Nekko / `identity/logo-*.svg` in the header, the PIN gate and the landing page.
+   - Landing (`Landing.tsx`): the 5 hero slides as a carousel (`images/hero/`, desktop and a separate mobile file; keep the left 45% / top 40% free for HTML text in ja / en / bn, no text is baked into images), the footer strip and CTA banner, the dividers.
+   - Spot illustrations: the four roles (`role-*`), the onboarding steps (`step-*`), and the empty / no-results / offline / 404 / error / success states (`state-*`).
+   - Lottie: add a player (`lottie-web` or `@lottiefiles/dotlottie-react`) and use `lottie/core/` for loading, success, fail and saving, `lottie/flow/` for the machine unlock, Check results and nudge, `lottie/empty/` for empty and error screens. Honour `prefers-reduced-motion` (show a still frame). Mind the bundle: load Lottie JSON lazily.
+2. **Change or enhance the Brand kit as you see fit.** It is a first pass: edit, redraw, replace or delete anything that does not work in the real screens. Keep: one blue per file (`#1351AA`, so `docs/brand/tools/recolor.py` can rebuild the Icon-blue twins), no text baked into images, shape-layer-only Lottie that passes `tools/lottie-check.cjs`, and a short note in `docs/brand/manifests/` when you change a group. `docs/brand/tools/generators/` has the scripts that built the Lottie, icons and scenes (reference, not turnkey). After changes run `recolor.py frontend/public/brand --render` then `gallery.py`. Known weak spots to start with: `logo-white` / `logo-black` (Nekko is an outline only), a faint smile on the 16 px favicon, hero slides 2 and 3 are light on cobalt, the `surprised` expression mouth overlaps the nose, and Nekko is small on mobile hero slides.
+3. Check every screen you touch against FRONTEND_REGULATIONS (F-01…F-53) and axe: alt text (`alt=""` for decorative art), contrast, reduced motion, 1280×800 / 1024×768 / 390×844.
+
+### Blockers / handoff
+- Minhaz's **v4 "Poster Modernist" kit** (cream / jet / cobalt, `ui/v4/`) is not on `main` yet, so wire into v3. The Brand kit is kit-independent: it moves to v4 later by swapping markup only.
+- Ask Minhaz before changing the Nekko master (`brand/master/`): every other asset is built from it.
+
+## 2026-11-23 (desktop layouts, v3)
+
+### Done
+- Kit agreed: desktop layouts go into **v3** (the default kit). `.env.example` now says `VITE_UI_VERSION=v3` (it still said v2, so a fresh setup got the old kit).
+- From 1024 px: the four app tabs sit in the header and the floating tab bar is phone-only; the Foreman screens get a sticky left sidebar (nav + lock).
+- Board: machines left, flags and Confusions in a right column (≥ 1280 px). Assign: machine cards in two columns. Glossary: the add form is a sticky column beside the table (≥ 1280 px), Japanese terms no longer break mid-word. Near-misses: two-column grid. Briefing, Senpai / Support Log and the Poster notice editor already had two columns.
+- Presentation only (A-01…A-09): `PinGate` got an optional `frame` prop so the Foreman console can place the lock button; no `features/` change.
+- Check: 1280×800, 1024×768, 390×844 with no sideways scroll; ja / en / bn header fits at 1024; focus order matches the visual order. New e2e "Foreman screens fit 1024px"; Playwright (CI mode) 10/10 with axe green on all 16 screens; typecheck and lint clean.
+- e2e: PIN unlock helper retries until the PIN sticks (typing before hydration left the field empty and the test timed out).
+- Bengali font: **Hind Siliguri** replaces Noto Sans Bengali (web app `base.css` + `__root.tsx`, prototype, F-09). `:lang(bn)` puts it first so Bengali and its Latin match; Japanese still falls back to Noto Sans JP. Fixed a conflict: the kits' `.display` tracking overrode `letter-spacing: 0` on Bengali headings.
+
+### Next
+- Chat (Thread list + chat side by side) and Task Board: no `features/` yet (Minhaz, XREQ-005). Lay them out once the hooks land.
+- Item 2: public landing page. v3 already has `Landing.tsx` on the home route from Minhaz; check it against BACKEND_PLAN §2 decisions 14 and 15 before building more.
+
 ## 2026-11-23 (web frontend, from Minhaz)
 
 Minhaz asks you to take the **web frontend**. It comes **before** the items in the 2026-11-22 entry below; those stay yours, after this.

@@ -17,5 +17,12 @@ def test_the_committed_contract_matches_the_code() -> None:
 
 def test_no_worker_facing_schema_carries_the_answer_key() -> None:
     schemas: dict[str, dict[str, object]] = json.loads(contract())["components"]["schemas"]
-    for name in ("CheckQuestionForWorker", "NoteForWorker", "WrongQuestion", "CheckResult", "MachineDetail"):
+    for name in (
+        "CheckQuestionForWorker",
+        "NoteForWorker",
+        "WrongQuestion",
+        "CheckResult",
+        "MachineDetail",
+        "BriefingForWorker",
+    ):
         assert "correctIndex" not in json.dumps(schemas[name]), name

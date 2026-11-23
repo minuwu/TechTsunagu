@@ -1,0 +1,14 @@
+{
+  "name": "Wakatta?",
+  "short_name": "Wakatta?",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#1351AA",
+  "background_color": "#E3E2DE",
+  "icons": [
+    { "src": "/brand/favicon/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/brand/favicon/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/brand/favicon/icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/brand/favicon/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

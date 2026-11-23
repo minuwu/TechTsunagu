@@ -19,17 +19,21 @@ from app.schemas.work import (
     CheckIn,
     CheckResult,
     ConfusionOut,
+    EffortOut,
     GlossaryIn,
     GlossaryOut,
     MachineDetail,
     MachineIn,
     MachineOut,
     NoteVersionOut,
+    OverrideIn,
+    OverrideOut,
     PanelOut,
     PanelToken,
+    SignOffOut,
     StepEdit,
 )
-from app.services import floor, notes, notices
+from app.services import briefings, floor, notes, notices, records
 from app.services.ai_runner import AiRunner
 from app.services.auth import Principal
 
@@ -120,7 +124,34 @@ def approve_note(who: Foreman, note_id: IdIn, body: ApproveIn, db: DbSession) ->
 def submit_check(who: Worker, body: CheckIn, key: IdempotencyKey, db: DbSession) -> Envelope[CheckResult]:
     if body.target.kind == "notice":
         return Envelope(data=notices.submit_check(db, who, body, key))
+    if body.target.kind == "briefing":
+        return Envelope(data=briefings.submit_check(db, who, body, key))
     return Envelope(data=floor.submit_check(db, who, body, key, now_utc()))
+
+
+@router.post("/machines/{machine_id}/overrides", status_code=201, summary="Panel Override: allow without a Sign-off")
+def start_override(who: Foreman, machine_id: IdIn, body: OverrideIn, db: DbSession) -> Envelope[OverrideOut]:
+    return Envelope(data=records.start_override(db, who, int(machine_id), body, now_utc()))
+
+
+@router.delete("/machines/{machine_id}/overrides/{override_id}", summary="End a Panel Override early")
+def end_override(who: Foreman, machine_id: IdIn, override_id: IdIn, db: DbSession) -> Envelope[OverrideOut]:
+    return Envelope(data=records.end_override(db, who, int(machine_id), int(override_id), now_utc()))
+
+
+@router.get("/machines/{machine_id}/versions", summary="Knowledge Library: a Machine's Note Versions, newest first")
+def list_versions(who: Foreman, machine_id: IdIn, db: DbSession, page: Paging) -> Envelope[Page[NoteVersionOut]]:
+    return Envelope(data=records.list_versions(db, who, int(machine_id), page))
+
+
+@router.get("/metrics/effort", summary="Effort metrics: time to approve, edits, clean AI drafts, first-try Checks")
+def effort(who: Foreman, db: DbSession) -> Envelope[EffortOut]:
+    return Envelope(data=records.effort(db, who))
+
+
+@router.get("/sign-offs", summary="Sign-offs, newest first (Workers see their own)")
+def list_sign_offs(who: ShopMember, db: DbSession, page: Paging) -> Envelope[Page[SignOffOut]]:
+    return Envelope(data=records.list_sign_offs(db, who, page))
 
 
 @router.get("/confusions", summary="Confusions, newest first")

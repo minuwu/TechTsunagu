@@ -5,8 +5,26 @@ from typing import Any
 import pytest
 from pydantic import ValidationError
 
-from app.ai.schemas import AiQuestion, AiStep, AiTri, BackTranslation, NoteDraft
-from app.domain.ai_checks import GlossaryTerm, glossary_problems, note_problems, question_problems, terms_in_scope
+from app.ai.schemas import (
+    AiQuestion,
+    AiStep,
+    AiTaskDraft,
+    AiTri,
+    BackTranslation,
+    MessageDraft,
+    NoteDraft,
+    Reexplanation,
+)
+from app.domain.ai_checks import (
+    GlossaryTerm,
+    glossary_problems,
+    message_problems,
+    note_problems,
+    question_problems,
+    reexplain_problems,
+    task_problems,
+    terms_in_scope,
+)
 
 FIXTURES = Path(__file__).parents[1] / "fixtures" / "ai"
 SEED_DATA = Path(__file__).parents[2] / "app" / "seed_data"  # the glossary is shared with the demo seed
@@ -108,3 +126,74 @@ def test_schema_rejects_unknown_icon_and_wrong_counts() -> None:
         AiQuestion.model_validate({**question().model_dump(), "options": question().model_dump()["options"][:2]})
     with pytest.raises(ValidationError):
         note(GOOD_STEPS, questions=[question()])  # a Note Version needs 2–3 questions
+
+
+# Chat (XREQ-006): a die-change message like the prototype's, with seed-like ids.
+MSG = "明日の朝8時から、2号プレスで段取りをします。保護メガネを忘れずに。"
+MEMBERS, MACHINES = {"12", "13"}, {"2"}
+MSG_TEXT = tri(
+    "明日の朝8時から、2号プレスで段取りをします。保護メガネをかけます。",
+    "আগামীকাল সকাল ৮টা থেকে প্রেস ২-এ প্রস্তুতি (দানদোরি) হবে। সুরক্ষা চশমা পরুন।",
+    "Tomorrow from 8:00, set-up (dandori) on Press #2. Wear safety glasses.",
+)
+
+
+def task(
+    assignees: list[str] | None = None, due: str | None = "2026-11-24T08:00:00+09:00", machine: str | None = "2"
+) -> AiTaskDraft:
+    return AiTaskDraft(
+        title=tri("2号プレス 段取り", "প্রেস ২ প্রস্তুতি", "Set-up · Press #2"),
+        assignee_ids=["12"] if assignees is None else assignees,
+        due_at=due,
+        machine_id=machine,
+    )
+
+
+def message(tasks: list[AiTaskDraft], text: AiTri = MSG_TEXT) -> MessageDraft:
+    return MessageDraft(transcript_ja=MSG, text=text, questions=[question(term_ja="段取り")], tasks=tasks)
+
+
+def test_passing_message_has_no_problems_and_zero_tasks_is_fine() -> None:
+    assert message_problems(message([task()]), GLOSSARY, LANGS, MEMBERS, MACHINES) == []
+    assert message_problems(message([]), GLOSSARY, LANGS, MEMBERS, MACHINES) == []
+
+
+def test_message_translation_must_keep_the_shop_words() -> None:
+    loose = tri(MSG_TEXT.ja, "আগামীকাল প্রেস ২-এ কাজ হবে।", "Tomorrow, work on Press #2.")
+    problems = message_problems(message([], text=loose), GLOSSARY, LANGS, MEMBERS, MACHINES)
+    assert any("set-up (dandori)" in p for p in problems)
+    assert any("safety glasses" in p for p in problems)
+
+
+def test_task_must_use_listed_members_and_machines() -> None:
+    assert task_problems([task(assignees=["12", "99"], machine="7")], MSG, MEMBERS, MACHINES) == [
+        "Task 1: 99 is not a Thread member.",
+        "Task 1: machine 7 is not a Machine of this shop; use one or null.",
+    ]
+
+
+def test_a_due_time_is_never_guessed() -> None:
+    no_time = "2号プレスで段取りをします。"
+    assert task_problems([task()], no_time, MEMBERS, MACHINES) == [
+        "Task 1: the Foreman said no day or time, so due_at must be null."
+    ]
+    assert task_problems([task(due=None)], no_time, MEMBERS, MACHINES) == []
+    assert task_problems([task(due="2026-11-24T08:00:00")], MSG, MEMBERS, MACHINES) == [
+        "Task 1: due_at needs the +09:00 offset."
+    ]
+
+
+def test_reexplanation_question_must_be_on_the_missed_term() -> None:
+    text = tri(
+        "段取りは、機械の準備です。",
+        "প্রস্তুতি (দানদোরি) মানে মেশিন তৈরি করা।",
+        "Set-up (dandori) means getting the machine ready.",
+    )
+    assert (
+        reexplain_problems(Reexplanation(text=text, question=question(term_ja="段取り")), "段取り", GLOSSARY, LANGS)
+        == []
+    )
+    off = Reexplanation(text=text, question=question(term_ja=None))
+    assert reexplain_problems(off, "段取り", GLOSSARY, LANGS) == [
+        "The question must be about 「段取り」: set term_ja to it."
+    ]

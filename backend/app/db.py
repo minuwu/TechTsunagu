@@ -6,9 +6,14 @@ from fastapi import Request
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
+# Every session in UTC, so timestamps read back serialize as `Z` whatever the server's own zone is.
+UTC_SESSION = {"options": "-c TimeZone=UTC"}
+
 
 def make_engine(url: str) -> Engine:
-    return create_engine(url, pool_size=5, max_overflow=5, pool_timeout=10, pool_pre_ping=True)
+    return create_engine(
+        url, pool_size=5, max_overflow=5, pool_timeout=10, pool_pre_ping=True, connect_args=UTC_SESSION
+    )
 
 
 def make_session_factory(engine: Engine) -> sessionmaker[Session]:

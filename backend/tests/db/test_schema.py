@@ -69,3 +69,16 @@ def test_readiness_checks_the_database(client: TestClient) -> None:
 
     assert res.status_code == 200
     assert res.json()["data"] == {"status": "ok"}
+
+
+def test_app_sessions_run_in_utc_so_timestamps_serialize_with_z() -> None:
+    """The server's local zone (e.g. Asia/Dhaka) must not leak into API timestamps as +06:00."""
+    from app.db import make_engine
+    from tests.conftest import APP_URL
+
+    engine = make_engine(APP_URL)
+    try:
+        with engine.connect() as conn:
+            assert conn.execute(text("SELECT current_setting('TimeZone')")).scalar_one() == "UTC"
+    finally:
+        engine.dispose()

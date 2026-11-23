@@ -3,6 +3,7 @@ import { Link, useLocation } from '@tanstack/react-router'
 import { m } from '@/i18n/paraglide/messages'
 import { ping } from '@/lib/audio'
 import { usePersisted } from '@/lib/persisted'
+import { startSmoothScroll } from './lib/motion'
 import { BridgeMark } from './components/Brand'
 import { Toaster } from './components/Feedback'
 import { LocaleSwitcher } from './components/LocaleSwitcher'
@@ -61,7 +62,7 @@ const TABS = [
 function TabBar({ path, sound }: { path: string; sound: boolean }) {
   const active = TABS.findIndex((t) => t.match(path))
   return (
-    <nav aria-label={m.tabs_label()} className="tabbar glass">
+    <nav aria-label={m.tabs_label()} className="tabbar glass lg:hidden">
       {active >= 0 && (
         <span
           aria-hidden="true"
@@ -102,6 +103,44 @@ function TabBar({ path, sound }: { path: string; sound: boolean }) {
   )
 }
 
+/** Desktop (lg and up): the same four tabs sit in the header instead of floating at the bottom. */
+function HeaderTabs({ path, sound }: { path: string; sound: boolean }) {
+  const active = TABS.findIndex((t) => t.match(path))
+  return (
+    <nav aria-label={m.tabs_label()} className="hidden lg:block">
+      <ul className="flex items-center gap-1">
+        {TABS.map((t, i) => (
+          <li key={t.to}>
+            <Link
+              to={t.to}
+              aria-current={i === active ? 'page' : undefined}
+              onClick={() => sound && ping(i >= active)}
+              className={`flex min-h-11 items-center gap-2 rounded-lg px-3.5 font-bold transition-colors duration-150 ${i === active ? 'bg-[var(--shell-raised)] text-[var(--shell-foreground)] shadow-[inset_0_-2px_0_var(--primary)]' : 'text-[var(--shell-muted)] hover:bg-[var(--shell-raised)]/60 hover:text-[var(--shell-foreground)]'}`}
+            >
+              <svg
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                className="size-5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.75"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d={ICONS[t.icon]} />
+              </svg>
+              {t.label()}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  )
+}
+
+// One width for header and content: the Foreman console uses the extra room on wide screens
+const frame = 'mx-auto w-full max-w-6xl px-4 lg:px-8 xl:max-w-7xl'
+
 const toggle =
   'grid size-11 shrink-0 cursor-pointer place-items-center rounded-lg bg-[var(--shell-raised)] text-[var(--shell-foreground)] transition-transform duration-150 hover:scale-105 active:scale-95'
 
@@ -111,6 +150,8 @@ export function Layout({ children }: { children: ReactNode }) {
   const [soundPref, setSound] = usePersisted('wakatta.sound', 'on')
   const sound = soundPref === 'on'
   const light = theme === 'light'
+  // Lenis smooth wheel scroll for the whole kit (touch stays native; no smoothing under reduced motion)
+  useEffect(() => startSmoothScroll(), [])
   return (
     <div
       data-theme={light ? 'light' : 'dark'}
@@ -124,7 +165,9 @@ export function Layout({ children }: { children: ReactNode }) {
         {m.skip_to_main()}
       </a>
       <header className="sticky top-0 z-30 bg-[var(--shell)]/70 text-[var(--shell-foreground)] backdrop-blur-md">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-2">
+        <div
+          className={`${frame} flex items-center justify-between gap-3 py-2`}
+        >
           <Link
             to="/"
             className="flex min-w-0 items-center gap-3 rounded-md py-1 focus-visible:outline-[var(--shell-foreground)]"
@@ -134,6 +177,7 @@ export function Layout({ children }: { children: ReactNode }) {
               {m.app_name()}
             </span>
           </Link>
+          <HeaderTabs path={path} sound={sound} />
           <div className="flex items-center gap-2">
             <button
               type="button"
@@ -190,7 +234,7 @@ export function Layout({ children }: { children: ReactNode }) {
       </header>
       <main
         id="main"
-        className="mx-auto w-full max-w-6xl flex-1 px-4 pt-6 pb-32 sm:pt-10"
+        className={`${frame} flex-1 pt-6 pb-32 sm:pt-10 lg:pb-16`}
       >
         {/* Re-keyed per route so each screen settles in (page transition) */}
         <div key={path} className="page-enter">

@@ -1,4 +1,5 @@
-"""The fallback ladder (architecture §10.3, §10.4): cache → budget → limiter → call → validate → one retry → degrade.
+"""The fallback ladder (architecture §10.3, §10.4; AI_PLAN.md §3): cache of every model → then for each model of the
+chain: budget → limiter → call → validate → one retry → next model → degrade.
 
 It opens its own short database sessions, so no request transaction is held across a model call (§8.3).
 It never raises for AI trouble: the caller gets a value or `None` with the outcome, and builds its degraded draft."""
@@ -9,7 +10,7 @@ import logging
 import threading
 import time
 from collections import deque
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from datetime import date, datetime
 from typing import Literal
@@ -85,44 +86,62 @@ class _Limiter:
         self._slots.release()
 
 
+@dataclass(frozen=True)
+class _Link:
+    """One model of the chain with its own budget and limiter (AI_PLAN.md §3–§4)."""
+
+    client: AiClient
+    limits: AiLimits
+    limiter: _Limiter
+
+
 class AiRunner:
-    def __init__(self, client: AiClient, sessions: sessionmaker[Session], limits: AiLimits) -> None:
-        self._client = client
+    def __init__(
+        self,
+        client: AiClient,
+        sessions: sessionmaker[Session],
+        limits: AiLimits,
+        backups: Sequence[tuple[AiClient, AiLimits]] = (),
+    ) -> None:
+        """`client` answers first; each backup is tried in order when the one before it gives no valid answer."""
         self._sessions = sessions
-        self._limits = limits
-        self._limiter = _Limiter(limits)
+        self._chain = [_Link(c, lim, _Limiter(lim)) for c, lim in [(client, limits), *backups]]
 
     @property
     def model(self) -> str:
-        return self._client.model
+        return self._chain[0].client.model
 
-    def _key[T: BaseModel](self, req: AiRequest[T]) -> str:
-        head = f"{req.scope}|{req.pipeline}|v{req.prompt.version}|{self._client.model}|".encode()
+    @property
+    def models(self) -> list[str]:
+        return [link.client.model for link in self._chain]
+
+    def _key[T: BaseModel](self, req: AiRequest[T], model: str) -> str:
+        head = f"{req.scope}|{req.pipeline}|v{req.prompt.version}|{model}|".encode()
         return hashlib.sha256(head + req.cache_input).hexdigest()
 
-    def _call[T: BaseModel](self, req: AiRequest[T], extra: list[Part], now: datetime) -> str | None:
-        day = pacific_day(now)
+    def _call[T: BaseModel](self, link: _Link, req: AiRequest[T], extra: list[Part], now: datetime) -> str | None:
+        day, model = pacific_day(now), link.client.model
         with self._sessions() as db:
-            allowed = repo.take_budget(db, day, self._client.model, self._limits.daily_budget)
+            allowed = repo.take_budget(db, day, model, link.limits.daily_budget)
             db.commit()
         if not allowed:
-            _log.info("ai budget exhausted", extra={"route": req.pipeline})
+            _log.info("ai budget exhausted: %s", model, extra={"route": req.pipeline})
             return None
-        if not self._limiter.acquire():
-            _log.info("ai limiter busy", extra={"route": req.pipeline})
+        if not link.limiter.acquire():
+            _log.info("ai limiter busy: %s", model, extra={"route": req.pipeline})
             return None
         try:
-            return self._client.generate(req.prompt, [*req.parts, *extra], req.schema)
+            return link.client.generate(req.prompt, [*req.parts, *extra], req.schema)
         except QuotaExhausted:
             with self._sessions() as db:
-                repo.mark_exhausted(db, day, self._client.model)
+                repo.mark_exhausted(db, day, model)
                 db.commit()
             return None
         except AiUnavailable as exc:
             _log.warning("ai unavailable: %s", exc)
             return None
         finally:
-            self._limiter.release()
+            link.limiter.release()
 
     def _parse[T: BaseModel](
         self, req: AiRequest[T], raw: str, validate: Callable[[T], list[str]]
@@ -135,28 +154,35 @@ class AiRunner:
         return (value, []) if not problems else (None, problems)
 
     def run[T: BaseModel](self, req: AiRequest[T], validate: Callable[[T], list[str]], now: datetime) -> AiResult[T]:
-        key = self._key(req)
+        # A cached answer from any model of the chain wins, best first: a filmed 3.8 Flash take is reused
+        # even when 3.8 Flash is out of quota (AI_PLAN.md §3 step 1).
         with self._sessions() as db:
-            hit = repo.cached(db, key)
-            if hit is not None:
-                return AiResult(req.schema.model_validate(hit.response), "cached")
+            for link in self._chain:
+                hit = repo.cached(db, self._key(req, link.client.model))
+                if hit is not None:
+                    return AiResult(req.schema.model_validate(hit.response), "cached")
 
-        raw = self._call(req, [], now)
-        if raw is None:
-            return AiResult(None, "degraded")
-        value, problems = self._parse(req, raw, validate)
-        outcome: Outcome = "ok"
-        if value is None:
-            note = "Your previous answer had these problems; fix them and answer again:\n- " + "\n- ".join(problems)
-            raw = self._call(req, [Part.text(note)], now)
-            value, _ = self._parse(req, raw, validate) if raw is not None else (None, [])
-            outcome = "retried"
-        if value is None:
-            _log.info("ai degraded", extra={"route": req.pipeline})
-            return AiResult(None, "degraded")
+        for link in self._chain:
+            raw = self._call(link, req, [], now)
+            if raw is None:
+                continue  # unavailable, out of budget or busy: the next model, at once
+            value, problems = self._parse(req, raw, validate)
+            outcome: Outcome = "ok"
+            if value is None:
+                note = "Your previous answer had these problems; fix them and answer again:\n- " + "\n- ".join(problems)
+                raw = self._call(link, req, [Part.text(note)], now)
+                value, _ = self._parse(req, raw, validate) if raw is not None else (None, [])
+                outcome = "retried"
+            if value is None:
+                continue
+            model = link.client.model
+            with self._sessions() as db:
+                response = json.loads(value.model_dump_json())
+                repo.store(db, self._key(req, model), req.scope, req.pipeline, req.prompt.version, model, response)
+                db.commit()
+            if link is not self._chain[0]:
+                _log.info("ai answered by backup: %s", model, extra={"route": req.pipeline})
+            return AiResult(value, outcome)
 
-        with self._sessions() as db:
-            response = json.loads(value.model_dump_json())
-            repo.store(db, key, req.scope, req.pipeline, req.prompt.version, self._client.model, response)
-            db.commit()
-        return AiResult(value, outcome)
+        _log.info("ai degraded", extra={"route": req.pipeline})
+        return AiResult(None, "degraded")

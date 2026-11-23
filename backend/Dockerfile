@@ -10,6 +10,7 @@ RUN uv sync --frozen --no-dev --no-install-project
 COPY alembic.ini ./
 COPY migrations ./migrations
 COPY app ./app
+COPY jobs ./jobs
 
 FROM python:3.12-slim-bookworm
 RUN useradd --create-home --uid 10001 wakatta
@@ -18,6 +19,7 @@ COPY --from=build --chown=wakatta:wakatta /app /app
 ENV PATH="/app/.venv/bin:$PATH" PYTHONUNBUFFERED=1
 USER wakatta
 EXPOSE 8000
-# shortcut: migrations at start-up are safe only with one replica (§15.1); move to a Container Apps Job to scale out.
-# --forwarded-allow-ips='*' trusts X-Forwarded-For because the container is reachable only through Azure's ingress.
-CMD ["sh", "-c", "alembic upgrade head && exec uvicorn app.main:create_app --factory --host 0.0.0.0 --port 8000 --no-access-log --proxy-headers --forwarded-allow-ips='*'"]
+# Serves only, as the app role. Migrations run in the wakatta-migrate job (deploy/azure-deploy.ps1) with the owner
+# credential, so the API never holds it and can scale past one replica.
+# --forwarded-allow-ips=* trusts X-Forwarded-For because the container is reachable only through Azure's ingress.
+CMD ["uvicorn", "app.main:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000", "--no-access-log", "--proxy-headers", "--forwarded-allow-ips=*"]

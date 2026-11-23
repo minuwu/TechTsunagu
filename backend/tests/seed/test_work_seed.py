@@ -67,3 +67,15 @@ def test_the_other_shop_is_isolated(client: TestClient, refs: Refs) -> None:
 
     assert [m["code"] for m in machines] == ["lathe-1"]
     assert client.get(f"/api/machines/{refs['m-plasma']}", headers=other).status_code == 404
+
+
+def test_every_seeded_note_reads_back_through_the_api(client: TestClient, refs: Refs) -> None:
+    foreman, worker = _login(client, refs["f-yamaguchi"], "246810"), _login(client, refs["w-rahim"], "2468")
+    machines = client.get("/api/machines", headers=foreman).json()["data"]["items"]
+    assert machines
+
+    for m in machines:
+        versions = client.get(f"/api/machines/{m['id']}/versions", headers=foreman)
+        page = client.get(f"/api/machines/{m['id']}", headers=worker)
+        assert versions.status_code == 200, versions.text
+        assert page.status_code == 200, page.text

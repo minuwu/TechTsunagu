@@ -122,7 +122,7 @@ export function ForemanNearMissesScreen() {
       {n.reports.length === 0 ? (
         <EmptyState mark="check">{m.no_near_misses()}</EmptyState>
       ) : (
-        <ul className="space-y-3">
+        <ul className="grid gap-3 lg:grid-cols-2">
           {n.reports.map((r) => (
             <li key={r.id}>
               <Card tone={r.acknowledgedAt ? undefined : 'warning'} id={r.id}>

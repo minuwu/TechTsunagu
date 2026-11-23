@@ -1,5 +1,5 @@
 # Backend checks (AGENTS.md quality bar): lint → format → types → import layers → tests against a real PostgreSQL 16.
-# The image build is a separate workflow (backend-image.yml).
+# The image build is a separate workflow (backend-deploy.yml, which runs after this one passes on main).
 name: backend-ci
 
 on:
@@ -32,7 +32,7 @@ jobs:
       TEST_MIGRATION_DATABASE_URL: postgresql+psycopg://wakatta_owner:wakatta_owner_dev@127.0.0.1:5432/wakatta_test
       APP_DB_ROLE: wakatta_app
     steps:
-      # Actions pinned to full commit SHAs, as in backend-image.yml.
+      # Actions pinned to full commit SHAs, as in backend-deploy.yml.
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
         with:
