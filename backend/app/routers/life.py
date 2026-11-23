@@ -8,7 +8,6 @@ from fastapi import APIRouter, Depends, File, Form, Header, Query, Request, Resp
 
 from app.api.auth import DbSession, now_utc, require
 from app.api.envelope import Envelope
-from app.api.errors import ApiError
 from app.api.pagination import Page, PageParams, page_params
 from app.media import MAX_AUDIO_BYTES, MAX_PHOTO_BYTES
 from app.schemas.common import IdIn
@@ -24,7 +23,7 @@ from app.schemas.notices import (
     PosterOut,
     ReceiptIn,
 )
-from app.services import notices
+from app.services import briefings, notices
 from app.services.ai_runner import AiRunner
 from app.services.auth import Principal
 
@@ -103,11 +102,12 @@ def list_events(who: Worker, db: DbSession, q: Annotated[EventsQuery, Query()]) 
     return Envelope(data=notices.events_between(db, who, q))
 
 
-@router.post("/receipts", summary="The Worker opened a Notice (idempotent)")
+@router.post("/receipts", summary="The Worker opened a Notice or a Briefing (idempotent)")
 def open_receipt(who: Worker, body: ReceiptIn, db: DbSession) -> Envelope[None]:
-    if body.target.kind != "notice":
-        raise ApiError(422, "VALIDATION_ERROR", "Briefing receipts are not available yet")  # WS6 adds Briefings
-    notices.open_notice(db, who, int(body.target.id))
+    if body.target.kind == "briefing":
+        briefings.open_briefing(db, who, int(body.target.id))
+    else:
+        notices.open_notice(db, who, int(body.target.id))
     return Envelope(data=None)
 
 
