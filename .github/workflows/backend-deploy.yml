@@ -75,13 +75,15 @@ jobs:
           # The container migrates on start (backend/jobs/start.py): express environments have no Jobs.
           az containerapp update -n wakatta-api -g "$RG" --image "$ref" -o none
           fqdn=$(az containerapp show -n wakatta-api -g "$RG" --query properties.configuration.ingress.fqdn -o tsv)
-          for _ in $(seq 1 30); do
-            # The old revision answers until the new one is ready, so wait for the new revision first.
-            read -r latest ready < <(az containerapp show -n wakatta-api -g "$RG" --query "[properties.latestRevisionName, properties.latestReadyRevisionName]" -o tsv | paste -sd' ')
-            if [ "$latest" = "$ready" ] && curl -fsS --max-time 10 "https://$fqdn/api/health/ready" >/dev/null; then
-              echo "ready: https://$fqdn (revision $latest, image $SHA)"; exit 0
+          # Express environments keep one revision name and never fill latestReadyRevisionName: wait until the newest
+          # revision runs this image and reports Healthy, then until /ready answers.
+          for _ in $(seq 1 40); do
+            latest=$(az containerapp show -n wakatta-api -g "$RG" --query properties.latestRevisionName -o tsv)
+            read -r image health < <(az containerapp revision show -n wakatta-api -g "$RG" --revision "$latest"               --query "[properties.template.containers[0].image, properties.healthState]" -o tsv | paste -sd' ')
+            if [ "$image" = "$ref" ] && [ "$health" = Healthy ] && curl -fsS --max-time 20 "https://$fqdn/api/health/ready" >/dev/null; then
+              echo "ready: https://$fqdn (image $SHA)"; exit 0
             fi
-            sleep 10
+            sleep 15
           done
-          echo "::error::API not healthy after 5 min; check: az containerapp logs show -n wakatta-api -g $RG --tail 50"
+          echo "::error::API not healthy after 10 min; check: az containerapp logs show -n wakatta-api -g $RG --tail 50"
           exit 1
