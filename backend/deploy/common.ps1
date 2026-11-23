@@ -55,5 +55,14 @@ function Wait-Idle {
     }
     throw "$App stayed busy for 10 min (provisioningState $state)"
 }
+# Reads the named keys from backend/.env into a hashtable (values are never printed).
+function Read-DotEnv([string[]]$Names) {
+    $vals = @{}
+    $pattern = '^\s*(' + ($Names -join '|') + ')\s*=\s*(.+?)\s*$'
+    Get-Content (Join-Path (Split-Path $PSScriptRoot -Parent) ".env") -Encoding UTF8 | ForEach-Object {
+        if ($_ -match $pattern) { $vals[$Matches[1]] = $Matches[2] }
+    }
+    $vals
+}
 function Get-Acr { Invoke-Az acr list -g $Rg --query "[0].name" -o tsv }
 function Get-DbServer { Invoke-Az postgres flexible-server list -g $Rg --query "[0].name" -o tsv }

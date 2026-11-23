@@ -5,10 +5,7 @@
 param([ValidateSet("dev", "demo")][string]$Chain = "dev")
 . "$PSScriptRoot\common.ps1"
 
-$vals = @{}
-Get-Content (Join-Path (Split-Path $PSScriptRoot -Parent) ".env") -Encoding UTF8 | ForEach-Object {
-    if ($_ -match '^\s*(GEMINI_API_KEY|GROQ_API_KEY)\s*=\s*(.+?)\s*$') { $vals[$Matches[1]] = $Matches[2] }
-}
+$vals = Read-DotEnv @("GEMINI_API_KEY", "GROQ_API_KEY")
 if (-not $vals.GEMINI_API_KEY) { throw "GEMINI_API_KEY is missing or empty in backend/.env" }
 
 $secrets = @("gemini-api-key=$($vals.GEMINI_API_KEY)")
