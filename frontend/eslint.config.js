@@ -84,6 +84,20 @@ export default tseslint.config(
     files: ['src/services/**/*.ts'],
     rules: { 'no-restricted-globals': 'off' },
   },
+  // Node scripts (npm run check:api): the Node globals they use, without adding the `globals` package
+  {
+    files: ['scripts/**/*.mjs'],
+    languageOptions: {
+      globals: {
+        process: 'readonly',
+        console: 'readonly',
+        fetch: 'readonly',
+        URL: 'readonly',
+        AbortSignal: 'readonly',
+      },
+    },
+    rules: { 'no-restricted-globals': 'off' },
+  },
 
   // F-01: no hard-coded UI text in kits
   {

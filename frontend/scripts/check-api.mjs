@@ -43,9 +43,8 @@ console.log(`API ${API}\nfrontend origin ${ORIGIN}\n`)
 for (const path of ['/api/health', '/api/health/ready']) {
   try {
     const { res, body } = await call(path)
-    res.ok && body?.success
-      ? ok(path, body.data.status)
-      : bad(path, `HTTP ${res.status}`)
+    if (res.ok && body?.success) ok(path, body.data.status)
+    else bad(path, `HTTP ${res.status}`)
   } catch (e) {
     bad(path, e.cause?.code || e.message)
   }
@@ -63,12 +62,12 @@ try {
     },
   })
   const allowed = res.headers.get('access-control-allow-origin')
-  allowed === ORIGIN
-    ? ok('CORS preflight', `${ORIGIN} allowed`)
-    : bad(
-        'CORS preflight',
-        `${ORIGIN} not allowed (HTTP ${res.status}); add it with backend/deploy/set-cors.ps1`,
-      )
+  if (allowed === ORIGIN) ok('CORS preflight', `${ORIGIN} allowed`)
+  else
+    bad(
+      'CORS preflight',
+      `${ORIGIN} not allowed (HTTP ${res.status}); add it with backend/deploy/set-cors.ps1`,
+    )
 } catch (e) {
   bad('CORS preflight', e.message)
 }
@@ -83,12 +82,13 @@ try {
   const rp = Object.keys(local.paths)
   const missing = rp.filter((p) => !lp.includes(p))
   const extra = lp.filter((p) => !rp.includes(p))
-  !missing.length && !extra.length
-    ? ok('contract', `${lp.length} paths, same as docs/openapi.yaml`)
-    : bad(
-        'contract',
-        `deployed API differs from docs/openapi.yaml: not deployed yet ${JSON.stringify(missing)}, not in the repo ${JSON.stringify(extra)}`,
-      )
+  if (!missing.length && !extra.length)
+    ok('contract', `${lp.length} paths, same as docs/openapi.yaml`)
+  else
+    bad(
+      'contract',
+      `deployed API differs from docs/openapi.yaml: not deployed yet ${JSON.stringify(missing)}, not in the repo ${JSON.stringify(extra)}`,
+    )
 } catch (e) {
   bad('contract', e.message)
 }
@@ -115,18 +115,18 @@ try {
   )
   const auth = { Authorization: `Bearer ${token}` }
   const me = await call('/api/auth/me', { headers: auth })
-  me.res.ok ? ok('me (Bearer token)') : bad('me', `HTTP ${me.res.status}`)
+  if (me.res.ok) ok('me (Bearer token)')
+  else bad('me', `HTTP ${me.res.status}`)
   const notices = await call('/api/notices', { headers: auth })
-  Array.isArray(notices.body?.data?.items)
-    ? ok(
-        'list shape',
-        `GET /api/notices → {items: ${notices.body.data.items.length}, nextCursor}`,
-      )
-    : bad('list shape', `HTTP ${notices.res.status}, no items array`)
+  if (Array.isArray(notices.body?.data?.items))
+    ok(
+      'list shape',
+      `GET /api/notices → {items: ${notices.body.data.items.length}, nextCursor}`,
+    )
+  else bad('list shape', `HTTP ${notices.res.status}, no items array`)
   const out = await call('/api/auth/logout', { method: 'POST', headers: auth })
-  out.res.ok
-    ? ok('logout', 'session ended')
-    : bad('logout', `HTTP ${out.res.status}`)
+  if (out.res.ok) ok('logout', 'session ended')
+  else bad('logout', `HTTP ${out.res.status}`)
 } catch (e) {
   bad('sign-in round trip', e.message)
 }
