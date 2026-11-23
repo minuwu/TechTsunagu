@@ -24,16 +24,16 @@
   --muted-foreground: #444343; /* secondary text */
   --accent: #d1d0cc;
   --accent-foreground: #141414;
-  --destructive: #b3261e;
-  --success: #1e6b3a;
-  --warning: #8a5300;
+  --destructive: #a32219; /* brand red #B3261E, darkened to 4.95:1 on its 10% chip (WCAG 1.4.3) */
+  --success: #1a6133; /* brand green #1E6B3A, darkened to 5.0:1 on its 10% chip */
+  --warning: #7a4900; /* brand amber #8A5300, darkened to pass 4.5:1 on its tinted chip */
   --life: #1351aa;
   --border: #c7c7c7; /* hairline dividers */
   --input: #141414; /* a control edge has to be seen */
   --ring: #1351aa;
 
   --rule: #c7c7c7;
-  --label: #7a7a7a; /* uppercase labels */
+  --label: #616161; /* uppercase labels; #7A7A7A was 3.3:1 on cream, this is 4.8:1 (ADR 0012 follow-up) */
   --shell: #e3e2de;
   --shell-raised: #d8d7d3;
   --shell-foreground: #141414;

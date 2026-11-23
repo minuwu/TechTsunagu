@@ -28,7 +28,8 @@ const MHLW = 'https://www.mhlw.go.jp/stf/newpage_75722.html'
 
 /** The headline splits at its first sentence break; the second half is the cobalt word group. */
 function splitHeadline(h: string): [string, string] {
-  const hit = /^(.+?[.。、，])\s*(.+)$/.exec(h)
+  // the space after the break stays with the first half: English keeps it, Japanese has none
+  const hit = /^(.+?[.。、，]\s*)(.+)$/.exec(h)
   return hit ? [hit[1]!, hit[2]!] : [h, '']
 }
 
@@ -55,7 +56,8 @@ export function Landing() {
           <div className="space-y-6">
             <p className="poster-label !text-primary">{m.lp_eyebrow()}</p>
             <h1 className="poster-h1 max-w-[14ch] md:max-w-none">
-              {lead} <span className="text-primary">{accent}</span>
+              {lead}
+              <span className="text-primary">{accent}</span>
             </h1>
           </div>
           <HeroArt className="max-h-72 border border-[var(--rule)] md:max-h-80" />
