@@ -118,7 +118,7 @@ def create_app(
         CORSMiddleware,
         allow_origins=settings.frontend_origin,
         allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
-        allow_headers=["Authorization", "Content-Type", "Idempotency-Key", "If-None-Match", "X-Request-ID"],
+        allow_headers=["Authorization", "Content-Type", "Idempotency-Key", "If-Match", "If-None-Match", "X-Request-ID"],
         expose_headers=["ETag", "X-Request-ID", "Retry-After"],
         allow_credentials=False,
         max_age=600,

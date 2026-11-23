@@ -631,7 +631,7 @@ A 10 MB body limit applies before multipart parsing. Pillow's decompression-bomb
 | Isolation | scope from the session only; repository layer adds the scope; composite FKs; cross-scope ids are 404; the guard test (§3.3) and a two-shop isolation test suite (§14). |
 | Answer leak | Worker response models have no `correctIndex`; a test asserts that the field is absent in every Worker-facing schema. |
 | Senpai links | 128-bit, hashed, expiring, revocable, one active per Worker; `Referrer-Policy: no-referrer`; a wrong token is 404. |
-| CORS | only the origins in `FRONTEND_ORIGIN` (exact, comma-separated: local dev and the hosted frontend); methods `GET, POST, PUT, PATCH, DELETE`; headers `Authorization, Content-Type, Idempotency-Key`; no credentials. |
+| CORS | only the origins in `FRONTEND_ORIGIN` (exact, comma-separated: local dev and the hosted frontend); methods `GET, POST, PUT, PATCH, DELETE`; headers `Authorization, Content-Type, Idempotency-Key, If-Match, If-None-Match, X-Request-ID` (a test checks that every header in the contract is allowed); no credentials. |
 | Headers | `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`, `Cache-Control: no-store` on authenticated JSON. |
 | Database role | the app connects as `wakatta_app`. It has DML on the app tables, no DDL, and only `insert, select` on `audit_events`. Migrations run as `wakatta_owner`. The `public` schema is revoked from `PUBLIC`. |
 | Secrets | env only (`DATABASE_URL`, `MIGRATION_DATABASE_URL`, `PIN_PEPPER`, `GEMINI_API_KEY`); `.env.example` lists every variable with a dummy value; gitleaks in CI (G-37). |
