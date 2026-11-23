@@ -4,6 +4,37 @@ Owner: Minhaz (`minuwu`) — Role: Frontend / Full-Stack / Architecture
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-23 (handoff from Arjun: v3 redesign is on `main`, please review)
+
+Arjun fast-forwarded `feat/techtsunagu-ui` (10 commits, up to `80f34b8`) into `main` **without a PR**, so it still needs your review even though it touches shared files. Details: [docs/design-system.md](../../docs/design-system.md) and [Arjun's WORK_LOG](../arjun/WORK_LOG.md).
+
+### Decisions to review (each is easy to revert)
+- **v3 default theme is now light "Porcelain"** (was dark); night is harbour navy instead of purple indigo. Revert: default `'light'` → `'dark'` in `frontend/src/ui/v3/lib/theme.ts`.
+- **v3 action colour is the brand's Site cobalt `#1351AA`** (ADR 0013); vermilion only as a small seal accent, never on buttons, because red means Lock (JIS Z 9103). All in `ui/v3/tokens.css`.
+- **Manrope for Latin letters and digits in every kit**, ahead of Noto Sans JP (`theme/base.css`; Japanese unchanged; F-09 note updated).
+- **New dependencies:** `lottie-web` 5.13.0, and earlier `gsap`, `lenis`, `vanta`, `three` (all in FRONTEND_STACK; three and Vanta load only on the landing page).
+- **Mock layer:** in mock mode `list()` in `services/wakatta.ts` goes through a demo scenario (`services/mocks/scenario.ts`); `router.tsx` skips query retries for the demo outage only. The real-API path is unchanged.
+
+### Next (asked of you)
+1. **Run `npm run gen:api` in `frontend/` and commit.** `src/services/generated` only knows `/api/health` while the contract has 61 routes, so frontend CI's contract check fails on `main` until then.
+2. **Native check of 12 new ja / bn strings:** `data_error`, `data_offline`, `panel_unknown`, `panel_unknown_word`, `board_empty`, `hub_empty`, `demo_*` (6 keys).
+3. **Decide the landing hero:** the brand kit's 5-slide carousel either replaces the animated Vanta harbour hero or sits on top of it. Arjun waits for your call.
+
+### For the API wiring (XREQ-001 / XREQ-002)
+- New hooks: `useDataStatus()` (`features/health`: error / offline band with Try again), `usePanel().unknown` (Panel shows UNKNOWN, "ask your foreman", instead of "Machine not found"), `useHub().loading` (loading vs empty), `useDemoScenario()` (demo switcher).
+- They work from real query errors as-is. The demo switcher (`?demo=loading|empty|error|live`) exists only in mock mode and disappears with `VITE_USE_MOCK=false`.
+
+### For the v4 kit
+- Kit-local in v3, to copy into v4 rather than import (A-04): `components/Moment.tsx` (brand Lottie one-shots), `components/Spot.tsx` (brand illustrations), `components/HarbourWaves.tsx` (Vanta hero), `lib/motion.ts` (Lenis), `lib/theme.ts`. Agent skills: `.claude/skills/{lenis,gsap,vanta}`.
+
+### Brand kit task status (Arjun's)
+- Done: favicons, manifest, theme colour, link-preview cards; Nekko role art on the demo hub and PIN screens; 404 illustration; Lottie `machine-unlock` (Panel), `understood-stamp` and `check-wrong` (Worker's phone).
+- Not done: hero carousel (item 3 above), footer strip and dividers, `step-*` and `state-*` spots in empty states, logo in the header (still the bridge mark), the kit's known weak spots.
+
+### Verified (locally, on the merged code; GitHub CI not seen yet)
+- Typecheck and lint clean; Playwright e2e 11/11 on the production build with axe on every screen; separate axe sweep of all screens in the night theme and the error states: clean.
+- Playwright now runs with `reducedMotion: 'reduce'` by default; tests that check motion opt in with `test.use({ reducedMotion: 'no-preference' })`.
+
 ## 2026-11-23 (brand kit)
 
 ### Completed
