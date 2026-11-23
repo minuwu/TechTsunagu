@@ -3248,8 +3248,26 @@
             "title": "Id"
           },
           "checkId": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Checkid"
+          },
+          "messageId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Messageid"
           },
           "questionId": {
             "type": "string",
@@ -3267,7 +3285,14 @@
             "title": "Termid"
           },
           "machineId": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Machineid"
           },
           "workerId": {
@@ -3297,6 +3322,7 @@
         "required": [
           "id",
           "checkId",
+          "messageId",
           "questionId",
           "termId",
           "machineId",
@@ -3304,7 +3330,8 @@
           "createdAt",
           "acknowledgedAt"
         ],
-        "title": "ConfusionOut"
+        "title": "ConfusionOut",
+        "description": "From a Work Check (checkId and machineId set) or from a Chat message's Check (messageId set)."
       },
       "Envelope_AccountOut_": {
         "properties": {

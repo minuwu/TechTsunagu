@@ -125,11 +125,14 @@ class PanelToken(CamelModel):
 
 
 class ConfusionOut(CamelModel):
+    """From a Work Check (checkId and machineId set) or from a Chat message's Check (messageId set)."""
+
     id: str
-    check_id: str
+    check_id: str | None
+    message_id: str | None
     question_id: str
     term_id: str | None
-    machine_id: str
+    machine_id: str | None
     worker_id: str
     created_at: datetime
     acknowledged_at: datetime | None

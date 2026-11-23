@@ -5,6 +5,7 @@ from itertools import count
 
 from sqlalchemy.orm import Session
 
+from app.models.chat import Message, Task, Thread, ThreadMember
 from app.models.scopes import District, Shop, User
 from app.models.work import Machine, NoteVersion
 from app.services.credentials import hash_pin
@@ -75,6 +76,43 @@ def note_draft(db: Session, at: Shop, on: Machine, by: User, version_no: int = 1
         ai_outcome="typed",
         idempotency_key=uuid.uuid4(),
     )
+    db.add(row)
+    db.flush()
+    return row
+
+
+def thread(db: Session, at: Shop, by: User, members: list[User] | None = None, kind: str = "group") -> Thread:
+    row = Thread(shop_id=at.id, title_ja="2号ライン", kind=kind, created_by=by.id)
+    db.add(row)
+    db.flush()
+    for m in [by, *(members or [])]:
+        db.add(ThreadMember(thread_id=row.id, user_id=m.id, shop_id=at.id))
+    db.flush()
+    return row
+
+
+def message(db: Session, at: Shop, on: Thread, by: User, **overrides: object) -> Message:
+    row = Message(
+        shop_id=at.id,
+        thread_id=on.id,
+        from_user_id=by.id,
+        kind="text",
+        text_ja="明日の朝8時から金型交換をします。",
+        translations={"bn": "আগামীকাল সকাল ৮টা থেকে ডাই পরিবর্তন।", "en": "Die change from 8:00 tomorrow."},
+        stage=3,
+        idempotency_key=uuid.uuid4(),
+    )
+    for key, value in overrides.items():
+        setattr(row, key, value)
+    db.add(row)
+    db.flush()
+    return row
+
+
+def task(db: Session, at: Shop, by: User, **overrides: object) -> Task:
+    row = Task(shop_id=at.id, title={"ja": "金型交換", "bn": "ডাই পরিবর্তন", "en": "Die change"}, created_by=by.id)
+    for key, value in overrides.items():
+        setattr(row, key, value)
     db.add(row)
     db.flush()
     return row

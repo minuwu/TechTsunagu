@@ -31,7 +31,7 @@ Tri = dict[str, str]
 JsonList = list[dict[str, object]]
 
 
-def _fk(local: str, table: str, **kw: object) -> ForeignKeyConstraint:
+def shop_fk(local: str, table: str, **kw: object) -> ForeignKeyConstraint:
     """(shop_id, <local>) -> <table>(shop_id, id): the database refuses a reference into another shop."""
     return ForeignKeyConstraint(["shop_id", local], [f"{table}.shop_id", f"{table}.id"], **kw)  # pyright: ignore[reportArgumentType]
 
@@ -42,8 +42,8 @@ class Machine(Base):
         CheckConstraint("code ~ '^[a-z0-9-]{1,32}$'", name="code_format"),
         UniqueConstraint("shop_id", "code"),
         UniqueConstraint("shop_id", "id"),
-        _fk("current_version_id", "note_versions", use_alter=True, deferrable=True, initially="DEFERRED"),
-        _fk("present_worker_id", "users"),
+        shop_fk("current_version_id", "note_versions", use_alter=True, deferrable=True, initially="DEFERRED"),
+        shop_fk("present_worker_id", "users"),
     )
 
     id: Mapped[IdPk]
@@ -83,9 +83,9 @@ class NoteVersion(Base):
         UniqueConstraint("shop_id", "machine_id", "version_no"),
         UniqueConstraint("shop_id", "idempotency_key"),
         UniqueConstraint("shop_id", "id"),
-        _fk("machine_id", "machines"),
-        _fk("recorded_by", "users"),
-        _fk("approved_by", "users"),
+        shop_fk("machine_id", "machines"),
+        shop_fk("recorded_by", "users"),
+        shop_fk("approved_by", "users"),
     )
 
     id: Mapped[IdPk]
@@ -117,7 +117,7 @@ class Briefing(Base):
         CheckConstraint("(status = 'published') = (published_at IS NOT NULL)", name="published_is_complete"),
         UniqueConstraint("shop_id", "idempotency_key"),
         UniqueConstraint("shop_id", "id"),
-        _fk("recorded_by", "users"),
+        shop_fk("recorded_by", "users"),
         Index(
             "ix_briefings_published",
             "shop_id",
@@ -146,9 +146,9 @@ class Check(Base):
         CheckConstraint(f"language IN {LANGS}", name="language"),
         UniqueConstraint("shop_id", "worker_id", "idempotency_key"),
         UniqueConstraint("shop_id", "id"),
-        _fk("worker_id", "users"),
-        _fk("note_version_id", "note_versions"),
-        _fk("briefing_id", "briefings"),
+        shop_fk("worker_id", "users"),
+        shop_fk("note_version_id", "note_versions"),
+        shop_fk("briefing_id", "briefings"),
         Index("ix_checks_shop_worker_created", "shop_id", "worker_id", sql_text("created_at DESC")),
     )
 
@@ -166,13 +166,18 @@ class Check(Base):
 
 
 class Confusion(Base):
+    """A missed question, from a Work Check (on a machine) or from a Chat message's Check (WS12)."""
+
     __tablename__ = "confusions"
     __table_args__ = (
-        _fk("check_id", "checks"),
-        _fk("worker_id", "users"),
-        _fk("machine_id", "machines"),
-        _fk("term_id", "glossary_terms"),
-        _fk("acknowledged_by", "users"),
+        CheckConstraint("num_nonnulls(check_id, message_id) = 1", name="one_source"),
+        CheckConstraint("check_id IS NULL OR machine_id IS NOT NULL", name="work_check_has_machine"),
+        shop_fk("check_id", "checks"),
+        shop_fk("message_id", "messages"),
+        shop_fk("worker_id", "users"),
+        shop_fk("machine_id", "machines"),
+        shop_fk("term_id", "glossary_terms"),
+        shop_fk("acknowledged_by", "users"),
         Index(
             "ix_confusions_open",
             "shop_id",
@@ -185,9 +190,10 @@ class Confusion(Base):
 
     id: Mapped[IdPk]
     shop_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("shops.id"))
-    check_id: Mapped[int] = mapped_column(BigInteger)
+    check_id: Mapped[int | None] = mapped_column(BigInteger)
+    message_id: Mapped[int | None] = mapped_column(BigInteger, index=True)
     worker_id: Mapped[int] = mapped_column(BigInteger)
-    machine_id: Mapped[int] = mapped_column(BigInteger)
+    machine_id: Mapped[int | None] = mapped_column(BigInteger)
     question_id: Mapped[str] = mapped_column(Text)
     term_id: Mapped[int | None] = mapped_column(BigInteger)
     created_at: Mapped[CreatedAt]
@@ -199,10 +205,10 @@ class SignOff(Base):
     __tablename__ = "sign_offs"
     __table_args__ = (
         UniqueConstraint("check_id"),
-        _fk("worker_id", "users"),
-        _fk("machine_id", "machines"),
-        _fk("note_version_id", "note_versions"),
-        _fk("check_id", "checks"),
+        shop_fk("worker_id", "users"),
+        shop_fk("machine_id", "machines"),
+        shop_fk("note_version_id", "note_versions"),
+        shop_fk("check_id", "checks"),
         Index("ix_sign_offs_lookup", "shop_id", "worker_id", "machine_id", sql_text("passed_at DESC")),
     )
 
@@ -220,9 +226,9 @@ class ShiftAssignment(Base):
     __table_args__ = (
         CheckConstraint("shift IN ('day','night')", name="shift"),
         UniqueConstraint("shop_id", "machine_id", "shift_date", "shift"),
-        _fk("worker_id", "users"),
-        _fk("machine_id", "machines"),
-        _fk("assigned_by", "users"),
+        shop_fk("worker_id", "users"),
+        shop_fk("machine_id", "machines"),
+        shop_fk("assigned_by", "users"),
         Index("ix_shift_assignments_shop_date", "shop_id", "shift_date"),
         Index("ix_shift_assignments_shop_worker_date", "shop_id", "worker_id", "shift_date"),
     )
@@ -241,9 +247,9 @@ class PanelOverride(Base):
     __table_args__ = (
         CheckConstraint("char_length(reason) BETWEEN 3 AND 200", name="reason_length"),
         CheckConstraint("ends_at > starts_at AND ends_at <= starts_at + interval '8 hours'", name="at_most_8_hours"),
-        _fk("machine_id", "machines"),
-        _fk("worker_id", "users"),
-        _fk("created_by", "users"),
+        shop_fk("machine_id", "machines"),
+        shop_fk("worker_id", "users"),
+        shop_fk("created_by", "users"),
         Index("ix_panel_overrides_machine_ends", "shop_id", "machine_id", sql_text("ends_at DESC")),
     )
 
@@ -262,8 +268,8 @@ class Receipt(Base):
     __tablename__ = "receipts"
     __table_args__ = (
         CheckConstraint("num_nonnulls(briefing_id, notice_id) = 1", name="one_target"),
-        _fk("worker_id", "users"),
-        _fk("briefing_id", "briefings"),
+        shop_fk("worker_id", "users"),
+        shop_fk("briefing_id", "briefings"),
         Index(
             "uq_receipts_worker_briefing",
             "worker_id",
@@ -294,9 +300,9 @@ class NearMissReport(Base):
     __table_args__ = (
         CheckConstraint("source_kind IN ('voice','text')", name="source_kind"),
         UniqueConstraint("shop_id", "idempotency_key"),
-        _fk("worker_id", "users"),
-        _fk("machine_id", "machines"),
-        _fk("acknowledged_by", "users"),
+        shop_fk("worker_id", "users"),
+        shop_fk("machine_id", "machines"),
+        shop_fk("acknowledged_by", "users"),
         Index(
             "ix_near_miss_reports_open",
             "shop_id",

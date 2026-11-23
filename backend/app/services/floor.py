@@ -250,10 +250,11 @@ def submit_check(db: Session, who: Principal, body: CheckIn, key: uuid.UUID, now
 def confusion_out(c: Confusion) -> ConfusionOut:
     return ConfusionOut(
         id=str(c.id),
-        check_id=str(c.check_id),
+        check_id=str(c.check_id) if c.check_id else None,
+        message_id=str(c.message_id) if c.message_id else None,
         question_id=c.question_id,
         term_id=str(c.term_id) if c.term_id else None,
-        machine_id=str(c.machine_id),
+        machine_id=str(c.machine_id) if c.machine_id else None,
         worker_id=str(c.worker_id),
         created_at=c.created_at,
         acknowledged_at=c.acknowledged_at,

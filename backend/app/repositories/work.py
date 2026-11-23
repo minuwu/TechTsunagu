@@ -170,10 +170,10 @@ def clear_assignment(db: Session, shop_id: int, machine_id: int, day: date, shif
 def open_confusion_counts(db: Session, shop_id: int) -> dict[int, int]:
     stmt = (
         select(Confusion.machine_id, func.count())
-        .where(Confusion.shop_id == shop_id, Confusion.acknowledged_at.is_(None))
+        .where(Confusion.shop_id == shop_id, Confusion.acknowledged_at.is_(None), Confusion.machine_id.is_not(None))
         .group_by(Confusion.machine_id)
     )
-    return {machine_id: count for machine_id, count in db.execute(stmt)}
+    return {machine_id: count for machine_id, count in db.execute(stmt) if machine_id is not None}
 
 
 def confusions_page(db: Session, shop_id: int, open_only: bool, before_id: int | None, limit: int) -> list[Confusion]:
