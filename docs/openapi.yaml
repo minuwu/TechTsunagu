@@ -3683,7 +3683,7 @@
         "tags": [
           "work"
         ],
-        "summary": "Near-miss Reports of your shop, newest first",
+        "summary": "Near-miss Reports of your shop, newest first; If-None-Match gives 304",
         "operationId": "list_reports_api_near_misses_get",
         "parameters": [
           {
