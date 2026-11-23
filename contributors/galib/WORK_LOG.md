@@ -4,6 +4,13 @@ Owner: Galib (`Ga-lib`) — Role: AI / LLM
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-23 (from Arjun: two AI fixes on `main`, please skim)
+
+- **Voice Ask transcript** (`eadef5f`, XREQ-011 item 5b, Anim's request): `AskDraft.question_text` (required); `answer_ask` is now **v2** (new cache key), the eval renders v2. A voice Ask stores the transcript, so `/forward` no longer sends the Senpai an empty message. Your Bangla-removal prompt for Asks can be v3.
+- **Runner, busy model** (`7038b77`): a model at its per-minute limit used to wait up to `wait_seconds` (10 s) before handing over, and had already spent one of its daily calls. Now the per-minute slot is taken before the daily budget, and only the last model of the chain (and the validation retry) waits; earlier models hand over at once. New test fails in 37 s on the old runner.
+- Also: BACKEND_ARCHITECTURE §10.3/§10.4 now describe your chain (`AI_CHAIN`, `AI_TIER`, budgets, Groq backup, busy model skipped at once).
+- Verified on a local PostgreSQL 16.14: full backend suite, ruff, pyright, lint-imports.
+
 ## 2026-11-23
 
 ### Completed
