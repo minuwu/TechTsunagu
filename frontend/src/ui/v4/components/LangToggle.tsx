@@ -4,7 +4,6 @@ import { cn } from '@/ui/v4/lib/utils'
 
 // Content language (instructions, notices), separate from the UI language. Labels in their own script.
 const LABELS: Record<Lang, string> = {
-  bn: 'বাংলা',
   en: 'English',
   ja: 'やさしい日本語',
 }
@@ -12,7 +11,7 @@ const LABELS: Record<Lang, string> = {
 export function LangToggle({
   value,
   onChange,
-  options = ['bn', 'en', 'ja'],
+  options = ['en', 'ja'],
 }: {
   value: Lang
   onChange: (l: Lang) => void

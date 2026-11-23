@@ -1,6 +1,5 @@
 """The shop floor (architecture §6.6, §7.1–7.3, §8.1): machines, scan, Panel, Checks, board, shifts, glossary."""
 
-import hashlib
 import uuid
 from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
@@ -27,6 +26,7 @@ from app.schemas.work import (
     ConfusionOut,
     GlossaryIn,
     GlossaryOut,
+    GlossaryUpdate,
     MachineDetail,
     MachineIn,
     MachineOut,
@@ -356,12 +356,36 @@ def list_assignments(db: Session, who: Principal, day: date | None, now: datetim
 
 def glossary_out(t: GlossaryTerm) -> GlossaryOut:
     return GlossaryOut(
-        id=str(t.id), ja=t.ja, reading=t.reading, bn=t.translations.get("bn", ""), en=t.translations.get("en", "")
+        id=str(t.id),
+        ja=t.ja,
+        reading=t.reading,
+        bn=t.translations.get("bn", ""),
+        en=t.translations.get("en", ""),
+        translations=dict(t.translations),
     )
 
 
 def list_glossary(db: Session, who: Principal) -> list[GlossaryOut]:
     return [glossary_out(t) for t in repo.glossary(db, shop_of(who))]
+
+
+def update_glossary(db: Session, who: Principal, term_id: int, body: GlossaryUpdate) -> GlossaryOut:
+    t = repo.glossary_term(db, shop_of(who), term_id, for_update=True)
+    if t is None:
+        raise ApiError(404, "NOT_FOUND", "Not found")
+    if body.ja is not None:
+        t.ja = body.ja
+    if body.reading is not None:
+        t.reading = body.reading
+    if body.translations:
+        t.translations = {**t.translations, **{str(k): v for k, v in body.translations.items()}}  # new dict: jsonb
+    try:
+        with db.begin_nested():
+            db.flush()
+    except IntegrityError as exc:  # unique (shop_id, ja)
+        raise ApiError(409, "CONFLICT", "This term is already in the glossary") from exc
+    db.commit()
+    return glossary_out(t)
 
 
 def add_glossary(db: Session, who: Principal, body: GlossaryIn) -> GlossaryOut:
@@ -376,7 +400,3 @@ def add_glossary(db: Session, who: Principal, body: GlossaryIn) -> GlossaryOut:
         raise ApiError(409, "CONFLICT", "This term is already in the glossary") from exc
     db.commit()
     return glossary_out(t)
-
-
-def etag(body: str) -> str:
-    return '"' + hashlib.sha256(body.encode()).hexdigest()[:32] + '"'

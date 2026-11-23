@@ -16,6 +16,7 @@ from app.ai.prompts import render
 from app.ai.schemas import NoticeDraft
 from app.api.errors import ApiError
 from app.api.pagination import Page, PageParams, encode_cursor
+from app.domain.ai_checks import language_problems, question_texts
 from app.domain.recurrence import (
     HORIZON,
     MAX_RRULE_LENGTH,
@@ -48,8 +49,11 @@ from app.schemas.work import CheckIn, CheckResult, WrongQuestion
 from app.services.ai_runner import AiRequest, AiRunner
 from app.services.auth import Principal
 
-NOTICE_PROMPT_VERSION = 1
-LANGUAGES = ("ja", "bn", "en")  # shortcut: the AI schema is fixed to ja/bn/en (as notes.AI_LANGUAGES)
+NOTICE_PROMPT_VERSION = 3
+# shortcut: a Notice belongs to a district, not a shop, so its languages are fixed; use the union of the district
+# shops' languages (shops.languages) when a district has shops with other languages.
+AI_LANGUAGES = ("bn", "en")
+LANGUAGES = ("ja", *AI_LANGUAGES)
 PLACEHOLDER = "（ここを入力してください）"  # a degraded draft's empty fields; publish refuses while one is left
 NEXT_DATES = 3
 MAX_TEXT = 1000  # Translated values are at most 1000 characters
@@ -142,7 +146,8 @@ def posters(db: Session, who: Principal) -> Page[PosterOut]:
 
 
 def _draft_problems(d: NoticeDraft) -> list[str]:
-    problems: list[str] = []
+    texts = [d.title, *d.steps, *(e.title for e in d.events), *question_texts([d.question])]
+    problems = language_problems(texts, AI_LANGUAGES)
     for e in d.events:
         try:
             starts = datetime.fromisoformat(e.starts_at)
@@ -164,6 +169,13 @@ def _source_parts(kind: SourceKind, text: str | None, audio: bytes | None, image
     return [Part.text(f"<notice_source>{text}</notice_source>")]
 
 
+def _replay(db: Session, n: Notice, poster_id: int, now: datetime) -> NoticeForPoster:
+    """A retry returns the first draft, but only to its organisation; the key is unique per district."""
+    if n.poster_id != poster_id:
+        raise ApiError(409, "IDEMPOTENCY_KEY_REUSED", "This Idempotency-Key was already used for another Notice")
+    return _poster_view(db, n, now)
+
+
 def create_draft(
     db: Session,
     who: Principal,
@@ -178,7 +190,7 @@ def create_draft(
     district_id, poster_id = district_of(who), _poster_id(db, who)
     existing = repo.notice_by_key(db, district_id, key)
     if existing is not None:
-        return _poster_view(db, existing, now)
+        return _replay(db, existing, poster_id, now)
     text = text.strip() if text else None
     given = {"text": bool(text), "voice": bool(audio), "photo": bool(photo)}
     if not given[kind] or sum(given.values()) != 1:
@@ -192,18 +204,21 @@ def create_draft(
     request = AiRequest(
         pipeline="build_notice",
         # shortcut: no Glossary Terms; they belong to a shop and a Poster has none. Add district terms if needed.
-        prompt=render("build_notice", NOTICE_PROMPT_VERSION, glossary="[]", today=today),
+        prompt=render(
+            "build_notice", NOTICE_PROMPT_VERSION, glossary="[]", today=today, languages=", ".join(AI_LANGUAGES)
+        ),
         parts=_source_parts(kind, text, audio, image),
         schema=NoticeDraft,
         scope=f"district:{district_id}",
         # Without today: a flyer states absolute dates, so the same flyer gives the same draft (demo cache).
         cache_input=image or audio or (text or "").encode(),
+        languages=AI_LANGUAGES,
     )
     result = ai.run(request, _draft_problems, now)
 
     raced = repo.notice_by_key(db, district_id, key)
     if raced is not None:
-        return _poster_view(db, raced, now)
+        return _replay(db, raced, poster_id, now)
     blob_id = None
     if image is not None:
         blob = Blob(
@@ -234,7 +249,7 @@ def create_draft(
             Event(
                 district_id=district_id,
                 notice_id=row.id,
-                title=e.title.model_dump(),
+                title=e.title.only(AI_LANGUAGES),
                 starts_at=datetime.fromisoformat(e.starts_at),
                 rrule=e.rrule,
             )
@@ -249,15 +264,15 @@ def _draft_fields(d: NoticeDraft | None, text: str | None) -> dict[str, object]:
         question = {
             "id": "q1",
             "termId": None,
-            "prompt": q.prompt.model_dump(),
-            "options": [o.model_dump() for o in q.options],
+            "prompt": q.prompt.only(AI_LANGUAGES),
+            "options": [o.only(AI_LANGUAGES) for o in q.options],
             "correctIndex": q.correct_index,
         }
         return {
             "source_ja": d.source_ja,
             "category": d.category,
-            "title": d.title.model_dump(),
-            "steps": [s.model_dump() for s in d.steps],
+            "title": d.title.only(AI_LANGUAGES),
+            "steps": [s.only(AI_LANGUAGES) for s in d.steps],
             "question": question,
             "needs_edit": False,
         }
@@ -298,6 +313,25 @@ def list_for_worker(db: Session, who: Principal, page: PageParams, now: datetime
     events, receipts = repo.events_of(db, district_id, ids), repo.receipts_of(db, who.user_id or 0, ids)
     items = [_for_worker(n, events[n.id], receipts.get(n.id), now) for n in shown]
     return Page(items=items, next_cursor=_next_cursor(rows, page.limit))
+
+
+def get_for_poster(db: Session, who: Principal, notice_id: int, now: datetime) -> NoticeForPoster:
+    """One of the Poster's own Notices, drafts too; anyone else's is 404, as in the list."""
+    n = repo.notice(db, district_of(who), notice_id)
+    if n is None or n.poster_id != _poster_id(db, who):
+        raise _not_found()
+    return _poster_view(db, n, now)
+
+
+def get_for_worker(db: Session, who: Principal, notice_id: int, now: datetime) -> NoticeForWorker:
+    """One published Notice of the Worker's district, without the answer key; a draft is 404, as in the list."""
+    district_id = district_of(who)
+    n = repo.notice(db, district_id, notice_id)
+    if n is None or n.status != "published":
+        raise _not_found()
+    events = repo.events_of(db, district_id, [n.id])[n.id]
+    receipt = repo.receipts_of(db, who.user_id or 0, [n.id]).get(n.id)
+    return _for_worker(n, events, receipt, now)
 
 
 def update(db: Session, who: Principal, notice_id: int, body: NoticeUpdate, now: datetime) -> NoticeForPoster:

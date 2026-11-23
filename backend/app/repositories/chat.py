@@ -148,11 +148,19 @@ def follow_up(db: Session, shop_id: int, follow_up_id: int, *, for_update: bool 
 
 
 def follow_ups_page(
-    db: Session, shop_id: int, status: str | None, after_id: int | None, limit: int
+    db: Session, shop_id: int, viewer_id: int, status: str | None, after_id: int | None, limit: int
 ) -> list[tuple[FollowUp, str]]:
+    """Follow-ups from Threads the viewer is in."""
     stmt = (
         select(FollowUp, User.display_name)
         .join(User, (User.id == FollowUp.user_id) & (User.shop_id == FollowUp.shop_id))
+        .join(Message, (Message.id == FollowUp.message_id) & (Message.shop_id == FollowUp.shop_id))
+        .join(
+            ThreadMember,
+            (ThreadMember.thread_id == Message.thread_id)
+            & (ThreadMember.shop_id == Message.shop_id)
+            & (ThreadMember.user_id == viewer_id),
+        )
         .where(FollowUp.shop_id == shop_id)
     )
     if status is not None:
@@ -187,8 +195,12 @@ def task(db: Session, shop_id: int, task_id: int, *, for_update: bool = False) -
     return db.scalar(stmt.with_for_update() if for_update else stmt)
 
 
-def tasks_page(db: Session, shop_id: int, after_id: int | None, limit: int) -> list[Task]:
+def tasks_page(
+    db: Session, shop_id: int, after_id: int | None, limit: int, machine_id: int | None = None
+) -> list[Task]:
     stmt = select(Task).where(Task.shop_id == shop_id)
+    if machine_id is not None:
+        stmt = stmt.where(Task.machine_id == machine_id)
     if after_id is not None:
         stmt = stmt.where(Task.id > after_id)
     return list(db.scalars(stmt.order_by(Task.id).limit(limit + 1)))
@@ -221,3 +233,7 @@ def machine_ids(db: Session, shop_id: int, ids: list[int]) -> set[int]:
     if not ids:
         return set()
     return set(db.scalars(select(Machine.id).where(Machine.shop_id == shop_id, Machine.id.in_(ids))))
+
+
+def task_by_key(db: Session, shop_id: int, key: uuid.UUID) -> Task | None:
+    return db.scalar(select(Task).where(Task.shop_id == shop_id, Task.idempotency_key == key))

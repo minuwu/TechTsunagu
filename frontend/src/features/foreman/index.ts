@@ -280,7 +280,7 @@ export function useHeatmap() {
 /** Glossary Terms: list and add. */
 export function useGlossaryAdmin() {
   const glossary = useList('glossary')
-  const empty = { ja: '', reading: '', bn: '', en: '' }
+  const empty = { ja: '', reading: '', en: '' }
   const [form, setForm] = useState(empty)
   const add = useAction(addGlossaryTerm)
   return {
@@ -288,13 +288,12 @@ export function useGlossaryAdmin() {
     form,
     setField: (k: keyof typeof empty, v: string) =>
       setForm((f) => ({ ...f, [k]: v })),
-    canAdd: !!(form.ja.trim() && form.bn.trim() && form.en.trim()),
+    canAdd: !!(form.ja.trim() && form.en.trim()),
     duplicate: glossary.some((g) => g.ja === form.ja.trim()),
     add: async () => {
       await add.mutateAsync({
         ja: form.ja.trim(),
         reading: form.reading.trim(),
-        bn: form.bn.trim(),
         en: form.en.trim(),
       })
       setForm(empty)

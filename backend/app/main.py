@@ -18,8 +18,13 @@ from app.api.errors import install_error_handlers
 from app.api.limits import BodyLimitMiddleware
 from app.config import Settings
 from app.db import make_engine, make_session_factory
-from app.routers import auth, briefings, chat, health, life, skills, support, users, work
+from app.routers import auth, briefings, chat, health, interviews, life, near_misses, skills, support, users, work
 from app.services.ai_runner import AiLimits, AiRunner
+
+# Every API router, in include order; app.openapi reads the same list to annotate the contract.
+ROUTERS = tuple(
+    m.router for m in (health, auth, users, work, life, support, skills, chat, briefings, near_misses, interviews)
+)
 
 
 def _limits(settings: Settings, model: str) -> AiLimits:
@@ -74,15 +79,15 @@ def create_app(
     app.state.session_factory = factory
     app.state.ai = runner
     install_error_handlers(app)
-    for module in (health, auth, users, work, life, support, skills, chat, briefings):
-        app.include_router(module.router)
+    for router in ROUTERS:
+        app.include_router(router)
 
     # Added last = runs first: the request context wraps CORS, which wraps GZip.
     app.add_middleware(BodyLimitMiddleware)  # innermost of these: a 413 still gets CORS and request-id headers
     app.add_middleware(GZipMiddleware, minimum_size=1000)
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=[settings.frontend_origin],
+        allow_origins=settings.frontend_origin,
         allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
         allow_headers=["Authorization", "Content-Type", "Idempotency-Key", "If-None-Match", "X-Request-ID"],
         expose_headers=["ETag", "X-Request-ID", "Retry-After"],

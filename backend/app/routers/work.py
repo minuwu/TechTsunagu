@@ -7,6 +7,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, File, Form, Header, Request, Response, UploadFile
 
 from app.api.auth import DbSession, now_utc, require
+from app.api.conditional import conditional_json
 from app.api.envelope import Envelope
 from app.api.pagination import Page, PageParams, page_params
 from app.media import MAX_AUDIO_BYTES
@@ -22,6 +23,7 @@ from app.schemas.work import (
     EffortOut,
     GlossaryIn,
     GlossaryOut,
+    GlossaryUpdate,
     MachineDetail,
     MachineIn,
     MachineOut,
@@ -78,11 +80,7 @@ def scan(who: Worker, machine_id: IdIn, db: DbSession) -> Envelope[None]:
     response_model=Envelope[PanelOut],
 )
 def panel(who: PanelViewer, machine_id: IdIn, db: DbSession, request: Request) -> Response:
-    body = Envelope(data=floor.panel(db, who, int(machine_id), now_utc())).model_dump_json(by_alias=True)
-    tag = floor.etag(body)
-    if request.headers.get("if-none-match") == tag:
-        return Response(status_code=304, headers={"ETag": tag})
-    return Response(body, media_type="application/json", headers={"ETag": tag, "Cache-Control": "no-cache"})
+    return conditional_json(request, Envelope(data=floor.panel(db, who, int(machine_id), now_utc())))
 
 
 @router.post("/machines/{machine_id}/panel-token", summary="Use this device as the Machine's Panel")
@@ -164,9 +162,13 @@ def ack_confusion(who: Foreman, confusion_id: IdIn, db: DbSession) -> Envelope[C
     return Envelope(data=floor.ack_confusion(db, who, int(confusion_id), now_utc()))
 
 
-@router.get("/board", summary="Foreman board: every Machine, today's assignments and their Sign-off status")
-def board(who: Foreman, db: DbSession) -> Envelope[BoardOut]:
-    return Envelope(data=floor.board(db, who, now_utc()))
+@router.get(
+    "/board",
+    summary="Foreman board: every Machine, today's assignments and their Sign-off status; If-None-Match gives 304",
+    response_model=Envelope[BoardOut],
+)
+def board(who: Foreman, db: DbSession, request: Request) -> Response:
+    return conditional_json(request, Envelope(data=floor.board(db, who, now_utc())))
 
 
 @router.get("/shift-assignments", summary="Shift Assignments of a day (Workers see their own)")
@@ -187,3 +189,8 @@ def list_glossary(who: ShopMember, db: DbSession) -> Envelope[list[GlossaryOut]]
 @router.post("/glossary", status_code=201, summary="Add a Glossary Term")
 def add_glossary(who: Foreman, body: GlossaryIn, db: DbSession) -> Envelope[GlossaryOut]:
     return Envelope(data=floor.add_glossary(db, who, body))
+
+
+@router.patch("/glossary/{term_id}", summary="Edit a Glossary Term or add a translation for a shop language")
+def update_glossary(who: Foreman, term_id: IdIn, body: GlossaryUpdate, db: DbSession) -> Envelope[GlossaryOut]:
+    return Envelope(data=floor.update_glossary(db, who, int(term_id), body))

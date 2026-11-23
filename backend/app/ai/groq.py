@@ -5,11 +5,12 @@ Photos cannot be read here: a flyer photo raises AiUnavailable and the pipeline 
 
 import json
 import logging
+from collections.abc import Sequence
 
 import httpx2
-from pydantic import TypeAdapter
 
 from app.ai.client import AiUnavailable, Part, Prompt, QuotaExhausted
+from app.ai.schemas import DEFAULT_LANGUAGES, response_schema
 
 _log = logging.getLogger("wakatta.ai")
 _BASE_URL = "https://api.groq.com/openai/v1"
@@ -52,7 +53,9 @@ class GroqClient:
         )
         return response.text.strip()
 
-    def generate(self, prompt: Prompt, parts: list[Part], schema: type[object]) -> str:
+    def generate(
+        self, prompt: Prompt, parts: list[Part], schema: type[object], languages: Sequence[str] = DEFAULT_LANGUAGES
+    ) -> str:
         texts: list[str] = []
         for part in parts:
             if part.data is not None and part.mime is not None:
@@ -62,7 +65,7 @@ class GroqClient:
                 texts.append(_TRANSCRIPT_NOTE)
             elif part.text_value is not None:
                 texts.append(part.text_value)
-        json_schema = json.dumps(TypeAdapter(schema).json_schema())
+        json_schema = json.dumps(response_schema(schema, languages))
         system = f"{prompt.text}\n\nReturn only JSON that matches this JSON Schema:\n{json_schema}"
         body = {
             "model": self.model,

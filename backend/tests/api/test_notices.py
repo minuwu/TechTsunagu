@@ -10,6 +10,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from app.ai.fake import FakeAiClient
+from app.models.life import Notice
 from app.models.scopes import Poster, User
 from tests import factories as f
 
@@ -228,6 +229,27 @@ def test_workers_see_the_district_dates_in_a_range(client: TestClient, town: Tow
     assert too_long.status_code == 422
 
 
+def test_one_notice_is_read_with_the_same_rules_as_the_list(
+    client: TestClient, db: Session, town: Town, fake_ai: FakeAiClient
+) -> None:
+    fake_ai.queue("build_notice", notice_answer())
+    draft = _draft(client, town)
+    url = f"/api/notices/{draft['id']}"
+
+    own = client.get(url, headers=town.poster)
+    hidden = client.get(url, headers=town.worker)  # still a draft
+    _publish(client, town, draft)
+    seen = client.get(url, headers=town.worker)
+    other = _town(client, db)
+
+    assert own.status_code == 200 and own.json()["data"]["question"]["correctIndex"] == 0
+    assert hidden.status_code == 404
+    assert seen.status_code == 200 and "correctIndex" not in seen.json()["data"]["question"]
+    assert seen.json()["data"]["opened"] is False
+    assert client.get(url, headers=other.worker).status_code == 404
+    assert client.get(url, headers=other.poster).status_code == 404
+
+
 def test_another_district_cannot_see_or_change_a_notice(
     client: TestClient, db: Session, town: Town, fake_ai: FakeAiClient
 ) -> None:
@@ -248,3 +270,31 @@ def test_workers_cannot_write_notices(client: TestClient, town: Town) -> None:
     res = client.post("/api/notices", headers=town.worker | _key(), data={"sourceKind": "text", "text": "x"})
 
     assert res.status_code == 403
+
+
+def test_another_organisations_key_does_not_return_their_draft(
+    client: TestClient, db: Session, town: Town, fake_ai: FakeAiClient
+) -> None:
+    fake_ai.queue("build_notice", notice_answer())
+    key, body = _key(), {"sourceKind": "text", "text": "訓練"}
+    first = client.post("/api/notices", headers=town.poster | key, data=body)
+    assert first.status_code == 201
+    district_id = db.get(Notice, int(first.json()["data"]["id"])).district_id  # type: ignore[union-attr]
+    rival = Poster(district_id=district_id, name="別の団体", kind="city")
+    db.add(rival)
+    db.flush()
+    account = User(
+        role="poster",
+        display_name="別の担当",
+        language="ja",
+        district_id=district_id,
+        poster_id=rival.id,
+        pin_hash=f.user(db, f.shop(db), pin="2468", must_change=False).pin_hash,
+        pin_must_change=False,
+    )
+    db.add(account)
+    db.flush()
+
+    res = client.post("/api/notices", headers=_headers(client, account.id, "2468") | key, data=body)
+
+    assert res.status_code == 409 and res.json()["error"]["code"] == "IDEMPOTENCY_KEY_REUSED"

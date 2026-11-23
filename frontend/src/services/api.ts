@@ -1,4 +1,11 @@
-import type { ErrorEnvelope, HealthEnvelope } from './generated'
+import type { EnvelopeHealth } from './generated'
+
+// Every error answer (backend app/api/envelope.py ErrorEnvelope). Routes do not declare their error
+// responses, so this shape is not in docs/openapi.yaml and is written here, once.
+export interface ErrorEnvelope {
+  success: false
+  error: { code: string; message: string; details?: Record<string, unknown> }
+}
 import { mockHealth } from './mocks/health'
 
 export const USE_MOCK = (import.meta.env.VITE_USE_MOCK ?? 'true') === 'true'
@@ -31,7 +38,7 @@ export async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return body.data
 }
 
-export type Health = HealthEnvelope['data']
+export type Health = EnvelopeHealth['data']
 
 export async function getHealth(): Promise<Health> {
   if (USE_MOCK) return mockHealth

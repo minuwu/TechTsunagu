@@ -5,7 +5,24 @@ import viteReact from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { nitro } from 'nitro/vite'
 
-export default defineConfig({
+// `vite build --mode static` (npm run build:static): the whole demo pre-rendered to plain files in
+// .output/public for a static host (Azure Static Web Apps); it runs on the in-browser demo data.
+// The demo store's own ids (src/services/mocks/seed.ts)
+const MACHINES = ['m-plasma', 'm-press', 'm-crane', 'm-weld']
+const WORKERS = ['w-rahim', 'w-sadia', 'w-tanvir', 'w-tanaka']
+const DEMO_PAGES = [
+  ...MACHINES.flatMap((id) => [
+    `/m/${id}`,
+    `/panel/${id}`,
+    `/foreman/record/${id}`,
+    `/foreman/library/${id}`,
+  ]),
+  ...WORKERS.flatMap((id) => [`/me/${id}`, `/me/${id}/life`]),
+  '/senpai/demo-tanaka-7f3a9c',
+  '/senpai/demo-mori-2b8e41',
+]
+
+export default defineConfig(({ mode }) => ({
   resolve: { tsconfigPaths: true },
   plugins: [
     paraglideVitePlugin({
@@ -17,7 +34,15 @@ export default defineConfig({
     }),
     nitro(),
     tailwindcss(),
-    tanstackStart(),
+    tanstackStart(
+      mode === 'static'
+        ? {
+            prerender: { enabled: true, crawlLinks: true, failOnError: true },
+            // Pages with ids: the demo hub lists them in the browser only, so the crawler cannot find them
+            pages: DEMO_PAGES.map((path) => ({ path })),
+          }
+        : {},
+    ),
     viteReact(),
   ],
-})
+}))

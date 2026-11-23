@@ -163,7 +163,17 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "x-roles": [
+          "foreman",
+          "worker",
+          "poster"
+        ]
       }
     },
     "/api/auth/me/pin": {
@@ -204,7 +214,17 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "x-roles": [
+          "foreman",
+          "worker",
+          "poster"
+        ]
       }
     },
     "/api/auth/logout": {
@@ -225,7 +245,17 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "x-roles": [
+          "foreman",
+          "worker",
+          "poster"
+        ]
       }
     },
     "/api/workers": {
@@ -235,6 +265,11 @@
         ],
         "summary": "Workers of your shop",
         "operationId": "list_workers_api_workers_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "limit",
@@ -287,7 +322,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       },
       "post": {
         "tags": [
@@ -295,6 +333,11 @@
         ],
         "summary": "Create a worker account",
         "operationId": "create_workers_api_workers_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -326,7 +369,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/workers/{user_id}": {
@@ -336,6 +382,11 @@
         ],
         "summary": "Rename, reset PIN or deactivate a worker",
         "operationId": "update_workers_api_workers__user_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "user_id",
@@ -379,7 +430,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/foremen": {
@@ -389,6 +443,11 @@
         ],
         "summary": "Foremans of your shop",
         "operationId": "list_foremen_api_foremen_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "limit",
@@ -441,7 +500,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       },
       "post": {
         "tags": [
@@ -449,6 +511,11 @@
         ],
         "summary": "Create a foreman account",
         "operationId": "create_foremen_api_foremen_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -480,7 +547,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/foremen/{user_id}": {
@@ -490,6 +560,11 @@
         ],
         "summary": "Rename, reset PIN or deactivate a foreman",
         "operationId": "update_foremen_api_foremen__user_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "user_id",
@@ -533,7 +608,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/machines": {
@@ -543,6 +621,11 @@
         ],
         "summary": "Machines of your shop",
         "operationId": "list_machines_api_machines_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "limit",
@@ -595,7 +678,11 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman",
+          "worker"
+        ]
       },
       "post": {
         "tags": [
@@ -603,6 +690,11 @@
         ],
         "summary": "Add a Machine",
         "operationId": "create_machine_api_machines_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -634,7 +726,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/machines/{machine_id}": {
@@ -644,6 +739,11 @@
         ],
         "summary": "A Machine and its current Note Version (no answers)",
         "operationId": "machine_detail_api_machines__machine_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "machine_id",
@@ -677,7 +777,11 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman",
+          "worker"
+        ]
       }
     },
     "/api/machines/{machine_id}/scan": {
@@ -687,6 +791,11 @@
         ],
         "summary": "The signed-in Worker is at this Machine (Presence)",
         "operationId": "scan_api_machines__machine_id__scan_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "machine_id",
@@ -720,7 +829,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "worker"
+        ]
       }
     },
     "/api/machines/{machine_id}/panel": {
@@ -730,6 +842,11 @@
         ],
         "summary": "Machine Panel state; send If-None-Match to get 304 when unchanged",
         "operationId": "panel_api_machines__machine_id__panel_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "machine_id",
@@ -763,7 +880,11 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "panel",
+          "foreman"
+        ]
       }
     },
     "/api/machines/{machine_id}/panel-token": {
@@ -773,6 +894,11 @@
         ],
         "summary": "Use this device as the Machine's Panel",
         "operationId": "panel_token_api_machines__machine_id__panel_token_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "machine_id",
@@ -806,7 +932,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/machines/{machine_id}/notes": {
@@ -816,6 +945,11 @@
         ],
         "summary": "Record a note → AI draft (never a 500)",
         "operationId": "record_note_api_machines__machine_id__notes_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "machine_id",
@@ -868,7 +1002,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/note-versions/{note_id}": {
@@ -878,6 +1015,11 @@
         ],
         "summary": "A Note Version with its answer key (Foreman)",
         "operationId": "get_note_api_note_versions__note_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "note_id",
@@ -911,7 +1053,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       },
       "patch": {
         "tags": [
@@ -919,6 +1064,11 @@
         ],
         "summary": "Edit one step of a draft",
         "operationId": "edit_note_api_note_versions__note_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "note_id",
@@ -962,7 +1112,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/note-versions/{note_id}/approve": {
@@ -972,6 +1125,11 @@
         ],
         "summary": "Approve: safety change (re-check) or wording change",
         "operationId": "approve_note_api_note_versions__note_id__approve_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "note_id",
@@ -1015,7 +1173,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/checks": {
@@ -1025,6 +1186,11 @@
         ],
         "summary": "Answer a Note Version's Check; graded on the server",
         "operationId": "submit_check_api_checks_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "Idempotency-Key",
@@ -1068,7 +1234,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "worker"
+        ]
       }
     },
     "/api/machines/{machine_id}/overrides": {
@@ -1078,6 +1247,11 @@
         ],
         "summary": "Panel Override: allow without a Sign-off",
         "operationId": "start_override_api_machines__machine_id__overrides_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "machine_id",
@@ -1121,7 +1295,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/machines/{machine_id}/overrides/{override_id}": {
@@ -1131,6 +1308,11 @@
         ],
         "summary": "End a Panel Override early",
         "operationId": "end_override_api_machines__machine_id__overrides__override_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "machine_id",
@@ -1174,7 +1356,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/machines/{machine_id}/versions": {
@@ -1184,6 +1369,11 @@
         ],
         "summary": "Knowledge Library: a Machine's Note Versions, newest first",
         "operationId": "list_versions_api_machines__machine_id__versions_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "machine_id",
@@ -1246,7 +1436,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/metrics/effort": {
@@ -1267,7 +1460,15 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/sign-offs": {
@@ -1277,6 +1478,11 @@
         ],
         "summary": "Sign-offs, newest first (Workers see their own)",
         "operationId": "list_sign_offs_api_sign_offs_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "limit",
@@ -1329,7 +1535,11 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman",
+          "worker"
+        ]
       }
     },
     "/api/confusions": {
@@ -1339,6 +1549,11 @@
         ],
         "summary": "Confusions, newest first",
         "operationId": "list_confusions_api_confusions_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "open",
@@ -1401,7 +1616,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/confusions/{confusion_id}/ack": {
@@ -1411,6 +1629,11 @@
         ],
         "summary": "Acknowledge a Confusion",
         "operationId": "ack_confusion_api_confusions__confusion_id__ack_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "confusion_id",
@@ -1444,7 +1667,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/board": {
@@ -1452,7 +1678,7 @@
         "tags": [
           "work"
         ],
-        "summary": "Foreman board: every Machine, today's assignments and their Sign-off status",
+        "summary": "Foreman board: every Machine, today's assignments and their Sign-off status; If-None-Match gives 304",
         "operationId": "board_api_board_get",
         "responses": {
           "200": {
@@ -1465,7 +1691,15 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/shift-assignments": {
@@ -1475,6 +1709,11 @@
         ],
         "summary": "Shift Assignments of a day (Workers see their own)",
         "operationId": "list_assignments_api_shift_assignments_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "day",
@@ -1515,7 +1754,11 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman",
+          "worker"
+        ]
       },
       "put": {
         "tags": [
@@ -1523,6 +1766,11 @@
         ],
         "summary": "Assign a Worker to a Machine and shift, or clear it with workerId null",
         "operationId": "set_assignment_api_shift_assignments_put",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -1554,7 +1802,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/glossary": {
@@ -1575,7 +1826,16 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "x-roles": [
+          "foreman",
+          "worker"
+        ]
       },
       "post": {
         "tags": [
@@ -1614,7 +1874,76 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "x-roles": [
+          "foreman"
+        ]
+      }
+    },
+    "/api/glossary/{term_id}": {
+      "patch": {
+        "tags": [
+          "work"
+        ],
+        "summary": "Edit a Glossary Term or add a translation for a shop language",
+        "operationId": "update_glossary_api_glossary__term_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "term_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Term Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GlossaryUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_GlossaryOut_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/posters": {
@@ -1635,7 +1964,15 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "x-roles": [
+          "poster"
+        ]
       }
     },
     "/api/notices": {
@@ -1645,6 +1982,11 @@
         ],
         "summary": "Text, voice or flyer photo → AI draft with Events (never a 500)",
         "operationId": "create_notice_api_notices_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "Idempotency-Key",
@@ -1688,7 +2030,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "poster"
+        ]
       },
       "get": {
         "tags": [
@@ -1696,6 +2041,11 @@
         ],
         "summary": "Posters: their own Notices; Workers: the district's published Notices",
         "operationId": "list_notices_api_notices_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "limit",
@@ -1748,16 +2098,75 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "poster",
+          "worker"
+        ]
       }
     },
     "/api/notices/{notice_id}": {
+      "get": {
+        "tags": [
+          "life"
+        ],
+        "summary": "One Notice: a Poster's own (drafts too), or a published one for a Worker",
+        "operationId": "get_notice_api_notices__notice_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "notice_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Notice Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Union_NoticeForPoster__NoticeForWorker__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "poster",
+          "worker"
+        ]
+      },
       "patch": {
         "tags": [
           "life"
         ],
         "summary": "Edit a draft Notice",
         "operationId": "update_notice_api_notices__notice_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "notice_id",
@@ -1801,7 +2210,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "poster"
+        ]
       }
     },
     "/api/notices/{notice_id}/events/{event_id}": {
@@ -1811,6 +2223,11 @@
         ],
         "summary": "Confirm or correct an Event of a draft",
         "operationId": "update_event_api_notices__notice_id__events__event_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "notice_id",
@@ -1864,7 +2281,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "poster"
+        ]
       }
     },
     "/api/notices/{notice_id}/publish": {
@@ -1874,6 +2294,11 @@
         ],
         "summary": "Publish; 409 EVENTS_NOT_CONFIRMED until every date is confirmed",
         "operationId": "publish_notice_api_notices__notice_id__publish_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "notice_id",
@@ -1907,7 +2332,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "poster"
+        ]
       }
     },
     "/api/notices/{notice_id}/reach": {
@@ -1917,6 +2345,11 @@
         ],
         "summary": "How many district Workers opened and understood it (counts only)",
         "operationId": "notice_reach_api_notices__notice_id__reach_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "notice_id",
@@ -1950,7 +2383,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "poster"
+        ]
       }
     },
     "/api/events": {
@@ -1960,6 +2396,11 @@
         ],
         "summary": "Dates of confirmed district Events in a range (at most 62 days)",
         "operationId": "list_events_api_events_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "from",
@@ -2003,7 +2444,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "worker"
+        ]
       }
     },
     "/api/receipts": {
@@ -2044,7 +2488,15 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "x-roles": [
+          "worker"
+        ]
       }
     },
     "/api/blobs/{blob_id}": {
@@ -2054,6 +2506,11 @@
         ],
         "summary": "A flyer photo of your district (JPEG, EXIF removed)",
         "operationId": "get_blob_api_blobs__blob_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "blob_id",
@@ -2080,7 +2537,11 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "poster",
+          "worker"
+        ]
       }
     },
     "/api/asks": {
@@ -2090,6 +2551,11 @@
         ],
         "summary": "Ask by text or voice; answered only from published Notices",
         "operationId": "create_ask_api_asks_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "Idempotency-Key",
@@ -2132,7 +2598,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "worker"
+        ]
       },
       "get": {
         "tags": [
@@ -2140,6 +2609,11 @@
         ],
         "summary": "Your own Asks, newest first",
         "operationId": "list_asks_api_asks_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "limit",
@@ -2192,7 +2666,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "worker"
+        ]
       }
     },
     "/api/asks/{ask_id}/forward": {
@@ -2202,6 +2679,11 @@
         ],
         "summary": "Send an Ask to your Senpai; 409 NO_ACTIVE_PAIR without one",
         "operationId": "forward_ask_api_asks__ask_id__forward_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "ask_id",
@@ -2235,7 +2717,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "worker"
+        ]
       }
     },
     "/api/senpai-pairs": {
@@ -2245,6 +2730,11 @@
         ],
         "summary": "Senpai pairs of your shop",
         "operationId": "list_pairs_api_senpai_pairs_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "limit",
@@ -2297,7 +2787,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       },
       "post": {
         "tags": [
@@ -2305,6 +2798,11 @@
         ],
         "summary": "Pair a Worker with a Senpai; the link token is shown once",
         "operationId": "create_pair_api_senpai_pairs_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -2336,7 +2834,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/senpai-pairs/{pair_id}": {
@@ -2346,6 +2847,11 @@
         ],
         "summary": "Revoke a Senpai link",
         "operationId": "revoke_pair_api_senpai_pairs__pair_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "pair_id",
@@ -2379,25 +2885,121 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/meetups": {
+      "get": {
+        "tags": [
+          "life"
+        ],
+        "summary": "Meet-ups, newest first (Workers: their own; Foremen: the shop's)",
+        "operationId": "list_meetups_api_meetups_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 40
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Page_MeetupOut__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "foreman",
+          "worker"
+        ]
+      },
       "post": {
         "tags": [
           "life"
         ],
         "summary": "Log a Meet-up with your Senpai",
         "operationId": "worker_meetup_api_meetups_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/MeetupCreate"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "201": {
@@ -2420,7 +3022,39 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "worker"
+        ]
+      }
+    },
+    "/api/senpai-pairs/me": {
+      "get": {
+        "tags": [
+          "life"
+        ],
+        "summary": "Your own Senpai pair, or null (no link token)",
+        "operationId": "my_senpai_pair_api_senpai_pairs_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Union_SenpaiPairOut__NoneType__"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "x-roles": [
+          "worker"
+        ]
       }
     },
     "/api/senpai/{token}": {
@@ -2595,6 +3229,11 @@
         ],
         "summary": "Support Log for the 登録支援機関 (CSV, UTF-8 with BOM, not enveloped)",
         "operationId": "support_log_csv_api_support_log_csv_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "from",
@@ -2631,7 +3270,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/skill-matrix": {
@@ -2652,7 +3294,15 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/heatmap": {
@@ -2673,7 +3323,15 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/workers/{worker_id}/passport": {
@@ -2683,6 +3341,11 @@
         ],
         "summary": "Skill Passport: a Foreman sees any Worker, a Worker only self",
         "operationId": "passport_api_workers__worker_id__passport_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "worker_id",
@@ -2716,7 +3379,11 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman",
+          "worker"
+        ]
       }
     },
     "/api/threads": {
@@ -2724,7 +3391,7 @@
         "tags": [
           "chat"
         ],
-        "summary": "Your Threads with unread counts, newest activity first",
+        "summary": "Your Threads with unread counts, newest activity first; If-None-Match gives 304",
         "operationId": "list_threads_api_threads_get",
         "responses": {
           "200": {
@@ -2737,7 +3404,16 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "x-roles": [
+          "foreman",
+          "worker"
+        ]
       }
     },
     "/api/threads/{thread_id}/messages": {
@@ -2747,6 +3423,11 @@
         ],
         "summary": "Foreman: voice/text → AI draft. Worker: sent",
         "operationId": "post_message_api_threads__thread_id__messages_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "thread_id",
@@ -2799,7 +3480,11 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman",
+          "worker"
+        ]
       },
       "get": {
         "tags": [
@@ -2807,6 +3492,11 @@
         ],
         "summary": "Poll messages after a cursor; send If-None-Match to get 304 when nothing changed",
         "operationId": "poll_messages_api_threads__thread_id__messages_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "thread_id",
@@ -2857,7 +3547,11 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman",
+          "worker"
+        ]
       }
     },
     "/api/messages/{message_id}/send": {
@@ -2867,6 +3561,11 @@
         ],
         "summary": "Send the edited draft; the Tasks kept go on the Task Board",
         "operationId": "send_message_api_messages__message_id__send_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "message_id",
@@ -2910,7 +3609,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/messages/{message_id}/answers": {
@@ -2920,6 +3622,11 @@
         ],
         "summary": "Answer a message's questions (-1 = not sure) → Wakatta Status",
         "operationId": "answer_message_api_messages__message_id__answers_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "message_id",
@@ -2963,7 +3670,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "worker"
+        ]
       }
     },
     "/api/follow-ups": {
@@ -2973,6 +3683,11 @@
         ],
         "summary": "Follow-ups of your shop, newest first",
         "operationId": "list_follow_ups_api_follow_ups_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "status",
@@ -3046,7 +3761,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/follow-ups/{follow_up_id}": {
@@ -3056,6 +3774,11 @@
         ],
         "summary": "Mark a Follow-up clarified or understood",
         "operationId": "update_follow_up_api_follow_ups__follow_up_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "follow_up_id",
@@ -3099,7 +3822,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/messages/{message_id}/reexplain": {
@@ -3109,6 +3835,11 @@
         ],
         "summary": "Re-explain one term to one Worker (AI)",
         "operationId": "reexplain_api_messages__message_id__reexplain_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "message_id",
@@ -3152,7 +3883,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/messages/{message_id}/nudge": {
@@ -3162,6 +3896,11 @@
         ],
         "summary": "Show a Worker you are waiting for their answer (rate-limited)",
         "operationId": "nudge_api_messages__message_id__nudge_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "message_id",
@@ -3205,7 +3944,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/tasks": {
@@ -3213,9 +3955,33 @@
         "tags": [
           "chat"
         ],
-        "summary": "The Task Board of your shop",
+        "summary": "The Task Board of your shop; If-None-Match gives 304",
         "operationId": "list_tasks_api_tasks_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
+          {
+            "name": "machineId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[1-9][0-9]{0,18}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only this Machine's Tasks",
+              "title": "Machineid"
+            },
+            "description": "Only this Machine's Tasks"
+          },
           {
             "name": "limit",
             "in": "query",
@@ -3267,7 +4033,11 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman",
+          "worker"
+        ]
       },
       "post": {
         "tags": [
@@ -3275,6 +4045,30 @@
         ],
         "summary": "Add a Task by hand",
         "operationId": "create_task_api_tasks_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -3306,7 +4100,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/tasks/{task_id}": {
@@ -3316,6 +4113,11 @@
         ],
         "summary": "Move or edit a Task; If-Match: <version>, 412 when it changed meanwhile",
         "operationId": "update_task_api_tasks__task_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "task_id",
@@ -3368,7 +4170,11 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman",
+          "worker"
+        ]
       }
     },
     "/api/briefings/draft": {
@@ -3378,6 +4184,11 @@
         ],
         "summary": "Record a Briefing (voice or text) → AI draft (never a 500)",
         "operationId": "draft_briefing_api_briefings_draft_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "Idempotency-Key",
@@ -3420,7 +4231,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       }
     },
     "/api/briefings": {
@@ -3430,6 +4244,11 @@
         ],
         "summary": "Publish the reviewed draft (its edited text and question)",
         "operationId": "publish_briefing_api_briefings_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -3461,7 +4280,10 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman"
+        ]
       },
       "get": {
         "tags": [
@@ -3469,6 +4291,11 @@
         ],
         "summary": "Foremen: every Briefing with answers; Workers: published ones with their receipt",
         "operationId": "list_briefings_api_briefings_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "limit",
@@ -3521,7 +4348,11 @@
               }
             }
           }
-        }
+        },
+        "x-roles": [
+          "foreman",
+          "worker"
+        ]
       }
     },
     "/api/briefings/{briefing_id}/receipts": {
@@ -3531,6 +4362,11 @@
         ],
         "summary": "Who understood, who only opened it, who has not opened it",
         "operationId": "briefing_receipts_api_briefings__briefing_id__receipts_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "briefing_id",
@@ -3564,7 +4400,551 @@
               }
             }
           }
+        },
+        "x-roles": [
+          "foreman"
+        ]
+      }
+    },
+    "/api/near-misses": {
+      "post": {
+        "tags": [
+          "work"
+        ],
+        "summary": "Report a near miss by text or voice, with an optional photo",
+        "operationId": "report_api_near_misses_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_report_api_near_misses_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NearMissOut_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "worker"
+        ]
+      },
+      "get": {
+        "tags": [
+          "work"
+        ],
+        "summary": "Near-miss Reports of your shop, newest first; If-None-Match gives 304",
+        "operationId": "list_reports_api_near_misses_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "open",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Open"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 40
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Page_NearMissOut__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "foreman"
+        ]
+      }
+    },
+    "/api/near-misses/{report_id}/ack": {
+      "post": {
+        "tags": [
+          "work"
+        ],
+        "summary": "Acknowledge a Near-miss Report",
+        "operationId": "acknowledge_api_near_misses__report_id__ack_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "report_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Report Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NearMissOut_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "foreman"
+        ]
+      }
+    },
+    "/api/near-misses/{report_id}/photo": {
+      "get": {
+        "tags": [
+          "work"
+        ],
+        "summary": "The report's photo (JPEG, EXIF removed)",
+        "operationId": "get_photo_api_near_misses__report_id__photo_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "report_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Report Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "foreman",
+          "worker"
+        ]
+      }
+    },
+    "/api/interviews/due": {
+      "get": {
+        "tags": [
+          "life"
+        ],
+        "summary": "Periodic Interviews (support item 10): next due date per Worker",
+        "operationId": "interviews_due_api_interviews_due_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_list_InterviewDue__"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "x-roles": [
+          "foreman"
+        ]
+      }
+    },
+    "/api/workers/{worker_id}/interviews": {
+      "get": {
+        "tags": [
+          "life"
+        ],
+        "summary": "A Worker's past Periodic Interviews, newest first",
+        "operationId": "worker_interviews_api_workers__worker_id__interviews_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "worker_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Worker Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_list_InterviewOut__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "foreman"
+        ]
+      },
+      "post": {
+        "tags": [
+          "life"
+        ],
+        "summary": "Record a Periodic Interview",
+        "operationId": "record_interview_api_workers__worker_id__interviews_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "worker_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Worker Id"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InterviewIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_InterviewOut_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "foreman"
+        ]
+      }
+    },
+    "/api/today-word": {
+      "get": {
+        "tags": [
+          "life"
+        ],
+        "summary": "Today's Word: one word of the Workers' language for the Japanese side",
+        "operationId": "today_word_api_today_word_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_TodayWord_"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "x-roles": [
+          "foreman"
+        ]
+      }
+    },
+    "/api/app/config": {
+      "get": {
+        "tags": [
+          "life"
+        ],
+        "summary": "Android version gate (public): minimum and latest version, download link",
+        "operationId": "app_config_api_app_config_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_AppConfig_"
+                }
+              }
+            }
+          }
         }
+      }
+    },
+    "/api/devices/me": {
+      "put": {
+        "tags": [
+          "life"
+        ],
+        "summary": "Register this app install for push (upsert; 6 per minute)",
+        "operationId": "register_device_api_devices_me_put",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeviceIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_DeviceOut_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "foreman",
+          "worker"
+        ]
+      },
+      "delete": {
+        "tags": [
+          "life"
+        ],
+        "summary": "Forget this app install before signing out (idempotent)",
+        "operationId": "unregister_device_api_devices_me_delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "installId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Installid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "foreman",
+          "worker"
+        ]
       }
     }
   },
@@ -3777,6 +5157,58 @@
           "answers"
         ],
         "title": "AnswersIn"
+      },
+      "AppConfig": {
+        "properties": {
+          "minVersion": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d+\\.\\d+$",
+            "title": "Minversion"
+          },
+          "latestVersion": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d+\\.\\d+$",
+            "title": "Latestversion"
+          },
+          "downloadUrl": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Downloadurl"
+          },
+          "sha256": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sha256"
+          },
+          "serverTime": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Servertime"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "minVersion",
+          "latestVersion",
+          "downloadUrl",
+          "sha256",
+          "serverTime"
+        ],
+        "title": "AppConfig",
+        "description": "GET /app/config (public). The app blocks below `minVersion` and offers `downloadUrl` (check `sha256`)."
       },
       "ApproveIn": {
         "properties": {
@@ -4285,6 +5717,56 @@
         },
         "type": "object",
         "title": "Body_record_note_api_machines__machine_id__notes_post"
+      },
+      "Body_report_api_near_misses_post": {
+        "properties": {
+          "machineId": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]{0,18}$",
+            "title": "Machineid"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          },
+          "audio": {
+            "anyOf": [
+              {
+                "type": "string",
+                "contentMediaType": "application/octet-stream"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Audio"
+          },
+          "photo": {
+            "anyOf": [
+              {
+                "type": "string",
+                "contentMediaType": "application/octet-stream"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Photo"
+          }
+        },
+        "type": "object",
+        "required": [
+          "machineId"
+        ],
+        "title": "Body_report_api_near_misses_post"
       },
       "BriefingForForeman": {
         "properties": {
@@ -4886,6 +6368,90 @@
         "title": "ConfusionOut",
         "description": "From a Work Check (checkId and machineId set) or from a Chat message's Check (messageId set)."
       },
+      "DeviceIn": {
+        "properties": {
+          "installId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Installid"
+          },
+          "platform": {
+            "type": "string",
+            "const": "android",
+            "title": "Platform"
+          },
+          "fcmToken": {
+            "type": "string",
+            "maxLength": 4096,
+            "minLength": 1,
+            "title": "Fcmtoken"
+          },
+          "appVersion": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d+\\.\\d+$",
+            "title": "Appversion"
+          },
+          "osApiLevel": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 100.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Osapilevel"
+          },
+          "locale": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 35
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Locale"
+          },
+          "notificationsEnabled": {
+            "type": "boolean",
+            "title": "Notificationsenabled"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "installId",
+          "platform",
+          "fcmToken",
+          "appVersion",
+          "notificationsEnabled"
+        ],
+        "title": "DeviceIn"
+      },
+      "DeviceOut": {
+        "properties": {
+          "registered": {
+            "type": "boolean",
+            "title": "Registered"
+          },
+          "lastSeenAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Lastseenat"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "registered",
+          "lastSeenAt"
+        ],
+        "title": "DeviceOut"
+      },
       "EffortOut": {
         "properties": {
           "drafts": {
@@ -4999,6 +6565,29 @@
           "data"
         ],
         "title": "Envelope[AnswerResult]"
+      },
+      "Envelope_AppConfig_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/AppConfig"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[AppConfig]"
       },
       "Envelope_AskOut_": {
         "properties": {
@@ -5138,6 +6727,29 @@
         ],
         "title": "Envelope[ConfusionOut]"
       },
+      "Envelope_DeviceOut_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/DeviceOut"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[DeviceOut]"
+      },
       "Envelope_EffortOut_": {
         "properties": {
           "success": {
@@ -5276,6 +6888,29 @@
         ],
         "title": "Envelope[Heatmap]"
       },
+      "Envelope_InterviewOut_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/InterviewOut"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[InterviewOut]"
+      },
       "Envelope_LoginOut_": {
         "properties": {
           "success": {
@@ -5413,6 +7048,29 @@
           "data"
         ],
         "title": "Envelope[MessagesPage]"
+      },
+      "Envelope_NearMissOut_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/NearMissOut"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[NearMissOut]"
       },
       "Envelope_NoneType_": {
         "properties": {
@@ -5644,6 +7302,52 @@
           "data"
         ],
         "title": "Envelope[Page[MachineOut]]"
+      },
+      "Envelope_Page_MeetupOut__": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/Page_MeetupOut_"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[Page[MeetupOut]]"
+      },
+      "Envelope_Page_NearMissOut__": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/Page_NearMissOut_"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[Page[NearMissOut]]"
       },
       "Envelope_Page_NoteVersionOut__": {
         "properties": {
@@ -5921,6 +7625,29 @@
         ],
         "title": "Envelope[TaskOut]"
       },
+      "Envelope_TodayWord_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/TodayWord"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[TodayWord]"
+      },
       "Envelope_Union_AssignmentOut__NoneType__": {
         "properties": {
           "success": {
@@ -5950,6 +7677,37 @@
           "data"
         ],
         "title": "Envelope[Union[AssignmentOut, NoneType]]"
+      },
+      "Envelope_Union_NoticeForPoster__NoticeForWorker__": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NoticeForPoster"
+              },
+              {
+                "$ref": "#/components/schemas/NoticeForWorker"
+              }
+            ],
+            "title": "Data"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[Union[NoticeForPoster, NoticeForWorker]]"
       },
       "Envelope_Union_Page_BriefingForForeman___Page_BriefingForWorker___": {
         "properties": {
@@ -6012,6 +7770,36 @@
           "data"
         ],
         "title": "Envelope[Union[Page[NoticeForPoster], Page[NoticeForWorker]]]"
+      },
+      "Envelope_Union_SenpaiPairOut__NoneType__": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SenpaiPairOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[Union[SenpaiPairOut, NoneType]]"
       },
       "Envelope_UserOut_": {
         "properties": {
@@ -6116,6 +7904,60 @@
           "data"
         ],
         "title": "Envelope[list[GlossaryOut]]"
+      },
+      "Envelope_list_InterviewDue__": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/InterviewDue"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[list[InterviewDue]]"
+      },
+      "Envelope_list_InterviewOut__": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/InterviewOut"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[list[InterviewOut]]"
       },
       "Envelope_list_RosterEntry__": {
         "properties": {
@@ -6524,6 +8366,13 @@
           "en": {
             "type": "string",
             "title": "En"
+          },
+          "translations": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Translations"
           }
         },
         "additionalProperties": false,
@@ -6533,9 +8382,73 @@
           "ja",
           "reading",
           "bn",
-          "en"
+          "en",
+          "translations"
         ],
         "title": "GlossaryOut"
+      },
+      "GlossaryUpdate": {
+        "properties": {
+          "ja": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ja"
+          },
+          "reading": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reading"
+          },
+          "translations": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string",
+                  "maxLength": 80,
+                  "minLength": 1
+                },
+                "propertyNames": {
+                  "enum": [
+                    "ja",
+                    "bn",
+                    "en",
+                    "vi",
+                    "id",
+                    "ne",
+                    "my",
+                    "tl",
+                    "zh"
+                  ]
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Translations"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "GlossaryUpdate",
+        "description": "PATCH /glossary/{id}: only the fields sent change; `translations` adds or replaces languages."
       },
       "HTTPValidationError": {
         "properties": {
@@ -6654,6 +8567,159 @@
         ],
         "title": "Heatmap",
         "description": "GET /heatmap: Confusions per Glossary Term × Machine; only terms with at least one, most confused first."
+      },
+      "InterviewDue": {
+        "properties": {
+          "workerId": {
+            "type": "string",
+            "title": "Workerid"
+          },
+          "displayName": {
+            "type": "string",
+            "title": "Displayname"
+          },
+          "lastHeldOn": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lastheldon"
+          },
+          "dueOn": {
+            "type": "string",
+            "format": "date",
+            "title": "Dueon"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "soon",
+              "overdue"
+            ],
+            "title": "Status"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "workerId",
+          "displayName",
+          "lastHeldOn",
+          "dueOn",
+          "status"
+        ],
+        "title": "InterviewDue"
+      },
+      "InterviewIn": {
+        "properties": {
+          "heldOn": {
+            "type": "string",
+            "format": "date",
+            "title": "Heldon"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "face",
+              "online"
+            ],
+            "title": "Method"
+          },
+          "onlineConsentAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Onlineconsentat"
+          },
+          "noteJa": {
+            "type": "string",
+            "maxLength": 1000,
+            "title": "Noteja",
+            "default": ""
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "heldOn",
+          "method"
+        ],
+        "title": "InterviewIn"
+      },
+      "InterviewOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "workerId": {
+            "type": "string",
+            "title": "Workerid"
+          },
+          "heldOn": {
+            "type": "string",
+            "format": "date",
+            "title": "Heldon"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "face",
+              "online"
+            ],
+            "title": "Method"
+          },
+          "onlineConsentAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Onlineconsentat"
+          },
+          "noteJa": {
+            "type": "string",
+            "title": "Noteja"
+          },
+          "recordedBy": {
+            "type": "string",
+            "title": "Recordedby"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "workerId",
+          "heldOn",
+          "method",
+          "onlineConsentAt",
+          "noteJa",
+          "recordedBy",
+          "createdAt"
+        ],
+        "title": "InterviewOut"
       },
       "LoginIn": {
         "properties": {
@@ -7235,6 +9301,83 @@
           "items"
         ],
         "title": "MessagesPage"
+      },
+      "NearMissOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "workerId": {
+            "type": "string",
+            "title": "Workerid"
+          },
+          "machineId": {
+            "type": "string",
+            "title": "Machineid"
+          },
+          "text": {
+            "additionalProperties": {
+              "type": "string",
+              "maxLength": 1000
+            },
+            "propertyNames": {
+              "enum": [
+                "ja",
+                "bn",
+                "en",
+                "vi",
+                "id",
+                "ne",
+                "my",
+                "tl",
+                "zh"
+              ]
+            },
+            "type": "object",
+            "title": "Text"
+          },
+          "photo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Photo"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "acknowledgedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Acknowledgedat"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "workerId",
+          "machineId",
+          "text",
+          "photo",
+          "createdAt",
+          "acknowledgedAt"
+        ],
+        "title": "NearMissOut"
       },
       "NoteForWorker": {
         "properties": {
@@ -8173,6 +10316,64 @@
           "nextCursor"
         ],
         "title": "Page[MachineOut]"
+      },
+      "Page_MeetupOut_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/MeetupOut"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "nextCursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nextcursor"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "title": "Page[MeetupOut]"
+      },
+      "Page_NearMissOut_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/NearMissOut"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "nextCursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nextcursor"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "title": "Page[NearMissOut]"
       },
       "Page_NoteVersionOut_": {
         "properties": {
@@ -9504,6 +11705,52 @@
         ],
         "title": "ThreadOut"
       },
+      "TodayWord": {
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "ja",
+              "bn",
+              "en",
+              "vi",
+              "id",
+              "ne",
+              "my",
+              "tl",
+              "zh"
+            ],
+            "title": "Language"
+          },
+          "word": {
+            "type": "string",
+            "title": "Word"
+          },
+          "reading": {
+            "type": "string",
+            "title": "Reading"
+          },
+          "meaningJa": {
+            "type": "string",
+            "title": "Meaningja"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "date",
+          "language",
+          "word",
+          "reading",
+          "meaningJa"
+        ],
+        "title": "TodayWord"
+      },
       "UserOut": {
         "properties": {
           "id": {
@@ -9660,6 +11907,12 @@
           "prompt"
         ],
         "title": "WrongQuestion"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "type": "http",
+        "scheme": "bearer"
       }
     }
   }

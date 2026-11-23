@@ -1,8 +1,9 @@
 // Wakatta? domain types and pure rules. Terms follow GLOSSARY.md.
 
-export type Lang = 'ja' | 'bn' | 'en'
+// Japanese and English only (team decision 2026-11-23: Bengali dropped)
+export type Lang = 'ja' | 'en'
 export type Tri = Record<Lang, string>
-export const LANGS: Lang[] = ['ja', 'bn', 'en']
+export const LANGS: Lang[] = ['ja', 'en']
 
 // Course Japanese carries furigana as 漢字{よみ}; plain reading screens strip it
 export const pick = (text: Tri, lang: Lang) =>
@@ -39,7 +40,6 @@ export interface GlossaryTerm {
   id: string
   ja: string
   reading: string
-  bn: string
   en: string
 }
 
@@ -64,7 +64,7 @@ export interface NoteVersion {
   recordedBy: string
   transcriptJa: string
   steps: Step[]
-  backTranslation: { bn: string; en: string } // Bengali / English text translated back to Japanese
+  backTranslation: { en: string } // Bengali / English text translated back to Japanese
   questions: CheckQuestion[]
   createdAt: string
   approvedAt: string | null

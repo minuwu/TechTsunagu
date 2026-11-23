@@ -4,6 +4,61 @@ Owner: Anim (`anim710`) — Role: Backend (WS10 Notices + Events, WS11 Asks + Se
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-23 (Asif is off the project: backend lead, database and deploy are mine)
+
+### Completed
+- **XREQ-008 (P0) `[DONE]`** (`df1606f`): `docs/openapi.yaml` declares `HTTPBearer` on every protected operation and `x-roles` per route (75 operations), from `require()` itself; `BACKEND_ARCHITECTURE` §8.2 replay status and §9.2 every error code the code returns; the card answers the base URL, demo shop, accounts and reset.
+- **XREQ-012 `[DONE]`**: live API on Supabase, smoke 12/12, SQL checks; XREQ-003 items 5-6 noted done.
+- **Migration `99f33c3ca2c7`** (schema is mine now): `periodic_interviews`, `devices`, optional `idempotency_key` on `meetups` and `tasks`; up → down → up clean; app role gets DML only.
+- **XREQ-010 (agreed subset)**: `GET /interviews/due`, `GET|POST /workers/{id}/interviews` (face/online with consent, no future date, optional Idempotency-Key, audited), Support Log **item 10** (the file now covers it; the "not covered" note keeps only 参考様式第3-6号), `GET /today-word` (`seed_data/phrasebook.json`, bn + en), `GET /senpai-pairs/me`. Contacts / QR / Talk Threads / group controls are "planned".
+- **XREQ-009**: `GET /app/config` (public, env-driven), `PUT|DELETE /devices/me` (upsert per install, shared token moves, 6/min, tied to the session); push only, no inbox; photos JPEG ≤ 2 MB (doc now matches code).
+- **XREQ-011**: optional Idempotency-Key on `POST /meetups`, `/tasks`; Notices: Posters only (decided).
+- **XREQ-011 item 4**: `PATCH /glossary/{id}` (ja, reading, translations merged per language; 409 on a duplicate term; 404 for another shop); `GlossaryOut.translations` added (bn/en kept). Frontend API types regenerated (`npm run gen:api`; typecheck passes).
+- **Requests out**: XREQ-014 (Minhaz: Firebase, step-by-step), XREQ-015 (Asif: Contributor on the resource group for Anim).
+- Verified: 342 tests pass; ruff, format, pyright strict, lint-imports clean; contract regenerated.
+
+### Blocked / next
+- **Azure (XREQ-015)**: until Asif grants Contributor, I cannot host the web demo (XREQ-013), set CORS for it, reset the demo or switch the AI chain before filming, or delete the old Azure PostgreSQL server. Code still deploys through `backend-deploy.yml`.
+- **XREQ-011 still open**: Worker's own Follow-ups / Learning History / analytics (item 1).
+- **Firebase sender**: after Minhaz sends the service-account key privately (XREQ-014).
+
+## 2026-11-23 (database on Supabase; I own the database now)
+
+### Completed
+- **Supabase project** `wakatta` (ref `jpajxyejcbtfivrylcaf`, Tokyo, free plan, $0), created with your OK. Runbook: [backend/deploy/SUPABASE.md](../../backend/deploy/SUPABASE.md).
+- **`jobs/dbinit.py` on Supabase** (merged with Asif's `3f2b7f6`, which grants the owner `USAGE, CREATE` on `public` instead of taking it): removes `public` from PUBLIC and from Supabase's Data API roles `anon` / `authenticated`, and sets `TimeZone UTC` on the app role (a pooler may drop startup options). Regression test `tests/db/test_dbinit.py` builds a Supabase-shaped server locally (fails on the old script, passes on the new); it runs when `TEST_ADMIN_DATABASE_URL` (a superuser) is set.
+- **Rehearsal on the real project** (throwaway role passwords, only SCRAM verifiers sent; then set to NULL, local copies deleted): pooler logins as `wakatta_owner` / `wakatta_app` work on `aws-0-ap-northeast-1` (not `aws-1`); Alembic up → down → up clean on Postgres 17.12; seed 59 rows; the API on my laptop against the pooler passed `scripts/smoke.py` 13/13; SQL proof: 35 tables owned by `wakatta_owner`, `anon` / `authenticated` no USAGE and SELECT on 0 tables, `wakatta_app` cannot TRUNCATE or UPDATE `audit_events`; Supabase security advisor: no findings.
+- **`backend/scripts/smoke.py`**: end-to-end smoke against any running API (read-only apart from sign-in, safe on the live demo), PASS/FAIL per check, exit 1 on failure. Stdlib only.
+- `.env.example` shows the Supabase URL shape; README links the runbook.
+- Verified: 321 tests pass (incl. the dbinit test with `TEST_ADMIN_DATABASE_URL`); ruff, ruff format, pyright strict (also `jobs/`, `scripts/`), lint-imports clean; smoke 13/13 against Supabase and against local.
+
+### Handoff
+- **Asif, XREQ-012 (P1):** run your `deploy/use-supabase.ps1` with `SUPABASE_DB_URL` on the **`aws-0-ap-northeast-1`** pooler (`aws-1` does not know this project), then `scripts/smoke.py` against the Azure URL, then delete Azure PostgreSQL. `jobs/dbinit.py` is merged with your `3f2b7f6`: your structure, plus it revokes `public` from PUBLIC on a shared database too (on Supabase PUBLIC's USAGE hands the schema to the Data API roles; revoking was rehearsed on the real project with the advisors clean) and from `anon` / `authenticated`, and sets `TimeZone UTC` on the app role.
+- **Anim (me) before the cutover:** reset the Supabase database password in the dashboard and give it to Asif privately; optionally switch the Data API off (Project Settings → Data API).
+
+## 2026-11-23
+
+### Completed
+- **WS12 Chat, XREQ-005 `[DONE]`** (`e702961`, `729118f`): `GET /threads` (unread, newest first); `POST /threads/{id}/messages` (Foreman: voice/text → AI draft at stage 3 with Check Questions and Task drafts, or `needsEdit` at stage 0 when the model is down; Worker: translated to Japanese and sent); poll `GET /threads/{id}/messages?after=` with ETag/304, no `correctIndex` for Workers; `POST /messages/{id}/send` (stage 4, Tasks created, 409 `ALREADY_SENT`); `POST /messages/{id}/answers` (`-1` = not sure → green/orange/red; a missed Glossary Term → Confusion + Follow-up; idempotent); `GET/PATCH /follow-ups` (forward only: open → clarified → understood); `POST /messages/{id}/reexplain` (one Worker, one new question; passing it closes the Follow-up); `POST /messages/{id}/nudge` (10-minute limit, audited, shows as `nudged`); Task Board `GET/POST /tasks`, `PATCH /tasks/{id}` with `If-Match` (412 `VERSION_CONFLICT`). Clarified Follow-ups go to the Support Log as item 7. Rules in `app/domain/chat.py`. Thread of another shop: 404; same shop, not a member: 403.
+- **Chat seed** (`729118f`): `app/seed_chat.py` + `seed_data/chat.json`: the prototype's Line 2 Thread (m1–m2c), a direct Thread with Rahim, Tasks k1–k3; Tanvir and Sadia have seeded answers, Rahim answers live. `python -m app.seed --reset` (and the deploy seed job) runs it.
+- **Security review fixes** (`729118f`): Follow-ups are listed and changed only by Foremen in that Thread; Workers move Tasks but only the Foreman changes assignees and due dates.
+- **WS7 Near-miss Reports** (`54d5e0e`): `POST /near-misses` (text or voice, optional JPEG photo with EXIF removed, `Idempotency-Key`; translated to Japanese, the Worker's words kept; a voice report is stored even when the model is down), `GET /near-misses?open=`, `POST /near-misses/{id}/ack`, `GET /near-misses/{id}/photo` (shop Foremen and the reporter only).
+- **WS5 skill views** (`3b33eb2`): `GET /skill-matrix`, `GET /heatmap` (one grouped query), `GET /workers/{id}/passport` (Worker: self only).
+- **Seed fix** (`3b33eb2`): seeded Check Questions were `q-crane-1`, which fails the API's `q1` pattern; a wrong answer on a seeded note was a 500. Now `q1`, `q2`…
+- Verified: **312 tests pass** on PostgreSQL 16.14; ruff, ruff format, pyright strict, lint-imports clean; `docs/openapi.yaml` regenerated; the real seed loads (59 rows by key).
+
+### Handoff
+- **Galib (XREQ-006):** so WS12 runs today I added `MessageDraft`, `AiTaskDraft`, `Reexplanation` (`app/ai/schemas.py`) and `draft_message.v1.md`, `reexplain.v1.md` (registered in `tests/ai/test_prompts.py`), following your house style. They are yours from here: tune, eval, change the shape if you need (tell me, `services/chat.py` builds on them). Task checks (assignees = Thread members, Machine of the shop, `dueAt` with an offset) run in `_draft_problems`.
+- **Minhaz:** the Chat, Task Board, Near-miss, Skill Matrix / Heatmap / Passport routes are live; shapes in `docs/openapi.yaml`. Near-miss photo is a multipart JPEG file, not a data URL (same as flyers).
+- **Asif:** no schema change needed. Known shortcut: Task drafts are not stored (returned once by the POST), so a retried draft POST has no drafts; a `task_drafts jsonb` column on `messages` would fix it if the demo needs it.
+
+## 2026-11-23 (from Arjun: done for you on `main`)
+
+- **XREQ-011 item 2, ETag part** (`351a27a`): `GET /board`, `/threads` and `/tasks` send an `ETag` and answer **304** on a matching `If-None-Match`. One helper, `app/api/conditional.py`, now serves those and the existing Panel and message poll (the copies in `work.py` / `chat.py` and `floor.etag` are gone). Response schemas unchanged; `openapi.yaml` differs only in three summaries. `/near-misses` is not covered: the route does not exist yet (WS7). The `Idempotency-Key` half of item 2 is still open (needs columns, so Asif's schema).
+- **XREQ-011 item 1 (B-19) and item 3 (B-18):** `GET /tasks?machineId=` returns only that Machine's Tasks (another shop's id finds nothing); `GET /notices/{id}` reads one Notice with the list's rules: a Poster's own (drafts too), a published one for a Worker without `correctIndex` and with `opened` / `passed`, 404 for other districts and for a Worker on a draft. Tests in `test_chat.py` and `test_notices.py`; `openapi.yaml` and the frontend types regenerated. The Poster-or-Foreman decision in item 3 is still yours.
+- **XREQ-011 item 5b / your voice-Ask request** (`eadef5f`): voice Asks keep their transcript (`AskDraft.question_text`), so forwarding sends the Senpai the question.
+- Verified on a local PostgreSQL 16.14: full backend suite, ruff, pyright, lint-imports.
+
 ## 2026-11-22 (proto → production handoff from Minhaz)
 
 Minhaz mapped the prototype (`prototypes/wakatta/`) and the frontend against `main` (`c07a8fb`). Decisions: the prototype's **Chat is in production scope (WS12, P1)**; Course stays P2 and frontend-only. Read [BACKEND_PLAN.md](../../docs/BACKEND_PLAN.md) decision #8 and the new XREQ cards in [AGENTS.md](../../AGENTS.md) §2.2. Do the items in this order.

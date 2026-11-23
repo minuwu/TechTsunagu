@@ -1,0 +1,11 @@
+# Set the browser origins the API accepts (CORS), e.g. local dev plus the hosted frontend.
+# Usage: powershell -ExecutionPolicy Bypass -File backend\deploy\set-cors.ps1 "http://localhost:3000,https://<frontend host>"
+# Exact origins only: scheme://host[:port], no path, no trailing slash, no wildcard (the API refuses to start otherwise).
+param([string]$Origins)
+. "$PSScriptRoot\common.ps1"
+if (-not $Origins) { $Origins = $FrontendOrigins }
+
+Wait-Idle
+Step "FRONTEND_ORIGIN=$Origins"
+Invoke-Az containerapp update -n $App -g $Rg --set-env-vars "FRONTEND_ORIGIN=$Origins" -o none
+$null = Wait-Ready

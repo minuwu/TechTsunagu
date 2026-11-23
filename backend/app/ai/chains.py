@@ -10,8 +10,9 @@ Tier = Literal["free", "paid"]
 GEMINI_CHAINS: dict[Chain, tuple[str, ...]] = {
     # prompt work, the eval, anyone testing real AI: the 500-a-day models only
     "dev": ("gemini-3.5-flash-lite", "gemini-3.1-flash-lite"),
-    # filmed takes and the live demo: best first
-    "demo": ("gemini-3.8-flash", "gemini-3.6-flash", "gemini-3.5-flash-lite", "gemini-3.1-flash-lite"),
+    # filmed takes and the live demo. 3.5 Flash-Lite first: 30/30 in the eval at 1–3 s (docs/ai-eval.md), while 3.8
+    # Flash answered 503 "high demand" all of 2026-11-23; a busy model costs seconds before the chain moves on.
+    "demo": ("gemini-3.5-flash-lite", "gemini-3.8-flash", "gemini-3.6-flash", "gemini-3.1-flash-lite"),
 }
 
 # Last in every chain when GROQ_API_KEY is set: Whisper turns audio into text, then this model writes the draft.

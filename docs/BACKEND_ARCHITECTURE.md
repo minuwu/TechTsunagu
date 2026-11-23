@@ -39,7 +39,7 @@ flowchart LR
     WEB[web: TanStack Start / Nitro SSR]
     API[api: FastAPI, exactly 1 replica]
   end
-  DB[(PostgreSQL Flexible Server B1ms)]
+  DB[(Supabase PostgreSQL, Tokyo)]
   G[Gemini API]
   Devices -- HTML --> WEB
   WEB -- SSR fetch, Bearer --> API
@@ -379,7 +379,7 @@ AI output only ever creates `draft` rows (G-33). Published and approved rows are
 | Create a Senpai pair | revoke the Worker's active pair and insert the new one in one transaction (the partial unique index enforces one active pair). |
 
 ### 8.2 Idempotency (retried creates)
-Every create that can be retried (Checks, Note/Briefing/Notice drafts, Asks, Near-miss Reports) takes an `Idempotency-Key` header (a UUID the frontend makes per user action). It is stored in the row under `unique (scope, idempotency_key)`. A repeat returns the existing row with 200 and does **not** call the AI again. A missing key is a 422 on these routes.
+Every create that can be retried (Checks, Note/Briefing/Notice drafts, Asks, Near-miss Reports) takes an `Idempotency-Key` header (a UUID the frontend makes per user action). It is stored in the row under `unique (scope, idempotency_key)`. A repeat by the same user returns the existing row with the **same status as the first response** (201 for the creates that answer 201: drafts, Asks, Chat messages, Near-miss Reports; 200 for `POST /checks`) and does **not** call the AI again. A key that belongs to another user's row is a 409 `IDEMPOTENCY_KEY_REUSED`, never that row. A missing key is a 422 on these routes.
 
 ### 8.3 AI calls and the database
 **No transaction or pooled connection is held across a model call.** The service reads its inputs (Machine, Glossary, Notices) in transaction 1 and closes it. It calls the pipeline (§10), then writes the result in transaction 2. So a 45-second Gemini call holds a thread, never one of the 10 database connections, and the Panel and board stay fast while Foremen record.
@@ -412,11 +412,11 @@ Also: GZip for responses over 1 KB (Starlette's `GZipMiddleware`, no new depende
 
 ### 9.1 Conventions (ADR 0011; [API_SPEC.md §1](API_SPEC.md#1-conventions) is updated to match)
 - Envelope on every JSON response: `{success: true, data, message}` / `{success: false, error: {code, message, details}}`.
-- **camelCase** keys (Pydantic `alias_generator=to_camel`, `populate_by_name`). **Ids are strings** on the wire; a non-numeric id is a 404.
+- **camelCase** keys (Pydantic `alias_generator=to_camel`, `populate_by_name`). **Ids are strings** on the wire; a non-numeric id is a 422 (§9.2).
 - Unknown request fields are rejected (`extra="forbid"`), 422.
 - UTC ISO 8601 timestamps; dates `YYYY-MM-DD` in the shop timezone; nullable fields always present.
 - **Lists are cursor-paged:** `?limit=` (default 50, max 200) and `?cursor=`; `data` is `{items, nextCursor}` (`null` on the last page). The cursor is opaque (base64 of the last sort key and id).
-- Auth: `Authorization: Bearer <token>` on every route except `/api/health*`, `/api/auth/roster`, `/api/auth/login` and the `/api/senpai/{token}` family.
+- Auth: `Authorization: Bearer <token>` on every route except `/api/health*`, `/api/auth/roster`, `/api/auth/login`, `/api/app/config` (the Android version gate must answer before sign-in) and the `/api/senpai/{token}` family. Push is send-only: there is no notification inbox (XREQ-009 item 4, decided 2026-11-23).
 
 ### 9.2 Errors
 
@@ -426,16 +426,19 @@ Also: GZip for responses over 1 KB (Starlette's `GZipMiddleware`, no new depende
 | 401 | `UNAUTHORIZED` | no, expired or revoked token; wrong PIN |
 | 403 | `FORBIDDEN`, `PIN_CHANGE_REQUIRED` | wrong role; first-login PIN not yet changed (§3.4) |
 | 404 | `NOT_FOUND` | unknown id, id of another shop or district, wrong Senpai token |
-| 409 | `CONFLICT`, `VERSION_CHANGED`, `EVENTS_NOT_CONFIRMED`, `NO_ACTIVE_PAIR` | state does not allow the action |
+| 409 | `CONFLICT`, `VERSION_CHANGED`, `EVENTS_NOT_CONFIRMED`, `NO_ACTIVE_PAIR`, `NEEDS_EDIT`, `ALREADY_SENT`, `IDEMPOTENCY_KEY_REUSED` | state does not allow the action; a draft still has empty languages; a Chat message was already sent; the `Idempotency-Key` belongs to another user's row (§8.2) |
+| 412 | `VERSION_CONFLICT` | `If-Match` on a Task is not its current version (someone moved it first) |
 | 413 | `PAYLOAD_TOO_LARGE` | upload over its limit |
 | 415 | `UNSUPPORTED_MEDIA_TYPE` | magic bytes are not an allowed type |
-| 422 | `VALIDATION_ERROR` | schema validation; `details` lists fields |
+| 422 | `VALIDATION_ERROR` | schema validation; `details` lists fields; also a non-numeric id in a path (ids are digits, §9.1) |
 | 423 | `PIN_LOCKED` | account locked after failed PINs; `details.until` |
 | 429 | `RATE_LIMITED` | over a rate limit; `Retry-After` set |
 | 503 | `BUSY` | database pool exhausted; `Retry-After: 2` |
+| 503 | `NOT_READY` | `GET /health/ready` only: the database does not answer |
+| 503 | `AI_UNAVAILABLE` | `POST /messages/{id}/reexplain` only: a Re-explanation has no useful degraded form, so the Foreman is told to explain in person |
 | 500 | `INTERNAL_ERROR` | anything else; generic message, request id in the log |
 
-AI trouble is never a 5xx: pipelines degrade (§10.4).
+AI trouble is never a 5xx except the Re-explanation above: pipelines degrade (§10.4). `THREAD_LOCKED` is not returned by any route (XREQ-008 asked; nothing locks a Thread).
 
 ### 9.3 Endpoints (paths match `frontend/src/services/wakatta.ts`)
 
@@ -553,24 +556,34 @@ class AiClient(Protocol):
 
 Each pipeline owns: cache lookup → limiter → model call → schema parse → domain validation (§7.4–7.6) → one retry with the validation error → fallback. Services never see Gemini types, prompts or retries.
 
-### 10.3 Limits (from Galib's review, points 2, 3 and 7)
+### 10.3 Models and limits (XREQ-003, [AI_PLAN.md](../contributors/galib/AI_PLAN.md) §2–§4)
+
+The models and every budget live in one table, [`app/ai/chains.py`](../backend/app/ai/chains.py); changing a model is one line there.
+
+| Setting | Values | Meaning |
+| :--- | :--- | :--- |
+| `AI_MODE` | `fake` (default) / `gemini` | `fake`: no network, every AI step takes its fallback |
+| `AI_CHAIN` | `dev` (default) / `demo` | `dev`: 3.5 → 3.1 Flash-Lite (prompt work, eval). `demo`: 3.8 Flash → 3.6 Flash → 3.5 → 3.1 Flash-Lite (filming, live demo) |
+| `AI_TIER` | `free` (default) / `paid` | `free`: budgets just under each free quota; `paid`: the same table as a cost cap |
+| `GROQ_API_KEY` | empty (default) / key | when set, the Groq backup is last in every chain: Whisper turns audio into text, then `openai/gpt-oss-120b` writes the draft |
+| `AI_MAX_CONCURRENT` | 2 | process semaphore across all models |
+| `AI_TIMEOUT_SECONDS` | 45 | per call |
 
 | Limit | Value | When hit |
 | :--- | :--- | :--- |
-| Concurrent calls | `AI_MAX_CONCURRENT=2` (process semaphore, wait ≤ 10 s) | fallback |
-| Calls per minute, whole app | `AI_RPM=4` (token bucket; Gemini's project limit is 5) | fallback |
-| Calls per day per model | `AI_DAILY_BUDGET=18` in `ai_usage` (incremented in its own short transaction before the call) | fallback, no call |
+| Calls per day, per model | `chains.BUDGETS[tier][model][0]` (free: 18 for the Flash models, 450 for the Flash-Lites, 40 for Groq) in `ai_usage`, taken in its own short transaction before the call | that model is skipped, no call |
+| Calls per minute, per model | `chains.BUDGETS[tier][model][1]` (free: 4, 12, 1), in-memory limiter per model | that model is skipped |
 | Per user | 10 AI requests per minute per user | 429 |
-| Timeout | `AI_TIMEOUT_SECONDS=45` per call | fallback |
 
-- Retry once with jitter on a Gemini 429 or 5xx that is per-minute or transient. **Never retry a 429 that means the daily quota is used up**: mark `ai_usage` as exhausted for the day and go straight to the fallback. The same applies to the validation retry, which spends a second call.
-- **Model split:** `GEMINI_MODEL` (filmed takes and the live demo: `gemini-3.8-flash`, about 20 calls a day) and `GEMINI_MODEL_DEV` (prompt work: `gemini-3.5-flash-lite`, about 500 a day). These are Galib's numbers, read from AI Studio on 2026-11-22; recheck on the day.
+- **A busy or failing model is skipped at once** (5xx such as 503 "high demand", a per-minute 429, a timeout): the next model of the chain answers. **A daily-quota 429 is never retried**: the model is marked exhausted in `ai_usage` and skipped for the rest of the day (resets at midnight Pacific, 14:00 Bangladesh time).
+- The only retry is the **validation retry** (§10.4 step 3), on the model that answered, and it spends that model's budget.
 - The limiter is in memory, which is correct only because the API runs exactly one replica (§15). The daily budget is in Postgres, so a restart cannot reset it.
+- Free-tier numbers are Galib's, read from AI Studio on 2026-11-22; recheck on the day.
 
 ### 10.4 Fallback ladder (G-32)
-1. Cache hit (`ai_cache`). Key = `sha256(scope + pipeline + prompt version + model + input bytes + glossary hash)`, so a Glossary edit misses the cache.
-2. Live call, validated.
-3. One retry with the validation error (only while within the budget).
+1. Cache hit (`ai_cache`), looked up under **every model of the chain, best first**, so a filmed 3.8 Flash take is reused even when 3.8 Flash is out of quota. Key = `sha256(scope + pipeline + prompt version + model + input bytes + glossary hash)`, so a Glossary edit (or a new prompt version) misses the cache.
+2. Live call to each model of the chain in order (§10.3), validated; a model that is out of budget, busy or failing is skipped.
+3. One retry with the validation error, on the model that answered (only while within its budget); if that also fails, the next model.
 4. Seeded result for the demo Machines and the demo flyer (put in `ai_cache` by `seed.py` from `tests/fixtures/ai/`).
 5. Degraded result, 200, never a 500:
    - **Notes, Briefings, Notices:** a `needs_edit` draft holding whatever was usable (at least the transcript or typed text). The Foreman or Poster can edit it.
@@ -602,8 +615,8 @@ Each pipeline owns: cache lookup → limiter → model call → schema parse →
 | Upload | Allowed (magic bytes, not the header) | Max | Processing |
 | :--- | :--- | :--- | :--- |
 | Audio (notes, briefings, notices, asks, near-miss) | webm/opus, ogg/opus, mp4/m4a | 8 MB (≈ 60 s) | hashed for the cache and idempotency, **never stored** |
-| Flyer photo | jpeg, png, webp (heic → 415 with "use JPEG") | 5 MB in | Pillow: auto-rotate, max 2048 px, re-encode JPEG, EXIF and GPS removed, ≤ 2 MB stored |
-| Near-miss photo | jpeg, png, webp | 5 MB in | same |
+| Flyer photo | **JPEG only** (anything else → 415 "use JPEG") | **2 MB** in | the client re-encodes to JPEG; the server removes APP1 (EXIF, GPS) and stores ≤ 2 MB (`app/media.py`; decided 2026-11-23, XREQ-009 item 5: no Pillow) |
+| Near-miss photo | JPEG only | 2 MB in | same |
 
 A 10 MB body limit applies before multipart parsing. Pillow's decompression-bomb guard stays on (`Image.MAX_IMAGE_PIXELS`).
 
@@ -618,7 +631,7 @@ A 10 MB body limit applies before multipart parsing. Pillow's decompression-bomb
 | Isolation | scope from the session only; repository layer adds the scope; composite FKs; cross-scope ids are 404; the guard test (§3.3) and a two-shop isolation test suite (§14). |
 | Answer leak | Worker response models have no `correctIndex`; a test asserts that the field is absent in every Worker-facing schema. |
 | Senpai links | 128-bit, hashed, expiring, revocable, one active per Worker; `Referrer-Policy: no-referrer`; a wrong token is 404. |
-| CORS | only `FRONTEND_ORIGIN`; methods `GET, POST, PUT, PATCH, DELETE`; headers `Authorization, Content-Type, Idempotency-Key`; no credentials. |
+| CORS | only the origins in `FRONTEND_ORIGIN` (exact, comma-separated: local dev and the hosted frontend); methods `GET, POST, PUT, PATCH, DELETE`; headers `Authorization, Content-Type, Idempotency-Key`; no credentials. |
 | Headers | `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`, `Cache-Control: no-store` on authenticated JSON. |
 | Database role | the app connects as `wakatta_app`. It has DML on the app tables, no DDL, and only `insert, select` on `audit_events`. Migrations run as `wakatta_owner`. The `public` schema is revoked from `PUBLIC`. |
 | Secrets | env only (`DATABASE_URL`, `MIGRATION_DATABASE_URL`, `PIN_PEPPER`, `GEMINI_API_KEY`); `.env.example` lists every variable with a dummy value; gitleaks in CI (G-37). |
@@ -661,17 +674,17 @@ Coverage target 80% on `domain`, `services`, `repositories`, `ai` (G-22). CI `ba
 | Piece | Setting | Cost |
 | :--- | :--- | :--- |
 | Resource group | Japan East if the student subscription's region policy allows it, else the nearest allowed region | — |
-| PostgreSQL Flexible Server | Burstable B1ms, 32 GB, SSL required, database `wakatta`, roles `wakatta_owner` and `wakatta_app` | free 12 months (750 h/month) under Azure for Students |
+| Supabase PostgreSQL (free plan, Tokyo) | database `postgres` (shared with Supabase's own schemas), roles `wakatta_owner` and `wakatta_app` through the Session pooler (IPv4), TLS `verify-full` against Supabase's root CA (`backend/certs`), Data API roles locked out of `public`; the project pauses after 7 idle days and has no point-in-time recovery (the demo seed rebuilds it). Runbook: `backend/deploy/SUPABASE.md`. Replaced Azure Postgres on 2026-11-23 (team decision). | free |
 | Container Apps environment | Consumption plan | free monthly grant (180,000 vCPU-s, 360,000 GiB-s) |
 | `api` app | external ingress, port 8000, 0.5 vCPU / 1 GiB, **min 1 max 1** from Nov 24 to Nov 26 (no cold start on stage), min 0 while developing | an always-on replica exceeds the grant: a few dollars for the demo week from the $100 credit; check in the pricing calculator |
 | `web` app | Minhaz's Nitro build, same environment | same |
 | Images | GitHub Actions → GHCR (public repo) | free |
 | Secrets | Container App secrets mapped to env | — |
-| Migrations | the `wakatta-migrate` Container Apps Job runs `alembic upgrade head` as `wakatta_owner` before each rollout (`backend/deploy/azure-deploy.ps1`); the API container only serves, as `wakatta_app`, and never holds the owner credential. | — |
+| Migrations | `backend/jobs/start.py` (the image's CMD) runs `alembic upgrade head` as `wakatta_owner` on every start, then execs Uvicorn; first boot also creates the roles and database, and `SEED_ON_START=reset` reloads the demo. Tradeoff: Azure for Students gets only *express* Container Apps environments, which have no Jobs, so the API container holds the owner credential and runs exactly one replica. Upgrade path: a non-express environment, a migration Job, and only `DATABASE_URL` for the API. | — |
 | Seed | `python -m app.seed --reset` via `az containerapp exec`, again before filming | — |
 
 ### 15.2 Demo-day checklist
-- `AI_MODE=gemini`, `GEMINI_MODEL` set, `ai_cache` holds every filmed take, `ai_usage` checked that morning (the quota resets at 14:00 Bangladesh time).
+- `AI_MODE=gemini`, `AI_CHAIN=demo` (`AI_TIER=paid` once billing is on), `GEMINI_API_KEY` and `GROQ_API_KEY` set as secrets, `ai_cache` holds every filmed take, `ai_usage` checked that morning (the quota resets at 14:00 Bangladesh time).
 - min = max = 1 replica; `/api/health/ready` green; seed reset; Panel token issued on the tablet.
 
 ### 15.3 Scaling past one replica (not needed for the hackathon)

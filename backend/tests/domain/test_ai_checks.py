@@ -18,6 +18,7 @@ from app.ai.schemas import (
 from app.domain.ai_checks import (
     GlossaryTerm,
     glossary_problems,
+    language_problems,
     message_problems,
     note_problems,
     question_problems,
@@ -197,3 +198,20 @@ def test_reexplanation_question_must_be_on_the_missed_term() -> None:
     assert reexplain_problems(off, "段取り", GLOSSARY, LANGS) == [
         "The question must be about 「段取り」: set term_ja to it."
     ]
+
+
+# Per-shop languages (XREQ-011 item 5): a shop that uses only English gets no Bengali, and must get English.
+def test_an_english_only_shop_needs_no_bengali_but_needs_english() -> None:
+    en_only = AiTri(ja="保護メガネをかけます。", en="Put on safety glasses.")
+    no_en = AiTri(ja="保護メガネをかけます。")
+
+    assert language_problems([en_only], ("en",)) == []
+    assert language_problems([no_en], ("en",)) == ["Write every text in en as well (the shop's languages: en)."]
+    assert en_only.only(("en",)) == {"ja": "保護メガネをかけます。", "en": "Put on safety glasses."}
+
+
+def test_question_options_are_compared_only_in_the_languages_they_are_written_in() -> None:
+    en_only = [AiTri(ja=j, en=e) for j, e in (("1か所", "1 point"), ("2か所", "2 points"), ("測らない", "None"))]
+    q = AiQuestion(term_ja=None, prompt=AiTri(ja="何か所?", en="How many?"), options=en_only, correct_index=1)
+
+    assert question_problems([q], GLOSSARY) == []

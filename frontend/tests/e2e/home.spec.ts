@@ -101,3 +101,20 @@ test.describe('landing with motion on', () => {
       .toBe(0)
   })
 })
+
+// The interactive Japan map: its buttons move it to Nagasaki (with the public-domain photo) and back
+test('the Japan map goes to Nagasaki and back to all of Japan', async ({
+  page,
+}) => {
+  await page.goto('/')
+  await expect(page.getByRole('img', { name: /Map of Japan/ })).toBeVisible()
+
+  await page.getByRole('button', { name: 'Nagasaki', exact: true }).click()
+  await expect(page.getByText('pilot site: Sasebo')).toBeVisible()
+  await expect(page.getByRole('img', { name: /Megane Bridge/ })).toBeVisible()
+
+  const all = page.getByRole('button', { name: 'All Japan' })
+  await all.click()
+  await expect(all).toHaveAttribute('aria-pressed', 'true')
+  await expect(page.getByRole('img', { name: /Megane Bridge/ })).toBeHidden()
+})

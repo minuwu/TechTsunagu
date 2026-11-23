@@ -230,3 +230,17 @@ def overrides_between(
         .where(PanelOverride.shop_id == shop_id, PanelOverride.starts_at >= start, PanelOverride.starts_at <= end)
     )
     return [(o, m, f, w) for o, m, f, w in db.execute(stmt)]
+
+
+def meetups_page(db: Session, shop_id: int, worker_id: int | None, before_id: int | None, limit: int) -> list[Meetup]:
+    """Newest first; a Worker sees only Meet-ups of their own pairs, a Foreman the whole shop's."""
+    stmt = select(Meetup).where(Meetup.shop_id == shop_id)
+    if worker_id is not None:
+        stmt = stmt.join(SenpaiPair, SenpaiPair.id == Meetup.pair_id).where(SenpaiPair.worker_id == worker_id)
+    if before_id is not None:
+        stmt = stmt.where(Meetup.id < before_id)
+    return list(db.scalars(stmt.order_by(Meetup.id.desc()).limit(limit + 1)))
+
+
+def meetup_by_key(db: Session, shop_id: int, key: uuid.UUID) -> Meetup | None:
+    return db.scalar(select(Meetup).where(Meetup.shop_id == shop_id, Meetup.idempotency_key == key))

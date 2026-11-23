@@ -27,7 +27,8 @@ def test_every_glossary_term_is_tested() -> None:
     tested = {t for c in NOTES for t in c["expect_terms"]} | {t for c in NOTICES for t in c["expect"]["terms"]}
     untested = {t["ja"] for t in GLOSSARY} - tested
     # 避難所 is tested through the drill notice's steps; no notice states it as a source word yet.
-    assert untested <= {"避難所"}
+    # 自治会 only names the sender of f04, so its steps need not keep it (eval 2026-11-23).
+    assert untested <= {"避難所", "自治会"}
 
 
 def test_expected_terms_are_in_the_input() -> None:

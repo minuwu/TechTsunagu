@@ -25,14 +25,14 @@ from app.ai.gemini import GeminiClient
 from app.ai.groq import GroqClient
 from app.ai.prompts import render
 from app.ai.schemas import AskDraft, IconId, NoteDraft, NoticeDraft
-from app.domain.ai_checks import GlossaryTerm, note_problems, question_problems
+from app.domain.ai_checks import GlossaryTerm, language_problems, note_problems, question_problems, question_texts
 from app.domain.grounding import ground
 from app.domain.recurrence import TOKYO, validate_event
 
 BACKEND = Path(__file__).resolve().parents[2]
 CASES = BACKEND / "tests" / "fixtures" / "ai" / "eval"
 REPORT = BACKEND.parent / "docs" / "ai-eval.md"
-LANGUAGES = ("bn", "en")  # shortcut: as notes.AI_LANGUAGES; follows the ja/en switch
+LANGUAGES = ("bn", "en")  # the demo shop's languages (shops.languages); --languages changes them
 DEFAULT_MODELS = ("gemini-3.5-flash-lite", "gemini-3.1-flash-lite", GROQ_MODEL)
 
 Json = dict[str, Any]
@@ -77,7 +77,7 @@ def _ask[T: BaseModel](
         value, problems = None, []
         for _ in range(4):
             try:
-                raw = client.generate(prompt, [*parts, *extra], schema)
+                raw = client.generate(prompt, [*parts, *extra], schema, LANGUAGES)
                 value = schema.model_validate_json(raw)
                 problems = validate(value)
                 break
@@ -114,7 +114,9 @@ def _glossary() -> list[GlossaryTerm]:
 def eval_notes(client: AiClient, model: str) -> list[Row]:
     terms = _glossary()
     glossary = json.dumps([{"ja": t.ja, "reading": t.reading, **t.translations} for t in terms], ensure_ascii=False)
-    prompt = render("build_note", 1, glossary=glossary, icons=", ".join(get_args(IconId)))
+    prompt = render(
+        "build_note", 3, glossary=glossary, icons=", ".join(get_args(IconId)), languages=", ".join(LANGUAGES)
+    )
     rows: list[Row] = []
     for case in _load("notes.json")["cases"]:
         row = Row("build_note", case["id"], model)
@@ -123,8 +125,9 @@ def eval_notes(client: AiClient, model: str) -> list[Row]:
         if draft is not None:
             ja = "\n".join(s.text.ja for s in draft.steps)
             missing = [t for t in case["expect_terms"] if t not in ja] + [k for k in case["keep"] if k not in ja]
-            row.notes = [f"steps.ja lost: {', '.join(missing)}"] if missing else []
-            row.passed, row.answer = not missing, json.loads(draft.model_dump_json())
+            wrong = [f"steps.ja lost: {', '.join(missing)}"] if missing else []
+            wrong += [f"followed injected text: {f}" for f in case.get("forbid", []) if f in ja]
+            row.notes, row.passed, row.answer = wrong, not wrong, json.loads(draft.model_dump_json())
         rows.append(row)
     return rows
 
@@ -132,6 +135,9 @@ def eval_notes(client: AiClient, model: str) -> list[Row]:
 def _event_problems(d: NoticeDraft, today: datetime) -> list[str]:
     # Notices have no Glossary Terms (district, not shop), so only the options are checked, as in the app.
     problems = [p for p in question_problems([d.question], []) if "Glossary Term" not in p]
+    problems += language_problems(
+        [d.title, *d.steps, *(e.title for e in d.events), *question_texts([d.question])], LANGUAGES
+    )
     for e in d.events:
         try:
             validate_event(datetime.fromisoformat(e.starts_at), e.rrule, today)
@@ -143,7 +149,7 @@ def _event_problems(d: NoticeDraft, today: datetime) -> list[str]:
 def eval_notices(client: AiClient, model: str) -> list[Row]:
     data = _load("notices.json")
     today = datetime.fromisoformat(data["today"]).replace(tzinfo=TOKYO)
-    prompt = render("build_notice", 1, glossary="[]", today=data["today"])
+    prompt = render("build_notice", 3, glossary="[]", today=data["today"], languages=", ".join(LANGUAGES))
     rows: list[Row] = []
     for case in data["cases"]:
         row = Row("build_notice", case["id"], model)
@@ -161,6 +167,7 @@ def eval_notices(client: AiClient, model: str) -> list[Row]:
                 [f"events {[str(g[0]) for g in got]} (want {[str(e[0]) for e in expected]})"] if got != expected else []
             )
             wrong += [f"steps.ja lost: {k}" for k in [*want["terms"], *want["keep"]] if k not in ja]
+            wrong += [f"followed injected text: {f}" for f in want.get("forbid", []) if f in ja]
             row.notes, row.passed, row.answer = wrong, not wrong, json.loads(draft.model_dump_json())
         rows.append(row)
     return rows
@@ -173,7 +180,7 @@ def eval_asks(client: AiClient, model: str) -> list[Row]:
         for n in notices
     )
     sent = [n["id"] for n in notices]
-    prompt = render("answer_ask", 1, notices=block, glossary="[]")
+    prompt = render("answer_ask", 3, notices=block, glossary="[]", languages=", ".join(LANGUAGES))
     rows: list[Row] = []
     for case in _load("asks.json")["cases"]:
         row = Row("answer_ask", case["id"], model)
@@ -182,7 +189,7 @@ def eval_asks(client: AiClient, model: str) -> list[Row]:
             [] if set(d.source_notice_ids) <= set(sent) else ["unknown id"]
         )
         draft = _ask(client, prompt, parts, AskDraft, cited_known, row)
-        answer = draft.answer.model_dump() if draft and draft.answer else None
+        answer = draft.answer.only(LANGUAGES) if draft and draft.answer else None
         g = ground(draft.covered if draft else False, answer, draft.source_notice_ids if draft else [], sent, LANGUAGES)
         wrong = [f"covered={g.covered} (want {case['expect_covered']})"] if g.covered != case["expect_covered"] else []
         missing = set(case["expect_sources"]) - set(g.source_notice_ids)

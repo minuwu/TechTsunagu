@@ -12,6 +12,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.ai.fake import FakeAiClient
+from app.models.scopes import Shop, User
 from app.models.work import Confusion, GlossaryTerm
 from tests import factories as f
 
@@ -211,6 +212,20 @@ def test_a_nudge_shows_and_is_rate_limited(client: TestClient, line: Line, fake_
     assert _poll(client, line, line.rahim)[0]["nudged"] is False
 
 
+def test_the_task_board_filters_by_machine(client: TestClient, line: Line, fake_ai: FakeAiClient) -> None:
+    _sent(client, line, fake_ai)  # one Task on the line's Machine
+    loose = {"title": {"ja": "床の清掃", "bn": "মেঝে পরিষ্কার", "en": "Clean the floor"}}
+    assert client.post("/api/tasks", headers=line.foreman, json=loose).status_code == 201  # no Machine
+
+    every = client.get("/api/tasks", headers=line.foreman).json()["data"]["items"]
+    mine = client.get("/api/tasks", headers=line.foreman, params={"machineId": str(line.machine_id)}).json()["data"]
+    none = client.get("/api/tasks", headers=line.foreman, params={"machineId": "999999"}).json()["data"]
+
+    assert len(every) == 2
+    assert [t["machineId"] for t in mine["items"]] == [str(line.machine_id)]
+    assert none["items"] == []
+
+
 def test_a_stale_task_move_is_refused(client: TestClient, line: Line, fake_ai: FakeAiClient) -> None:
     _sent(client, line, fake_ai)
     [task] = client.get("/api/tasks", headers=line.foreman).json()["data"]["items"]
@@ -247,6 +262,21 @@ def test_an_unchanged_poll_is_a_304(client: TestClient, line: Line, fake_ai: Fak
     assert again.status_code == 304
 
 
+@pytest.mark.parametrize("path", ["/api/threads", "/api/tasks"])
+def test_unchanged_threads_and_tasks_are_a_304(
+    client: TestClient, line: Line, fake_ai: FakeAiClient, path: str
+) -> None:
+    _sent(client, line, fake_ai)
+    first = client.get(path, headers=line.rahim)
+    assert first.status_code == 200 and first.headers["ETag"]
+
+    again = client.get(path, headers=line.rahim | {"If-None-Match": first.headers["ETag"]})
+    stale = client.get(path, headers=line.rahim | {"If-None-Match": '"not-the-tag"'})
+
+    assert again.status_code == 304 and again.content == b""
+    assert stale.status_code == 200 and stale.json() == first.json()
+
+
 def test_outsiders_and_other_shops_are_kept_out(
     client: TestClient, db: Session, line: Line, fake_ai: FakeAiClient
 ) -> None:
@@ -265,3 +295,34 @@ def test_outsiders_and_other_shops_are_kept_out(
     )
     assert client.get("/api/tasks", headers=other.foreman).json()["data"]["items"] == []
     assert client.get("/api/follow-ups", headers=other.foreman).json()["data"]["items"] == []
+
+
+def test_workers_move_tasks_but_only_the_foreman_reassigns(
+    client: TestClient, line: Line, fake_ai: FakeAiClient
+) -> None:
+    _sent(client, line, fake_ai)
+    [task] = client.get("/api/tasks", headers=line.foreman).json()["data"]["items"]
+
+    reassign = {"assigneeIds": [str(line.sadia_id)]}
+    res = client.patch(f"/api/tasks/{task['id']}", headers=line.rahim | {"If-Match": "1"}, json=reassign)
+
+    assert res.status_code == 403
+    ok = client.patch(f"/api/tasks/{task['id']}", headers=line.foreman | {"If-Match": "1"}, json=reassign)
+    assert ok.status_code == 200 and ok.json()["data"]["assigneeIds"] == [str(line.sadia_id)]
+
+
+def test_a_foreman_outside_the_thread_cannot_see_or_close_its_follow_ups(
+    client: TestClient, db: Session, line: Line, fake_ai: FakeAiClient
+) -> None:
+    sent = _sent(client, line, fake_ai)
+    [fid] = client.post(f"/api/messages/{sent['id']}/answers", headers=line.rahim, json={"answers": [1, 0]}).json()[
+        "data"
+    ]["followUpIds"]
+    shop = db.get(User, line.rahim_id)
+    assert shop is not None and shop.shop_id is not None
+    second = f.user(db, db.get(Shop, shop.shop_id), role="foreman", pin="739215", must_change=False)  # type: ignore[arg-type]
+    other_foreman = _login(client, second.id, "739215")
+
+    assert client.get("/api/follow-ups", headers=other_foreman).json()["data"]["items"] == []
+    res = client.patch(f"/api/follow-ups/{fid}", headers=other_foreman, json={"status": "clarified"})
+    assert res.status_code == 403

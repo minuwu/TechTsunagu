@@ -3,12 +3,13 @@
 The Foreman pairs a Worker with a Senpai and sees the link token once; only its SHA-256 is stored. The Senpai acts
 through `/senpai/{token}` with no account: a wrong, revoked or expired token is a 404."""
 
+import uuid
 from datetime import date, datetime, timedelta
 
 from sqlalchemy.orm import Session
 
 from app.api.errors import ApiError
-from app.api.pagination import Page, PageParams, encode_cursor
+from app.api.pagination import Page, PageParams, build_page, encode_cursor
 from app.domain.recurrence import TOKYO
 from app.models.life import Ask, Meetup, SenpaiPair
 from app.repositories import accounts
@@ -26,9 +27,10 @@ from app.schemas.senpai import (
 )
 from app.services import notices
 from app.services.ai_runner import AiRunner
-from app.services.asks import AI_LANGUAGES, translate, worker_of
+from app.services.asks import translate, worker_of
 from app.services.auth import Principal
 from app.services.credentials import new_token, token_digest
+from app.services.notes import ai_languages, shop_of
 
 LINK_TTL = timedelta(days=180)  # architecture §3: until revoked or 180 days
 EVENTS_AHEAD = timedelta(days=31)
@@ -134,22 +136,43 @@ def _check_day(day: date, now: datetime) -> None:
         )
 
 
-def _log_meetup(db: Session, pair: SenpaiPair, body: MeetupCreate, by: str, now: datetime) -> MeetupOut:
+def _log_meetup(
+    db: Session, pair: SenpaiPair, body: MeetupCreate, by: str, now: datetime, key: uuid.UUID | None = None
+) -> MeetupOut:
+    if key is not None and (done := repo.meetup_by_key(db, pair.shop_id, key)) is not None:
+        if done.pair_id != pair.id:
+            raise ApiError(409, "IDEMPOTENCY_KEY_REUSED", "This Idempotency-Key was already used for another record")
+        return _meetup_out(done)  # a retried offline create returns the first row
     _check_day(body.date, now)
     row = Meetup(
-        shop_id=pair.shop_id, pair_id=pair.id, kind=body.kind, happened_on=body.date, note=body.note, logged_by=by
+        shop_id=pair.shop_id,
+        pair_id=pair.id,
+        kind=body.kind,
+        happened_on=body.date,
+        note=body.note,
+        logged_by=by,
+        idempotency_key=key,
     )
     db.add(row)
     db.commit()
     return _meetup_out(row)
 
 
-def worker_meetup(db: Session, who: Principal, body: MeetupCreate, now: datetime) -> MeetupOut:
+def worker_meetup(
+    db: Session, who: Principal, body: MeetupCreate, now: datetime, key: uuid.UUID | None = None
+) -> MeetupOut:
     shop_id, _, worker_id = worker_of(who)
     pair = repo.active_pair(db, shop_id, worker_id, now)
     if pair is None:
         raise ApiError(409, "NO_ACTIVE_PAIR", "You have no Senpai yet; ask your Foreman")
-    return _log_meetup(db, pair, body, "worker", now)
+    return _log_meetup(db, pair, body, "worker", now, key)
+
+
+def my_pair(db: Session, who: Principal, now: datetime) -> SenpaiPairOut | None:
+    """The signed-in Worker's active Senpai pair, or null (XREQ-010 item 7). Never the link token."""
+    shop_id, _, worker_id = worker_of(who)
+    pair = repo.active_pair(db, shop_id, worker_id, now)
+    return SenpaiPairOut.model_validate(_pair_fields(pair)) if pair else None
 
 
 def _pair_of(db: Session, token: str, now: datetime) -> SenpaiPair:
@@ -184,10 +207,11 @@ def reply(db: Session, token: str, ask_id: int, body: SenpaiReplyIn, ai: AiRunne
     if a.replied_at is not None:
         raise ApiError(409, "CONFLICT", "This question is already answered")
     shop_id = pair.shop_id
+    languages = ai_languages(db, shop_id)
     db.commit()  # no lock is held during the model calls (§8.3)
 
     translated = {"ja": body.reply_ja}
-    for lang in AI_LANGUAGES:
+    for lang in languages:
         text = translate(ai, body.reply_ja, "ja", lang, f"shop:{shop_id}", now)
         if text:
             translated[lang] = text
@@ -204,3 +228,11 @@ def reply(db: Session, token: str, ask_id: int, body: SenpaiReplyIn, ai: AiRunne
 
 def senpai_meetup(db: Session, token: str, body: MeetupCreate, now: datetime) -> MeetupOut:
     return _log_meetup(db, _pair_of(db, token, now), body, "senpai", now)
+
+
+def list_meetups(db: Session, who: Principal, page: PageParams) -> Page[MeetupOut]:
+    """GET /meetups: a Worker's own Meet-ups, or every Meet-up of the Foreman's shop."""
+    own = who.user_id if who.role == "worker" else None
+    rows = repo.meetups_page(db, shop_of(who), own, page.after_id, page.limit)
+    last = rows[page.limit - 1].id if len(rows) > page.limit else None
+    return build_page([_meetup_out(m) for m in rows], page.limit, last)

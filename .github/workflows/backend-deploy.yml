@@ -1,4 +1,4 @@
-# Builds the backend image into Azure Container Registry, migrates, and rolls the API (architecture §15).
+# Builds the backend image into Azure Container Registry and rolls the API, which migrates on start (architecture §15).
 # Runs only after backend-ci passes on main (or by hand). Signs in to Azure with a short-lived OIDC token: the
 # identity wakatta-ci trusts only this repository's main branch, so there is no stored password or token.
 # One-time infrastructure: backend/deploy/azure-setup.ps1. These IDs are identifiers, not secrets.
@@ -60,7 +60,7 @@ jobs:
             ${{ env.ACR }}.azurecr.io/${{ env.IMAGE }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
-      - name: Migrate, roll the API, wait until it is healthy
+      - name: Roll the API (it migrates on start) and wait until it is healthy
         env:
           SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
         run: |
@@ -72,25 +72,18 @@ jobs:
             exit 0
           fi
 
-          for job in wakatta-seed wakatta-migrate; do az containerapp job update -n "$job" -g "$RG" --image "$ref" -o none; done
-          exec_name=$(az containerapp job start -n wakatta-migrate -g "$RG" --query name -o tsv)
-          for _ in $(seq 1 60); do
-            status=$(az containerapp job execution show -n wakatta-migrate -g "$RG" --job-execution-name "$exec_name" --query properties.status -o tsv)
-            [ "$status" = Succeeded ] && break
-            [ "$status" = Failed ] && { echo "::error::migration failed; the API was not rolled"; exit 1; }
-            sleep 10
-          done
-          [ "$status" = Succeeded ] || { echo "::error::migration still running after 10 min"; exit 1; }
-
+          # The container migrates on start (backend/jobs/start.py): express environments have no Jobs.
           az containerapp update -n wakatta-api -g "$RG" --image "$ref" -o none
           fqdn=$(az containerapp show -n wakatta-api -g "$RG" --query properties.configuration.ingress.fqdn -o tsv)
-          for _ in $(seq 1 30); do
-            # The old revision answers until the new one is ready, so wait for the new revision first.
-            read -r latest ready < <(az containerapp show -n wakatta-api -g "$RG" --query "[properties.latestRevisionName, properties.latestReadyRevisionName]" -o tsv | paste -sd' ')
-            if [ "$latest" = "$ready" ] && curl -fsS --max-time 10 "https://$fqdn/api/health/ready" >/dev/null; then
-              echo "ready: https://$fqdn (revision $latest, image $SHA)"; exit 0
+          # Express environments keep one revision name and never fill latestReadyRevisionName: wait until the newest
+          # revision runs this image and reports Healthy, then until /ready answers.
+          for _ in $(seq 1 40); do
+            latest=$(az containerapp show -n wakatta-api -g "$RG" --query properties.latestRevisionName -o tsv)
+            read -r image health < <(az containerapp revision show -n wakatta-api -g "$RG" --revision "$latest"               --query "[properties.template.containers[0].image, properties.healthState]" -o tsv | paste -sd' ')
+            if [ "$image" = "$ref" ] && [ "$health" = Healthy ] && curl -fsS --max-time 20 "https://$fqdn/api/health/ready" >/dev/null; then
+              echo "ready: https://$fqdn (image $SHA)"; exit 0
             fi
-            sleep 10
+            sleep 15
           done
-          echo "::error::API not healthy after 5 min; check: az containerapp logs show -n wakatta-api -g $RG --tail 50"
+          echo "::error::API not healthy after 10 min; check: az containerapp logs show -n wakatta-api -g $RG --tail 50"
           exit 1

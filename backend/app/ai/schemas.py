@@ -5,9 +5,10 @@ because Gemini's response_schema supports only a subset of JSON Schema. These mo
 and then checked by app.domain.ai_checks before a service writes anything.
 """
 
-from typing import Annotated, Literal
+from collections.abc import Sequence
+from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, StringConstraints
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, TypeAdapter
 
 # The frontend's IconId (frontend/src/domain/wakatta.ts); keep the two lists equal.
 IconId = Literal[
@@ -25,6 +26,8 @@ IconId = Literal[
     "calendar",
 ]
 
+DEFAULT_LANGUAGES = ("bn", "en")  # the demo shop's languages (shops.languages default)
+
 NoticeCategory = Literal["garbage", "disaster", "event", "duty", "other"]
 
 Text = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=1000)]
@@ -35,12 +38,23 @@ class AiModel(BaseModel):
 
 
 class AiTri(AiModel):
-    """Japanese plus the demo shop's languages.
-    shortcut: fixed to ja/bn/en, build the schema from shops.languages when a shop adds vi, id, ne, my, tl or zh."""
+    """Japanese plus the shop's languages (shops.languages, XREQ-011 item 5). Every other language stays null;
+    app.domain.ai_checks.language_problems makes sure each shop language is filled. One fixed schema, so Gemini's
+    response schema and the Groq prompt never change per shop."""
 
     ja: Text
-    bn: Text
-    en: Text
+    bn: Text | None = None
+    en: Text | None = None
+    vi: Text | None = None
+    id: Text | None = None
+    ne: Text | None = None
+    my: Text | None = None
+    tl: Text | None = None
+    zh: Text | None = None
+
+    def only(self, languages: Sequence[str]) -> dict[str, str]:
+        """{ja, <each shop language>} for storage; a language the checks let through empty stays ""."""
+        return {"ja": self.ja} | {lang: getattr(self, lang) or "" for lang in languages}
 
 
 class AiStep(AiModel):
@@ -57,10 +71,16 @@ class AiQuestion(AiModel):
 
 
 class BackTranslation(AiModel):
-    """The Bengali and English texts translated back into Japanese, so a Foreman can check their meaning."""
+    """Each shop language's text translated back into Japanese, so a Foreman can check its meaning."""
 
-    bn: Text
-    en: Text
+    bn: Text | None = None
+    en: Text | None = None
+    vi: Text | None = None
+    id: Text | None = None
+    ne: Text | None = None
+    my: Text | None = None
+    tl: Text | None = None
+    zh: Text | None = None
 
 
 class NoteDraft(AiModel):
@@ -94,6 +114,8 @@ class NoticeDraft(AiModel):
 class AskDraft(AiModel):
     """Passed through app.domain.grounding.ground() before a service stores it."""
 
+    question_text: Text
+    """The Worker's question in their own language: for a voice Ask the transcript, which is what a Senpai receives."""
     covered: bool
     answer: AiTri | None
     source_notice_ids: list[str]
@@ -126,3 +148,23 @@ class Reexplanation(AiModel):
 
     text: AiTri
     question: AiQuestion
+
+
+_LANGUAGE_MODELS = ("AiTri", "BackTranslation")
+
+
+def response_schema(schema: type[object], languages: Sequence[str]) -> dict[str, Any]:
+    """The JSON Schema sent to the model, with only ja and the shop's languages, all required.
+
+    Gemini refuses the full schema (every optional language in every step and option: "too many states"), and a
+    smaller schema is also a clearer instruction. The pydantic model stays the same, so parsing does not change."""
+    js: dict[str, Any] = TypeAdapter(schema).json_schema()
+    for name in _LANGUAGE_MODELS:
+        definition: dict[str, Any] | None = js.get("$defs", {}).get(name)
+        if definition is None:
+            continue
+        keep = [*(["ja"] if name == "AiTri" else []), *languages]
+        props: dict[str, Any] = definition["properties"]
+        definition["properties"] = {k: props[k].get("anyOf", [props[k]])[0] for k in keep if k in props}
+        definition["required"] = [k for k in keep if k in props]
+    return js

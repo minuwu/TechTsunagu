@@ -385,7 +385,7 @@ function Glossary({ course }: { course: CourseData }) {
               </span>
             </dt>
             <dd className="text-muted-foreground">
-              {g.en} · <span lang="bn">{g.bn}</span>
+              {g.en}
             </dd>
           </div>
         ))}

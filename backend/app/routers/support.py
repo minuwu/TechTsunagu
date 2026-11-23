@@ -30,8 +30,10 @@ from app.services.auth import Principal
 router = APIRouter(prefix="/api", tags=["life"])
 Foreman = Annotated[Principal, Depends(require("foreman"))]
 Worker = Annotated[Principal, Depends(require("worker"))]
+ShopMember = Annotated[Principal, Depends(require("foreman", "worker"))]
 Paging = Annotated[PageParams, Depends(page_params)]
 IdempotencyKey = Annotated[uuid.UUID, Header(alias="Idempotency-Key")]
+OptionalKey = Annotated[uuid.UUID | None, Header(alias="Idempotency-Key")]  # optional: the web app sends none yet
 # The Senpai link token is 43 url-safe characters (secrets.token_urlsafe(32)); demo tokens are shorter.
 SenpaiToken = Annotated[str, Path(min_length=8, max_length=64, pattern=r"^[A-Za-z0-9_-]+$")]
 
@@ -80,9 +82,19 @@ def revoke_pair(who: Foreman, pair_id: IdIn, db: DbSession) -> Envelope[None]:
     return Envelope(data=None)
 
 
+@router.get("/meetups", summary="Meet-ups, newest first (Workers: their own; Foremen: the shop's)")
+def list_meetups(who: ShopMember, db: DbSession, page: Paging) -> Envelope[Page[MeetupOut]]:
+    return Envelope(data=senpai.list_meetups(db, who, page))
+
+
 @router.post("/meetups", status_code=201, summary="Log a Meet-up with your Senpai")
-def worker_meetup(who: Worker, body: MeetupCreate, db: DbSession) -> Envelope[MeetupOut]:
-    return Envelope(data=senpai.worker_meetup(db, who, body, now_utc()))
+def worker_meetup(who: Worker, body: MeetupCreate, db: DbSession, key: OptionalKey = None) -> Envelope[MeetupOut]:
+    return Envelope(data=senpai.worker_meetup(db, who, body, now_utc(), key))
+
+
+@router.get("/senpai-pairs/me", summary="Your own Senpai pair, or null (no link token)")
+def my_senpai_pair(who: Worker, db: DbSession) -> Envelope[SenpaiPairOut | None]:
+    return Envelope(data=senpai.my_pair(db, who, now_utc()))
 
 
 @router.get("/senpai/{token}", summary="The Senpai page: their Worker, forwarded Asks, district dates, Meet-ups")
