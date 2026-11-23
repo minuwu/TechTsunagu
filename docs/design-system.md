@@ -73,3 +73,19 @@ Workers stay phone-first; the Foreman and Poster get the desktop layouts.
 - Page enter 320 ms; dialog and toast 220–240 ms.
 - Landing only: GSAP entrance and scroll reveals, Lenis smooth wheel scroll, the Vanta harbour hero (skills: `.claude/skills/gsap`, `lenis`, `vanta`).
 - `prefers-reduced-motion: reduce` turns all of it off (F-38); every animated reveal ends at full opacity and never hides content from assistive tech.
+
+## States and demo mode
+
+| State | What the user sees | Where it comes from |
+| :--- | :--- | :--- |
+| Loading | `ScreenSkeleton` / `Skeleton` shaped like the content | the query is pending |
+| Empty | `EmptyState`: a mark and one sentence (no Machines, nothing here yet) | the list is empty |
+| Error | a caution band in the header, "Can't reach the server…", **Try again** | `useDataStatus()` (`features/health`): a `['wakatta', …]` query failed after its retries |
+| Offline | the same band, "You're offline…" | `navigator.onLine` |
+| Panel, no data | the **UNKNOWN** plate: "ask your foreman before you start", never a guess | `usePanel().unknown` |
+| Success | toast for completed actions; the brand moment for the two that matter (Panel unlock, Check passed) | `lib/toast.ts`, `components/Moment.tsx` |
+
+**Demo mode (mock data only).** Add `?demo=loading`, `?demo=empty`, `?demo=error` or `?demo=live` to any URL. Every mock read then returns that scenario (`services/mocks/scenario.ts`), and a small **Demo state** switcher stays in the bottom-left of that browser tab. It is always visible in development and never with the real API (`VITE_USE_MOCK=false`). A demo outage skips the query retries, so the error shows within about 2 s.
+
+**For teammates wiring the real API:** nothing here changes the API contract. `list()` in `services/wakatta.ts` still calls `request()` when mocks are off; the error band and the Panel's UNKNOWN state work from the real query errors as they are.
+
