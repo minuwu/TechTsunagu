@@ -241,3 +241,20 @@ def test_another_shop_cannot_touch_these_records(client: TestClient, db: Session
     params = {"from": str(TODAY - timedelta(days=1)), "to": str(TODAY + timedelta(days=1))}
     other_log = client.get("/api/support-log.csv", headers=other.foreman, params=params).content.decode("utf-8-sig")
     assert "田中 健" not in other_log
+
+
+def test_meetups_are_listed_for_the_worker_and_the_shops_foreman_only(
+    client: TestClient, db: Session, shop: Shop
+) -> None:
+    _pair(client, shop)
+    logged = {"kind": "coffee", "date": str(TODAY - timedelta(days=1)), "note": "駅前で"}
+    assert client.post("/api/meetups", headers=shop.worker, json=logged).status_code == 201
+    other = _shop(client, db)
+
+    mine = client.get("/api/meetups", headers=shop.worker).json()["data"]["items"]
+    foremans = client.get("/api/meetups", headers=shop.foreman).json()["data"]["items"]
+    elsewhere = client.get("/api/meetups", headers=other.foreman).json()["data"]["items"]
+
+    assert [(m["kind"], m["loggedBy"]) for m in mine] == [("coffee", "worker")]
+    assert foremans == mine
+    assert elsewhere == []

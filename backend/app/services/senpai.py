@@ -8,7 +8,7 @@ from datetime import date, datetime, timedelta
 from sqlalchemy.orm import Session
 
 from app.api.errors import ApiError
-from app.api.pagination import Page, PageParams, encode_cursor
+from app.api.pagination import Page, PageParams, build_page, encode_cursor
 from app.domain.recurrence import TOKYO
 from app.models.life import Ask, Meetup, SenpaiPair
 from app.repositories import accounts
@@ -29,6 +29,7 @@ from app.services.ai_runner import AiRunner
 from app.services.asks import AI_LANGUAGES, translate, worker_of
 from app.services.auth import Principal
 from app.services.credentials import new_token, token_digest
+from app.services.notes import shop_of
 
 LINK_TTL = timedelta(days=180)  # architecture §3: until revoked or 180 days
 EVENTS_AHEAD = timedelta(days=31)
@@ -204,3 +205,11 @@ def reply(db: Session, token: str, ask_id: int, body: SenpaiReplyIn, ai: AiRunne
 
 def senpai_meetup(db: Session, token: str, body: MeetupCreate, now: datetime) -> MeetupOut:
     return _log_meetup(db, _pair_of(db, token, now), body, "senpai", now)
+
+
+def list_meetups(db: Session, who: Principal, page: PageParams) -> Page[MeetupOut]:
+    """GET /meetups: a Worker's own Meet-ups, or every Meet-up of the Foreman's shop."""
+    own = who.user_id if who.role == "worker" else None
+    rows = repo.meetups_page(db, shop_of(who), own, page.after_id, page.limit)
+    last = rows[page.limit - 1].id if len(rows) > page.limit else None
+    return build_page([_meetup_out(m) for m in rows], page.limit, last)
