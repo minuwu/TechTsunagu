@@ -110,8 +110,24 @@ _Avoid_: History, archive, wiki
 ## Chat (prototype: prototypes/wakatta/)
 
 **Thread**:
-A chat between a Foreman and one or more Workers, where the Foreman's messages are translated for each Worker.
+A chat between a Foreman and one or more Workers, where the Foreman's messages are translated for each Worker. A Worker or Foreman can also keep personal Threads that the employer cannot see: a Talk Thread or a Contact Thread.
 _Avoid_: Channel, room, conversation
+
+**Talk Thread**:
+A Thread that only its owner is in, kept about a real-life conversation with someone who is not in the app (an elderly resident, a friend) and named after that person. Each exchange holds what they said, what it means, the owner's own understanding and its grade, the owner's reply, and whether the other person confirmed it. A user keeps as many as they like.
+_Avoid_: Self chat, Notebook, Memo
+
+**Contact**:
+A person you connected with by scanning their My QR, in your shop or in another.
+_Avoid_: Friend, buddy
+
+**Contact Thread**:
+The private chat between two Contacts, translated into each one's language.
+_Avoid_: DM, direct (the work Thread with a Foreman)
+
+**My QR**:
+Your own code, shown or shared so another person can connect with you; it carries a revocable token, not your id.
+_Avoid_: Invite, profile code
 
 **Wakatta Status**:
 One Worker's result on the Check Questions of one Foreman message: green (all right, わかった), orange (some wrong or "not sure", needs clarifying), red (all wrong) or grey (waiting).
@@ -176,5 +192,13 @@ A logged meeting between a Worker and their Senpai (coffee, event, drill).
 _Avoid_: Session, appointment
 
 **Support Log**:
-The export of Meet-ups and Notice Check results that evidences an employer's life and exchange support for 特定技能1号 Workers.
+The export of Meet-ups, Notice Check results and Periodic Interviews that evidences an employer's life and exchange support for 特定技能1号 Workers.
 _Avoid_: Report, audit log
+
+**Periodic Interview**:
+The meeting with one Worker that 特定技能1号 support item 10 (定期面談) requires at least every 3 months. Wakatta? shows when each is due, prepares the questions from the Worker's recent Checks and Meet-ups, and keeps the record.
+_Avoid_: Review, one-on-one, check-in
+
+**Today's Word**:
+One word of a Worker's language shown to the Japanese side (Foreman, Senpai) so that understanding runs both ways.
+_Avoid_: Vocabulary, lesson
