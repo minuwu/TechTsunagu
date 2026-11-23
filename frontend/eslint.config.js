@@ -20,6 +20,8 @@ export default tseslint.config(
       'src/routeTree.gen.ts',
       'playwright-report/**',
       'test-results/**',
+      // Brand kit gallery: a static preview page with a vendored, minified Lottie player (not app code)
+      'public/brand/_gallery/**',
     ],
   },
   js.configs.recommended,
