@@ -75,6 +75,13 @@ def list_notices(
     return Envelope(data=notices.list_for_worker(db, who, page, now_utc()))
 
 
+@router.get("/notices/{notice_id}", summary="One Notice: a Poster's own (drafts too), or a published one for a Worker")
+def get_notice(who: DistrictMember, notice_id: IdIn, db: DbSession) -> Envelope[NoticeForPoster | NoticeForWorker]:
+    if who.role == "poster":
+        return Envelope(data=notices.get_for_poster(db, who, int(notice_id), now_utc()))
+    return Envelope(data=notices.get_for_worker(db, who, int(notice_id), now_utc()))
+
+
 @router.patch("/notices/{notice_id}", summary="Edit a draft Notice")
 def update_notice(who: PosterUser, notice_id: IdIn, body: NoticeUpdate, db: DbSession) -> Envelope[NoticeForPoster]:
     return Envelope(data=notices.update(db, who, int(notice_id), body, now_utc()))

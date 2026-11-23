@@ -228,6 +228,27 @@ def test_workers_see_the_district_dates_in_a_range(client: TestClient, town: Tow
     assert too_long.status_code == 422
 
 
+def test_one_notice_is_read_with_the_same_rules_as_the_list(
+    client: TestClient, db: Session, town: Town, fake_ai: FakeAiClient
+) -> None:
+    fake_ai.queue("build_notice", notice_answer())
+    draft = _draft(client, town)
+    url = f"/api/notices/{draft['id']}"
+
+    own = client.get(url, headers=town.poster)
+    hidden = client.get(url, headers=town.worker)  # still a draft
+    _publish(client, town, draft)
+    seen = client.get(url, headers=town.worker)
+    other = _town(client, db)
+
+    assert own.status_code == 200 and own.json()["data"]["question"]["correctIndex"] == 0
+    assert hidden.status_code == 404
+    assert seen.status_code == 200 and "correctIndex" not in seen.json()["data"]["question"]
+    assert seen.json()["data"]["opened"] is False
+    assert client.get(url, headers=other.worker).status_code == 404
+    assert client.get(url, headers=other.poster).status_code == 404
+
+
 def test_another_district_cannot_see_or_change_a_notice(
     client: TestClient, db: Session, town: Town, fake_ai: FakeAiClient
 ) -> None:

@@ -128,8 +128,15 @@ def nudge(who: Foreman, message_id: IdIn, body: NudgeIn, db: DbSession) -> Envel
     summary="The Task Board of your shop; If-None-Match gives 304",
     response_model=Envelope[Page[TaskOut]],
 )
-def list_tasks(who: ShopMember, db: DbSession, page: Paging, request: Request) -> Response:
-    return conditional_json(request, Envelope(data=chat.list_tasks(db, who, page)))
+def list_tasks(
+    who: ShopMember,
+    db: DbSession,
+    page: Paging,
+    request: Request,
+    machine_id: Annotated[IdIn | None, Query(alias="machineId", description="Only this Machine's Tasks")] = None,
+) -> Response:
+    tasks = chat.list_tasks(db, who, page, int(machine_id) if machine_id else None)
+    return conditional_json(request, Envelope(data=tasks))
 
 
 @router.post("/tasks", status_code=201, summary="Add a Task by hand")

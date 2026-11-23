@@ -1316,6 +1316,24 @@ export type EnvelopeUnionAssignmentOutNoneType = {
 };
 
 /**
+ * Envelope[Union[NoticeForPoster, NoticeForWorker]]
+ */
+export type EnvelopeUnionNoticeForPosterNoticeForWorker = {
+    /**
+     * Success
+     */
+    success?: true;
+    /**
+     * Data
+     */
+    data: NoticeForPoster | NoticeForWorker;
+    /**
+     * Message
+     */
+    message?: string;
+};
+
+/**
  * Envelope[Union[Page[BriefingForForeman], Page[BriefingForWorker]]]
  */
 export type EnvelopeUnionPageBriefingForForemanPageBriefingForWorker = {
@@ -4368,6 +4386,36 @@ export type CreateNoticeApiNoticesPostResponses = {
 
 export type CreateNoticeApiNoticesPostResponse = CreateNoticeApiNoticesPostResponses[keyof CreateNoticeApiNoticesPostResponses];
 
+export type GetNoticeApiNoticesNoticeIdGetData = {
+    body?: never;
+    path: {
+        /**
+         * Notice Id
+         */
+        notice_id: string;
+    };
+    query?: never;
+    url: '/api/notices/{notice_id}';
+};
+
+export type GetNoticeApiNoticesNoticeIdGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetNoticeApiNoticesNoticeIdGetError = GetNoticeApiNoticesNoticeIdGetErrors[keyof GetNoticeApiNoticesNoticeIdGetErrors];
+
+export type GetNoticeApiNoticesNoticeIdGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeUnionNoticeForPosterNoticeForWorker;
+};
+
+export type GetNoticeApiNoticesNoticeIdGetResponse = GetNoticeApiNoticesNoticeIdGetResponses[keyof GetNoticeApiNoticesNoticeIdGetResponses];
+
 export type UpdateNoticeApiNoticesNoticeIdPatchData = {
     body: NoticeUpdate;
     path: {
@@ -5255,6 +5303,12 @@ export type ListTasksApiTasksGetData = {
     body?: never;
     path?: never;
     query?: {
+        /**
+         * Machineid
+         *
+         * Only this Machine's Tasks
+         */
+        machineId?: string | null;
         /**
          * Limit
          */

@@ -7,6 +7,7 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 ## 2026-11-23 (from Arjun: done for you on `main`)
 
 - **XREQ-011 item 2, ETag part** (`351a27a`): `GET /board`, `/threads` and `/tasks` send an `ETag` and answer **304** on a matching `If-None-Match`. One helper, `app/api/conditional.py`, now serves those and the existing Panel and message poll (the copies in `work.py` / `chat.py` and `floor.etag` are gone). Response schemas unchanged; `openapi.yaml` differs only in three summaries. `/near-misses` is not covered: the route does not exist yet (WS7). The `Idempotency-Key` half of item 2 is still open (needs columns, so Asif's schema).
+- **XREQ-011 item 1 (B-19) and item 3 (B-18):** `GET /tasks?machineId=` returns only that Machine's Tasks (another shop's id finds nothing); `GET /notices/{id}` reads one Notice with the list's rules: a Poster's own (drafts too), a published one for a Worker without `correctIndex` and with `opened` / `passed`, 404 for other districts and for a Worker on a draft. Tests in `test_chat.py` and `test_notices.py`; `openapi.yaml` and the frontend types regenerated. The Poster-or-Foreman decision in item 3 is still yours.
 - **XREQ-011 item 5b / your voice-Ask request** (`eadef5f`): voice Asks keep their transcript (`AskDraft.question_text`), so forwarding sends the Senpai the question.
 - Verified on a local PostgreSQL 16.14: full backend suite, ruff, pyright, lint-imports.
 
