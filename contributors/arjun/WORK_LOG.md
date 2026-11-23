@@ -4,6 +4,17 @@ Owner: Arjun Saha (GitHub handle TBD) — Role: Frontend design
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-23 (frontend ↔ backend connection check)
+
+### Done
+- `npm run check:api` (frontend): health, database readiness, CORS for `http://localhost:3000`, deployed contract vs `docs/openapi.yaml`, demo sign-in round trip (roster, login, Bearer `me`, `{items}` list, logout). Production: all pass, 67 paths in step with the repo.
+- Real browser on `localhost:3000` → hosted API: Foreman sign-in, Board, ETag readable from JS, `If-None-Match` → 304, logout. All work.
+- Links recorded: `frontend/.env.example` (hosted API URL, commented), `docs/FRONTEND_API_HANDOVER.md` (the check command).
+
+### Not connected yet (owners)
+- The app's screens still use the mock store: the client needs XREQ-001 (Bearer sign-in instead of shared PINs, `{items, nextCursor}` unwrap, path changes, Idempotency-Key). Owner Minhaz; not started (no branch).
+- Hosted frontend: XREQ-013 (Asif, Azure Static Web Apps). When it is up, its origin must be added to the API's CORS (`backend/deploy/set-cors.ps1`), then `npm run check:api -- <api> <frontend origin>`.
+
 ## 2026-11-23 (interactive Japan map, static demo build)
 
 ### Done
