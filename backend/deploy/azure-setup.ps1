@@ -139,50 +139,34 @@ $adminPw = New-Secret 32; $ownerPw = New-Secret 32; $appPw = New-Secret 32; $pep
 Step "reset the database admin password"
 Invoke-Az postgres flexible-server update -g $Rg -n $db --admin-password $adminPw -o none
 
-$init = @"
-set -e
-psql -v ON_ERROR_STOP=1 -d postgres <<'SQL'
-DO `$`$ BEGIN
-  IF EXISTS (SELECT FROM pg_roles WHERE rolname = 'wakatta_owner') THEN ALTER ROLE wakatta_owner LOGIN PASSWORD '$ownerPw';
-  ELSE CREATE ROLE wakatta_owner LOGIN PASSWORD '$ownerPw'; END IF;
-  IF EXISTS (SELECT FROM pg_roles WHERE rolname = 'wakatta_app') THEN ALTER ROLE wakatta_app LOGIN PASSWORD '$appPw';
-  ELSE CREATE ROLE wakatta_app LOGIN PASSWORD '$appPw'; END IF;
-END `$`$;
-ALTER ROLE wakatta_app SET statement_timeout = '5s';
-ALTER ROLE wakatta_app SET idle_in_transaction_session_timeout = '30s';
-GRANT wakatta_owner TO $DbAdmin;
-SELECT 'CREATE DATABASE wakatta OWNER wakatta_owner' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'wakatta')\gexec
-SQL
-psql -v ON_ERROR_STOP=1 -d wakatta -c 'SET ROLE wakatta_owner; REVOKE ALL ON SCHEMA public FROM PUBLIC; GRANT USAGE ON SCHEMA public TO wakatta_app;'
-"@ -replace "`r", ""
-$initB64 = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($init))
-
 $ownerUrl = "postgresql+psycopg://wakatta_owner:$ownerPw@${dbHost}:5432/wakatta?sslmode=require"
 $appUrl = "postgresql+psycopg://wakatta_app:$appPw@${dbHost}:5432/wakatta?sslmode=require"
+$adminUrl = "postgresql://${DbAdmin}:$adminPw@${dbHost}:5432/postgres?sslmode=require"
+
+# Jobs run scripts that ship in the image (backend/jobs), because the CLI cannot pass shell flags such as -c.
+$registry = @("--registry-server", "$acr.azurecr.io", "--registry-identity", $idRes)
+$jobBase = @("--environment", $EnvName, "--trigger-type", "Manual", "--replica-retry-limit", "0", "--parallelism", "1",
+    "--replica-completion-count", "1", "--image", $ref) + $registry + @("--mi-user-assigned", $idRes)
+$ownerEnv = @("MIGRATION_DATABASE_URL=secretref:migration-database-url", "APP_DB_ROLE=wakatta_app", "PIN_PEPPER=secretref:pin-pepper")
 
 Step "job wakatta-dbinit (roles + database)"
 if (Test-Job wakatta-dbinit) { Invoke-Az containerapp job delete -n wakatta-dbinit -g $Rg --yes -o none }
-Invoke-Az containerapp job create -n wakatta-dbinit -g $Rg --environment $EnvName --trigger-type Manual `
-    --replica-timeout 600 --replica-retry-limit 0 --parallelism 1 --replica-completion-count 1 `
-    --image postgres:16-alpine --cpu 0.25 --memory 0.5Gi `
-    --secrets "admin-pw=$adminPw" "init-script=$initB64" `
-    --env-vars "PGHOST=$dbHost" "PGUSER=$DbAdmin" "PGSSLMODE=require" "PGPASSWORD=secretref:admin-pw" "INIT=secretref:init-script" `
-    --command "/bin/sh" --args "-c" 'echo $INIT | base64 -d | sh' -o none
+Invoke-Az containerapp job create -n wakatta-dbinit -g $Rg @jobBase --replica-timeout 600 --cpu 0.25 --memory 0.5Gi `
+    --secrets "admin-url=$adminUrl" "owner-pw=$ownerPw" "app-pw=$appPw" `
+    --env-vars "ADMIN_DATABASE_URL=secretref:admin-url" "OWNER_PASSWORD=secretref:owner-pw" "APP_PASSWORD=secretref:app-pw" "ADMIN_USER=$DbAdmin" `
+    --command "python" --args "/app/jobs/dbinit.py" -o none
 Wait-Job wakatta-dbinit
+# The admin password only ever lived in this job; drop the job so nothing keeps it.
 Invoke-Az containerapp job delete -n wakatta-dbinit -g $Rg --yes -o none
 
-$registry = @("--registry-server", "$acr.azurecr.io", "--registry-identity", $idRes)
-$ownerEnv = @("MIGRATION_DATABASE_URL=secretref:migration-database-url", "APP_DB_ROLE=wakatta_app", "PIN_PEPPER=secretref:pin-pepper")
 foreach ($job in @(
-        @{ name = "wakatta-migrate"; run = "alembic upgrade head" },
-        @{ name = "wakatta-seed"; run = "python -m app.seed --reset" })) {
+        @{ name = "wakatta-migrate"; command = "alembic"; args = @("upgrade", "head") },
+        @{ name = "wakatta-seed"; command = "python"; args = @("/app/jobs/seed_reset.py") })) {
     Step "job $($job.name)"
     if (Test-Job $job.name) { Invoke-Az containerapp job delete -n $job.name -g $Rg --yes -o none }
-    Invoke-Az containerapp job create -n $job.name -g $Rg --environment $EnvName --trigger-type Manual `
-        --replica-timeout 900 --replica-retry-limit 0 --parallelism 1 --replica-completion-count 1 `
-        --image $ref @registry --mi-user-assigned $idRes --cpu 0.5 --memory 1.0Gi `
+    Invoke-Az containerapp job create -n $job.name -g $Rg @jobBase --replica-timeout 900 --cpu 0.5 --memory 1.0Gi `
         --secrets "migration-database-url=$ownerUrl" "pin-pepper=$pepper" --env-vars @ownerEnv `
-        --command "/bin/sh" --args "-c" $job.run -o none
+        --command $job.command --args @($job.args) -o none
     Wait-Job $job.name
 }
 
