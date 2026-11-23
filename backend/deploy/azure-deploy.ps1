@@ -1,11 +1,11 @@
-# Deploy the current backend: build the image inside Azure (no Docker needed), roll the API to it, wait until ready.
-# The container runs `alembic upgrade head` on start, so a new migration ships with the code.
+# Deploy the current backend: build the image inside Azure (no Docker needed), run the migrations in the
+# wakatta-migrate job (the only place that holds the owner credential), then roll the API and wait until ready.
 # Usage: powershell -ExecutionPolicy Bypass -File backend\deploy\azure-deploy.ps1
 . "$PSScriptRoot\common.ps1"
 
 $backend = Split-Path $PSScriptRoot -Parent
 $acr = Get-Acr
-if (-not $acr) { throw "no container registry in $Rg: run azure-setup.ps1 first" }
+if (-not $acr) { throw "no container registry in ${Rg}: run azure-setup.ps1 first" }
 
 $tag = (git -C $backend rev-parse --short HEAD).Trim()
 if (git -C $backend status --porcelain -- .) { $tag = "$tag-dirty" }
@@ -13,6 +13,12 @@ $ref = "$acr.azurecr.io/${Image}:$tag"
 
 Step "building $ref in Azure (2-4 min)"
 Invoke-Az acr build -r $acr -t "${Image}:$tag" -t "${Image}:latest" $backend --no-logs -o none
+
+if (Test-Job wakatta-migrate) {
+    Step "migrating with $tag"
+    Invoke-Az containerapp job update -n wakatta-migrate -g $Rg --image $ref -o none
+    Wait-Job wakatta-migrate
+}
 
 if (Invoke-Az containerapp list -g $Rg --query "[?name=='$App'].name" -o tsv) {
     Step "rolling $App to $tag"

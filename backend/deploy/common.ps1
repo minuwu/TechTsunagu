@@ -20,5 +20,18 @@ function New-Secret([int]$n) {
     [System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
     -join ($bytes | ForEach-Object { $chars[$_ % 64] })
 }
+# Start a manual Container Apps Job and wait for its execution to finish.
+function Wait-Job($name) {
+    $exec = Invoke-Az containerapp job start -n $name -g $Rg --query name -o tsv
+    foreach ($i in 1..90) {
+        Start-Sleep -Seconds 10
+        $status = Invoke-Az containerapp job execution show -n $name -g $Rg --job-execution-name $exec `
+            --query properties.status -o tsv
+        if ($status -eq "Succeeded") { Step "$name succeeded"; return }
+        if ($status -eq "Failed") { throw "$name failed. Logs: az containerapp job logs show -n $name -g $Rg --container $name" }
+    }
+    throw "$name still running after 15 min"
+}
+function Test-Job($name) { [bool](Invoke-Az containerapp job list -g $Rg --query "[?name=='$name'].name" -o tsv) }
 function Get-Acr { Invoke-Az acr list -g $Rg --query "[0].name" -o tsv }
 function Get-DbServer { Invoke-Az postgres flexible-server list -g $Rg --query "[0].name" -o tsv }

@@ -1,21 +1,13 @@
 # One-time Azure setup for the Wakatta? API (safe to re-run: it skips what exists).
-# Registry + managed identity (no expiring tokens), PostgreSQL B1ms, Container Apps, and two jobs that run INSIDE
-# Azure: wakatta-dbinit (roles + database) and wakatta-seed (migrate + demo data), so no laptop ever needs port 5432.
+# Registry + managed identity (no expiring tokens), PostgreSQL B1ms, Container Apps, and jobs that run INSIDE Azure,
+# so no laptop ever needs port 5432:
+#   wakatta-dbinit   roles + database (holds the admin password, deleted right after)
+#   wakatta-migrate  alembic upgrade head (the only holder of the owner credential besides wakatta-seed)
+#   wakatta-seed     demo data; re-run it to reset the demo: az containerapp job start -n wakatta-seed -g wakatta-rg
+# The API itself only gets the least-privilege wakatta_app credential.
 # Secrets are generated here, stored only as Container App / Job secrets, and never printed.
 # Usage: powershell -ExecutionPolicy Bypass -File backend\deploy\azure-setup.ps1
 . "$PSScriptRoot\common.ps1"
-
-function Wait-Job($name) {
-    $exec = Invoke-Az containerapp job start -n $name -g $Rg --query name -o tsv
-    foreach ($i in 1..60) {
-        Start-Sleep -Seconds 10
-        $status = Invoke-Az containerapp job execution show -n $name -g $Rg --job-execution-name $exec `
-            --query properties.status -o tsv
-        if ($status -eq "Succeeded") { Step "$name succeeded"; return }
-        if ($status -eq "Failed") { throw "$name failed. Logs: az containerapp job logs show -n $name -g $Rg --container $name" }
-    }
-    throw "$name still running after 10 min"
-}
 
 Step "providers and resource group"
 Invoke-Az config set extension.use_dynamic_install=yes_without_prompt -o none
@@ -53,7 +45,8 @@ if (-not $db) {
         --storage-size 32 --version 16 --admin-user $DbAdmin --admin-password (New-Secret 32) --public-access None `
         --zonal-resiliency Disabled --backup-retention 7 --yes -o none
 }
-# 0.0.0.0 = only Azure services (the API and the jobs) may connect; no laptop IPs.
+# 0.0.0.0 = Azure-hosted clients only (the API and the jobs), still behind TLS and 32-char random passwords.
+# Follow-up: VNet-integrate the environment and give the server private access, then drop this rule.
 Invoke-Az postgres flexible-server firewall-rule create -g $Rg -s $db -n AllowAzureServices `
     --start-ip-address 0.0.0.0 --end-ip-address 0.0.0.0 -o none
 $dbHost = "$db.postgres.database.azure.com"
@@ -67,7 +60,7 @@ if (Invoke-Az containerapp list -g $Rg --query "[?name=='$App'].name" -o tsv) {
     Step "$App already exists: nothing else to set up (use azure-deploy.ps1 to ship code)"; return
 }
 
-# Fresh credentials for this setup. The admin password is reset each run and only the dbinit job holds it.
+# Fresh credentials for this setup. The admin password is reset here and only the dbinit job ever holds it.
 $adminPw = New-Secret 32; $ownerPw = New-Secret 32; $appPw = New-Secret 32; $pepper = New-Secret 48
 Step "reset the database admin password"
 Invoke-Az postgres flexible-server update -g $Rg -n $db --admin-password $adminPw -o none
@@ -93,10 +86,8 @@ $initB64 = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($init))
 $ownerUrl = "postgresql+psycopg://wakatta_owner:$ownerPw@${dbHost}:5432/wakatta?sslmode=require"
 $appUrl = "postgresql+psycopg://wakatta_app:$appPw@${dbHost}:5432/wakatta?sslmode=require"
 
-Step "job wakatta-dbinit (roles + database, runs inside Azure)"
-if (Invoke-Az containerapp job list -g $Rg --query "[?name=='wakatta-dbinit'].name" -o tsv) {
-    Invoke-Az containerapp job delete -n wakatta-dbinit -g $Rg --yes -o none
-}
+Step "job wakatta-dbinit (roles + database)"
+if (Test-Job wakatta-dbinit) { Invoke-Az containerapp job delete -n wakatta-dbinit -g $Rg --yes -o none }
 Invoke-Az containerapp job create -n wakatta-dbinit -g $Rg --environment $EnvName --trigger-type Manual `
     --replica-timeout 600 --replica-retry-limit 0 --parallelism 1 --replica-completion-count 1 `
     --image postgres:16-alpine --cpu 0.25 --memory 0.5Gi `
@@ -104,27 +95,29 @@ Invoke-Az containerapp job create -n wakatta-dbinit -g $Rg --environment $EnvNam
     --env-vars "PGHOST=$dbHost" "PGUSER=$DbAdmin" "PGSSLMODE=require" "PGPASSWORD=secretref:admin-pw" "INIT=secretref:init-script" `
     --command "/bin/sh" --args "-c" 'echo $INIT | base64 -d | sh' -o none
 Wait-Job wakatta-dbinit
-# The admin password only ever lived in this job; drop the job so nothing keeps it.
 Invoke-Az containerapp job delete -n wakatta-dbinit -g $Rg --yes -o none
 
-$common = @("PIN_PEPPER=secretref:pin-pepper", "APP_DB_ROLE=wakatta_app", "MIGRATION_DATABASE_URL=secretref:migration-database-url")
+$registry = @("--registry-server", "$acr.azurecr.io", "--registry-identity", $idRes)
+$ownerEnv = @("MIGRATION_DATABASE_URL=secretref:migration-database-url", "APP_DB_ROLE=wakatta_app", "PIN_PEPPER=secretref:pin-pepper")
+foreach ($job in @(
+        @{ name = "wakatta-migrate"; run = "alembic upgrade head" },
+        @{ name = "wakatta-seed"; run = "python -m app.seed --reset" })) {
+    Step "job $($job.name)"
+    if (Test-Job $job.name) { Invoke-Az containerapp job delete -n $job.name -g $Rg --yes -o none }
+    Invoke-Az containerapp job create -n $job.name -g $Rg --environment $EnvName --trigger-type Manual `
+        --replica-timeout 900 --replica-retry-limit 0 --parallelism 1 --replica-completion-count 1 `
+        --image $ref @registry --mi-user-assigned $idRes --cpu 0.5 --memory 1.0Gi `
+        --secrets "migration-database-url=$ownerUrl" "pin-pepper=$pepper" --env-vars @ownerEnv `
+        --command "/bin/sh" --args "-c" $job.run -o none
+    Wait-Job $job.name
+}
 
-Step "job wakatta-seed (migrate + demo data; re-run later to reset the demo)"
-Invoke-Az containerapp job create -n wakatta-seed -g $Rg --environment $EnvName --trigger-type Manual `
-    --replica-timeout 900 --replica-retry-limit 0 --parallelism 1 --replica-completion-count 1 `
-    --image $ref --registry-server "$acr.azurecr.io" --registry-identity $idRes --mi-user-assigned $idRes `
-    --cpu 0.5 --memory 1.0Gi `
-    --secrets "migration-database-url=$ownerUrl" "pin-pepper=$pepper" `
-    --env-vars @common --command "/bin/sh" --args "-c" 'alembic upgrade head && python -m app.seed --reset' -o none
-Wait-Job wakatta-seed
-
-Step "container app $App (1 replica: migrations run at start-up)"
-Invoke-Az containerapp create -n $App -g $Rg --environment $EnvName --image $ref `
-    --registry-server "$acr.azurecr.io" --registry-identity $idRes --user-assigned $idRes `
+Step "container app $App (app role only)"
+Invoke-Az containerapp create -n $App -g $Rg --environment $EnvName --image $ref @registry --user-assigned $idRes `
     --target-port 8000 --ingress external --min-replicas 1 --max-replicas 1 --cpu 0.5 --memory 1.0Gi `
-    --secrets "database-url=$appUrl" "migration-database-url=$ownerUrl" "pin-pepper=$pepper" `
-    --env-vars "DATABASE_URL=secretref:database-url" @common "FRONTEND_ORIGIN=http://localhost:3000" `
-    "DEMO_MODE=true" "LOG_LEVEL=INFO" "AI_MODE=fake" -o none
+    --secrets "database-url=$appUrl" "pin-pepper=$pepper" `
+    --env-vars "DATABASE_URL=secretref:database-url" "PIN_PEPPER=secretref:pin-pepper" `
+    "FRONTEND_ORIGIN=http://localhost:3000" "DEMO_MODE=true" "LOG_LEVEL=INFO" "AI_MODE=fake" -o none
 
 $fqdn = Invoke-Az containerapp show -n $App -g $Rg --query properties.configuration.ingress.fqdn -o tsv
 foreach ($i in 1..30) {
