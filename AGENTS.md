@@ -77,7 +77,7 @@ This file is:
 | `XREQ-019` | P2 | Frontend (Minhaz, Android app) | Backend (Anim) | Group controls on work Threads: create, members, roles, mute/pin/archive, leave, announce-only | `[PENDING]` | 2026-11-23 23:56 |
 | `XREQ-020` | P1 | Frontend (Minhaz, Android app) | Backend (Anim) | Worker can read own Follow-ups and Learning History; analytics trend and per-Worker counts | `[PENDING]` | 2026-11-23 23:56 |
 | `XREQ-021` | P2 | Frontend (Minhaz, Android app) | Backend (Anim) | Machine gaps: Remind a Worker, Idempotency-Key on overrides, Task filter by Machine | `[PENDING]` | 2026-11-23 23:56 |
-| `XREQ-022` | P1 | Frontend (Minhaz, Android app) | Backend (Anim), AI (Galib) | Chat: edit a draft before Send, Re-explanation draft and edit, term-linked Ask the Foreman | `[PENDING]` | 2026-11-23 23:56 |
+| `XREQ-022` | P1 | Frontend (Minhaz, Android app) | Backend (Anim), AI (Galib) | Chat: edit a draft before Send, Re-explanation draft and edit, term-linked Ask the Foreman | `[RESOLVED]` | 2026-11-23 23:56 |
 | `XREQ-023` | P2 | Frontend (Minhaz, Android app) | Backend (Anim) | Near-miss: Worker's own list, severity, Foreman translation, photo mark | `[PENDING]` | 2026-11-23 23:56 |
 | `XREQ-024` | P2 | Frontend (Minhaz, Android app) | Backend (Anim) | Foreman reads Asks; set Today's Word; Support Log JSON summary; transcript of voice Asks | `[PENDING]` | 2026-11-23 23:56 |
 | `XREQ-025` | P1 | Frontend (Minhaz, Android app) | Backend (Anim, Azure) | Host the release APK and run the release routine behind GET /app/config | `[PENDING]` | 2026-11-23 23:56 |
@@ -820,7 +820,7 @@ The still-open item 1 of XREQ-011. (1) `GET /follow-ups` is Foreman-only, so a W
 - **Priority**: `P1 (High)`
 - **From**: `Frontend (Minhaz, Android app)`
 - **To**: `Backend (Anim)`, `AI (Galib)`
-- **Status**: `[PENDING]`
+- **Status**: `[RESOLVED]`
 - **Created**: `2026-11-23 23:56 (UTC+6)`
 - **Target Interface / Endpoint**: `POST /api/threads/{id}/messages`, `POST /api/messages/{id}/send`, `POST /api/messages/{id}/reexplain`
 
@@ -828,9 +828,9 @@ The still-open item 1 of XREQ-011. (1) `GET /follow-ups` is Foreman-only, so a W
 The Foreman's flow is: dictate, see the transcript, edit, then send (Auto-send Countdown). The live routes create a draft from `text` or `audio` and `POST /messages/{id}/send` publishes it, but there is no way to **edit the draft text** between the two. Needed: `PATCH /messages/{id}` `{text}` on an unsent draft, which re-runs translation and Check Question generation (or says clearly in the Fulfillment block that `needsEdit` drafts are re-created by posting again). **Re-explanation:** `ReexplainIn` takes only `{userId, termJa}`; the app lets the Foreman see the simpler version first, edit it, and then send. Please add a draft step (`POST /messages/{id}/reexplain/draft` returning `{easyJa, explanation: Tri, question: {prompt: Tri, options: [Tri], termId}}`) or accept the edited `easyJa`, `explanation` and question in `ReexplainIn`. **Ask the Foreman:** a Worker taps "ask again" on a term; no route creates a message of kind `ask` (contract D-24): either add it (`POST /messages/{id}/ask` `{termJa}`) or tell us it is dropped.
 
 **Fulfillment & Proof (filled by recipient on completion):**
-- **Branch / Commit**: 
-- **Status / Notes**: 
-- **Verification Proof**: 
+- **Branch / Commit**: `main` (Galib, 2026-11-24, Galib built the routes as well as the AI part, at the user.s request).
+- **Status / Notes**: All three, names as proposed except where noted. (1) **`PATCH /api/messages/{id}` `{textJa}`** (Foreman, own unsent draft): runs `draft_message` again on the corrected Japanese and returns the draft like the POST (translations, questions, `taskDrafts`); the AI down → `needsEdit: true` with the Foreman's text; already sent → `409 ALREADY_SENT`. (2) **`POST /api/messages/{id}/reexplain/draft` `{userId, termJa}`** returns `{text, question}` and stores nothing: `text.ja` is the easy Japanese (your `easyJa`), the other languages are the explanation, `question` is a full `CheckQuestion` (with `termId`, `correctIndex`). Then **`POST /reexplain`** accepts the edited `text` and `question` (both or neither, else 422) and sends them as written with no model call; without them it works as before. (3) **`POST /api/messages/{id}/ask` `{termJa}`** (Worker, 201): a fixed sentence, no AI (「〇〇がわかりません。もう一度教えてください。」 / "I don't understand ..."), kind `ask`, `refMessageId` = the message, and one open Follow-up on the term for the Foreman (asking twice opens one).
+- **Verification Proof**: `tests/api/test_chat.py` (4 new tests: edit re-translates, edit without the model, re-explanation draft then edited send, Worker ask + Follow-up + roles); full backend suite, ruff, pyright strict, import-linter green; `docs/openapi.yaml` regenerated (3 new paths).
 
 #### `[XREQ-023]` Near-miss Reports: Worker's own list, severity, translation for the Foreman
 

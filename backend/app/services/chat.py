@@ -29,12 +29,15 @@ from app.repositories import work as work_repo
 from app.schemas.chat import (
     AnswerResult,
     AnswersIn,
+    AskForemanIn,
+    DraftEdit,
     FollowUpOut,
     FollowUpUpdate,
     MessageForSender,
     MessageForWorker,
     MessagesPage,
     NudgeIn,
+    ReexplainDraft,
     ReexplainIn,
     SendIn,
     TaskCreate,
@@ -256,20 +259,20 @@ def post_message(
     return _sender_view(db, row)
 
 
-def _draft(
+def _draft_ai(
     db: Session,
     who: Principal,
-    t: Thread,
+    thread_id: int,
     text: str | None,
     source: list[Part],
     audio: bytes | None,
-    key: uuid.UUID,
     ai: AiRunner,
     now: datetime,
-) -> MessageForSender:
-    shop_id, user_id = _me(who)
+) -> tuple[MessageDraft | None, list[AiTerm], tuple[str, ...]]:
+    """The draft_message pipeline on a Foreman's text or recording. Commits first: no transaction during the call."""
+    shop_id, _ = _me(who)
     terms = _glossary(db, shop_id)
-    people = repo.members(db, shop_id, t.id)
+    people = repo.members(db, shop_id, thread_id)
     machines = work_repo.all_machines(db, shop_id)
     languages = ai_languages(db, shop_id)
     db.commit()  # no transaction is held during the model call (§8.3)
@@ -299,28 +302,21 @@ def _draft(
     )
     member_ids, machine_ids = {str(u.id) for u in people}, {str(m.id) for m in machines}
     result = ai.run(request, lambda d: message_problems(d, terms, languages, member_ids, machine_ids), now)
+    return result.value, terms, languages
 
-    raced = repo.message_by_key(db, shop_id, user_id, key)
-    if raced is not None:
-        return _sender_view(db, raced)
-    d = result.value
-    row = Message(
-        shop_id=shop_id,
-        thread_id=t.id,
-        from_user_id=user_id,
-        kind="voice" if audio else "text",
-        language="ja",
-        transcript_ja=d.transcript_ja if d else text,
-        text_ja=d.text.ja if d else text,
-        translations={lang: getattr(d.text, lang) or "" for lang in languages} if d else {},
-        stage=3 if d else 0,
-        needs_edit=d is None,  # degraded (§10.4): the Foreman finishes the message before sending
-        idempotency_key=key,
-    )
-    db.add(row)
+
+def _apply_draft(
+    db: Session, row: Message, d: MessageDraft | None, text: str | None, terms: list[AiTerm], languages: tuple[str, ...]
+) -> MessageForSender:
+    """Writes the AI's draft (or the degraded one: stage 0, needsEdit) on an unsent message and returns the view."""
+    row.transcript_ja = d.transcript_ja if d else text
+    row.text_ja = d.text.ja if d else text
+    row.translations = {lang: getattr(d.text, lang) or "" for lang in languages} if d else {}
+    row.stage = 3 if d else 0
+    row.needs_edit = d is None  # degraded (§10.4): the Foreman finishes the message before sending
     db.flush()
     questions = [_question(q, n, terms, languages) for n, q in enumerate(d.questions, start=1)] if d else []
-    repo.set_check(db, shop_id, row.id, questions)
+    repo.set_check(db, row.shop_id, row.id, questions)
     db.commit()
     # shortcut: Task drafts live only in this response (no column); a retried POST returns none. Store them if needed.
     drafts = [
@@ -335,6 +331,57 @@ def _draft(
         for task in (d.tasks if d else [])
     ]
     return _for_sender(row, questions, drafts)
+
+
+def _draft(
+    db: Session,
+    who: Principal,
+    t: Thread,
+    text: str | None,
+    source: list[Part],
+    audio: bytes | None,
+    key: uuid.UUID,
+    ai: AiRunner,
+    now: datetime,
+) -> MessageForSender:
+    shop_id, user_id = _me(who)
+    thread_id = t.id
+    d, terms, languages = _draft_ai(db, who, thread_id, text, source, audio, ai, now)
+    raced = repo.message_by_key(db, shop_id, user_id, key)
+    if raced is not None:
+        return _sender_view(db, raced)
+    row = Message(
+        shop_id=shop_id,
+        thread_id=thread_id,
+        from_user_id=user_id,
+        kind="voice" if audio else "text",
+        language="ja",
+        stage=0,
+        idempotency_key=key,
+    )
+    db.add(row)
+    return _apply_draft(db, row, d, text, terms, languages)
+
+
+def _own_draft(db: Session, who: Principal, message_id: int, *, for_update: bool = False) -> Message:
+    shop_id, user_id = _me(who)
+    m = repo.message(db, shop_id, message_id, for_update=for_update)
+    if m is None or m.from_user_id != user_id:
+        raise _not_found()
+    if m.sent_at is not None:
+        raise ApiError(409, "ALREADY_SENT", "This message was already sent")
+    return m
+
+
+def edit_draft(
+    db: Session, who: Principal, message_id: int, body: DraftEdit, ai: AiRunner, now: datetime
+) -> MessageForSender:
+    """XREQ-022: the Foreman corrects the Japanese of an unsent draft; translations and Check Questions are made again
+    from it (a degraded result keeps the text with needsEdit, as for a new draft)."""
+    thread_id = _own_draft(db, who, message_id).thread_id
+    d, terms, languages = _draft_ai(db, who, thread_id, body.text_ja, [], None, ai, now)
+    m = _own_draft(db, who, message_id, for_update=True)  # sent meanwhile → 409
+    return _apply_draft(db, m, d, body.text_ja, terms, languages)
 
 
 def _check_people(db: Session, shop_id: int, user_ids: list[int], machine_id: int | None) -> None:
@@ -460,47 +507,81 @@ def update_follow_up(
     return _follow_up_out(f, names.get(f.user_id, ""))
 
 
-def reexplain(
-    db: Session, who: Principal, message_id: int, body: ReexplainIn, ai: AiRunner, now: datetime
-) -> MessageForSender:
-    """A simpler sentence on one missed term, sent to that Worker only, with one new question on the term."""
-    shop_id, user_id = _me(who)
+def _reexplain_target(db: Session, who: Principal, message_id: int, body: ReexplainIn) -> Message:
+    shop_id, _ = _me(who)
     m = _sent_message(db, who, message_id)
-    target = int(body.user_id)
-    if repo.membership(db, shop_id, m.thread_id, target) is None:
+    if repo.membership(db, shop_id, m.thread_id, int(body.user_id)) is None:
         raise ApiError(422, "VALIDATION_ERROR", "That Worker is not in this Thread")
+    return m
+
+
+def _reexplain_ai(
+    db: Session, who: Principal, m: Message, term_ja: str, ai: AiRunner, now: datetime
+) -> tuple[Reexplanation, list[AiTerm], tuple[str, ...]]:
+    shop_id, _ = _me(who)
     terms = _glossary(db, shop_id)
     languages = ai_languages(db, shop_id)
-    original, thread_id = m.text_ja or "", m.thread_id
+    original, message_id = m.text_ja or "", m.id
     db.commit()  # no transaction is held during the model call (§8.3)
-
     request = AiRequest(
         pipeline="reexplain",
         prompt=render(
             "reexplain",
             MESSAGE_PROMPT_VERSION,
             glossary=_glossary_block(terms),
-            term=body.term_ja,
+            term=term_ja,
             languages=", ".join(languages),
         ),
         parts=[Part.text(f"<original_message>{original}</original_message>")],
         schema=Reexplanation,
         scope=f"shop:{shop_id}",
-        cache_input=f"{message_id}:{body.term_ja}:{original}".encode(),
+        cache_input=f"{message_id}:{term_ja}:{original}".encode(),
         languages=languages,
     )
-    result = ai.run(request, lambda r: reexplain_problems(r, body.term_ja, terms, languages), now)
+    result = ai.run(request, lambda r: reexplain_problems(r, term_ja, terms, languages), now)
     if result.value is None:
         raise ApiError(503, "AI_UNAVAILABLE", "The re-explanation could not be made now; explain it in person")
-    r = result.value
+    return result.value, terms, languages
+
+
+def reexplain_draft(
+    db: Session, who: Principal, message_id: int, body: ReexplainIn, ai: AiRunner, now: datetime
+) -> ReexplainDraft:
+    """XREQ-022: the simpler version for the Foreman to read and edit first; nothing is stored or sent."""
+    m = _reexplain_target(db, who, message_id, body)
+    r, terms, languages = _reexplain_ai(db, who, m, body.term_ja, ai, now)
+    return ReexplainDraft.model_validate(
+        {"text": r.text.only(languages), "question": _question(r.question, 1, terms, languages)}
+    )
+
+
+def reexplain(
+    db: Session, who: Principal, message_id: int, body: ReexplainIn, ai: AiRunner, now: datetime
+) -> MessageForSender:
+    """A simpler sentence on one missed term, sent to that Worker only, with one new question on the term. With the
+    Foreman's edited `text` and `question` (XREQ-022) it is sent as written; otherwise the AI writes it."""
+    shop_id, user_id = _me(who)
+    if (body.text is None) != (body.question is None):
+        raise ApiError(
+            422, "VALIDATION_ERROR", "Send both text and question, or neither", {"fields": [{"loc": ["body"]}]}
+        )
+    m = _reexplain_target(db, who, message_id, body)
+    target, thread_id = int(body.user_id), m.thread_id
+    if body.text is not None and body.question is not None:
+        text = {str(k): v for k, v in body.text.items()}
+        question: dict[str, object] = {**body.question.model_dump(by_alias=True), "id": "q1"}
+    else:
+        r, terms, languages = _reexplain_ai(db, who, m, body.term_ja, ai, now)
+        text = {"ja": r.text.ja, **{lang: getattr(r.text, lang) or "" for lang in languages}}
+        question = _question(r.question, 1, terms, languages)
     row = Message(
         shop_id=shop_id,
         thread_id=thread_id,
         from_user_id=user_id,
         kind="reexplain",
         language="ja",
-        text_ja=r.text.ja,
-        translations={lang: getattr(r.text, lang) or "" for lang in languages},
+        text_ja=text["ja"],
+        translations={k: v for k, v in text.items() if k != "ja"},
         ref_message_id=message_id,
         to_user_id=target,
         stage=4,
@@ -508,10 +589,42 @@ def reexplain(
     )
     db.add(row)
     db.flush()
-    question = _question(r.question, 1, terms, languages)
     repo.set_check(db, shop_id, row.id, [question])
     db.commit()
     return _for_sender(row, [question])
+
+
+ASK_TEXT = {
+    "ja": "「{term}」がわかりません。もう一度教えてください。",
+    "en": "I don't understand \u201c{term}\u201d. Please explain it again.",
+}
+
+
+def ask_foreman(db: Session, who: Principal, message_id: int, body: AskForemanIn, now: datetime) -> MessageForSender:
+    """XREQ-022: a Worker taps "ask again" on a term of a sent message. A fixed sentence (no AI) goes to the Thread as
+    an `ask` message, and the Foreman gets a Follow-up on the term unless one is already open."""
+    shop_id, user_id = _me(who)
+    m = _sent_message(db, who, message_id)
+    language = next((u.language for u in repo.members(db, shop_id, m.thread_id) if u.id == user_id), "en")
+    texts = {lang: t.format(term=body.term_ja) for lang, t in ASK_TEXT.items()}
+    row = Message(
+        shop_id=shop_id,
+        thread_id=m.thread_id,
+        from_user_id=user_id,
+        kind="ask",
+        language=language,
+        text_ja=texts["ja"],
+        translations={k: v for k, v in texts.items() if k != "ja"},
+        ref_message_id=m.id,
+        stage=4,
+        sent_at=now,
+    )
+    db.add(row)
+    open_terms = {f.term_ja for f in repo.follow_ups_of(db, shop_id, m.id, user_id) if f.status != "understood"}
+    if body.term_ja not in open_terms:
+        db.add(FollowUp(shop_id=shop_id, message_id=m.id, user_id=user_id, term_ja=body.term_ja))
+    db.commit()
+    return _for_sender(row, [])
 
 
 def nudge(db: Session, who: Principal, message_id: int, body: NudgeIn, now: datetime) -> None:

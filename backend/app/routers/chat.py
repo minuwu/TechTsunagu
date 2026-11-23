@@ -15,11 +15,14 @@ from app.media import MAX_AUDIO_BYTES
 from app.schemas.chat import (
     AnswerResult,
     AnswersIn,
+    AskForemanIn,
+    DraftEdit,
     FollowUpOut,
     FollowUpUpdate,
     MessageForSender,
     MessagesPage,
     NudgeIn,
+    ReexplainDraft,
     ReexplainIn,
     SendIn,
     TaskCreate,
@@ -86,6 +89,15 @@ def poll_messages(
     return conditional_json(request, Envelope(data=page))
 
 
+@router.patch(
+    "/messages/{message_id}", summary="Edit an unsent draft's Japanese; the AI translates it again (XREQ-022)"
+)
+def edit_draft(
+    who: Foreman, message_id: IdIn, body: DraftEdit, db: DbSession, request: Request
+) -> Envelope[MessageForSender]:
+    return Envelope(data=chat.edit_draft(db, who, int(message_id), body, _ai(request), now_utc()))
+
+
 @router.post("/messages/{message_id}/send", summary="Send the edited draft; the Tasks kept go on the Task Board")
 def send_message(who: Foreman, message_id: IdIn, body: SendIn, db: DbSession) -> Envelope[MessageForSender]:
     return Envelope(data=chat.send(db, who, int(message_id), body, now_utc()))
@@ -116,6 +128,22 @@ def reexplain(
     who: Foreman, message_id: IdIn, body: ReexplainIn, db: DbSession, request: Request
 ) -> Envelope[MessageForSender]:
     return Envelope(data=chat.reexplain(db, who, int(message_id), body, _ai(request), now_utc()))
+
+
+@router.post(
+    "/messages/{message_id}/reexplain/draft", summary="See the Re-explanation before sending it; nothing is stored"
+)
+def reexplain_draft(
+    who: Foreman, message_id: IdIn, body: ReexplainIn, db: DbSession, request: Request
+) -> Envelope[ReexplainDraft]:
+    return Envelope(data=chat.reexplain_draft(db, who, int(message_id), body, _ai(request), now_utc()))
+
+
+@router.post(
+    "/messages/{message_id}/ask", status_code=201, summary="Worker: ask the Foreman to explain a term again (no AI)"
+)
+def ask_foreman(who: Worker, message_id: IdIn, body: AskForemanIn, db: DbSession) -> Envelope[MessageForSender]:
+    return Envelope(data=chat.ask_foreman(db, who, int(message_id), body, now_utc()))
 
 
 @router.post("/messages/{message_id}/nudge", summary="Show a Worker you are waiting for their answer (rate-limited)")

@@ -3554,6 +3554,67 @@
         ]
       }
     },
+    "/api/messages/{message_id}": {
+      "patch": {
+        "tags": [
+          "chat"
+        ],
+        "summary": "Edit an unsent draft's Japanese; the AI translates it again (XREQ-022)",
+        "operationId": "edit_draft_api_messages__message_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "message_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Message Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DraftEdit"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_MessageForSender_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "foreman"
+        ]
+      }
+    },
     "/api/messages/{message_id}/send": {
       "post": {
         "tags": [
@@ -3886,6 +3947,128 @@
         },
         "x-roles": [
           "foreman"
+        ]
+      }
+    },
+    "/api/messages/{message_id}/reexplain/draft": {
+      "post": {
+        "tags": [
+          "chat"
+        ],
+        "summary": "See the Re-explanation before sending it; nothing is stored",
+        "operationId": "reexplain_draft_api_messages__message_id__reexplain_draft_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "message_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Message Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReexplainIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_ReexplainDraft_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "foreman"
+        ]
+      }
+    },
+    "/api/messages/{message_id}/ask": {
+      "post": {
+        "tags": [
+          "chat"
+        ],
+        "summary": "Worker: ask the Foreman to explain a term again (no AI)",
+        "operationId": "ask_foreman_api_messages__message_id__ask_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "message_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Message Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AskForemanIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_MessageForSender_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "worker"
         ]
       }
     },
@@ -5807,6 +5990,23 @@
         "type": "object",
         "title": "ApproveIn"
       },
+      "AskForemanIn": {
+        "properties": {
+          "termJa": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Termja"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "termJa"
+        ],
+        "title": "AskForemanIn",
+        "description": "POST /messages/{id}/ask (XREQ-022): a Worker asks the Foreman to explain one term of a sent message again."
+      },
       "AskOut": {
         "properties": {
           "id": {
@@ -7348,6 +7548,23 @@
         ],
         "title": "DeviceOut"
       },
+      "DraftEdit": {
+        "properties": {
+          "textJa": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Textja"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "textJa"
+        ],
+        "title": "DraftEdit",
+        "description": "PATCH /messages/{id} (XREQ-022): the Foreman's corrected Japanese for an unsent draft. The AI translates it and\nmakes the Check Questions again, as for a new draft."
+      },
       "EffortOut": {
         "properties": {
           "drafts": {
@@ -8589,6 +8806,29 @@
           "data"
         ],
         "title": "Envelope[QrOut]"
+      },
+      "Envelope_ReexplainDraft_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/ReexplainDraft"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[ReexplainDraft]"
       },
       "Envelope_SenpaiPairCreated_": {
         "properties": {
@@ -12116,6 +12356,42 @@
         ],
         "title": "ReceiptWorker"
       },
+      "ReexplainDraft": {
+        "properties": {
+          "text": {
+            "additionalProperties": {
+              "type": "string",
+              "maxLength": 1000
+            },
+            "propertyNames": {
+              "enum": [
+                "ja",
+                "bn",
+                "en",
+                "vi",
+                "id",
+                "ne",
+                "my",
+                "tl",
+                "zh"
+              ]
+            },
+            "type": "object",
+            "title": "Text"
+          },
+          "question": {
+            "$ref": "#/components/schemas/CheckQuestion"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "text",
+          "question"
+        ],
+        "title": "ReexplainDraft",
+        "description": "POST /messages/{id}/reexplain/draft (XREQ-022): the simpler version to read and edit before sending.\n`text.ja` is the easy Japanese; the other languages are the explanation. Nothing is stored."
+      },
       "ReexplainIn": {
         "properties": {
           "userId": {
@@ -12128,6 +12404,44 @@
             "maxLength": 100,
             "minLength": 1,
             "title": "Termja"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string",
+                  "maxLength": 1000
+                },
+                "propertyNames": {
+                  "enum": [
+                    "ja",
+                    "bn",
+                    "en",
+                    "vi",
+                    "id",
+                    "ne",
+                    "my",
+                    "tl",
+                    "zh"
+                  ]
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          },
+          "question": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CheckQuestion"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "additionalProperties": false,
@@ -12136,7 +12450,8 @@
           "userId",
           "termJa"
         ],
-        "title": "ReexplainIn"
+        "title": "ReexplainIn",
+        "description": "POST /messages/{id}/reexplain. With `text` and `question` (the Foreman's edited draft from\n/reexplain/draft) it is sent as written and no model is called; without them the AI writes it (XREQ-022)."
       },
       "RosterEntry": {
         "properties": {
