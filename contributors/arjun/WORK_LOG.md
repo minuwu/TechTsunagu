@@ -1,15 +1,21 @@
 # Arjun's Work Log
 
-Owner: Arjun Saha (GitHub handle TBD) — Role: Frontend design
+Owner: Arjun Saha (`sillyfellow21`) — Role: Frontend design
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
 ## 2026-11-23 (frontend ↔ backend connection check)
 
 ### Done
-- `npm run check:api` (frontend): health, database readiness, CORS for `http://localhost:3000`, deployed contract vs `docs/openapi.yaml`, demo sign-in round trip (roster, login, Bearer `me`, `{items}` list, logout). Production: all pass, 67 paths in step with the repo.
+- `npm run check:api` (frontend): health, database readiness, CORS for `http://localhost:3000`, deployed contract vs `docs/openapi.yaml`, demo sign-in round trip (roster, login, Bearer `me`, `{items}` list, logout). Production: all pass, 74 paths in step with the repo (`46b62e9`, `dbd897d`).
 - Real browser on `localhost:3000` → hosted API: Foreman sign-in, Board, ETag readable from JS, `If-None-Match` → 304, logout. All work.
-- Links recorded: `frontend/.env.example` (hosted API URL, commented), `docs/FRONTEND_API_HANDOVER.md` (the check command).
+- Links recorded: `frontend/.env.example` (hosted API URL, commented), `docs/FRONTEND_API_HANDOVER.md` (the check command) (`4a8124a`).
+- Kept the frontend's generated API types in step with the contract twice (Anim's Interviews / Today's Word / app config / devices, then the Glossary PATCH), so frontend CI's contract step stays green.
+- `main` did not typecheck after the v4 push (v4 `LocaleSwitcher` still had `bn`): fixed (`b548cdd`). `.env.example` now selects v4, the new default kit; the Japan-map e2e test opens `/?ui=v3` (the map lives in v3).
+- Workflow from now on: merge `origin/main` into local `main`, push to `origin main`; no feature branches.
+
+### Open (others)
+- **Minhaz:** with v4 as default, 6 of 12 e2e tests fail (axe on `/` and `/me/w-rahim`, home headline, flyer Publish state): written in his work log; frontend CI stays red on `main` until fixed.
 
 ### Not connected yet (owners)
 - The app's screens still use the mock store: the client needs XREQ-001 (Bearer sign-in instead of shared PINs, `{items, nextCursor}` unwrap, path changes, Idempotency-Key). Owner Minhaz; not started (no branch).
