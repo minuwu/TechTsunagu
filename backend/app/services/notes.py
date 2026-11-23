@@ -23,7 +23,7 @@ from app.schemas.work import NoteVersionOut, Step
 from app.services.ai_runner import AiRequest, AiRunner
 from app.services.auth import Principal
 
-NOTE_PROMPT_VERSION = 1
+NOTE_PROMPT_VERSION = 2
 AI_LANGUAGES = ("bn", "en")  # shortcut: the AI schema is fixed to ja/bn/en (Galib); per-shop languages after the demo
 
 

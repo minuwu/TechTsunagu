@@ -48,7 +48,7 @@ from app.schemas.work import CheckIn, CheckResult, WrongQuestion
 from app.services.ai_runner import AiRequest, AiRunner
 from app.services.auth import Principal
 
-NOTICE_PROMPT_VERSION = 1
+NOTICE_PROMPT_VERSION = 2
 LANGUAGES = ("ja", "bn", "en")  # shortcut: the AI schema is fixed to ja/bn/en (as notes.AI_LANGUAGES)
 PLACEHOLDER = "（ここを入力してください）"  # a degraded draft's empty fields; publish refuses while one is left
 NEXT_DATES = 3
