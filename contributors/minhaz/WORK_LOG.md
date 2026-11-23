@@ -4,6 +4,12 @@ Owner: Minhaz (`minuwu`) — Role: Frontend / Full-Stack / Architecture
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-23 (from Arjun: v4 is the default, frontend CI needs you)
+
+- **Fixed for you:** `ui/v4/components/LocaleSwitcher.tsx` still had `bn: 'বাংলা'`, which no longer typechecks (Locale is `ja | en`), so `tsc` failed on `main`. `.env.example` now says `VITE_UI_VERSION=v4`, matching your new default (it still said v3).
+- **Still red with v4 as default** (Playwright in CI mode, as CI runs it): axe violations on `/` and `/me/w-rahim`; the home tests expect the h1 `Understood at work. Understood at home.` / `職場でも、くらしでも、わかった。`; the flyer flow expects `Publish` disabled before the dates are confirmed. 6 of 12 fail. These are in your kit, so I did not change them.
+- The Japan-map test now opens `/?ui=v3`, so it passes whatever the default kit is. The map lives in v3; say if you want it in v4.
+
 ## 2026-11-23 (handoff from Arjun: v3 redesign is on `main`, please review)
 
 Arjun fast-forwarded `feat/techtsunagu-ui` (10 commits, up to `80f34b8`) into `main` **without a PR**, so it still needs your review even though it touches shared files. Details: [docs/design-system.md](../../docs/design-system.md) and [Arjun's WORK_LOG](../arjun/WORK_LOG.md).
