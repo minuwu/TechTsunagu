@@ -72,7 +72,16 @@ This file is:
 | `XREQ-014` | P1 | Backend (Anim) | Frontend (Minhaz, Android + Firebase) | Firebase for push: project, Android app, FCM token upload to `PUT /api/devices/me`, service-account key to Anim privately | `[PENDING]` | 2026-11-23 19:30 |
 | `XREQ-015` | P0 | Backend (Anim) | Backend (Asif, Azure owner) | Give Anim's Azure account Contributor on the Wakatta resource group (Asif is off the project; Anim runs deploy now) | `[RESOLVED]` | 2026-11-23 19:30 |
 | `XREQ-016` | P0 | AI (Galib) | Frontend (Minhaz, Arjun; Android: Minhaz) | Chatbot screen on the Worker home and the Machine screen: `POST /api/knowledge/asks` (cited answer + self-check; emergency card; not covered → forward to Senpai) | `[IN_PROGRESS]` (web done; Android open) | 2026-11-23 23:00 |
-| `XREQ-017` | P1 | Frontend (Minhaz, Android app) | Backend (Anim), AI (Galib) | Contacts, My QR, Contact Threads, Talk Threads and group controls (the open part of XREQ-010); notification list stays push-only | `[PENDING]` | 2026-11-23 19:50 |
+| `XREQ-017` | P1 | Frontend (Minhaz, Android app) | Backend (Anim), AI (Galib) | Contacts, My QR, Contact Threads (routes now live; Talk Threads and group controls moved to XREQ-018 and 019); notification list stays push-only | `[PENDING]` | 2026-11-23 19:50 |
+| `XREQ-018` | P1 | Frontend (Minhaz, Android app) | Backend (Anim), AI (Galib) | Talk Threads: threads and entries routes plus the two AI pipelines | `[PENDING]` | 2026-11-23 23:56 |
+| `XREQ-019` | P2 | Frontend (Minhaz, Android app) | Backend (Anim) | Group controls on work Threads: create, members, roles, mute/pin/archive, leave, announce-only | `[PENDING]` | 2026-11-23 23:56 |
+| `XREQ-020` | P1 | Frontend (Minhaz, Android app) | Backend (Anim) | Worker can read own Follow-ups and Learning History; analytics trend and per-Worker counts | `[PENDING]` | 2026-11-23 23:56 |
+| `XREQ-021` | P2 | Frontend (Minhaz, Android app) | Backend (Anim) | Machine gaps: Remind a Worker, Idempotency-Key on overrides, Task filter by Machine | `[PENDING]` | 2026-11-23 23:56 |
+| `XREQ-022` | P1 | Frontend (Minhaz, Android app) | Backend (Anim), AI (Galib) | Chat: edit a draft before Send, Re-explanation draft and edit, term-linked Ask the Foreman | `[PENDING]` | 2026-11-23 23:56 |
+| `XREQ-023` | P2 | Frontend (Minhaz, Android app) | Backend (Anim) | Near-miss: Worker's own list, severity, Foreman translation, photo mark | `[PENDING]` | 2026-11-23 23:56 |
+| `XREQ-024` | P2 | Frontend (Minhaz, Android app) | Backend (Anim) | Foreman reads Asks; set Today's Word; Support Log JSON summary; transcript of voice Asks | `[PENDING]` | 2026-11-23 23:56 |
+| `XREQ-025` | P1 | Frontend (Minhaz, Android app) | Backend (Anim, Azure) | Host the release APK and run the release routine behind GET /app/config | `[PENDING]` | 2026-11-23 23:56 |
+| `XREQ-026` | P2 | Frontend (Minhaz, Android app) | Backend (Anim, Azure) | App Links: a host, assetlinks.json and a web fallback for QR and share links | `[PENDING]` | 2026-11-23 23:56 |
 *(When adding a request: append a row above AND add a detailed card in 2.2. Never insert in the middle.)*
 
 ### 2.2 Detailed Request Cards
@@ -730,7 +739,165 @@ Push (XREQ-014): a new Contact message sends one generic push "New message from 
 
 **Fulfillment & Proof (filled by recipient on completion):**
 - **Branch / Commit**: 
-- **Status / Notes**:  2026-11-23 Anim: **items 1 and 2 live** (migration `21d9f849b5c9`, tables `qr_tokens`, `contacts`, `blocks`, `contact_messages`; no shop scope, no Foreman/Poster/Support Log route reads them). Paths as proposed: `POST /api/me/qr`, `GET /api/contacts/resolve?token=`, `POST|GET /api/contacts`, `PUT /api/contacts/{id}`, `POST /api/blocks`, `DELETE /api/blocks/{contactId}`, `GET|POST /api/contacts/{id}/messages`. **One change:** `POST /me/qr` returns `token` only when it is created or rotated (only its SHA-256 is stored); otherwise `token: null` with `createdAt`: keep the token on the phone, call with `rotate: true` after a reinstall. `POST /contacts` connects both sides; contact `hidden` is in the item and hides it from the list. Messages: `{id, fromMe, textSrc, srcLang, text, createdAt}`, `text` in the reader's language (the original when the model is down); optional `Idempotency-Key`; 20 resolves and 30 sends per minute. A blocked sender gets 201 and nothing is delivered; the blocker's list and thread hide that Contact until unblocked. Push: after XREQ-014. Items 3 (Talk Threads, needs Galib's `explain_utterance` / `grade_understanding`) and 4 (group controls) are next.
+- **Status / Notes**: 2026-11-23 Minhaz: items 3 (Talk Threads) and 4 (group controls) are re-filed as XREQ-018 and XREQ-019 so they can be answered alone; items 1 and 2 (My QR, Contacts, Contact messages, blocks) are in `docs/openapi.yaml`: the Android app will wire them and reply here. 2026-11-23 Anim: **items 1 and 2 live** (migration `21d9f849b5c9`, tables `qr_tokens`, `contacts`, `blocks`, `contact_messages`; no shop scope, no Foreman/Poster/Support Log route reads them). Paths as proposed: `POST /api/me/qr`, `GET /api/contacts/resolve?token=`, `POST|GET /api/contacts`, `PUT /api/contacts/{id}`, `POST /api/blocks`, `DELETE /api/blocks/{contactId}`, `GET|POST /api/contacts/{id}/messages`. **One change:** `POST /me/qr` returns `token` only when it is created or rotated (only its SHA-256 is stored); otherwise `token: null` with `createdAt`: keep the token on the phone, call with `rotate: true` after a reinstall. `POST /contacts` connects both sides; contact `hidden` is in the item and hides it from the list. Messages: `{id, fromMe, textSrc, srcLang, text, createdAt}`, `text` in the reader's language (the original when the model is down); optional `Idempotency-Key`; 20 resolves and 30 sends per minute. A blocked sender gets 201 and nothing is delivered; the blocker's list and thread hide that Contact until unblocked. Push: after XREQ-014. Items 3 (Talk Threads, needs Galib's `explain_utterance` / `grade_understanding`) and 4 (group controls) are next.
+- **Verification Proof**: 
+
+#### `[XREQ-018]` Talk Threads: threads, entries and the two AI pipelines
+
+- **Priority**: `P1 (High)`
+- **From**: `Frontend (Minhaz, Android app)`
+- **To**: `Backend (Anim)`, `AI (Galib)`
+- **Status**: `[PENDING]`
+- **Created**: `2026-11-23 23:56 (UTC+6)`
+- **Target Interface / Endpoint**: `/api/talk-threads` (none of it exists in `docs/openapi.yaml` yet, 82 paths)
+
+**Requirement Details:**
+Split out of XREQ-017 item 3 so it can be answered alone. The Android app has the full Talk Thread UI on a Fake. Rules: [ADR 0014](docs/adr/0014-personal-threads-outside-shop-scope-and-private-from-the-employer.md) (private to the owner, outside shop scope, hard delete, never notifies, never visible to Foreman, Poster or the Support Log), GLOSSARY "Talk Thread". Routes: `GET|POST /talk-threads` (title 1 to 40 chars, Idempotency-Key), `PATCH|DELETE /talk-threads/{id}`, `GET|POST /talk-threads/{id}/entries` (text or audio upload, Idempotency-Key), `PATCH|DELETE /talk-threads/{id}/entries/{entryId}`. An Entry is `{ id, transcript, plainJa, meaning (owner's language), terms:[{dialect,plain,meaning}], needsStaff (deterministic rule, not the model), ownText, grade: null|green|orange|red, replyOptions:[…], replyJa, confirmed: null|bool, createdAt }`. `PATCH` on an entry takes one of `{ownText}` (re-grades), `{replyJa}`, `{confirmed}`. AI pipelines (Galib): `explain_utterance` (transcript to plainJa, meaning, dialect terms; Kyushu dialect aware) and `grade_understanding` (ownText against meaning). On AI failure return the entry with `transcript` only and `needsEdit: true`, never a 500. Prototype logic to mirror: `prototypes/wakatta/parts/D.js` (`UTTER`, `grade`, `exCard`). Full proposal: XREQ-017 item 3.
+
+**Expected Response (Status Code + Payload / Error Codes):**
+```json
+{ "success": true, "data": { "id": "9", "title": "Elderly 1", "updatedAt": "2026-11-23T10:00:00Z", "entryCount": 0 } }
+```
+
+**Fulfillment & Proof (filled by recipient on completion):**
+- **Branch / Commit**: 
+- **Status / Notes**: 
+- **Verification Proof**: 
+
+#### `[XREQ-019]` Group controls on work Threads
+
+- **Priority**: `P2 (Normal)`
+- **From**: `Frontend (Minhaz, Android app)`
+- **To**: `Backend (Anim)`
+- **Status**: `[PENDING]`
+- **Created**: `2026-11-23 23:56 (UTC+6)`
+- **Target Interface / Endpoint**: `POST /api/threads`, `GET|PATCH /api/threads/{id}`, `/api/threads/{id}/members`, `PUT /api/threads/{id}/me`, `POST /api/threads/{id}/leave` (today only `GET /api/threads` exists)
+
+**Requirement Details:**
+Split out of XREQ-017 item 4. Today a Foreman cannot create a group Thread, rename it or manage members from the app: `GET /threads` is the only thread route. Needed: `POST /threads` `{title, description, memberIds[], announceOnly}` (Foreman, Idempotency-Key) · `GET /threads/{id}` `{id,title,description,announceOnly,locked,members:[{userId,displayName,role admin|member,joinedAt}]}` · `PATCH /threads/{id}` `{title,description,announceOnly}` (409 `THREAD_LOCKED` for a locked Safety-notices thread) · `POST /threads/{id}/members` `{userIds[]}` · `PATCH /threads/{id}/members/{userId}` `{role}` (a thread keeps at least one Foreman admin: 409) · `DELETE /threads/{id}/members/{userId}` (soft removal, history stays, a new member sees messages from the join time) · `PUT /threads/{id}/me` `{muted,pinned,archived}` · `POST /threads/{id}/leave`. Workers get 403 on member changes. In an announce-only thread a Worker cannot post but can still answer Checks. System messages: `kind:"system"` with `{event,actorId,subjectId}` (the client renders the text per language). Mute is notification-only: Nudge and Check deadlines ignore it.
+
+**Fulfillment & Proof (filled by recipient on completion):**
+- **Branch / Commit**: 
+- **Status / Notes**: 
+- **Verification Proof**: 
+
+#### `[XREQ-020]` Worker reads for Follow-ups and Learning History, plus the analytics trend
+
+- **Priority**: `P1 (High)`
+- **From**: `Frontend (Minhaz, Android app)`
+- **To**: `Backend (Anim)`
+- **Status**: `[PENDING]`
+- **Created**: `2026-11-23 23:56 (UTC+6)`
+- **Target Interface / Endpoint**: `GET /api/follow-ups` (foreman only today), new `GET /api/workers/me/learning`, new analytics read
+
+**Requirement Details:**
+The still-open item 1 of XREQ-011. (1) `GET /follow-ups` is Foreman-only, so a Worker cannot see their own open and clarified Follow-ups; the `learning` screen needs it. Please allow a Worker to read their own (filtered by the token, never another user's), or add `GET /workers/me/learning` returning the Worker's timeline `{items:[{termJa, missedAt, clarifiedAt|null, understoodAt|null, status}], streakDays}`. (2) The `analytics` screen needs the understanding trend and per-Worker counts: a read such as `GET /analytics/understanding?days=30` returning `{trend:[{day,green,orange,red}], perWorker:[{workerId,displayName,green,orange,red}], topTerms:[{termJa,count}]}` (Foreman only). `GET /heatmap` and `GET /metrics/effort` already cover part of it.
+
+**Fulfillment & Proof (filled by recipient on completion):**
+- **Branch / Commit**: 
+- **Status / Notes**: 
+- **Verification Proof**: 
+
+#### `[XREQ-021]` Machine screen gaps: Remind a Worker, override idempotency, Tasks by Machine
+
+- **Priority**: `P2 (Normal)`
+- **From**: `Frontend (Minhaz, Android app)`
+- **To**: `Backend (Anim)`
+- **Status**: `[PENDING]`
+- **Created**: `2026-11-23 23:56 (UTC+6)`
+- **Target Interface / Endpoint**: new `POST /api/machines/{machine_id}/remind`, `POST /api/machines/{machine_id}/overrides`, `GET /api/tasks`
+
+**Requirement Details:**
+(1) **Remind a Worker** (Panel, Foreman): the button "remind this Worker to take the Check" has no route; propose `POST /machines/{id}/remind` `{workerId}` that sends one generic push (same rules as Nudge: ids only, no text). (2) **Idempotency-Key on `POST /machines/{id}/overrides`**: `OverrideIn` has `workerId, minutes, reason` and no key; a retry on a bad network can create two overrides. Please accept an optional `Idempotency-Key` header like `/tasks` and `/meetups` do. (3) **`GET /tasks?machineId=`** filter (the Machine screen lists a Machine's Tasks; it fetches all today). Not a gap, FYI: `PanelOut` already has `versionNo`; the app will use it.
+
+**Fulfillment & Proof (filled by recipient on completion):**
+- **Branch / Commit**: 
+- **Status / Notes**: 
+- **Verification Proof**: 
+
+#### `[XREQ-022]` Chat: edit the draft before Send, Re-explanation draft, "ask the Foreman" message
+
+- **Priority**: `P1 (High)`
+- **From**: `Frontend (Minhaz, Android app)`
+- **To**: `Backend (Anim)`, `AI (Galib)`
+- **Status**: `[PENDING]`
+- **Created**: `2026-11-23 23:56 (UTC+6)`
+- **Target Interface / Endpoint**: `POST /api/threads/{id}/messages`, `POST /api/messages/{id}/send`, `POST /api/messages/{id}/reexplain`
+
+**Requirement Details:**
+The Foreman's flow is: dictate, see the transcript, edit, then send (Auto-send Countdown). The live routes create a draft from `text` or `audio` and `POST /messages/{id}/send` publishes it, but there is no way to **edit the draft text** between the two. Needed: `PATCH /messages/{id}` `{text}` on an unsent draft, which re-runs translation and Check Question generation (or says clearly in the Fulfillment block that `needsEdit` drafts are re-created by posting again). **Re-explanation:** `ReexplainIn` takes only `{userId, termJa}`; the app lets the Foreman see the simpler version first, edit it, and then send. Please add a draft step (`POST /messages/{id}/reexplain/draft` returning `{easyJa, explanation: Tri, question: {prompt: Tri, options: [Tri], termId}}`) or accept the edited `easyJa`, `explanation` and question in `ReexplainIn`. **Ask the Foreman:** a Worker taps "ask again" on a term; no route creates a message of kind `ask` (contract D-24): either add it (`POST /messages/{id}/ask` `{termJa}`) or tell us it is dropped.
+
+**Fulfillment & Proof (filled by recipient on completion):**
+- **Branch / Commit**: 
+- **Status / Notes**: 
+- **Verification Proof**: 
+
+#### `[XREQ-023]` Near-miss Reports: Worker's own list, severity, translation for the Foreman
+
+- **Priority**: `P2 (Normal)`
+- **From**: `Frontend (Minhaz, Android app)`
+- **To**: `Backend (Anim)`
+- **Status**: `[PENDING]`
+- **Created**: `2026-11-23 23:56 (UTC+6)`
+- **Target Interface / Endpoint**: `GET /api/near-misses`, `POST /api/near-misses`, `NearMissOut`
+
+**Requirement Details:**
+Live: `POST /near-misses` (machineId, text, audio, photo), `GET /near-misses` (Foreman only), `POST .../ack`, `GET .../photo`. Missing for the prototype's screens: (1) a Worker must list and open their own reports ("My reports"): allow `GET /near-misses` for a Worker filtered to themselves, and a get-by-id `GET /near-misses/{id}`; (2) `NearMissOut` (`id, workerId, machineId, text, photo, createdAt, acknowledgedAt`) has no **translation for the Foreman**: add `textJa` (and the original `text` with its `lang`); (3) `severity` (`low|mid|high`) on create and in the output, and the photo mark position `{x,y}` (0 to 1); (4) the Task created from a Near-miss: `taskId` or a route; (5) the reporter's display name for the Foreman list.
+
+**Fulfillment & Proof (filled by recipient on completion):**
+- **Branch / Commit**: 
+- **Status / Notes**: 
+- **Verification Proof**: 
+
+#### `[XREQ-024]` Asks for the Foreman, Today's Word setter, Support Log summary, voice Ask transcript
+
+- **Priority**: `P2 (Normal)`
+- **From**: `Frontend (Minhaz, Android app)`
+- **To**: `Backend (Anim)`, `AI (Galib)` for item 4
+- **Status**: `[PENDING]`
+- **Created**: `2026-11-23 23:56 (UTC+6)`
+- **Target Interface / Endpoint**: `GET /api/asks`, `GET /api/today-word`, new `GET /api/support-log/summary`
+
+**Requirement Details:**
+(1) `GET /asks` is `worker` only (`x-roles`): the Foreman's Ask screen (Asks forwarded to the Senpai, covered or not) cannot read them. Allow the Foreman to list the shop's Asks. (2) **Today's Word:** `GET /today-word` is Foreman-only and nothing sets it. Add `PUT /today-word` `{word, reading, meaning}` for a Worker (one word of their language, shown to the Japanese side), keeping the Foreman read. (3) **Support Log JSON summary** `GET /support-log/summary?month=YYYY-MM` (Foreman): `{meetups, noticeChecks, interviews, perWorker:[{workerId,displayName,meetups,noticeChecks,interviews}]}` so the screen does not parse the CSV (`GET /support-log.csv` stays for the file). (4) **Voice Asks** are saved with an empty `text` (contract D-11): keep the transcript in `AskOut.text` (add to `AskDraft`).
+
+**Fulfillment & Proof (filled by recipient on completion):**
+- **Branch / Commit**: 
+- **Status / Notes**: 
+- **Verification Proof**: 
+
+#### `[XREQ-025]` Host the release APK; update `GET /app/config` on each release
+
+- **Priority**: `P1 (High)`
+- **From**: `Frontend (Minhaz, Android app)`
+- **To**: `Backend (Anim, Azure)`
+- **Status**: `[PENDING]`
+- **Created**: `2026-11-23 23:56 (UTC+6)`
+- **Target Interface / Endpoint**: Azure Blob Storage (or static hosting), env `APP_MIN_VERSION`, `APP_LATEST_VERSION`, `APP_DOWNLOAD_URL`, `APP_SHA256`
+
+**Requirement Details:**
+The app updates itself from `GET /app/config` (`minVersion, latestVersion, downloadUrl, sha256`), which is live. No Google Play: the signed APK must be reachable over HTTPS without a login. Please (1) create a public read-only container (for example in `wakatta-rg`) or static path for `wakatta-<version>.apk`, with `Content-Type: application/vnd.android.package-archive`; (2) tell us how to upload (a command or script in `backend/deploy/`), and how the four env values are changed and the API restarted, so a release is: upload, set env, done; (3) reply with the first real `downloadUrl`. The Release Owner (Minhaz) builds the APK and its SHA-256 (`android/tools/release/build-release.sh`).
+
+**Fulfillment & Proof (filled by recipient on completion):**
+- **Branch / Commit**: 
+- **Status / Notes**: 
+- **Verification Proof**: 
+
+#### `[XREQ-026]` App Links host, `assetlinks.json` and web fallback
+
+- **Priority**: `P2 (Normal)`
+- **From**: `Frontend (Minhaz, Android app)`
+- **To**: `Backend (Anim, Azure)`
+- **Status**: `[PENDING]`
+- **Created**: `2026-11-23 23:56 (UTC+6)`
+- **Target Interface / Endpoint**: `https://<host>/.well-known/assetlinks.json`, `https://<host>/m/{machineId}?s={shopCode}`
+
+**Requirement Details:**
+Machine QR stickers and shared links open the app directly (Android App Links, see [MOBILE_PLATFORM_CONTRACT.md](docs/MOBILE_PLATFORM_CONTRACT.md) section 2). That needs (1) a stable HTTPS host: tell us which (the API FQDN or a custom domain; the app currently has a placeholder `[HOST]`); (2) `GET https://<host>/.well-known/assetlinks.json` served as `application/json` with package `com.techtsunagu.wakatta` and the SHA-256 certificate fingerprint of the release key (Minhaz sends the fingerprint when the keystore exists; a debug fingerprint can be added for testing); (3) a minimal web fallback for `/m/{machineId}` and `/c/{token}` (a page that says "open in the Wakatta? app" with the download link from XREQ-025) for phones without the app. Paths and shapes are in the platform contract; change a name if your routing needs it.
+
+**Fulfillment & Proof (filled by recipient on completion):**
+- **Branch / Commit**: 
+- **Status / Notes**: 
 - **Verification Proof**: 
 
 ### 2.3 Blank XREQ Template (copy & paste)

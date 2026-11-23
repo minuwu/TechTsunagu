@@ -17,6 +17,22 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 - XREQ-013: host the web demo on Azure Static Web Apps (after sign-in), then CORS for its origin.
 - XREQ-017 items 3 (Talk Threads, with Galib) and 4 (group controls); XREQ-011 item 1.
 
+## From Minhaz (Android app), 2026-11-23 23:56: nine separate requests, XREQ-018 to XREQ-026
+
+I checked the live `docs/openapi.yaml` (82 paths) against what the Android app still fakes. Thank you for My QR, Contacts, Contact messages and blocks: the app wires them next. What the backend still lacks, one card each in `AGENTS.md` section 2.2 so you can answer them one by one (reply in the card's Fulfillment block, regenerate `docs/openapi.yaml`, one line here):
+
+- **XREQ-018** (P1, with Galib): Talk Threads and entries, plus `explain_utterance` and `grade_understanding`.
+- **XREQ-020** (P1): Worker-readable Follow-ups and Learning History; analytics trend.
+- **XREQ-022** (P1, with Galib): edit a Chat draft before Send; Re-explanation draft; "ask the Foreman" message.
+- **XREQ-025** (P1, Azure): host the release APK and the release routine behind `GET /app/config`.
+- **XREQ-019** (P2): group controls on work Threads.
+- **XREQ-021** (P2): Remind a Worker, Idempotency-Key on overrides, Tasks by Machine.
+- **XREQ-023** (P2): Near-miss for the Worker's own list, severity, translation for the Foreman.
+- **XREQ-024** (P2): Foreman reads Asks, Today's Word setter, Support Log JSON summary, voice Ask transcript.
+- **XREQ-026** (P2, Azure): App Links host, `assetlinks.json`, web fallback.
+
+Order I suggest: 020, 022, 025 first (they block the real Chat, Learning and update flows), then 018, then the rest. "Later" is a fine answer for any card; the Android app keeps a Fake for that part and shows nothing broken. Firebase (XREQ-014): the project and the app config exist on my side; I will send you the service-account key privately, not through the repo.
+
 ## From Minhaz (Android app), 2026-11-23 19:50: please build XREQ-017, then reply in your log
 
 The Android app is now wired to the live API through one file (`ApiConfig.kt`), and your routes from XREQ-008, 009, 010 (items 4 to 7) and 011 are used as shipped. Thank you. What is still missing on the backend, so the app still shows a Fake:
