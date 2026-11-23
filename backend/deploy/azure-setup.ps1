@@ -8,7 +8,7 @@
 # Container App / Job secrets, and never printed.
 # Usage: powershell -ExecutionPolicy Bypass -File backend\deploy\azure-setup.ps1
 . "$PSScriptRoot\common.ps1"
-$GithubRepo = "minuwu/TechTsunagu"; $CiIdentity = "wakatta-ci"
+$CiIdentity = "wakatta-ci"
 
 Step "providers and resource group"
 Invoke-Az config set extension.use_dynamic_install=yes_without_prompt -o none
@@ -18,10 +18,19 @@ foreach ($p in "Microsoft.App", "Microsoft.OperationalInsights", "Microsoft.DBfo
 Invoke-Az group create -n $Rg -l $Loc -o none
 $rgId = Invoke-Az group show -n $Rg --query id -o tsv
 
+# Retries because a just-created identity or custom role takes a short while to become visible to role assignment.
 function Grant($principal, $role, $scope) {
-    if (-not (Invoke-Az role assignment list --assignee $principal --scope $scope --role $role --query "[0].id" -o tsv)) {
-        Invoke-Az role assignment create --assignee-object-id $principal --assignee-principal-type ServicePrincipal `
-            --role $role --scope $scope -o none
+    foreach ($attempt in 1..12) {
+        try {
+            if (-not (Invoke-Az role assignment list --assignee $principal --scope $scope --role $role --query "[0].id" -o tsv)) {
+                Invoke-Az role assignment create --assignee-object-id $principal --assignee-principal-type ServicePrincipal `
+                    --role $role --scope $scope -o none
+            }
+            return
+        } catch {
+            if ($attempt -eq 12) { throw }
+            Start-Sleep -Seconds 10
+        }
     }
 }
 
@@ -73,8 +82,12 @@ foreach ($a in (Invoke-Az role assignment list --assignee $ciPrincipal --scope $
 }
 
 # Only a workflow running on the main branch of this repository can sign in as wakatta-ci.
-$subject = "repo:${GithubRepo}:ref:refs/heads/main"
-if (-not (Invoke-Az identity federated-credential list --identity-name $CiIdentity -g $Rg --query "[?name=='github-main'].name" -o tsv)) {
+# This repository presents its ID-based subject (owner and repo numeric IDs), not the plain repo name: use the form
+# shown in the azure/login log ("subject claim"), or Azure answers AADSTS700213.
+$subject = "repo:minuwu@84508269/TechTsunagu@1466841300:ref:refs/heads/main"
+if (Invoke-Az identity federated-credential list --identity-name $CiIdentity -g $Rg --query "[?name=='github-main'].name" -o tsv) {
+    Invoke-Az identity federated-credential update --identity-name $CiIdentity -g $Rg --name github-main --subject $subject -o none
+} else {
     Invoke-Az identity federated-credential create --identity-name $CiIdentity -g $Rg --name github-main `
         --issuer "https://token.actions.githubusercontent.com" --subject $subject --audiences "api://AzureADTokenExchange" -o none
 }
@@ -112,8 +125,9 @@ if (Invoke-Az containerapp list -g $Rg --query "[?name=='$App'].name" -o tsv) {
     Step "$App already exists: setup is complete (CI ships code from now on)"; return
 }
 
-try { $ref = Invoke-Az acr repository show-tags -n $acr --repository $Image --orderby time_desc --top 1 -o tsv }
-catch { $ref = $null }  # the repository does not exist until CI pushes the first image
+# Newest commit-tagged image (never the mutable "latest"). The repository does not exist until CI pushes one.
+try { $ref = @(Invoke-Az acr repository show-tags -n $acr --repository $Image --orderby time_desc --top 5 -o tsv) | Where-Object { $_ -and $_ -ne "latest" } | Select-Object -First 1 }
+catch { $ref = $null }
 if (-not $ref) {
     Step "infrastructure ready. No image yet: push to main so CI builds it, then run this script again."; return
 }
