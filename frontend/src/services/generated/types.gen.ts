@@ -1158,6 +1158,21 @@ export type EnvelopePageMachineOut = {
 };
 
 /**
+ * Envelope[Page[MeetupOut]]
+ */
+export type EnvelopePageMeetupOut = {
+    /**
+     * Success
+     */
+    success?: true;
+    data: PageMeetupOut;
+    /**
+     * Message
+     */
+    message?: string;
+};
+
+/**
  * Envelope[Page[NearMissOut]]
  */
 export type EnvelopePageNearMissOut = {
@@ -2600,6 +2615,20 @@ export type PageMachineOut = {
      * Items
      */
     items: Array<MachineOut>;
+    /**
+     * Nextcursor
+     */
+    nextCursor: string | null;
+};
+
+/**
+ * Page[MeetupOut]
+ */
+export type PageMeetupOut = {
+    /**
+     * Items
+     */
+    items: Array<MeetupOut>;
     /**
      * Nextcursor
      */
@@ -4912,6 +4941,40 @@ export type RevokePairApiSenpaiPairsPairIdDeleteResponses = {
 };
 
 export type RevokePairApiSenpaiPairsPairIdDeleteResponse = RevokePairApiSenpaiPairsPairIdDeleteResponses[keyof RevokePairApiSenpaiPairsPairIdDeleteResponses];
+
+export type ListMeetupsApiMeetupsGetData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Limit
+         */
+        limit?: number;
+        /**
+         * Cursor
+         */
+        cursor?: string | null;
+    };
+    url: '/api/meetups';
+};
+
+export type ListMeetupsApiMeetupsGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ListMeetupsApiMeetupsGetError = ListMeetupsApiMeetupsGetErrors[keyof ListMeetupsApiMeetupsGetErrors];
+
+export type ListMeetupsApiMeetupsGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopePageMeetupOut;
+};
+
+export type ListMeetupsApiMeetupsGetResponse = ListMeetupsApiMeetupsGetResponses[keyof ListMeetupsApiMeetupsGetResponses];
 
 export type WorkerMeetupApiMeetupsPostData = {
     body: MeetupCreate;
