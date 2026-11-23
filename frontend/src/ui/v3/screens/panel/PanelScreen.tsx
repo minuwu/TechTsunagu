@@ -1,6 +1,8 @@
+import { useState } from 'react'
 import { pick } from '@/domain/wakatta'
-import { usePanel } from '@/features/panel'
+import { usePanel, type PanelState } from '@/features/panel'
 import { m } from '@/i18n/paraglide/messages'
+import { Moment } from '@/ui/v3/components/Moment'
 import { StatePlate } from '@/ui/v3/components/StatePlate'
 import { statusLabel } from '@/ui/v3/components/StatusChip'
 import { uiLang } from '@/ui/v3/lib/format'
@@ -8,6 +10,13 @@ import { uiLang } from '@/ui/v3/lib/format'
 /** Machine Panel: the tablet beside the Machine. Software lock only (ADR 0003). */
 export function PanelScreen() {
   const p = usePanel()
+  // The signature moment: only a live change from Locked to Ready plays the unlock, never a page load
+  const [seen, setSeen] = useState<PanelState>(p.state)
+  const [unlocked, setUnlocked] = useState(false)
+  if (seen !== p.state) {
+    setSeen(p.state)
+    setUnlocked(seen === 'locked' && p.state === 'ready')
+  }
   if (p.loading)
     return (
       <div aria-busy="true" className="skeleton min-h-[60vh] rounded-lg">
@@ -21,7 +30,18 @@ export function PanelScreen() {
         {pick(p.machine.name, uiLang())}
       </h1>
       <div role="status" aria-live="polite">
-        <StatePlate state={p.state} size="lg" className="min-h-[55vh]">
+        <StatePlate
+          state={p.state}
+          size="lg"
+          className="min-h-[55vh]"
+          art={
+            unlocked ? (
+              <span className="grid size-44 shrink-0 place-items-center rounded-full bg-card shadow-[var(--shadow-md)] sm:size-56">
+                <Moment id="machine-unlock" className="w-[85%]" />
+              </span>
+            ) : undefined
+          }
+        >
           {p.worker && (
             <p className="text-2xl font-bold sm:text-3xl">
               {p.worker.name}

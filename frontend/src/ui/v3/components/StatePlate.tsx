@@ -29,11 +29,14 @@ export const plateWord = (s: PlateState) =>
 export function StatePlate({
   state,
   size = 'md',
+  art,
   children,
   className,
 }: {
   state: PlateState
   size?: 'sm' | 'md' | 'lg'
+  /** Shown instead of the mark, e.g. the unlock moment right after the plate turns Ready */
+  art?: ReactNode
   children?: ReactNode
   className?: string
 }) {
@@ -65,19 +68,21 @@ export function StatePlate({
               : 'px-4 py-3',
         )}
       >
-        <span
-          aria-hidden="true"
-          className={cn(
-            'grid shrink-0 place-items-center rounded-full',
-            state === 'idle' ? 'bg-card' : 'bg-white/15',
-            lg ? 'size-24 sm:size-28' : sm ? 'size-7' : 'size-10',
-          )}
-        >
-          <Mark
-            id={MARK[state]}
-            className={lg ? 'size-12 sm:size-14' : sm ? 'size-4' : 'size-5'}
-          />
-        </span>
+        {art ?? (
+          <span
+            aria-hidden="true"
+            className={cn(
+              'grid shrink-0 place-items-center rounded-full',
+              state === 'idle' ? 'bg-card' : 'bg-white/15',
+              lg ? 'size-24 sm:size-28' : sm ? 'size-7' : 'size-10',
+            )}
+          >
+            <Mark
+              id={MARK[state]}
+              className={lg ? 'size-12 sm:size-14' : sm ? 'size-4' : 'size-5'}
+            />
+          </span>
+        )}
         <p
           className={cn(
             'display leading-none',
