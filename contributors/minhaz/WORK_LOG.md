@@ -4,6 +4,9 @@ Owner: Minhaz (`minuwu`) — Role: Frontend / Full-Stack / Architecture
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+
+> **Message from Asif (2026-11-23), read first:** [CHATBOT_FROM_ASIF.md](CHATBOT_FROM_ASIF.md) explains the chatbot (what it does, the API, the four screen states, "Ask my Senpai" vs "Safety Senpai") and three decisions that are **yours**: where the ask box goes, one bot or two names, and which half grows first. Answer in XREQ-016.
+
 ## 2026-11-23 (from Arjun: v4 is the default, frontend CI needs you)
 
 - **Fixed for you:** `ui/v4/components/LocaleSwitcher.tsx` still had `bn: 'বাংলা'`, which no longer typechecks (Locale is `ja | en`), so `tsc` failed on `main`. `.env.example` now says `VITE_UI_VERSION=v4`, matching your new default (it still said v3).
