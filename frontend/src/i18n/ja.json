@@ -418,5 +418,14 @@
   "demo_loading": "読み込み中",
   "demo_empty": "データなし",
   "demo_error": "接続エラー",
-  "panel_unknown_word": "不明"
+  "panel_unknown_word": "不明",
+  "lp_manifesto": "宣言",
+  "lp_label_system": "しくみ",
+  "lp_label_why": "なぜ違うか",
+  "lp_label_beyond": "その先",
+  "lp_label_courses": "コース",
+  "lp_label_access": "はじめる",
+  "lp_label_demo": "デモ",
+  "lp_all_courses": "18コースをすべて見る",
+  "lp_scroll": "スクロール"
 }

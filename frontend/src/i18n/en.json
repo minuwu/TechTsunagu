@@ -418,5 +418,14 @@
   "demo_loading": "Loading",
   "demo_empty": "Empty",
   "demo_error": "Error",
-  "panel_unknown_word": "UNKNOWN"
+  "panel_unknown_word": "UNKNOWN",
+  "lp_manifesto": "Manifesto",
+  "lp_label_system": "System",
+  "lp_label_why": "Why different",
+  "lp_label_beyond": "Beyond",
+  "lp_label_courses": "Courses",
+  "lp_label_access": "Access",
+  "lp_label_demo": "Demo",
+  "lp_all_courses": "All 18 courses",
+  "lp_scroll": "Scroll"
 }

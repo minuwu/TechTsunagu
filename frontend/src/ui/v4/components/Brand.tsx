@@ -1,9 +1,6 @@
 import { cn } from '@/ui/v4/lib/utils'
 
-/**
- * The mark: Nagasaki's Megane bridge. Two arches and their reflection close into a pair of circles.
- * Decorative; the app name always sits beside it.
- */
+/** Nagasaki Megane Bridge: geometric stepped arches with reflection forming circles. */
 export function BridgeMark({
   className,
   draw = false,
@@ -16,23 +13,24 @@ export function BridgeMark({
       viewBox="0 0 48 28"
       fill="none"
       stroke="currentColor"
-      strokeWidth={2.25}
-      strokeLinecap="round"
+      strokeWidth={2}
+      strokeLinecap="square"
+      strokeLinejoin="miter"
       aria-hidden="true"
       className={cn('shrink-0', className)}
     >
+      <path d="M2 14V8h4V4h16v4h4V4h16v4h4v6" />
       <path
-        d="M5 14a9 9 0 0 1 18 0M25 14a9 9 0 0 1 18 0"
+        d="M6 14a8 8 0 0 1 16 0M26 14a8 8 0 0 1 16 0"
         pathLength={1}
         className={draw ? 'arc-draw' : undefined}
       />
       <path
-        d="M5 14a9 9 0 0 0 18 0M25 14a9 9 0 0 0 18 0"
+        d="M6 14a8 8 0 0 0 16 0M26 14a8 8 0 0 0 16 0"
         pathLength={1}
-        opacity={0.45}
         className={draw ? 'arc-draw-late' : undefined}
       />
-      <path d="M1.5 14h45" strokeWidth={1.5} opacity={0.7} />
+      <path d="M1 14h46" />
     </svg>
   )
 }

@@ -34,6 +34,61 @@ Arjun fast-forwarded `feat/techtsunagu-ui` (10 commits, up to `80f34b8`) into `m
 ### Verified (locally, on the merged code; GitHub CI not seen yet)
 - Typecheck and lint clean; Playwright e2e 11/11 on the production build with axe on every screen; separate axe sweep of all screens in the night theme and the error states: clean.
 - Playwright now runs with `reducedMotion: 'reduce'` by default; tests that check motion opt in with `test.use({ reducedMotion: 'no-preference' })`.
+## 2026-11-23 (Android app plan, backend requests)
+
+### Completed
+- Native Android app decided ([ADR 0015](../../docs/adr/0015-native-android-app-in-android-folder.md)): Kotlin, Compose, Material 3, folder `android/`, applicationId `com.techtsunagu.wakatta`, direct signed release APK kept in `android/release/`, mock mode until a backend is hosted.
+- Plans and contracts: [ANDROID_ARCHITECTURE.md](../../docs/ANDROID_ARCHITECTURE.md) (30 work packages, performance rules), [ANDROID_RELEASE.md](../../docs/ANDROID_RELEASE.md), [MOBILE_API_CONTRACT.md](../../docs/MOBILE_API_CONTRACT.md) (76 live operations on 64 paths), [MOBILE_PLATFORM_CONTRACT.md](../../docs/MOBILE_PLATFORM_CONTRACT.md).
+- Filed **XREQ-008 to XREQ-011** in AGENTS.md for Asif, Anim and Galib (hosted URL, app config and push, personal side, gaps in live routes).
+- Decided with the user: Room 2.8.5, primary blue `#1f63b5`, no Poster role in the app for now.
+- Prototype: Talk Threads, My QR and Contacts, Periodic Interview, Today's Word (see the entry below).
+
+### Next
+- Android scaffold (WP-0A) is being built by a worker; then up to six feature packages in parallel.
+- Switch the app to the real API once XREQ-008 answers with a public base URL.
+
+### Blockers / handoff
+- **Asif:** XREQ-008 (P0) needs the public HTTPS base URL of `wakatta-api`, a seeded shop code and the PIN rule. Nothing in the repo records the host name.
+- **Asif, Anim, Galib:** XREQ-009 to 011 list the routes the app still needs.
+
+### Related issues / commits / PRs
+- `f93a044` docs(android): add architecture and release plans, refresh the API contract, file XREQ-008 to 011
+
+## 2026-11-23 (v4 kit art, Brand kit setup, Periodic Interview in the prototype)
+
+### Completed
+- v4 UI kit (`frontend/src/ui/v4/`): a restyled copy of v3 in cream `#E3E2DE` / jet black `#141414` / cobalt `#1351AA`, 12-column hairline grid with a sticky label column, 0px corners, no shadows, Aileron 800 headlines, light theme only. Every v3 screen is ported; logic, routes and copy are untouched (A-01…A-09). It is `DEFAULT_KIT` in `shell/ui-registry.ts`; v1, v2 and v3 stay reachable with `?ui=`. Decision in [ADR 0012](../../docs/adr/0012-v4-poster-modernist-kit-is-the-default.md).
+- SVG art for v4, flat in the kit palette (the safety-signs course keeps the JIS/ISO safety colours), drafted with Gemini workers:
+  - 18 course covers (`art/courses/`, shown by `CourseArt` in the Course screen).
+  - 43 equipment drawings for Inspect (`art/inspect/`, three groups, used in `Doors.tsx`) covering 14 of the 18 courses. The other four (safety-signs, shisa-kanko, tamagake, welding) are not drawn yet.
+  - 32 pictograms (`art/pictograms.tsx`). No screen imports them yet.
+  - A hero poster of Nagasaki's Megane Bridge (`components/HeroArt.tsx`, used on the Landing page).
+- Redrew `Icon.tsx` with a bold 2-unit stroke and gave `BridgeMark` square caps and a stepped deck. `PosterRow` now takes `to` and renders a router `Link`.
+- Restyled Home, Landing, Course screen and Doors on the new art; added nine landing strings (`lp_*`) in ja / en / bn.
+- Brand kit setup (no assets built yet). [ADR 0013](../../docs/adr/0013-brand-kit-mascot-two-blues-vector-only.md): the mascot Nekko, two blues, vector only, a Mixed style (Poster Modernist hero, footer and social; rounded playful icons, spot art and Lottie), a deliberate departure from ADR 0012's "cream, black and cobalt, 0px" rule. `docs/brand/SPEC.md` is the build contract for the agents and `docs/brand/SCENES.md` lists every icon, favicon, wordmark, Lottie, hero, footer and spot file. `docs/brand/tools/` has `render.cjs`, `sheet.py`, `lottie-check.cjs`, `trace.py` and `recolor.py` (heavy dependencies stay outside the repo). The source drawing is `docs/brand/source/nekko-original.jpg`. `frontend/public/brand/master/` exists but is empty, `nekko_lottie.py` and `docs/brand/README.md` (both named in the spec) are not written yet, and nothing is wired into `frontend/src`.
+- Prototype (`prototypes/wakatta/`, parts D and E, rebuilt into `app.html`):
+  - **Periodic Interview** (定期面談, support item 10, at least every 3 months): a Foreman-only sheet per Worker with the due date, what the app already knows since the last interview (Meet-ups, Notice Checks, Confusions, forwarded Asks), six questions with hints, and a record form (method, consent, note). Three seeded states: Rahim ok, Nguyen due in days, Siti overdue.
+  - **Today's Word**: one word of a Worker's language (Bengali, Vietnamese, Indonesian) shown on the Japanese side.
+  - The Support Log now counts Periodic Interviews, and the KPI tiles are labelled "demo value".
+- [GLOSSARY.md](../../GLOSSARY.md): added **Periodic Interview**, **Today's Word** and the Brand terms **Nekko**, **Brand kit**, **Site cobalt**, **Icon blue**; widened **Support Log** to include Periodic Interviews.
+- [AGENTS.md](../../AGENTS.md): filed **XREQ-007** (P1, to Galib for the bake-off and the choice, to Asif and Anim for the seam): pick the Japanese ⇄ English transcription and translation models by a bake-off on our own audio, not by free-tier quota. Deadline Tue 2026-11-24 10:00 (UTC+6), before the 14:00 filming window.
+- Checked today: `npm run typecheck` passes, `eslint src/ui/v4 --max-warnings 0` passes, `node --check` passes on prototype `D.js` and `E.js`. I did not open the prototype in a browser, and I did not run the Brand kit tools.
+
+### Next
+- Build the Brand kit per `docs/brand/SPEC.md`: the master Nekko files in `frontend/public/brand/master/` first, then icons, favicons, wordmark, Lottie, hero, footer and spot art, then the Icon-blue twins with `recolor.py`. Write `docs/brand/README.md` and `nekko_lottie.py`, then wire the favicon links and a Lottie player into `frontend/src`.
+- Draw Inspect art for safety-signs, shisa-kanko, tamagake and welding, and use the 32 pictograms in a screen or drop them.
+- Darken the two tokens that fail the accessibility bars, `--label` (`#7A7A7A` on cream, about 3.3:1, needs 4.5:1) and `--rule` (`#C7C7C7`, about 1.3:1, needs 3:1), in `ui/v4/tokens.css`. Until then the A-07 pre-demo checklist does not fully pass for v4.
+- Port the Periodic Interview sheet and Today's Word from the prototype to the React kits (they exist only in `prototypes/wakatta/` today).
+- `git pull origin main` before pushing: Arjun added Hind Siliguri for Bengali and Foreman desktop layouts in the v3 kit (`a1411c0`, `14e0b14`). Agree with him on the overlap before either of us ports the other's work; v4 is a separate kit, so there is no file clash today. v4 may want the Bengali font too.
+- Replace the `// verify:` numbers in the course library with primary sources (carried over from the course library entry).
+
+### Blockers / handoff
+- **Galib, Asif, Anim:** XREQ-007 is `[PENDING]`; the bake-off numbers are due Tue 2026-11-24 10:00 (UTC+6).
+- `vitest` still fails to start: `vitest.config.ts` lists `./vitest.setup.ts` in `setupFiles` and the file is missing, so v4 has no unit-test coverage.
+
+### Related issues / commits / PRs
+- `441e92a` feat(frontend): add the v4 Poster Modernist kit base (tokens, layout, flat primitives) and make it the default
+- feat(frontend): add the v4 course and Inspect art, pictograms, hero poster, redrawn icons, restyled Home, Landing, Course and Doors, and ADR 0012.
 
 ## 2026-11-23 (brand kit)
 

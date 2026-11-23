@@ -418,5 +418,14 @@
   "demo_loading": "লোড হচ্ছে",
   "demo_empty": "খালি",
   "demo_error": "ত্রুটি",
-  "panel_unknown_word": "অজানা"
+  "panel_unknown_word": "অজানা",
+  "lp_manifesto": "ঘোষণা",
+  "lp_label_system": "সিস্টেম",
+  "lp_label_why": "কেন আলাদা",
+  "lp_label_beyond": "তার পরে",
+  "lp_label_courses": "কোর্স",
+  "lp_label_access": "শুরু করো",
+  "lp_label_demo": "ডেমো",
+  "lp_all_courses": "সব ১৮টি কোর্স",
+  "lp_scroll": "স্ক্রল"
 }

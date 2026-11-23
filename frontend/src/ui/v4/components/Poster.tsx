@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { Link } from '@tanstack/react-router'
 import { cn } from '@/ui/v4/lib/utils'
 
 /** A grid-locked section: columns 1-3 carry a sticky label, 4-12 the content (one column on phones). */
@@ -52,6 +53,7 @@ export function PosterRow({
   sub,
   aside,
   onClick,
+  to,
   className,
 }: {
   n: number
@@ -59,6 +61,7 @@ export function PosterRow({
   sub?: ReactNode
   aside?: ReactNode
   onClick?: () => void
+  to?: string
   className?: string
 }) {
   const body = (
@@ -77,6 +80,12 @@ export function PosterRow({
       )}
     </>
   )
+  if (to)
+    return (
+      <Link to={to} className={cn('poster-row', className)}>
+        {body}
+      </Link>
+    )
   return onClick ? (
     <button
       type="button"

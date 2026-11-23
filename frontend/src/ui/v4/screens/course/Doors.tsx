@@ -4,6 +4,7 @@ import { plain, rubyParts } from '@/domain/course'
 import { pick, type Tri } from '@/domain/wakatta'
 import { useQuiz, useReel } from '@/features/course'
 import { m } from '@/i18n/paraglide/messages'
+import { INSPECT_ART } from '@/ui/v4/art/inspect'
 import { Card } from '@/ui/v4/components/Card'
 import { Button } from '@/ui/v4/components/ui/button'
 import { uiLang } from '@/ui/v4/lib/format'
@@ -109,19 +110,42 @@ export function ReadDoor({
           {m.course_translation()}
         </Toggle>
       </div>
-      <ol className="space-y-3">
-        {lines.map((t, i) => (
-          <li
-            key={i}
-            className={cn(
-              'card-surface p-4',
-              mode === 'comic' && PANELS[i]?.who === 'worker' && 'sm:ml-12',
-              mode === 'comic' && PANELS[i]?.who === 'foreman' && 'sm:mr-12',
-            )}
-          >
-            <Line t={t} furi={furi} trans={trans} />
-          </li>
-        ))}
+      <ol className="border-t border-[var(--rule)]">
+        {lines.map((t, i) => {
+          const who = mode === 'comic' ? PANELS[i]?.who : undefined
+          return (
+            <li
+              key={i}
+              className={cn(
+                'flex gap-4 border-b border-[var(--rule)] p-4 sm:p-6',
+                who === 'foreman' &&
+                  'bg-foreground text-background [&_p]:text-background',
+                who === 'worker' && 'md:ml-24',
+              )}
+            >
+              <span
+                aria-hidden="true"
+                className={cn(
+                  'poster-index tnum shrink-0 pt-1',
+                  who === 'foreman' && '!text-background/70',
+                )}
+              >
+                {String(i + 1).padStart(2, '0')}
+              </span>
+              <span
+                aria-hidden="true"
+                className={cn(
+                  'mt-1.5 size-4 shrink-0',
+                  who === 'worker' ? 'bg-primary' : 'bg-current',
+                  !who && 'hidden',
+                )}
+              />
+              <div className="min-w-0 flex-1">
+                <Line t={t} furi={furi} trans={trans} />
+              </div>
+            </li>
+          )
+        })}
       </ol>
       <Button onClick={onFinish} disabled={done}>
         {done ? m.course_done() : m.course_finish_read()}
@@ -183,31 +207,6 @@ export function WatchDoor({
   )
 }
 
-// Two parts per item so the exploded-view slider can pull them apart; `bad` is drawn only on a defective sample
-const GENERIC_SHAPE = {
-  body: 'M16 20h68v22H16z',
-  cap: 'M40 8h20v12H40z',
-  bad: 'M36 22l10 8-8 6 10 6',
-}
-
-const SHAPES: Record<string, { body: string; cap: string; bad: string }> = {
-  harness: {
-    body: 'M10 8h20l20 32 20-32h20v6H74L50 52 26 14H10z',
-    cap: 'M42 26h16v10H42z',
-    bad: '',
-  },
-  wheel: {
-    body: 'M50 10a22 22 0 1 0 .01 0zM50 26a6 6 0 1 1-.01 0z',
-    cap: 'M38 6h24v5H38z',
-    bad: 'M44 14l6 10-4 6 8 12',
-  },
-  clamp: {
-    body: 'M18 24h64v16H18z',
-    cap: 'M46 6h8v18h-8z',
-    bad: 'M44 8l12 6-12 6 12 6',
-  },
-}
-
 /** Door 4: tap the check points, pull the parts apart, then pass or reject. */
 export function InspectDoor({
   course,
@@ -224,7 +223,7 @@ export function InspectDoor({
   const [right, setRight] = useState<Record<string, boolean>>({})
   const [wrong, setWrong] = useState(false)
   const item = INSPECT[i]!
-  const shape = SHAPES[item.id] ?? GENERIC_SHAPE
+  const art = INSPECT_ART[`${course.id}/${item.id}`]
   const looked = seen[item.id] ?? []
 
   const judge = (reject: boolean) => {
@@ -255,33 +254,43 @@ export function InspectDoor({
       </div>
       <Card title={pick(item.name, lang)}>
         <svg
-          viewBox="0 0 100 60"
-          className="w-full max-w-md"
+          viewBox="0 0 100 100"
+          className="w-full max-w-md border border-[var(--rule)]"
           role="img"
           aria-label={pick(item.name, lang)}
         >
-          <g
-            transform={`translate(0 ${gap / 4})`}
-            className="fill-muted stroke-foreground"
-            strokeWidth="0.8"
-            fillRule="evenodd"
-          >
-            <path d={shape.body} />
+          <g className="stroke-[var(--rule)]" strokeWidth="0.3">
+            <path d="M25 0v100M50 0v100M75 0v100M0 25h100M0 50h100M0 75h100" />
           </g>
-          <g
-            transform={`translate(0 ${-gap / 2})`}
-            className="fill-card stroke-foreground"
-            strokeWidth="0.8"
-          >
-            <path d={shape.cap} />
+          <g transform={`translate(0 ${gap / 4})`}>
+            {art ? (
+              art.body
+            ) : (
+              <rect
+                x="16"
+                y="40"
+                width="68"
+                height="30"
+                className="fill-muted stroke-foreground"
+                strokeWidth="2"
+              />
+            )}
           </g>
-          {item.defective && (
-            <path
-              d={shape.bad}
-              className="fill-none stroke-destructive"
-              strokeWidth="1.6"
-            />
-          )}
+          <g transform={`translate(0 ${-gap / 2})`}>
+            {art ? (
+              art.cap
+            ) : (
+              <rect
+                x="38"
+                y="22"
+                width="24"
+                height="18"
+                className="fill-primary stroke-foreground"
+                strokeWidth="2"
+              />
+            )}
+          </g>
+          {item.defective && art?.bad}
           {item.spots.map((s, n) => (
             <foreignObject
               key={n}
