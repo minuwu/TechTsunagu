@@ -22,17 +22,19 @@ function New-Secret([int]$n) {
     [System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
     -join ($bytes | ForEach-Object { $chars[$_ % 64] })
 }
-# Wait until the newest revision of the API is the ready one and /api/health/ready answers; returns the host name.
-# (Right after an update the old revision still answers, so its health alone proves nothing.)
+# Wait until the API's newest revision is Healthy and /api/health/ready answers; returns the host name.
+# Express environments keep one revision name ("--latest") and never fill latestReadyRevisionName, so check the
+# revision's own health; the first pause lets an update replace the old reading.
 function Wait-Ready {
     $fqdn = Invoke-Az containerapp show -n $App -g $Rg --query properties.configuration.ingress.fqdn -o tsv
+    Start-Sleep -Seconds 30
     foreach ($i in 1..40) {
-        $rev = @(Invoke-Az containerapp show -n $App -g $Rg `
-                --query "[properties.latestRevisionName, properties.latestReadyRevisionName]" -o tsv)
-        if ($rev[0] -and $rev[0] -eq $rev[1]) {
+        $latest = Invoke-Az containerapp show -n $App -g $Rg --query properties.latestRevisionName -o tsv
+        $health = Invoke-Az containerapp revision show -n $App -g $Rg --revision $latest --query properties.healthState -o tsv
+        if ($health -eq "Healthy") {
             try {
-                $null = Invoke-RestMethod "https://$fqdn/api/health/ready" -TimeoutSec 10
-                Write-Host "[$(Get-Date -Format HH:mm:ss)] ready: https://$fqdn (revision $($rev[0]))"
+                $null = Invoke-RestMethod "https://$fqdn/api/health/ready" -TimeoutSec 20
+                Write-Host "[$(Get-Date -Format HH:mm:ss)] ready: https://$fqdn"
                 return $fqdn
             } catch { }
         }
