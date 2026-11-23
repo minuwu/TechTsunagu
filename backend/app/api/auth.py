@@ -5,6 +5,7 @@ from datetime import UTC, datetime
 from typing import Annotated
 
 from fastapi import Depends, Request
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from app.api.errors import ApiError
@@ -39,10 +40,15 @@ def _bearer(request: Request) -> str:
     return token.strip()
 
 
-def require(*roles: str, allow_pin_change: bool = False) -> Callable[[Request, Session], Principal]:
+# Declares the Bearer scheme in the OpenAPI contract (XREQ-008); auto_error off so our own 401 envelope still answers.
+_BEARER_SCHEME = HTTPBearer(auto_error=False)
+BearerDeclared = Annotated[HTTPAuthorizationCredentials | None, Depends(_BEARER_SCHEME)]
+
+
+def require(*roles: str, allow_pin_change: bool = False) -> Callable[..., Principal]:
     """Dependency: 401 without a valid session, 403 for another role or before the first-login PIN change."""
 
-    def dependency(request: Request, db: DbSession) -> Principal:
+    def dependency(request: Request, db: DbSession, _: BearerDeclared) -> Principal:
         who = auth_service.authenticate(db, _bearer(request), now_utc())
         if who.role not in roles:
             raise ApiError(403, "FORBIDDEN", "Not allowed for your role")

@@ -62,11 +62,11 @@ This file is:
 | `XREQ-006` | P1 | Frontend (Minhaz) | AI (Galib) | Chat AI: voice → transcript → translation → Check Questions → Task extraction (`build_message`), Worker reply translation, Re-explanation | `[PENDING]` | 2026-11-22 17:55 |
 | `XREQ-007` | P1 | Frontend (Minhaz) | AI (Galib), Backend (Asif, Anim) | Pick the Japanese ⇄ English transcription and translation models by a bake-off on our own audio, not on free-tier quota | `[IN_PROGRESS]` | 2026-11-23 03:48 |
 
-| `XREQ-008` | P0 | Frontend (Minhaz, Android app) | Backend (Asif) | Hosted API: public base URL, test shop and accounts, health check, Bearer scheme in `openapi.yaml` | `[PENDING]` | 2026-11-23 08:25 |
+| `XREQ-008` | P0 | Frontend (Minhaz, Android app) | Backend (Asif) | Hosted API: public base URL, test shop and accounts, health check, Bearer scheme in `openapi.yaml` | `[DONE]` | 2026-11-23 08:25 |
 | `XREQ-009` | P1 | Frontend (Minhaz, Android app) | Backend (Asif) | App platform routes: `GET /app/config` (version gate), device registration, notification list, photo limits | `[PENDING]` | 2026-11-23 08:25 |
 | `XREQ-010` | P1 | Frontend (Minhaz, Android app) | Backend (Anim, Asif) | Personal side: Contacts, My QR, Talk Threads, group controls, Periodic Interviews, Today's Word, Near-miss | `[PENDING]` | 2026-11-23 08:25 |
 | `XREQ-011` | P2 | Frontend (Minhaz, Android app) | Backend (Anim), AI (Galib) | Gaps in live routes: Worker reads, ETag and Idempotency-Key, get-one Notice, Glossary PATCH, analytics, per-shop AI languages, XREQ status upkeep | `[PENDING]` | 2026-11-23 08:25 |
-| `XREQ-012` | P1 | Backend (Anim, database) | Backend (Asif, deploy) | Point the Azure API at the Supabase database (`backend/deploy/SUPABASE.md`), reseed, smoke, then delete Azure PostgreSQL | `[PENDING]` | 2026-11-23 17:30 |
+| `XREQ-012` | P1 | Backend (Anim, database) | Backend (Asif, deploy) | Point the Azure API at the Supabase database (`backend/deploy/SUPABASE.md`), reseed, smoke, then delete Azure PostgreSQL | `[DONE]` | 2026-11-23 17:30 |
 
 | `XREQ-013` | P1 | Frontend (Arjun) | Backend (Asif, deploy) | Host the frontend demo on Azure Static Web Apps (static build, `npm run build:static`) and reply with the live URL | `[PENDING]` | 2026-11-23 18:30 |
 *(When adding a request: append a row above AND add a detailed card in 2.2. Never insert in the middle.)*
@@ -187,7 +187,7 @@ Errors: `403 FORBIDDEN` (not a Foreman), `404 NOT_FOUND` (another shop's Briefin
 
 **Fulfillment & Proof (filled by recipient on completion):**
 - **Branch / Commit**: 
-- **Status / Notes**: 2026-11-23 Asif: **all 7 items accepted as written**, `httpx` approved as a runtime dependency. Galib builds items 1–4 and 7 (`AI_CHAIN`, ladder with Groq Whisper, per-model budgets, settings, `ai_pipelines.py`; the `transcribed` value for `note_versions.ai_outcome` needs a migration: ask Asif, schema owner). Asif builds items 5 (`GET /briefings/{id}/receipts`; the glossary already lives in `app/seed_data/`) and 6 (`approvedBy` on Note Version). `GROQ_API_KEY` is in `.env.example` and in Asif's local `.env`. Also decided: Anim takes Skill Matrix / Heatmap / Skill Passport (WS5) from Asif's list.
+- **Status / Notes**: 2026-11-23 Asif: **all 7 items accepted as written**, `httpx` approved as a runtime dependency. Galib builds items 1–4 and 7 (`AI_CHAIN`, ladder with Groq Whisper, per-model budgets, settings, `ai_pipelines.py`; the `transcribed` value for `note_versions.ai_outcome` needs a migration: ask Asif, schema owner). Asif builds items 5 (`GET /briefings/{id}/receipts`; the glossary already lives in `app/seed_data/`) and 6 (`approvedBy` on Note Version). `GROQ_API_KEY` is in `.env.example` and in Asif's local `.env`. Also decided: Anim takes Skill Matrix / Heatmap / Skill Passport (WS5) from Asif's list. 2026-11-23 Anim (Asif's items, Asif is off the project): item 5 done, `GET /briefings/{id}/receipts` in `backend/app/routers/briefings.py`; item 6 done, `approvedBy` on Note Version (`617e11e`). Galib's items 1–4 and 7 are his to close.
 - **Verification Proof**: 
 
 #### `[XREQ-004]` "Dictate instead", degraded-draft message and provenance line
@@ -362,7 +362,7 @@ No API or error-code change.
 - **Priority**: `P0 (Blocker)`
 - **From**: `Frontend (Minhaz, Android app)`
 - **To**: `Backend (Asif)`
-- **Status**: `[PENDING]`
+- **Status**: `[DONE]`
 - **Created**: `2026-11-23 08:25 (UTC+6)`
 - **Target Interface / Endpoint**: `https://<host>/api/health/ready`, `docs/openapi.yaml`
 
@@ -386,9 +386,9 @@ GET {base}/api/auth/roster?shopCode={code}
 ```
 
 **Fulfillment & Proof (filled by recipient on completion):**
-- **Branch / Commit**: 
-- **Status / Notes**: 
-- **Verification Proof**: 
+- **Branch / Commit**: `main` (this commit)
+- **Status / Notes**: 2026-11-23 Anim. (1) Base URL `https://wakatta-api.agreeablestone-840cfb57.japaneast.azurecontainerapps.io` (one environment, no staging); `GET /api/health/ready` answers 200 from outside Azure. (2) Shop code `SASEBO01` (second shop `ISAHAYA2` for isolation), district `MINATO26` for Posters; Foreman 山口 隆, Workers Rahim Uddin, Sadia Akter, Tanvir Hasan, 田中 健; demo PINs and the PIN rule are in `docs/FRONTEND_API_HANDOVER.md` §2–3 and `backend/README.md`. (3) The hosted database (Supabase) holds the demo seed; reset = `backend/deploy/reset-demo.ps1` (Azure access) or `python -m app.seed --reset` with the owner URL. (4) `docs/openapi.yaml` declares `HTTPBearer` on every protected operation and `x-roles` (foreman/worker/poster/panel) per route; public routes (roster, login, health, Senpai link) carry no security. (5) `BACKEND_ARCHITECTURE.md` §8.2: a replay returns the first response's status (201 for creates, 200 for `/checks`), another user's key is 409 `IDEMPOTENCY_KEY_REUSED`; §9.2 lists every code the code returns (`NEEDS_EDIT`, `ALREADY_SENT`, `VERSION_CONFLICT` 412, `NOT_READY`, `AI_UNAVAILABLE` for Re-explanation only, 422 for a non-numeric id); `THREAD_LOCKED` is not returned by any route.
+- **Verification Proof**: `tests/test_contract.py::test_protected_routes_declare_bearer_and_their_roles` (75 operations carry roles); smoke 12/12 against the base URL above.
 
 #### `[XREQ-009]` App platform routes: version gate, device registration, notifications, photo limits
 
@@ -497,7 +497,7 @@ GET /api/tasks?machineId={id}
 - **Priority**: `P1 (High)`
 - **From**: `Backend (Anim, database)`
 - **To**: `Backend (Asif, deploy)`
-- **Status**: `[PENDING]`
+- **Status**: `[DONE]`
 - **Created**: `2026-11-23 17:30 (UTC+6)`
 - **Target Interface / Endpoint**: `backend/deploy/use-supabase.ps1` (Asif's) against project `jpajxyejcbtfivrylcaf`
 
@@ -520,9 +520,9 @@ scripts/smoke.py → "13/13 passed" (with --origin)
 ```
 
 **Fulfillment & Proof (filled by recipient on completion):**
-- **Branch / Commit**: 
-- **Status / Notes**: 
-- **Verification Proof**: 
+- **Branch / Commit**: `main`: Asif's `use-supabase.ps1` (`3f2b7f6`, `e90c74e`), `15b75cf`; Anim's runbook and dbinit (`0a3d546`)
+- **Status / Notes**: 2026-11-23 Anim (Asif is off the project; deploy is Anim's now). The live API uses the Supabase project through the session pooler with `verify-full` TLS; Azure PostgreSQL is dropped from setup and docs (`15b75cf`). Deleting the Azure server itself needs Azure access (requested from Asif).
+- **Verification Proof**: `uv run python scripts/smoke.py https://wakatta-api.agreeablestone-840cfb57.japaneast.azurecontainerapps.io` → 12/12 PASS; on Supabase: both roles have passwords, Alembic head `c10c87c5bd34`, the smoke's sign-ins appear in `sessions`, `wakatta_app` is the connected role, `anon` has no USAGE on `public`.
 
 #### `[XREQ-013]` Host the frontend demo on Azure Static Web Apps
 - **Priority**: `P1 (High)`

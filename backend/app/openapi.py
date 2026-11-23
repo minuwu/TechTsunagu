@@ -5,8 +5,10 @@ and the code disagree, so a route change always ships with its contract."""
 
 import json
 
+from fastapi.routing import APIRoute
+
 from app.config import Settings
-from app.main import create_app
+from app.main import ROUTERS, create_app
 
 # Placeholder settings: building the schema never connects to a database or a model.
 _SETTINGS = Settings(
@@ -18,7 +20,15 @@ _SETTINGS = Settings(
 
 
 def contract() -> str:
-    return json.dumps(create_app(_SETTINGS).openapi(), indent=2, ensure_ascii=False) + "\n"
+    spec = create_app(_SETTINGS).openapi()
+    # The roles each route allows (contract D-23, B-15), read from its require(...) dependency's name.
+    for route in (r for router in ROUTERS for r in router.routes if isinstance(r, APIRoute)):
+        guards = [getattr(d.call, "__name__", "") for d in route.dependant.dependencies]
+        roles = next((name.removeprefix("require_").split("_") for name in guards if name.startswith("require_")), None)
+        methods: set[str] = set(route.methods or ()) if roles else set()
+        for method in methods:
+            spec["paths"][route.path_format][method.lower()]["x-roles"] = roles
+    return json.dumps(spec, indent=2, ensure_ascii=False) + "\n"
 
 
 if __name__ == "__main__":
