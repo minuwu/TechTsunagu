@@ -15,7 +15,7 @@ from app.ai.schemas import BriefingDraft
 from app.api.errors import ApiError
 from app.api.pagination import Page, PageParams, encode_cursor
 from app.domain.ai_checks import GlossaryTerm as AiTerm
-from app.domain.ai_checks import glossary_problems, question_problems
+from app.domain.ai_checks import glossary_problems, language_problems, question_problems, question_texts
 from app.domain.skills import grade
 from app.media import audio_mime
 from app.models.work import Briefing, Check, Receipt
@@ -32,11 +32,10 @@ from app.schemas.common import CheckQuestion, Lang
 from app.schemas.work import CheckIn, CheckResult, WrongQuestion
 from app.services.ai_runner import AiRequest, AiRunner
 from app.services.auth import Principal
-from app.services.notes import AI_LANGUAGES, shop_of
+from app.services.notes import ai_languages, shop_of
 
-BRIEFING_PROMPT_VERSION = 1
+BRIEFING_PROMPT_VERSION = 2
 PLACEHOLDER = "（ここを入力してください）"  # a degraded draft's empty fields; publish refuses while one is left
-_LANGS = ("ja", *AI_LANGUAGES)
 
 
 def glossary_block(terms: list[AiTerm]) -> str:
@@ -84,10 +83,10 @@ def _for_worker(b: Briefing, receipt: Receipt | None) -> BriefingForWorker:
     )
 
 
-def _degraded(text: str | None) -> tuple[dict[str, str], dict[str, object]]:
+def _degraded(text: str | None, languages: tuple[str, ...]) -> tuple[dict[str, str], dict[str, object]]:
     """Keep what the Foreman gave us; every other field says what to fill in (architecture §10.4)."""
-    tri = {lang: PLACEHOLDER for lang in _LANGS} | ({"ja": text} if text else {})
-    blank = {lang: PLACEHOLDER for lang in _LANGS}
+    blank = {lang: PLACEHOLDER for lang in ("ja", *languages)}
+    tri = blank | ({"ja": text} if text else {})
     question: dict[str, object] = {
         "id": "q1",
         "termId": None,
@@ -112,22 +111,27 @@ def create_draft(
         AiTerm(id=str(t.id), ja=t.ja, reading=t.reading, translations=t.translations)
         for t in work_repo.glossary(db, shop_id)
     ]
+    languages = ai_languages(db, shop_id)
     db.commit()  # end the read transaction: nothing is held open during the model call (§8.3)
 
     glossary = glossary_block(terms)
     parts = [Part.blob(audio, mime)] if audio and mime else [Part.text(f"<foreman_input>{text}</foreman_input>")]
     request = AiRequest(
         pipeline="build_briefing",
-        prompt=render("build_briefing", BRIEFING_PROMPT_VERSION, glossary=glossary),
+        prompt=render("build_briefing", BRIEFING_PROMPT_VERSION, glossary=glossary, languages=", ".join(languages)),
         parts=parts,
         schema=BriefingDraft,
         scope=f"shop:{shop_id}",
-        cache_input=(audio or (text or "").encode()) + hashlib.sha256(glossary.encode()).digest(),
+        cache_input=(audio or (text or "").encode())
+        + hashlib.sha256((glossary + ",".join(languages)).encode()).digest(),
+        languages=languages,
     )
     result = ai.run(
         request,
         lambda d: (
-            glossary_problems(d.transcript_ja, [d.text], terms, AI_LANGUAGES) + question_problems([d.question], terms)
+            language_problems([d.text, *question_texts([d.question])], languages)
+            + glossary_problems(d.transcript_ja, [d.text], terms, languages)
+            + question_problems([d.question], terms)
         ),
         now,
     )
@@ -135,17 +139,17 @@ def create_draft(
     if result.value is not None:
         d = result.value
         term_ids = {t.ja: t.id for t in terms}
-        tri: dict[str, str] = d.text.model_dump()
+        tri: dict[str, str] = d.text.only(languages)
         question: dict[str, object] = {
             "id": "q1",
             "termId": term_ids.get(d.question.term_ja or ""),
-            "prompt": d.question.prompt.model_dump(),
-            "options": [o.model_dump() for o in d.question.options],
+            "prompt": d.question.prompt.only(languages),
+            "options": [o.only(languages) for o in d.question.options],
             "correctIndex": d.question.correct_index,
         }
         transcript, needs_edit = d.transcript_ja, False
     else:
-        tri, question = _degraded(text)
+        tri, question = _degraded(text, languages)
         transcript, needs_edit = text or "", True
 
     raced = repo.by_key(db, shop_id, key)

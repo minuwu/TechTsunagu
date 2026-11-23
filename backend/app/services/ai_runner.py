@@ -20,6 +20,7 @@ from pydantic import BaseModel, ValidationError
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.ai.client import AiClient, AiUnavailable, Part, Prompt, QuotaExhausted
+from app.ai.schemas import DEFAULT_LANGUAGES
 from app.repositories import ai as repo
 
 _log = logging.getLogger("wakatta.ai")
@@ -48,6 +49,7 @@ class AiRequest[T: BaseModel]:
     schema: type[T]
     scope: str  # "shop:<id>" or "district:<id>": one scope never reads another's cache
     cache_input: bytes  # the input bytes plus anything that changes the answer (e.g. the glossary)
+    languages: tuple[str, ...] = DEFAULT_LANGUAGES  # the shop's languages besides ja (XREQ-011 item 5)
 
 
 @dataclass(frozen=True)
@@ -136,7 +138,7 @@ class AiRunner:
             if not allowed:
                 _log.info("ai budget exhausted: %s", model, extra={"route": req.pipeline})
                 return None
-            return link.client.generate(req.prompt, [*req.parts, *extra], req.schema)
+            return link.client.generate(req.prompt, [*req.parts, *extra], req.schema, req.languages)
         except QuotaExhausted:
             with self._sessions() as db:
                 repo.mark_exhausted(db, day, model)

@@ -194,3 +194,30 @@ def test_only_the_foreman_drafts_and_other_shops_see_nothing(
     assert worker_draft.status_code == 403
     assert outsider_open.status_code == 404
     assert outsider_list == []
+
+
+def test_an_english_only_shop_gets_briefings_without_bengali(
+    client: TestClient, db: Session, fake_ai: FakeAiClient
+) -> None:
+    s = f.shop(db)
+    s.languages = ["en"]  # XREQ-011 item 5: the AI writes ja and the shop's languages only
+    db.flush()
+    foreman = _login(client, f.user(db, s, role="foreman", pin="739215", must_change=False).id, "739215")
+    no_bn = {k: v for k, v in DRAFT["text"].items() if k != "bn"}
+    question = DRAFT["question"] | {
+        "prompt": {"ja": "クレーンが使えないのは?", "en": "When is the crane off?"},
+        "options": [
+            {"ja": a, "en": b} for a, b in (("15時〜16時", "15:00–16:00"), ("9時", "9:00"), ("一日中", "All day"))
+        ],
+    }
+    fake_ai.queue("build_briefing", DRAFT | {"text": {"ja": no_bn["ja"]}, "question": question})  # en missing
+    fake_ai.queue("build_briefing", DRAFT | {"text": no_bn, "question": question})  # the retry adds it
+
+    res = client.post("/api/briefings/draft", headers=foreman | _key(), data={"text": "15時から点検"})
+    draft = res.json()["data"]
+
+    assert res.status_code == 201, res.text
+    assert draft["needsEdit"] is False
+    assert draft["text"] == no_bn
+    assert set(draft["question"]["prompt"]) == {"ja", "en"}
+    assert "Write every text in en" in fake_ai.last_prompt_text

@@ -26,10 +26,10 @@ from app.schemas.senpai import (
 )
 from app.services import notices
 from app.services.ai_runner import AiRunner
-from app.services.asks import AI_LANGUAGES, translate, worker_of
+from app.services.asks import translate, worker_of
 from app.services.auth import Principal
 from app.services.credentials import new_token, token_digest
-from app.services.notes import shop_of
+from app.services.notes import ai_languages, shop_of
 
 LINK_TTL = timedelta(days=180)  # architecture §3: until revoked or 180 days
 EVENTS_AHEAD = timedelta(days=31)
@@ -185,10 +185,11 @@ def reply(db: Session, token: str, ask_id: int, body: SenpaiReplyIn, ai: AiRunne
     if a.replied_at is not None:
         raise ApiError(409, "CONFLICT", "This question is already answered")
     shop_id = pair.shop_id
+    languages = ai_languages(db, shop_id)
     db.commit()  # no lock is held during the model calls (§8.3)
 
     translated = {"ja": body.reply_ja}
-    for lang in AI_LANGUAGES:
+    for lang in languages:
         text = translate(ai, body.reply_ja, "ja", lang, f"shop:{shop_id}", now)
         if text:
             translated[lang] = text

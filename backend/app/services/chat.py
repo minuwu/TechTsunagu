@@ -47,9 +47,10 @@ from app.schemas.common import CheckQuestion
 from app.services.ai_runner import AiRequest, AiRunner
 from app.services.asks import LANGUAGE_NAMES
 from app.services.auth import Principal
+from app.services.notes import ai_languages
 
-PROMPT_VERSION = 1
-AI_LANGUAGES = ("bn", "en")  # shortcut: the AI schema is fixed to ja/bn/en (as notes.AI_LANGUAGES)
+PROMPT_VERSION = 1  # translate
+MESSAGE_PROMPT_VERSION = 2  # draft_message, reexplain: per-shop languages (XREQ-011)
 NUDGE_WINDOW = timedelta(minutes=10)  # one Nudge per message and Worker in this window
 
 
@@ -176,13 +177,13 @@ def _glossary_block(terms: list[AiTerm]) -> str:
     return json.dumps([{"ja": t.ja, "reading": t.reading, **t.translations} for t in terms], ensure_ascii=False)
 
 
-def _question(q: AiQuestion, n: int, terms: list[AiTerm]) -> dict[str, object]:
+def _question(q: AiQuestion, n: int, terms: list[AiTerm], languages: tuple[str, ...]) -> dict[str, object]:
     term_ids = {t.ja: t.id for t in terms}
     return {
         "id": f"q{n}",
         "termId": term_ids.get(q.term_ja) if q.term_ja else None,
-        "prompt": q.prompt.model_dump(),
-        "options": [o.model_dump() for o in q.options],
+        "prompt": q.prompt.only(languages),
+        "options": [o.only(languages) for o in q.options],
         "correctIndex": q.correct_index,
     }
 
@@ -270,6 +271,7 @@ def _draft(
     terms = _glossary(db, shop_id)
     people = repo.members(db, shop_id, t.id)
     machines = work_repo.all_machines(db, shop_id)
+    languages = ai_languages(db, shop_id)
     db.commit()  # no transaction is held during the model call (§8.3)
 
     glossary = _glossary_block(terms)
@@ -277,13 +279,14 @@ def _draft(
     shop_machines = "\n".join(f"{m.id} | {m.code} | {m.name.get('ja', '')} | {m.name.get('en', '')}" for m in machines)
     # The Tokyo date is part of the key: 「明日の朝8時」 cached yesterday must not replay yesterday's due time.
     today = now.astimezone(TOKYO).date().isoformat()
-    context = hashlib.sha256((glossary + roster + shop_machines + today).encode()).digest()
+    context = hashlib.sha256((glossary + roster + shop_machines + today + ",".join(languages)).encode()).digest()
     request = AiRequest(
         pipeline="draft_message",
         prompt=render(
             "draft_message",
-            PROMPT_VERSION,
+            MESSAGE_PROMPT_VERSION,
             glossary=glossary,
+            languages=", ".join(languages),
             members=roster,
             machines=shop_machines,
             now=now.astimezone(TOKYO).isoformat(timespec="minutes"),
@@ -292,9 +295,10 @@ def _draft(
         schema=MessageDraft,
         scope=f"shop:{shop_id}",
         cache_input=(audio or (text or "").encode()) + context,
+        languages=languages,
     )
     member_ids, machine_ids = {str(u.id) for u in people}, {str(m.id) for m in machines}
-    result = ai.run(request, lambda d: message_problems(d, terms, AI_LANGUAGES, member_ids, machine_ids), now)
+    result = ai.run(request, lambda d: message_problems(d, terms, languages, member_ids, machine_ids), now)
 
     raced = repo.message_by_key(db, shop_id, user_id, key)
     if raced is not None:
@@ -308,21 +312,21 @@ def _draft(
         language="ja",
         transcript_ja=d.transcript_ja if d else text,
         text_ja=d.text.ja if d else text,
-        translations={lang: getattr(d.text, lang) for lang in AI_LANGUAGES} if d else {},
+        translations={lang: getattr(d.text, lang) or "" for lang in languages} if d else {},
         stage=3 if d else 0,
         needs_edit=d is None,  # degraded (§10.4): the Foreman finishes the message before sending
         idempotency_key=key,
     )
     db.add(row)
     db.flush()
-    questions = [_question(q, n, terms) for n, q in enumerate(d.questions, start=1)] if d else []
+    questions = [_question(q, n, terms, languages) for n, q in enumerate(d.questions, start=1)] if d else []
     repo.set_check(db, shop_id, row.id, questions)
     db.commit()
     # shortcut: Task drafts live only in this response (no column); a retried POST returns none. Store them if needed.
     drafts = [
         TaskDraft.model_validate(
             {
-                "title": task.title.model_dump(),
+                "title": task.title.only(languages),
                 "assignee_ids": task.assignee_ids,
                 "due_at": task.due_at,
                 "machine_id": task.machine_id,
@@ -466,18 +470,26 @@ def reexplain(
     if repo.membership(db, shop_id, m.thread_id, target) is None:
         raise ApiError(422, "VALIDATION_ERROR", "That Worker is not in this Thread")
     terms = _glossary(db, shop_id)
+    languages = ai_languages(db, shop_id)
     original, thread_id = m.text_ja or "", m.thread_id
     db.commit()  # no transaction is held during the model call (§8.3)
 
     request = AiRequest(
         pipeline="reexplain",
-        prompt=render("reexplain", PROMPT_VERSION, glossary=_glossary_block(terms), term=body.term_ja),
+        prompt=render(
+            "reexplain",
+            MESSAGE_PROMPT_VERSION,
+            glossary=_glossary_block(terms),
+            term=body.term_ja,
+            languages=", ".join(languages),
+        ),
         parts=[Part.text(f"<original_message>{original}</original_message>")],
         schema=Reexplanation,
         scope=f"shop:{shop_id}",
         cache_input=f"{message_id}:{body.term_ja}:{original}".encode(),
+        languages=languages,
     )
-    result = ai.run(request, lambda r: reexplain_problems(r, body.term_ja, terms, AI_LANGUAGES), now)
+    result = ai.run(request, lambda r: reexplain_problems(r, body.term_ja, terms, languages), now)
     if result.value is None:
         raise ApiError(503, "AI_UNAVAILABLE", "The re-explanation could not be made now; explain it in person")
     r = result.value
@@ -488,7 +500,7 @@ def reexplain(
         kind="reexplain",
         language="ja",
         text_ja=r.text.ja,
-        translations={lang: getattr(r.text, lang) for lang in AI_LANGUAGES},
+        translations={lang: getattr(r.text, lang) or "" for lang in languages},
         ref_message_id=message_id,
         to_user_id=target,
         stage=4,
@@ -496,7 +508,7 @@ def reexplain(
     )
     db.add(row)
     db.flush()
-    question = _question(r.question, 1, terms)
+    question = _question(r.question, 1, terms, languages)
     repo.set_check(db, shop_id, row.id, [question])
     db.commit()
     return _for_sender(row, [question])

@@ -16,6 +16,7 @@ from app.ai.prompts import render
 from app.ai.schemas import NoticeDraft
 from app.api.errors import ApiError
 from app.api.pagination import Page, PageParams, encode_cursor
+from app.domain.ai_checks import language_problems, question_texts
 from app.domain.recurrence import (
     HORIZON,
     MAX_RRULE_LENGTH,
@@ -48,8 +49,11 @@ from app.schemas.work import CheckIn, CheckResult, WrongQuestion
 from app.services.ai_runner import AiRequest, AiRunner
 from app.services.auth import Principal
 
-NOTICE_PROMPT_VERSION = 2
-LANGUAGES = ("ja", "bn", "en")  # shortcut: the AI schema is fixed to ja/bn/en (as notes.AI_LANGUAGES)
+NOTICE_PROMPT_VERSION = 3
+# shortcut: a Notice belongs to a district, not a shop, so its languages are fixed; use the union of the district
+# shops' languages (shops.languages) when a district has shops with other languages.
+AI_LANGUAGES = ("bn", "en")
+LANGUAGES = ("ja", *AI_LANGUAGES)
 PLACEHOLDER = "（ここを入力してください）"  # a degraded draft's empty fields; publish refuses while one is left
 NEXT_DATES = 3
 MAX_TEXT = 1000  # Translated values are at most 1000 characters
@@ -142,7 +146,8 @@ def posters(db: Session, who: Principal) -> Page[PosterOut]:
 
 
 def _draft_problems(d: NoticeDraft) -> list[str]:
-    problems: list[str] = []
+    texts = [d.title, *d.steps, *(e.title for e in d.events), *question_texts([d.question])]
+    problems = language_problems(texts, AI_LANGUAGES)
     for e in d.events:
         try:
             starts = datetime.fromisoformat(e.starts_at)
@@ -199,12 +204,15 @@ def create_draft(
     request = AiRequest(
         pipeline="build_notice",
         # shortcut: no Glossary Terms; they belong to a shop and a Poster has none. Add district terms if needed.
-        prompt=render("build_notice", NOTICE_PROMPT_VERSION, glossary="[]", today=today),
+        prompt=render(
+            "build_notice", NOTICE_PROMPT_VERSION, glossary="[]", today=today, languages=", ".join(AI_LANGUAGES)
+        ),
         parts=_source_parts(kind, text, audio, image),
         schema=NoticeDraft,
         scope=f"district:{district_id}",
         # Without today: a flyer states absolute dates, so the same flyer gives the same draft (demo cache).
         cache_input=image or audio or (text or "").encode(),
+        languages=AI_LANGUAGES,
     )
     result = ai.run(request, _draft_problems, now)
 
@@ -241,7 +249,7 @@ def create_draft(
             Event(
                 district_id=district_id,
                 notice_id=row.id,
-                title=e.title.model_dump(),
+                title=e.title.only(AI_LANGUAGES),
                 starts_at=datetime.fromisoformat(e.starts_at),
                 rrule=e.rrule,
             )
@@ -256,15 +264,15 @@ def _draft_fields(d: NoticeDraft | None, text: str | None) -> dict[str, object]:
         question = {
             "id": "q1",
             "termId": None,
-            "prompt": q.prompt.model_dump(),
-            "options": [o.model_dump() for o in q.options],
+            "prompt": q.prompt.only(AI_LANGUAGES),
+            "options": [o.only(AI_LANGUAGES) for o in q.options],
             "correctIndex": q.correct_index,
         }
         return {
             "source_ja": d.source_ja,
             "category": d.category,
-            "title": d.title.model_dump(),
-            "steps": [s.model_dump() for s in d.steps],
+            "title": d.title.only(AI_LANGUAGES),
+            "steps": [s.only(AI_LANGUAGES) for s in d.steps],
             "question": question,
             "needs_edit": False,
         }
