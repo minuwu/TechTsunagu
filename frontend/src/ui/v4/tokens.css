@@ -433,3 +433,155 @@ input[type='file']::file-selector-button:hover {
     transition: none;
   }
 }
+
+/* GlobeMap (landing hero): flat Poster Modernist globe. Cream land on a darker cream sea, black coast,
+   Nagasaki and the chosen prefecture in cobalt; square corners, no shadows (ADR 0012). */
+.globe {
+  background: var(--background);
+}
+.globe-sea {
+  fill: var(--muted);
+  stroke: var(--foreground);
+  stroke-width: 1;
+}
+.globe-grid {
+  fill: none;
+  stroke: var(--rule);
+  stroke-width: 0.5;
+}
+.globe-land {
+  fill: var(--background);
+  stroke: var(--foreground);
+  stroke-width: 0.4;
+  pointer-events: none;
+}
+.globe-pref {
+  fill: var(--background);
+  stroke: var(--foreground);
+  stroke-width: 0.6;
+  cursor: pointer;
+  transition: fill 160ms;
+}
+.globe-pref:hover {
+  fill: color-mix(in srgb, var(--primary) 25%, var(--background));
+}
+.globe-pref.is-home {
+  fill: color-mix(in srgb, var(--primary) 40%, var(--background));
+}
+.globe-pref.is-selected {
+  fill: var(--primary);
+}
+.globe-pin {
+  fill: var(--foreground);
+  stroke: var(--background);
+  stroke-width: 2;
+  pointer-events: none;
+}
+.globe-tip {
+  position: absolute;
+  z-index: 20;
+  translate: -50% calc(-100% - 10px);
+  pointer-events: none;
+  background: var(--foreground);
+  color: var(--background);
+  padding: 0.2rem 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.globe-hint {
+  position: absolute;
+  top: 0.75rem;
+  left: 50%;
+  translate: -50% 0;
+  z-index: 15;
+  pointer-events: none;
+  background: var(--foreground);
+  color: var(--background);
+  padding: 0.35rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  opacity: 0;
+  transition: opacity 200ms;
+}
+.globe-hint.is-shown {
+  opacity: 1;
+}
+.globe-card {
+  position: absolute;
+  z-index: 10;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: min(18rem, calc(100% - 1.5rem));
+  border: 1px solid var(--foreground);
+  background: var(--background);
+}
+.globe-card img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  border-bottom: 1px solid var(--foreground);
+}
+.globe-card figcaption {
+  padding: 0.6rem 0.75rem 0.75rem;
+}
+/* phone: below the map (the map shrinks to make room), photo beside the text, so the prefecture stays in sight */
+@media (max-width: 40rem) {
+  .globe-card {
+    position: static;
+    width: auto;
+    display: flex;
+    border-width: 1px 0 0;
+  }
+  .globe-card img {
+    width: 38%;
+    aspect-ratio: auto;
+    border-right: 1px solid var(--foreground);
+    border-bottom: 0;
+  }
+  .globe-card figcaption {
+    flex: 1;
+    min-width: 0;
+  }
+}
+.globe-controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border-top: 1px solid var(--foreground);
+}
+.globe-controls select {
+  flex: 1 1 12rem;
+  min-width: 0;
+}
+.globe-controls select,
+.globe-controls button {
+  min-height: 2.75rem;
+  border: 1px solid var(--foreground);
+  background: var(--background);
+  color: var(--foreground);
+  padding: 0 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.globe-controls button {
+  min-width: 2.75rem;
+}
+.globe-controls button[aria-pressed='true'] {
+  background: var(--foreground);
+  color: var(--background);
+}
+.globe-controls :focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .globe-pref,
+  .globe-hint {
+    transition: none;
+  }
+}

@@ -119,3 +119,24 @@ test('the Japan map goes to Nagasaki and back to all of Japan', async ({
   await expect(all).toHaveAttribute('aria-pressed', 'true')
   await expect(page.getByRole('img', { name: /Megane Bridge/ })).toBeHidden()
 })
+
+// The v4 landing globe (the default kit): choosing a prefecture shows its famous place with a copyright-free
+// photo and credit; All Japan closes it
+test('the globe shows a prefecture’s famous place and goes back to all of Japan', async ({
+  page,
+}) => {
+  await page.goto('/?ui=v4')
+  await expect(
+    page.getByRole('img', { name: /Globe zooming into Japan/ }),
+  ).toBeVisible()
+
+  await page.getByLabel('Choose a prefecture').selectOption('JP-26')
+  const photo = page.getByRole('img', { name: 'Fushimi Inari-taisha' })
+  await expect(photo).toBeVisible()
+  await expect(page.getByText('Photo: Balon Greyjoy (CC0)')).toBeVisible()
+
+  const all = page.getByRole('button', { name: 'All Japan' })
+  await all.click()
+  await expect(all).toHaveAttribute('aria-pressed', 'true')
+  await expect(photo).toBeHidden()
+})

@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router'
 import { DOORS, type Door } from '@/domain/course'
 import { m } from '@/i18n/paraglide/messages'
-import { HeroArt } from '@/ui/v4/components/HeroArt'
+import { GlobeMap } from '@/ui/v4/components/GlobeMap'
 import {
   PosterIndex,
   PosterRow,
@@ -60,7 +60,7 @@ export function Landing() {
               <span className="text-primary">{accent}</span>
             </h1>
           </div>
-          <HeroArt className="max-h-72 border border-[var(--rule)] md:max-h-80" />
+          <GlobeMap className="h-[26rem] border border-[var(--foreground)] sm:h-[30rem] lg:h-[34rem]" />
           <div className="grid items-end gap-8 md:grid-cols-2">
             <p className="max-w-[26rem] text-lg leading-relaxed text-pretty text-muted-foreground [word-break:auto-phrase]">
               {m.lp_lead()}
