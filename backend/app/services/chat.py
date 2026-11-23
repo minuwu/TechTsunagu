@@ -17,7 +17,7 @@ from app.ai.schemas import AiQuestion, MessageDraft, Reexplanation, Translation
 from app.api.errors import ApiError
 from app.api.pagination import Page, PageParams, encode_cursor
 from app.domain.ai_checks import GlossaryTerm as AiTerm
-from app.domain.ai_checks import question_problems
+from app.domain.ai_checks import message_problems, reexplain_problems
 from app.domain.chat import can_move, missed, wakatta_status
 from app.domain.recurrence import TOKYO
 from app.media import audio_mime
@@ -187,21 +187,6 @@ def _question(q: AiQuestion, n: int, terms: list[AiTerm]) -> dict[str, object]:
     }
 
 
-def _draft_problems(d: MessageDraft, terms: list[AiTerm], member_ids: set[str], machines: set[str]) -> list[str]:
-    problems = question_problems(d.questions, terms)
-    for n, task in enumerate(d.tasks, start=1):
-        problems += [f"Task {n}: {a} is not a Thread member." for a in task.assignee_ids if a not in member_ids]
-        if task.machine_id is not None and task.machine_id not in machines:
-            problems.append(f"Task {n}: machine {task.machine_id} is not a Machine of this shop.")
-        if task.due_at is not None:
-            try:
-                if datetime.fromisoformat(task.due_at).tzinfo is None:
-                    problems.append(f"Task {n}: due_at needs +09:00.")
-            except ValueError:
-                problems.append(f"Task {n}: due_at is not ISO 8601.")
-    return problems
-
-
 def _to_japanese(ai: AiRunner, parts: list[Part], source: str, scope: str, key: bytes, now: datetime) -> str | None:
     request = AiRequest(
         pipeline="translate",
@@ -290,7 +275,9 @@ def _draft(
     glossary = _glossary_block(terms)
     roster = "\n".join(f"{u.id} | {u.display_name}" for u in people)
     shop_machines = "\n".join(f"{m.id} | {m.code} | {m.name.get('ja', '')} | {m.name.get('en', '')}" for m in machines)
-    context = hashlib.sha256((glossary + roster + shop_machines).encode()).digest()
+    # The Tokyo date is part of the key: 「明日の朝8時」 cached yesterday must not replay yesterday's due time.
+    today = now.astimezone(TOKYO).date().isoformat()
+    context = hashlib.sha256((glossary + roster + shop_machines + today).encode()).digest()
     request = AiRequest(
         pipeline="draft_message",
         prompt=render(
@@ -307,7 +294,7 @@ def _draft(
         cache_input=(audio or (text or "").encode()) + context,
     )
     member_ids, machine_ids = {str(u.id) for u in people}, {str(m.id) for m in machines}
-    result = ai.run(request, lambda d: _draft_problems(d, terms, member_ids, machine_ids), now)
+    result = ai.run(request, lambda d: message_problems(d, terms, AI_LANGUAGES, member_ids, machine_ids), now)
 
     raced = repo.message_by_key(db, shop_id, user_id, key)
     if raced is not None:
@@ -488,7 +475,7 @@ def reexplain(
         scope=f"shop:{shop_id}",
         cache_input=f"{message_id}:{body.term_ja}:{original}".encode(),
     )
-    result = ai.run(request, lambda r: question_problems([r.question], terms), now)
+    result = ai.run(request, lambda r: reexplain_problems(r, body.term_ja, terms, AI_LANGUAGES), now)
     if result.value is None:
         raise ApiError(503, "AI_UNAVAILABLE", "The re-explanation could not be made now; explain it in person")
     r = result.value

@@ -1,11 +1,13 @@
 """Checks on AI drafts before they are stored (architecture §7.4). Pure: each returns a list of problems in plain
 English, empty when the draft passes, so a pipeline can append them to its one retry prompt."""
 
+import re
 import unicodedata
 from collections.abc import Collection, Mapping, Sequence
 from dataclasses import dataclass
+from datetime import datetime
 
-from app.ai.schemas import AiQuestion, AiTri, NoteDraft
+from app.ai.schemas import AiQuestion, AiTaskDraft, AiTri, MessageDraft, NoteDraft, Reexplanation
 
 # Latin-script languages compare case-insensitively (§7.4); Bengali and Japanese have no case.
 LATIN = frozenset({"en", "vi", "id", "tl"})
@@ -64,6 +66,63 @@ def question_problems(questions: Sequence[AiQuestion], glossary: Sequence[Glossa
                 problems.append(f"Question {n}: two options have the same {lang} text.")
         if q.term_ja is not None and _nfkc(q.term_ja) not in known:
             problems.append(f"Question {n}: term_ja 「{q.term_ja}」 is not a Glossary Term; use one or null.")
+    return problems
+
+
+# A due time needs words like these in the transcript; with none, the model invented it (XREQ-006 item 2).
+# shortcut: a word check, not a date parser; it catches a time made up from nothing, not a wrong hour.
+_TIME_WORDS = re.compile(
+    r"[0-9一二三四五六七八九十]+\s*(時|分|日)|[月火水木金土日]曜|明日|あした|明後日|今日|きょう|今夜|今晩|午前|午後|朝|昼|夕方|夜|まで|来週|今週"
+)
+
+
+def task_problems(
+    tasks: Sequence[AiTaskDraft], transcript_ja: str, member_ids: Collection[str], machine_ids: Collection[str]
+) -> list[str]:
+    problems: list[str] = []
+    said_a_time = _TIME_WORDS.search(_nfkc(transcript_ja)) is not None
+    for n, task in enumerate(tasks, start=1):
+        problems += [f"Task {n}: {a} is not a Thread member." for a in task.assignee_ids if a not in member_ids]
+        if task.machine_id is not None and task.machine_id not in machine_ids:
+            problems.append(f"Task {n}: machine {task.machine_id} is not a Machine of this shop; use one or null.")
+        if task.due_at is None:
+            continue
+        if not said_a_time:
+            problems.append(f"Task {n}: the Foreman said no day or time, so due_at must be null.")
+            continue
+        try:
+            if datetime.fromisoformat(task.due_at).tzinfo is None:
+                problems.append(f"Task {n}: due_at needs the +09:00 offset.")
+        except ValueError:
+            problems.append(f"Task {n}: due_at must be ISO 8601, like 2026-11-24T08:00:00+09:00.")
+    return problems
+
+
+def message_problems(
+    draft: MessageDraft,
+    glossary: Sequence[GlossaryTerm],
+    languages: Collection[str],
+    member_ids: Collection[str],
+    machine_ids: Collection[str],
+) -> list[str]:
+    """A Chat message: shop words locked in every language, valid questions, Tasks only for real people and
+    Machines, and a due time only when one was said."""
+    return (
+        glossary_problems(draft.transcript_ja, [draft.text], glossary, languages)
+        + question_problems(draft.questions, glossary)
+        + task_problems(draft.tasks, draft.transcript_ja, member_ids, machine_ids)
+    )
+
+
+def reexplain_problems(
+    draft: Reexplanation, term_ja: str, glossary: Sequence[GlossaryTerm], languages: Collection[str]
+) -> list[str]:
+    """The new explanation keeps the missed term and its fixed translations, and the question is about that term."""
+    term = next((t for t in glossary if t.ja == term_ja), GlossaryTerm(id="", ja=term_ja, reading="", translations={}))
+    problems = glossary_problems(term.ja, [draft.text], [term], languages)
+    problems += question_problems([draft.question], glossary)
+    if draft.question.term_ja is None or _nfkc(draft.question.term_ja) != _nfkc(term_ja):
+        problems.append(f"The question must be about 「{term_ja}」: set term_ja to it.")
     return problems
 
 
