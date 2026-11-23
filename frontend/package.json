@@ -16,6 +16,7 @@
     "test": "vitest run",
     "test:e2e": "playwright test",
     "gen:api": "openapi-ts",
+    "check:api": "node scripts/check-api.mjs",
     "gen:i18n": "paraglide-js compile --project ./project.inlang --outdir ./src/i18n/paraglide --strategy cookie preferredLanguage baseLocale --silent",
     "postinstall": "npm run gen:i18n"
   },
