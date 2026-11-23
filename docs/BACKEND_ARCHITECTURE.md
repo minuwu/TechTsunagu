@@ -136,7 +136,7 @@ Every Worker and every Foreman (the manager, 班長) has their own account. Nobo
 
 | Event | Who acts | What happens |
 | :--- | :--- | :--- |
-| New shop | operator, CLI | `create-shop` (also sets the shop's default district), then `create-user --role foreman` for the first Foreman |
+| New shop | operator | no command yet: the demo shops come from `app.seed` (`create-shop` / `create-user` are planned with real onboarding) |
 | New Foreman | a Foreman of the shop | `POST /foremen {displayName, language, pin}` |
 | New Worker | a Foreman | `POST /workers {displayName, language, pin}`. The Foreman hands over the first PIN on paper. The Worker's district defaults to the shop's. |
 | First sign-in | the new user | login returns `mustChangePin: true`; every other route returns 403 `PIN_CHANGE_REQUIRED` until `PUT /auth/me/pin` is done, so the Foreman never knows a Worker's working PIN |
@@ -144,8 +144,8 @@ Every Worker and every Foreman (the manager, 班長) has their own account. Nobo
 | Forgotten PIN, lost or shared phone | a Foreman | `PATCH /workers/{id} {pin}` or `PATCH /foremen/{id} {pin}`: sets a new first PIN, `mustChangePin`, revokes every session of that user, clears a lockout, writes `audit_events` |
 | Locked after 5 wrong PINs | — | unlocks by itself after 15 min, or at once by a Foreman's reset |
 | Leaves the company | a Foreman | `active: false`: sessions revoked, removed from the roster, history (Checks, Sign-offs) kept as the safety record |
-| Last Foreman | — | the last active Foreman of a shop cannot be deactivated (409), so a shop is never locked out; the CLI `reset-pin` is the last resort |
-| Community Poster | operator, CLI | `create-user --role poster --district … --poster …` (district onboarding is out of scope) |
+| Last Foreman | — | the last active Foreman of a shop cannot be deactivated (409), so a shop is never locked out; the last resort is `python -m app.cli reset-pin --code … --role … --name …` in the API container (`az containerapp exec`): it prints a new first PIN once and audits `pin_reset` without an actor |
+| Community Poster | operator | from `app.seed` (district onboarding is out of scope) |
 
 Rules: display names are unique per shop among active users (the roster shows names). A user cannot change their own role or active flag. PIN rules: digits only, exact length per role, and not all the same digit or a straight run (`0000`, `1234`).
 
@@ -174,7 +174,7 @@ backend/
     ai/                            client.py (seam), gemini.py, fake.py, limiter.py, cache.py, pipelines
     prompts/                       <name>.v<N>.md, versioned in git (G-34)
     media.py                       upload validation, image re-encode
-    cli.py                         create-shop, create-district, create-user, reset-pin
+    cli.py                         operator commands: reset-pin
     seed.py                        demo data, `python -m app.seed --reset`
   tests/
     domain/  repositories/  api/  ai/
