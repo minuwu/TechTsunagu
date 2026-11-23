@@ -9,8 +9,10 @@ PROMPTS = Path(__file__).parents[2] / "app" / "prompts"
 
 PLACEHOLDERS = {
     "build_note.v1.md": {"glossary", "icons"},
+    "build_note.v2.md": {"glossary", "icons"},
     "build_briefing.v1.md": {"glossary"},
     "build_notice.v1.md": {"glossary", "today"},
+    "build_notice.v2.md": {"glossary", "today"},
     "answer_ask.v2.md": {"glossary", "notices"},
     "translate.v1.md": {"glossary", "source_lang", "target_lang"},
     "draft_message.v1.md": {"glossary", "members", "machines", "now"},

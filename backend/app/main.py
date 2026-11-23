@@ -18,7 +18,7 @@ from app.api.errors import install_error_handlers
 from app.api.limits import BodyLimitMiddleware
 from app.config import Settings
 from app.db import make_engine, make_session_factory
-from app.routers import auth, briefings, chat, health, life, skills, support, users, work
+from app.routers import auth, briefings, chat, health, life, near_misses, skills, support, users, work
 from app.services.ai_runner import AiLimits, AiRunner
 
 
@@ -74,7 +74,7 @@ def create_app(
     app.state.session_factory = factory
     app.state.ai = runner
     install_error_handlers(app)
-    for module in (health, auth, users, work, life, support, skills, chat, briefings):
+    for module in (health, auth, users, work, life, support, skills, chat, briefings, near_misses):
         app.include_router(module.router)
 
     # Added last = runs first: the request context wraps CORS, which wraps GZip.

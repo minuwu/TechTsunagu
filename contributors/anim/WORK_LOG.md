@@ -4,6 +4,22 @@ Owner: Anim (`anim710`) — Role: Backend (WS10 Notices + Events, WS11 Asks + Se
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-23
+
+### Completed
+- **WS12 Chat, XREQ-005 `[DONE]`** (`e702961`, `729118f`): `GET /threads` (unread, newest first); `POST /threads/{id}/messages` (Foreman: voice/text → AI draft at stage 3 with Check Questions and Task drafts, or `needsEdit` at stage 0 when the model is down; Worker: translated to Japanese and sent); poll `GET /threads/{id}/messages?after=` with ETag/304, no `correctIndex` for Workers; `POST /messages/{id}/send` (stage 4, Tasks created, 409 `ALREADY_SENT`); `POST /messages/{id}/answers` (`-1` = not sure → green/orange/red; a missed Glossary Term → Confusion + Follow-up; idempotent); `GET/PATCH /follow-ups` (forward only: open → clarified → understood); `POST /messages/{id}/reexplain` (one Worker, one new question; passing it closes the Follow-up); `POST /messages/{id}/nudge` (10-minute limit, audited, shows as `nudged`); Task Board `GET/POST /tasks`, `PATCH /tasks/{id}` with `If-Match` (412 `VERSION_CONFLICT`). Clarified Follow-ups go to the Support Log as item 7. Rules in `app/domain/chat.py`. Thread of another shop: 404; same shop, not a member: 403.
+- **Chat seed** (`729118f`): `app/seed_chat.py` + `seed_data/chat.json`: the prototype's Line 2 Thread (m1–m2c), a direct Thread with Rahim, Tasks k1–k3; Tanvir and Sadia have seeded answers, Rahim answers live. `python -m app.seed --reset` (and the deploy seed job) runs it.
+- **Security review fixes** (`729118f`): Follow-ups are listed and changed only by Foremen in that Thread; Workers move Tasks but only the Foreman changes assignees and due dates.
+- **WS7 Near-miss Reports** (`54d5e0e`): `POST /near-misses` (text or voice, optional JPEG photo with EXIF removed, `Idempotency-Key`; translated to Japanese, the Worker's words kept; a voice report is stored even when the model is down), `GET /near-misses?open=`, `POST /near-misses/{id}/ack`, `GET /near-misses/{id}/photo` (shop Foremen and the reporter only).
+- **WS5 skill views** (`3b33eb2`): `GET /skill-matrix`, `GET /heatmap` (one grouped query), `GET /workers/{id}/passport` (Worker: self only).
+- **Seed fix** (`3b33eb2`): seeded Check Questions were `q-crane-1`, which fails the API's `q1` pattern; a wrong answer on a seeded note was a 500. Now `q1`, `q2`…
+- Verified: **312 tests pass** on PostgreSQL 16.14; ruff, ruff format, pyright strict, lint-imports clean; `docs/openapi.yaml` regenerated; the real seed loads (59 rows by key).
+
+### Handoff
+- **Galib (XREQ-006):** so WS12 runs today I added `MessageDraft`, `AiTaskDraft`, `Reexplanation` (`app/ai/schemas.py`) and `draft_message.v1.md`, `reexplain.v1.md` (registered in `tests/ai/test_prompts.py`), following your house style. They are yours from here: tune, eval, change the shape if you need (tell me, `services/chat.py` builds on them). Task checks (assignees = Thread members, Machine of the shop, `dueAt` with an offset) run in `_draft_problems`.
+- **Minhaz:** the Chat, Task Board, Near-miss, Skill Matrix / Heatmap / Passport routes are live; shapes in `docs/openapi.yaml`. Near-miss photo is a multipart JPEG file, not a data URL (same as flyers).
+- **Asif:** no schema change needed. Known shortcut: Task drafts are not stored (returned once by the POST), so a retried draft POST has no drafts; a `task_drafts jsonb` column on `messages` would fix it if the demo needs it.
+
 ## 2026-11-23 (from Arjun: done for you on `main`)
 
 - **XREQ-011 item 2, ETag part** (`351a27a`): `GET /board`, `/threads` and `/tasks` send an `ETag` and answer **304** on a matching `If-None-Match`. One helper, `app/api/conditional.py`, now serves those and the existing Panel and message poll (the copies in `work.py` / `chat.py` and `floor.etag` are gone). Response schemas unchanged; `openapi.yaml` differs only in three summaries. `/near-misses` is not covered: the route does not exist yet (WS7). The `Idempotency-Key` half of item 2 is still open (needs columns, so Asif's schema).

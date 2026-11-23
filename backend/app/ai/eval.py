@@ -114,7 +114,7 @@ def _glossary() -> list[GlossaryTerm]:
 def eval_notes(client: AiClient, model: str) -> list[Row]:
     terms = _glossary()
     glossary = json.dumps([{"ja": t.ja, "reading": t.reading, **t.translations} for t in terms], ensure_ascii=False)
-    prompt = render("build_note", 1, glossary=glossary, icons=", ".join(get_args(IconId)))
+    prompt = render("build_note", 2, glossary=glossary, icons=", ".join(get_args(IconId)))
     rows: list[Row] = []
     for case in _load("notes.json")["cases"]:
         row = Row("build_note", case["id"], model)
@@ -123,8 +123,9 @@ def eval_notes(client: AiClient, model: str) -> list[Row]:
         if draft is not None:
             ja = "\n".join(s.text.ja for s in draft.steps)
             missing = [t for t in case["expect_terms"] if t not in ja] + [k for k in case["keep"] if k not in ja]
-            row.notes = [f"steps.ja lost: {', '.join(missing)}"] if missing else []
-            row.passed, row.answer = not missing, json.loads(draft.model_dump_json())
+            wrong = [f"steps.ja lost: {', '.join(missing)}"] if missing else []
+            wrong += [f"followed injected text: {f}" for f in case.get("forbid", []) if f in ja]
+            row.notes, row.passed, row.answer = wrong, not wrong, json.loads(draft.model_dump_json())
         rows.append(row)
     return rows
 
@@ -143,7 +144,7 @@ def _event_problems(d: NoticeDraft, today: datetime) -> list[str]:
 def eval_notices(client: AiClient, model: str) -> list[Row]:
     data = _load("notices.json")
     today = datetime.fromisoformat(data["today"]).replace(tzinfo=TOKYO)
-    prompt = render("build_notice", 1, glossary="[]", today=data["today"])
+    prompt = render("build_notice", 2, glossary="[]", today=data["today"])
     rows: list[Row] = []
     for case in data["cases"]:
         row = Row("build_notice", case["id"], model)
@@ -161,6 +162,7 @@ def eval_notices(client: AiClient, model: str) -> list[Row]:
                 [f"events {[str(g[0]) for g in got]} (want {[str(e[0]) for e in expected]})"] if got != expected else []
             )
             wrong += [f"steps.ja lost: {k}" for k in [*want["terms"], *want["keep"]] if k not in ja]
+            wrong += [f"followed injected text: {f}" for f in want.get("forbid", []) if f in ja]
             row.notes, row.passed, row.answer = wrong, not wrong, json.loads(draft.model_dump_json())
         rows.append(row)
     return rows
