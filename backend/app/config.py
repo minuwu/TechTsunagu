@@ -1,11 +1,26 @@
 """Settings from the environment (12-factor), validated at startup so a bad deploy fails before serving."""
 
-from typing import Annotated, Literal, Self
+import base64
+import binascii
+import json
+from typing import Annotated, Any, Literal, Self, cast
 
 from pydantic import Field, SecretStr, StringConstraints, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 from app.ai.chains import Chain, Tier
+
+
+def firebase_key(b64: SecretStr) -> dict[str, Any]:
+    """The service-account JSON from its base64 form; a ValueError (never the key itself) when it is not one."""
+    try:
+        info: object = json.loads(base64.b64decode(b64.get_secret_value(), validate=True))
+    except (binascii.Error, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ValueError("FIREBASE_SERVICE_ACCOUNT_B64 is not base64 of a JSON key") from exc
+    if not isinstance(info, dict) or info.get("type") != "service_account":  # pyright: ignore[reportUnknownMemberType]
+        raise ValueError("FIREBASE_SERVICE_ACCOUNT_B64 is not a service-account key")
+    return cast(dict[str, Any], info)
+
 
 # An exact origin for CORS: scheme and host[:port], no path, no wildcard.
 Origin = Annotated[str, StringConstraints(pattern=r"^https?://[^/\s*]+$")]
@@ -44,6 +59,19 @@ class Settings(BaseSettings):
         return self
 
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"
+
+    # Push (XREQ-014): both or neither. The key is the service-account JSON, base64 (deploy/set-firebase-key.ps1).
+    firebase_project_id: str | None = None
+    firebase_service_account_b64: SecretStr | None = None
+
+    @model_validator(mode="after")
+    def _firebase_is_complete(self) -> Self:
+        key, project = self.firebase_service_account_b64, self.firebase_project_id
+        if (key is None) != (project is None):
+            raise ValueError("set both FIREBASE_PROJECT_ID and FIREBASE_SERVICE_ACCOUNT_B64, or neither")
+        if key is not None and firebase_key(key).get("project_id") != project:
+            raise ValueError("the Firebase key belongs to another project than FIREBASE_PROJECT_ID")
+        return self
 
     # Android app gate (XREQ-009, GET /api/app/config): the app blocks below the minimum and offers the download.
     app_min_version: Annotated[str, StringConstraints(pattern=r"^\d+\.\d+\.\d+$")] = "1.0.0"

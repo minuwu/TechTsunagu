@@ -8,6 +8,7 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 
 ### Completed
 - **XREQ-020 done** (reply to Minhaz): `GET /api/workers/me/learning` (own Follow-ups + `streakDays`, paged) and `GET /api/analytics/understanding?days=` (trend, per Worker, top terms). Shapes in the XREQ-020 Fulfillment block. No migration.
+- **Push sender (XREQ-014)**: FCM HTTP v1, `chat_message` and `nudge`, ids only, after the response. What the phone gets and how Minhaz tests it: the XREQ-014 Fulfillment block. `google-auth[requests]` is now a direct dependency (it was already in the lock through google-genai).
 - Checked after the latest pushes: live API on `d7f6744`, smoke 13/13, Supabase at migration head `21d9f849b5c9` with no drift, security advisor clean, Firebase secret and project id on the Container App. No phone has registered for push yet (`devices` is empty).
 
 ## 2026-11-23 (evening)
