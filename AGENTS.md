@@ -71,7 +71,7 @@ This file is:
 | `XREQ-013` | P1 | Frontend (Arjun) | Backend (Asif, deploy) | Host the frontend demo on Azure Static Web Apps (static build, `npm run build:static`) and reply with the live URL | `[PENDING]` | 2026-11-23 18:30 |
 | `XREQ-014` | P1 | Backend (Anim) | Frontend (Minhaz, Android + Firebase) | Firebase for push: project, Android app, FCM token upload to `PUT /api/devices/me`, service-account key to Anim privately | `[PENDING]` | 2026-11-23 19:30 |
 | `XREQ-015` | P0 | Backend (Anim) | Backend (Asif, Azure owner) | Give Anim's Azure account Contributor on the Wakatta resource group (Asif is off the project; Anim runs deploy now) | `[RESOLVED]` | 2026-11-23 19:30 |
-| `XREQ-016` | P0 | AI (Galib) | Frontend (Minhaz, Arjun; Android: Minhaz) | Chatbot screen on the Worker home and the Machine screen: `POST /api/knowledge/asks` (cited answer + self-check; emergency card; not covered → forward to Senpai) | `[PENDING]` | 2026-11-23 20:00 |
+| `XREQ-016` | P0 | AI (Galib) | Frontend (Minhaz, Arjun; Android: Minhaz) | Chatbot screen on the Worker home and the Machine screen: `POST /api/knowledge/asks` (cited answer + self-check; emergency card; not covered → forward to Senpai) | `[IN_PROGRESS]` (web done; Android open) | 2026-11-23 23:00 |
 | `XREQ-017` | P1 | Frontend (Minhaz, Android app) | Backend (Anim), AI (Galib) | Contacts, My QR, Contact Threads, Talk Threads and group controls (the open part of XREQ-010); notification list stays push-only | `[PENDING]` | 2026-11-23 19:50 |
 *(When adding a request: append a row above AND add a detailed card in 2.2. Never insert in the middle.)*
 
@@ -662,9 +662,9 @@ text=Why must I stop the machine before cleaning it?   | audio=@q.webm     [mach
 Errors: `403` (not a Worker), `413` / `415` (recording too long or wrong format), `422` (neither text nor audio).
 
 **Fulfillment & Proof (filled by recipient on completion):**
-- **Branch / Commit**: 
-- **Status / Notes**: 
-- **Verification Proof**: 
+- **Branch / Commit**: `main` (Galib, 2026-11-23, at the user's request so the demo has it tonight): `frontend/src/ui/v4/components/Chatbot.tsx`, `features/chatbot`, `services/wakatta.ts` `askChatbot`, `services/mocks/ai.ts` `answerKnowledge`, `domain/wakatta.ts` `KnowledgeAnswer`, en/ja messages.
+- **Status / Notes**: Web (v4 kit) done: a floating **Ask Wakatta** button bottom right on the Worker Work and Life tabs and on the Machine screen (sends `machineId`), above the phone tab bar. Covered answer with source chips (page, link to the guide) and the attribution line; practice question graded on the phone; red emergency card; not covered → **Ask my Senpai** (`POST /asks` + `/forward`). Mock answers mirror the backend for the filmed questions. Japanese + English only. Minhaz: restyle freely; **Android is still open**.
+- **Verification Proof**: `npm run typecheck`, `npm run lint`, `npm test` (98 passed, incl. `services/mocks/chatbot.test.ts`); Playwright screenshots at 390 px and 1280 px: answer + sources + practice question, emergency card, not covered + Ask my Senpai.
 
 #### `[XREQ-017]` Contacts, My QR, Contact Threads, Talk Threads and group controls (the part of XREQ-010 still open)
 

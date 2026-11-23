@@ -70,6 +70,26 @@ export interface NoteVersion {
   approvedAt: string | null
 }
 
+/** Where a chatbot answer came from (POST /api/knowledge/asks, XREQ-016). */
+export interface KnowledgeSource {
+  id: string
+  kind: 'safety' | 'life' | 'note' | 'notice'
+  title: string
+  page: number | null // page of the guide's PDF; null for the shop's instruction or a Notice
+  url: string | null
+  attribution: string | null // the licence asks us to show it under the answer
+}
+
+/** The chatbot's answer: only from cited sources, then one practice question graded on the phone. */
+export interface KnowledgeAnswer {
+  question: string
+  covered: boolean
+  emergency: boolean // the answer is the fixed emergency card, never written by AI
+  answer: Tri | null
+  sources: KnowledgeSource[]
+  check: CheckQuestion | null
+}
+
 export type CheckTarget =
   | { kind: 'note'; id: string }
   | { kind: 'briefing'; id: string }
