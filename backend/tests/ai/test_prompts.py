@@ -8,15 +8,13 @@ import pytest
 PROMPTS = Path(__file__).parents[2] / "app" / "prompts"
 
 PLACEHOLDERS = {
-    "build_note.v1.md": {"glossary", "icons"},
-    "build_note.v2.md": {"glossary", "icons"},
-    "build_briefing.v1.md": {"glossary"},
-    "build_notice.v1.md": {"glossary", "today"},
-    "build_notice.v2.md": {"glossary", "today"},
-    "answer_ask.v2.md": {"glossary", "notices"},
+    "build_note.v3.md": {"glossary", "icons", "languages"},
+    "build_briefing.v2.md": {"glossary", "languages"},
+    "build_notice.v3.md": {"glossary", "today", "languages"},
+    "answer_ask.v3.md": {"glossary", "notices", "languages"},
     "translate.v1.md": {"glossary", "source_lang", "target_lang"},
-    "draft_message.v1.md": {"glossary", "members", "machines", "now"},
-    "reexplain.v1.md": {"glossary", "term"},
+    "draft_message.v2.md": {"glossary", "members", "machines", "now", "languages"},
+    "reexplain.v2.md": {"glossary", "term", "languages"},
 }
 
 
@@ -30,3 +28,13 @@ def test_prompt_uses_exactly_its_placeholders(name: str, keys: set[str]) -> None
     assert set(template.get_identifiers()) == keys
     filled = template.substitute(dict.fromkeys(keys, "X"))
     assert "$" not in filled
+
+
+def test_the_model_gets_a_schema_with_only_the_shop_languages() -> None:
+    from app.ai.schemas import NoteDraft, response_schema
+
+    defs = response_schema(NoteDraft, ["en"])["$defs"]
+
+    assert list(defs["AiTri"]["properties"]) == defs["AiTri"]["required"] == ["ja", "en"]
+    assert defs["BackTranslation"]["required"] == ["en"]
+    assert defs["AiTri"]["properties"]["en"]["type"] == "string"  # required, not nullable

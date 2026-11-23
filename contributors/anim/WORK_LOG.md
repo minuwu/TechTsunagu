@@ -4,6 +4,20 @@ Owner: Anim (`anim710`) — Role: Backend (WS10 Notices + Events, WS11 Asks + Se
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-23 (database on Supabase; I own the database now)
+
+### Completed
+- **Supabase project** `wakatta` (ref `jpajxyejcbtfivrylcaf`, Tokyo, free plan, $0), created with your OK. Runbook: [backend/deploy/SUPABASE.md](../../backend/deploy/SUPABASE.md).
+- **`jobs/dbinit.py` on Supabase** (merged with Asif's `3f2b7f6`, which grants the owner `USAGE, CREATE` on `public` instead of taking it): removes `public` from PUBLIC and from Supabase's Data API roles `anon` / `authenticated`, and sets `TimeZone UTC` on the app role (a pooler may drop startup options). Regression test `tests/db/test_dbinit.py` builds a Supabase-shaped server locally (fails on the old script, passes on the new); it runs when `TEST_ADMIN_DATABASE_URL` (a superuser) is set.
+- **Rehearsal on the real project** (throwaway role passwords, only SCRAM verifiers sent; then set to NULL, local copies deleted): pooler logins as `wakatta_owner` / `wakatta_app` work on `aws-0-ap-northeast-1` (not `aws-1`); Alembic up → down → up clean on Postgres 17.12; seed 59 rows; the API on my laptop against the pooler passed `scripts/smoke.py` 13/13; SQL proof: 35 tables owned by `wakatta_owner`, `anon` / `authenticated` no USAGE and SELECT on 0 tables, `wakatta_app` cannot TRUNCATE or UPDATE `audit_events`; Supabase security advisor: no findings.
+- **`backend/scripts/smoke.py`**: end-to-end smoke against any running API (read-only apart from sign-in, safe on the live demo), PASS/FAIL per check, exit 1 on failure. Stdlib only.
+- `.env.example` shows the Supabase URL shape; README links the runbook.
+- Verified: 321 tests pass (incl. the dbinit test with `TEST_ADMIN_DATABASE_URL`); ruff, ruff format, pyright strict (also `jobs/`, `scripts/`), lint-imports clean; smoke 13/13 against Supabase and against local.
+
+### Handoff
+- **Asif, XREQ-012 (P1):** run your `deploy/use-supabase.ps1` with `SUPABASE_DB_URL` on the **`aws-0-ap-northeast-1`** pooler (`aws-1` does not know this project), then `scripts/smoke.py` against the Azure URL, then delete Azure PostgreSQL. `jobs/dbinit.py` is merged with your `3f2b7f6`: your structure, plus it revokes `public` from PUBLIC on a shared database too (on Supabase PUBLIC's USAGE hands the schema to the Data API roles; revoking was rehearsed on the real project with the advisors clean) and from `anon` / `authenticated`, and sets `TimeZone UTC` on the app role.
+- **Anim (me) before the cutover:** reset the Supabase database password in the dashboard and give it to Asif privately; optionally switch the Data API off (Project Settings → Data API).
+
 ## 2026-11-23
 
 ### Completed

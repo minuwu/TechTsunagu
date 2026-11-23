@@ -4,6 +4,7 @@
 # Usage: powershell -ExecutionPolicy Bypass -File backend\deploy\reset-demo.ps1
 . "$PSScriptRoot\common.ps1"
 
+Wait-Idle
 Step "starting a revision that resets the demo data"
 Invoke-Az containerapp update -n $App -g $Rg --set-env-vars "SEED_ON_START=reset" -o none
 $null = Wait-Ready

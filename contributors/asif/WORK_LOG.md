@@ -4,6 +4,21 @@ Owner: Asif (`MdAsif-Hossain`) — Role: Backend (lead) / Services / Database
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-23 (Azure deploy, live)
+
+### Completed
+- **API live:** `https://wakatta-api.agreeablestone-840cfb57.japaneast.azurecontainerapps.io` (Japan East; Azure for Students). PostgreSQL 16 B1ms (Azure services only), Container App (1 replica), registry + managed identity (no tokens), real AI on (`AI_MODE=gemini`, `AI_CHAIN=dev`). Verified from outside: CORS from `localhost:3000`, roster, login, `/auth/me`, authenticated lists, 401 without a token.
+- **CI/CD:** `.github/workflows/backend-deploy.yml` runs after `backend-ci` passes on a push to `main`: OIDC sign-in (identity `wakatta-ci`, trusts only this repo's `main`, custom least-privilege role), image build into ACR, rollout, health wait. No stored secrets.
+- **Express environments (student subscriptions):** no Jobs, one revision name, no `latestReadyRevisionName`. So `backend/jobs/start.py` creates roles + database on first boot, migrates on every start, reloads the demo on request; the API holds the owner credential (documented tradeoff, architecture §15).
+- Ops scripts in `backend/deploy/`: `azure-setup.ps1` (one-time, re-runnable), `reset-demo.ps1` (before filming), `set-cors.ps1` (add the hosted frontend's origin), `set-ai-key.ps1` (`-Chain demo` for filming).
+- Fixes found on the way: seed question ids (500s), Check response built before commit, UTC sessions, `public` schema ownership on Azure Postgres, `GET /api/meetups`, CORS origin list.
+- **Handover to Minhaz:** [docs/FRONTEND_API_HANDOVER.md](../../docs/FRONTEND_API_HANDOVER.md), linked from XREQ-001.
+
+### Next
+- When Minhaz hosts the frontend: `backend/deploy/set-cors.ps1 "http://localhost:3000,https://<host>"`.
+- Before filming: `reset-demo.ps1`, then `set-ai-key.ps1 -Chain demo`.
+- Follow-up hardening: VNet + private Postgres access, then drop the Azure-services firewall rule.
+
 ## 2026-11-23
 
 ### Completed

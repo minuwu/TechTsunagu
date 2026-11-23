@@ -5,6 +5,7 @@ param([string]$Origins)
 . "$PSScriptRoot\common.ps1"
 if (-not $Origins) { $Origins = $FrontendOrigins }
 
+Wait-Idle
 Step "FRONTEND_ORIGIN=$Origins"
 Invoke-Az containerapp update -n $App -g $Rg --set-env-vars "FRONTEND_ORIGIN=$Origins" -o none
 $null = Wait-Ready
