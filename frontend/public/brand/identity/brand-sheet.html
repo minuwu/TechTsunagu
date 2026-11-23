@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wakatta? brand sheet</title>
+<style>
+:root{--brand:#1351AA;--cream:#E3E2DE;--jet:#141414;--white:#FFFFFF;--hair:#C7C7C7;--ok:#1E6B3A;--bad:#B3261E}
+*{box-sizing:border-box}
+body{margin:0;background:var(--cream);color:var(--jet);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+main{max-width:1080px;margin:0 auto;padding:48px 20px 96px}
+h1{font-size:44px;line-height:1.05;margin:0 0 8px;letter-spacing:-.02em}
+h2{font-size:13px;letter-spacing:.14em;text-transform:uppercase;margin:64px 0 16px;padding-top:12px;border-top:2px solid var(--jet)}
+p{margin:0 0 12px;max-width:64ch}
+.sub{color:#444}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.c3{grid-template-columns:repeat(3,1fr)}@media(max-width:640px){.c3{grid-template-columns:1fr}}
+.g6{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.card{background:var(--white);padding:16px;border:1px solid var(--hair)}
+.card.cream{background:var(--cream)}
+.card.dark{background:var(--jet);color:var(--white);border-color:var(--jet)}
+.card img{display:block;max-width:100%;height:auto}
+.cap{font-size:13px;margin-top:10px;color:#555}
+.dark .cap{color:#ddd}
+.sw{height:96px;margin-bottom:8px;border:1px solid var(--hair)}
+code{font:13px/1.4 ui-monospace,Consolas,monospace;background:rgba(0,0,0,.07);padding:1px 5px}
+table{border-collapse:collapse;width:100%;background:var(--white)}
+td,th{border:1px solid var(--hair);padding:8px 12px;text-align:left;font-size:14px}
+.do,.dont{font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px}
+.do{color:var(--ok)}.dont{color:var(--bad)}
+.stage{height:130px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:var(--cream)}
+.stage img{width:200px}
+.cs{background:var(--white);border:1px solid var(--hair);padding:24px;overflow:auto}
+.zone{position:relative;display:inline-block;padding:44px;outline:1px dashed var(--brand);background:repeating-linear-gradient(45deg,rgba(19,81,170,.08) 0 6px,transparent 6px 12px)}
+.zone>img{display:block;background:var(--white);outline:1px solid var(--jet)}
+.zone svg{position:absolute}
+</style>
+</head>
+<body>
+<main>
+<img src="logo-full.svg" alt="Wakatta?" width="360" style="display:block;margin-bottom:24px">
+<h1>Brand sheet</h1>
+<p class="sub">Nekko, the white cat with the thumbs-up, answers the question in the name. Poster Modernist (track P) for big surfaces, Playful rounded (track R) for icons and small art.</p>
+
+<h2>Colour</h2>
+<div class="grid g3">
+  <div class="card"><div class="sw" style="background:#1351AA"></div><b>Site cobalt</b> <code>#1351AA</code><div class="cap">The one brand blue. Every SVG, Lottie and image file uses this.</div></div>
+  <div class="card"><div class="sw" style="background:#246DD4"></div><b>Icon blue</b> <code>#246DD4</code><div class="cap">Alternate, made from cobalt by script (the iconblue twins). Never typed by hand into artwork.</div></div>
+</div>
+<div class="grid g6" style="margin-top:16px">
+  <div class="card"><div class="sw" style="background:#E3E2DE"></div><b>Cream</b><br><code>#E3E2DE</code><div class="cap">Ground</div></div>
+  <div class="card"><div class="sw" style="background:#141414"></div><b>Jet</b><br><code>#141414</code><div class="cap">Linework, type</div></div>
+  <div class="card"><div class="sw" style="background:#FFFFFF"></div><b>White</b><br><code>#FFFFFF</code><div class="cap">Nekko's body</div></div>
+  <div class="card"><div class="sw" style="background:#C7C7C7"></div><b>Hairline</b><br><code>#C7C7C7</code><div class="cap">1-2 px rules, on cream only</div></div>
+  <div class="card"><div class="sw" style="background:#1E6B3A"></div><b>Success</b><br><code>#1E6B3A</code></div>
+  <div class="card"><div class="sw" style="background:#B3261E"></div><b>Danger</b><br><code>#B3261E</code></div>
+  <div class="card"><div class="sw" style="background:#8A5300"></div><b>Warning</b><br><code>#8A5300</code></div>
+</div>
+<p class="cap">State colours carry meaning only (Lottie, empty states). Tokens: <code>tokens.css</code>, <code>tokens.json</code>.</p>
+
+<h2>Logo</h2>
+<div class="grid g2">
+  <div class="card"><img src="logo-full.svg" alt="Full logo"><div class="cap"><code>logo-full</code> Nekko and wordmark. Default.</div></div>
+  <div class="card"><img src="logo-lockup-stacked.svg" alt="Stacked lockup" style="max-width:300px"><div class="cap"><code>logo-lockup-stacked</code> for square spaces.</div></div>
+  <div class="card"><img src="logo-lockup-ja.svg" alt="Japanese lockup"><div class="cap"><code>logo-lockup-ja</code> for Japanese-language surfaces.</div></div>
+  <div class="card"><img src="logo-wordmark.svg" alt="Wordmark" style="margin-bottom:16px"><img src="logo-wordmark-ja.svg" alt="Japanese wordmark" style="max-width:240px"><div class="cap"><code>logo-wordmark</code>, <code>logo-wordmark-ja</code>. The cobalt "?" is the question Nekko answers.</div></div>
+  <div class="card dark"><img src="logo-white.svg" alt="White logo"><div class="cap"><code>logo-white</code> on jet or cobalt.</div></div>
+  <div class="card"><img src="logo-black.svg" alt="Black logo"><div class="cap"><code>logo-black</code> one-colour use, on white or cream.</div></div>
+  <div class="card cream" style="display:flex;gap:24px;align-items:center"><img src="logo-mark.svg" alt="Mark" style="width:110px"><img src="logo-icon.svg" alt="Icon" style="width:84px"><img src="logo-favicon.svg" alt="Favicon" style="width:48px"><div class="cap">mark, icon, favicon</div></div>
+</div>
+
+<h2>Clear space</h2>
+<p>Keep free space of <b>x</b> on every side, where x is half the cap height of the wordmark (the height of the "W"). Nothing enters the dashed zone: no edge, no other logo, no text.</p>
+<div class="cs">
+  <div class="zone">
+    <img src="logo-full.svg" alt="" width="420">
+    <svg width="44" height="14" viewBox="0 0 44 14" style="left:0;top:calc(50% - 7px)" aria-hidden="true"><path d="M1 7H43M1 2V12M43 2V12" stroke="#1351AA" stroke-width="1.5" fill="none"/></svg>
+    <svg width="44" height="14" viewBox="0 0 44 14" style="right:0;top:calc(50% - 7px)" aria-hidden="true"><path d="M1 7H43M1 2V12M43 2V12" stroke="#1351AA" stroke-width="1.5" fill="none"/></svg>
+    <svg width="14" height="44" viewBox="0 0 14 44" style="top:0;left:calc(50% - 7px)" aria-hidden="true"><path d="M7 1V43M2 1H12M2 43H12" stroke="#1351AA" stroke-width="1.5" fill="none"/></svg>
+    <svg width="14" height="44" viewBox="0 0 14 44" style="bottom:0;left:calc(50% - 7px)" aria-hidden="true"><path d="M7 1V43M2 1H12M2 43H12" stroke="#1351AA" stroke-width="1.5" fill="none"/></svg>
+  </div>
+  <p class="cap">Each arrow is x. The Nekko bust is cut flat: it sits flush on the wordmark baseline.</p>
+</div>
+
+<h2>Minimum size</h2>
+<table>
+<tr><th>Asset</th><th>Minimum width</th><th>Note</th></tr>
+<tr><td>logo-full, logo-white, logo-black</td><td>120 px (30 mm)</td><td>Below that use the wordmark or the mark</td></tr>
+<tr><td>logo-lockup-stacked, logo-lockup-ja</td><td>120 px</td><td></td></tr>
+<tr><td>logo-wordmark, logo-wordmark-ja</td><td>80 px</td><td>Japanese wordmark: 96 px</td></tr>
+<tr><td>logo-mark (Nekko)</td><td>40 px</td><td>Below 40 px use the favicon</td></tr>
+<tr><td>logo-favicon</td><td>16 px</td><td>Checked at 16, 32, 48</td></tr>
+</table>
+
+<h2>Do and do not</h2>
+<div class="grid c3">
+  <div class="card"><div class="do">Do</div><div class="stage"><img src="logo-full.svg" alt=""></div><div class="cap">Use on cream or white with full clear space.</div></div>
+  <div class="card"><div class="do">Do</div><div class="stage" style="background:var(--jet)"><img src="logo-white.svg" alt=""></div><div class="cap">Use the white version on jet or cobalt.</div></div>
+  <div class="card"><div class="do">Do</div><div class="stage"><img src="logo-lockup-ja.svg" alt=""></div><div class="cap">Use the Japanese lockup on Japanese-language surfaces.</div></div>
+  <div class="card"><div class="dont">Do not</div><div class="stage"><img src="logo-full.svg" alt="" style="transform:scaleX(1.5)"></div><div class="cap">Stretch or squash it.</div></div>
+  <div class="card"><div class="dont">Do not</div><div class="stage"><img src="logo-full.svg" alt="" style="filter:hue-rotate(120deg)"></div><div class="cap">Recolour it. Cobalt is the only blue.</div></div>
+  <div class="card"><div class="dont">Do not</div><div class="stage" style="background:repeating-linear-gradient(135deg,#1351AA 0 14px,#141414 14px 28px)"><img src="logo-black.svg" alt=""></div><div class="cap">Put it on a busy or low-contrast ground.</div></div>
+</div>
+<p class="cap" style="margin-top:12px">Also never: rotate, add shadows or outlines, redraw Nekko, set the name in another typeface, or use the Icon blue in the lockups.</p>
+
+<h2>Nekko expressions</h2>
+<div class="grid g6">
+  <div class="card cream"><img src="../master/nekko-expressions/nekko-neutral.svg" alt="neutral"><div class="cap">neutral</div></div>
+  <div class="card cream"><img src="../master/nekko-expressions/nekko-happy.svg" alt="happy"><div class="cap">happy</div></div>
+  <div class="card cream"><img src="../master/nekko-expressions/nekko-worried.svg" alt="worried"><div class="cap">worried</div></div>
+  <div class="card cream"><img src="../master/nekko-expressions/nekko-surprised.svg" alt="surprised"><div class="cap">surprised</div></div>
+  <div class="card cream"><img src="../master/nekko-expressions/nekko-sleepy.svg" alt="sleepy"><div class="cap">sleepy</div></div>
+  <div class="card cream"><img src="../master/nekko-expressions/nekko-error.svg" alt="error"><div class="cap">error</div></div>
+</div>
+
+<h2>Style tracks</h2>
+<p><b>P, Poster Modernist:</b> cream, jet, cobalt and white only, 0 px corners, flat blocks and hairline rules; for hero, footer, banners, social.</p>
+<p><b>R, Playful rounded:</b> rounded corners and round caps, one thick line weight like Nekko's, flat fills; for app icons, spot art, empty states and Lottie.</p>
+
+<h2>Pattern</h2>
+<div class="card cream"><div style="height:240px;background:url(pattern-nekko.svg) 0 0/360px 360px repeat"></div><div class="cap"><code>pattern-nekko.svg</code>: 960 x 960 tile, transparent, seamless. Use on cream.</div></div>
+</main>
+</body>
+</html>

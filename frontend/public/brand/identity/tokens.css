@@ -1,0 +1,21 @@
+/* Wakatta? brand tokens. Same data as tokens.json. */
+:root {
+  --brand: #1351AA;      /* Site cobalt: the one brand blue in every file */
+  --brand-alt: #246DD4;  /* Icon blue: app icons and the iconblue twins only */
+  --cream: #E3E2DE;
+  --jet: #141414;
+  --white: #FFFFFF;
+  --hairline: #C7C7C7;   /* 1-2 px rules, only on cream */
+  --success: #1E6B3A;
+  --danger: #B3261E;
+  --warning: #8A5300;
+
+  /* Track P: Poster Modernist (hero, footer, banners, social). Square corners only. */
+  --radius-p: 0;
+  /* Track R: Playful rounded (app icons, spot art, empty states, Lottie) */
+  --radius-r-sm: 8px;
+  --radius-r-md: 16px;
+  --radius-r-lg: 24px;
+  --radius-r-icon: 22.4%;   /* squircle app icon */
+  --stroke-r: round;        /* line caps and joins in track R */
+}

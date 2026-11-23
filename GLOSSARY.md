@@ -178,3 +178,21 @@ _Avoid_: Session, appointment
 **Support Log**:
 The export of Meet-ups and Notice Check results that evidences an employer's life and exchange support for 特定技能1号 Workers.
 _Avoid_: Report, audit log
+
+## Brand
+
+**Nekko**:
+The Wakatta? mascot: a white cat with a thumbs-up, drawn as thick cobalt line art on a white silhouette.
+_Avoid_: Logo cat, Wakatta Cat, mascot (as a name)
+
+**Brand kit**:
+The set of Nekko artwork, app icons, favicons, Lottie animations and website images generated from one master drawing, in two blues: Site cobalt and Icon blue.
+_Avoid_: Brand pack, asset pack
+
+**Site cobalt**:
+The Poster Modernist kit's cobalt `#1351AA`; the main blue of the Brand kit.
+_Avoid_: Primary blue, brand blue
+
+**Icon blue**:
+The lighter blue `#246DD4` of the original app icon, kept as an alternate Brand kit variant.
+_Avoid_: Light blue, original blue
