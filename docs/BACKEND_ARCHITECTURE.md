@@ -663,7 +663,7 @@ A 10 MB body limit applies before multipart parsing. Pillow's decompression-bomb
 | `tests/load/poll.py` | §8.5 budgets: 30 Panels + 5 boards polling, 2 AI drafts (fake AI with a 10 s delay); prints p50/p95 per path | `httpx` (already a test dependency) with threads; run against the Azure server before demo day |
 | `app.ai.eval` | §10.6 quality numbers | live model, manual run, not in CI |
 
-Coverage target 80% on `domain`, `services`, `repositories`, `ai` (G-22). CI `backend-ci.yml`: ruff → pyright → import-linter → pytest + coverage → openapi diff → gitleaks.
+Coverage target 80% on `domain`, `services`, `repositories`, `ai` (G-22). CI `backend-ci.yml`: ruff → pyright → import-linter → pytest with a coverage floor of 80% (which also diffs `docs/openapi.yaml`). `secret-scan.yml` runs gitleaks over the whole history on every PR and push to `main`.
 
 ---
 

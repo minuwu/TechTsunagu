@@ -79,3 +79,10 @@ forbidden_modules = ["app.services", "app.routers", "app.api"]
 pythonpath = ["."]
 testpaths = ["tests"]
 addopts = "-q"
+
+# G-11, G-22: CI runs `pytest --cov`, which fails below this.
+[tool.coverage.run]
+source = ["app"]
+
+[tool.coverage.report]
+fail_under = 80

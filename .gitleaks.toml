@@ -1,0 +1,13 @@
+# Secret scanning (G-37), run by .github/workflows/secret-scan.yml over the whole history.
+# Locally: gitleaks git . --redact
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Documentation examples, never real credentials"
+targetRules = ["generic-api-key"]
+regexes = [
+  '''^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$''', # Idempotency-Key UUIDs
+  '''^Q3v8mP0w_uK2Lx9oZr4TYA$''', # the example My QR token in docs/MOBILE_PLATFORM_CONTRACT.md
+  '''^opaque-32-chars$''', # AGENTS.md, XREQ-017
+]
