@@ -39,7 +39,7 @@ export function useSenpai() {
     // shortcut: free text is not translated in the demo; Gemini translate-only prompt does it later
     sendFree: (askId: string) => {
       const ja = drafts[askId]?.trim()
-      if (ja) reply.mutate({ askId, reply: { ja, bn: ja, en: ja } })
+      if (ja) reply.mutate({ askId, reply: { ja, en: ja } })
     },
     events: notices
       .filter((n) => n.status === 'published')

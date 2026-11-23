@@ -11,7 +11,7 @@ import {
 
 const machine: Machine = {
   id: 'm1',
-  name: { ja: '機械', bn: 'মেশিন', en: 'Machine' },
+  name: { ja: '機械', en: 'Machine' },
   currentVersionId: 'v2',
   activeWorkerId: null,
 }
@@ -56,7 +56,7 @@ describe('gradeCheck', () => {
   const q = (id: string, correctIndex: number): CheckQuestion => ({
     id,
     termId: null,
-    prompt: { ja: '', bn: '', en: '' },
+    prompt: { ja: '', en: '' },
     options: [],
     correctIndex,
   })
@@ -73,7 +73,7 @@ describe('gradeCheck', () => {
 describe('calendar', () => {
   const burnable: NoticeEvent = {
     id: 'e1',
-    title: { ja: '可燃ごみ', bn: '', en: '' },
+    title: { ja: '可燃ごみ', en: '' },
     startsAt: '2026-11-02T08:00:00+09:00',
     rrule: 'FREQ=WEEKLY;BYDAY=MO,TH',
     confirmed: true,

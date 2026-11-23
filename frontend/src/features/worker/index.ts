@@ -31,7 +31,7 @@ function useWorker(workerId: string | null) {
   return {
     loading: workers.isPending,
     worker,
-    lang: lang ?? worker?.language ?? 'bn',
+    lang: lang ?? worker?.language ?? 'en',
     setLang,
   }
 }

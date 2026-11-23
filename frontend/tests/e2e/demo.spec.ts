@@ -17,20 +17,28 @@ async function unlock(page: Page, path: string, pin: string) {
   ).toBeVisible()
 }
 
+// Reset the demo store from the home page. A click before hydration does nothing, so retry until the
+// confirm dialog (kits that confirm a destructive action, F-30) or the done message appears.
+async function resetDemo(page: Page) {
+  await page.goto('/')
+  const confirm = page
+    .getByRole('dialog')
+    .getByRole('button', { name: 'Reset demo' })
+  const done = page.getByText('Demo data reset.')
+  await expect(async () => {
+    await page.getByRole('button', { name: 'Reset demo' }).first().click()
+    await expect(confirm.or(done)).toBeVisible({ timeout: 1000 })
+  }).toPass()
+  if (await confirm.isVisible()) await confirm.click()
+  await expect(done).toBeVisible()
+}
+
 // Core loop from the plan: expired Worker is locked, passes the Check, Panel turns READY
 test('passing the Check unlocks the Machine Panel', async ({
   page,
   context,
 }) => {
-  await page.goto('/')
-  await page.getByRole('button', { name: 'Reset demo' }).click()
-  // Kits that confirm a destructive action (F-30) open a dialog; confirm it there
-  const confirm = page
-    .getByRole('dialog')
-    .getByRole('button', { name: 'Reset demo' })
-  await expect(confirm.or(page.getByText('Demo data reset.'))).toBeVisible()
-  if (await confirm.isVisible()) await confirm.click()
-  await expect(page.getByText('Demo data reset.')).toBeVisible()
+  await resetDemo(page)
 
   await page.goto('/m/m-press')
   await page.getByRole('button', { name: 'Tanvir' }).click()
@@ -91,10 +99,9 @@ test('every demo screen renders cleanly', async ({ page }) => {
   }
 })
 
-// Pitch opener: flyer photo becomes a Bengali notice with confirmed dates; the Worker sees it and can Ask
+// Pitch opener: flyer photo becomes an English notice with confirmed dates; the Worker sees it and can Ask
 test('flyer notice reaches the Worker and Ask cites it', async ({ page }) => {
-  await page.goto('/')
-  await page.getByRole('button', { name: 'Reset demo' }).click()
+  await resetDemo(page)
   await unlock(page, '/community', '5678')
   await page
     .getByRole('button', { name: 'Use the sample garbage flyer' })
@@ -109,13 +116,15 @@ test('flyer notice reaches the Worker and Ask cites it', async ({ page }) => {
   await page.goto('/me/w-rahim/life')
   await page.getByLabel('Or type').fill('fan garbage')
   await page.getByRole('button', { name: 'Ask', exact: true }).click()
-  await expect(page.getByText('Source:')).toBeVisible()
+  // The cited Notice is named under the answer (the answer text itself may mention its source too)
+  await expect(
+    page.getByText('Source: How to put out garbage', { exact: true }),
+  ).toBeVisible()
 })
 
 // Pitch beat two: a new Note Version expires every Sign-off on that Machine
 test('publishing a new version locks the Machine again', async ({ page }) => {
-  await page.goto('/')
-  await page.getByRole('button', { name: 'Reset demo' }).click()
+  await resetDemo(page)
   await unlock(page, '/foreman/record/m-plasma', '1234')
   await page.getByRole('button', { name: 'Use the sample take' }).click()
   await page.getByRole('button', { name: 'Next: confirm' }).click()
