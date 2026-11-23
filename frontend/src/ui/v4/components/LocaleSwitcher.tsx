@@ -3,9 +3,9 @@ import { getLocale, setLocale, type Locale } from '@/i18n/paraglide/runtime'
 import { cn } from '@/ui/v4/lib/utils'
 
 // Each label is written in its own language so anyone can find theirs (F-01)
-const LABELS: Record<Locale, string> = { ja: '日本語', en: 'EN', bn: 'বাংলা' }
+const LABELS: Record<Locale, string> = { ja: '日本語', en: 'EN' }
 
-/** UI language: three square segments, the current one filled black. */
+/** UI language: two square segments (Japanese, English), the current one filled black. */
 export function LocaleSwitcher() {
   const current = getLocale()
   return (

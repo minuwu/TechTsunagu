@@ -102,11 +102,12 @@ test.describe('landing with motion on', () => {
   })
 })
 
-// The interactive Japan map: its buttons move it to Nagasaki (with the public-domain photo) and back
+// The interactive Japan map (v3 kit, so asked for with ?ui=v3 whatever the default kit is): its buttons move
+// it to Nagasaki (with the public-domain photo) and back
 test('the Japan map goes to Nagasaki and back to all of Japan', async ({
   page,
 }) => {
-  await page.goto('/')
+  await page.goto('/?ui=v3')
   await expect(page.getByRole('img', { name: /Map of Japan/ })).toBeVisible()
 
   await page.getByRole('button', { name: 'Nagasaki', exact: true }).click()
