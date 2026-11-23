@@ -850,6 +850,28 @@ export type ContactUpdate = {
 };
 
 /**
+ * DayCounts
+ */
+export type DayCounts = {
+    /**
+     * Day
+     */
+    day: string;
+    /**
+     * Green
+     */
+    green: number;
+    /**
+     * Orange
+     */
+    orange: number;
+    /**
+     * Red
+     */
+    red: number;
+};
+
+/**
  * DeviceIn
  */
 export type DeviceIn = {
@@ -1253,6 +1275,21 @@ export type EnvelopeKnowledgeAnswer = {
      */
     success?: true;
     data: KnowledgeAnswer;
+    /**
+     * Message
+     */
+    message?: string;
+};
+
+/**
+ * Envelope[Learning]
+ */
+export type EnvelopeLearning = {
+    /**
+     * Success
+     */
+    success?: true;
+    data: Learning;
     /**
      * Message
      */
@@ -1766,6 +1803,21 @@ export type EnvelopeTodayWord = {
      */
     success?: true;
     data: TodayWord;
+    /**
+     * Message
+     */
+    message?: string;
+};
+
+/**
+ * Envelope[Understanding]
+ */
+export type EnvelopeUnderstanding = {
+    /**
+     * Success
+     */
+    success?: true;
+    data: Understanding;
     /**
      * Message
      */
@@ -2458,6 +2510,54 @@ export type KnowledgeSource = {
      * Attribution
      */
     attribution: string | null;
+};
+
+/**
+ * Learning
+ */
+export type Learning = {
+    /**
+     * Items
+     */
+    items: Array<LearningItem>;
+    /**
+     * Nextcursor
+     */
+    nextCursor: string | null;
+    /**
+     * Streakdays
+     */
+    streakDays: number;
+};
+
+/**
+ * LearningItem
+ */
+export type LearningItem = {
+    /**
+     * Followupid
+     */
+    followUpId: string;
+    /**
+     * Termja
+     */
+    termJa: string;
+    /**
+     * Status
+     */
+    status: 'open' | 'clarified' | 'understood';
+    /**
+     * Missedat
+     */
+    missedAt: string;
+    /**
+     * Clarifiedat
+     */
+    clarifiedAt: string | null;
+    /**
+     * Understoodat
+     */
+    understoodAt: string | null;
 };
 
 /**
@@ -4001,6 +4101,20 @@ export type TaskUpdate = {
 };
 
 /**
+ * TermCount
+ */
+export type TermCount = {
+    /**
+     * Termja
+     */
+    termJa: string;
+    /**
+     * Count
+     */
+    count: number;
+};
+
+/**
  * ThreadOut
  */
 export type ThreadOut = {
@@ -4054,6 +4168,28 @@ export type TodayWord = {
      * Meaningja
      */
     meaningJa: string;
+};
+
+/**
+ * Understanding
+ */
+export type Understanding = {
+    /**
+     * Days
+     */
+    days: number;
+    /**
+     * Trend
+     */
+    trend: Array<DayCounts>;
+    /**
+     * Perworker
+     */
+    perWorker: Array<WorkerCounts>;
+    /**
+     * Topterms
+     */
+    topTerms: Array<TermCount>;
 };
 
 /**
@@ -4112,6 +4248,32 @@ export type ValidationError = {
     ctx?: {
         [key: string]: unknown;
     };
+};
+
+/**
+ * WorkerCounts
+ */
+export type WorkerCounts = {
+    /**
+     * Workerid
+     */
+    workerId: string;
+    /**
+     * Displayname
+     */
+    displayName: string;
+    /**
+     * Green
+     */
+    green: number;
+    /**
+     * Orange
+     */
+    orange: number;
+    /**
+     * Red
+     */
+    red: number;
 };
 
 /**
@@ -5903,6 +6065,70 @@ export type HeatmapApiHeatmapGetResponses = {
 };
 
 export type HeatmapApiHeatmapGetResponse = HeatmapApiHeatmapGetResponses[keyof HeatmapApiHeatmapGetResponses];
+
+export type MyLearningApiWorkersMeLearningGetData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Limit
+         */
+        limit?: number;
+        /**
+         * Cursor
+         */
+        cursor?: string | null;
+    };
+    url: '/api/workers/me/learning';
+};
+
+export type MyLearningApiWorkersMeLearningGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type MyLearningApiWorkersMeLearningGetError = MyLearningApiWorkersMeLearningGetErrors[keyof MyLearningApiWorkersMeLearningGetErrors];
+
+export type MyLearningApiWorkersMeLearningGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeLearning;
+};
+
+export type MyLearningApiWorkersMeLearningGetResponse = MyLearningApiWorkersMeLearningGetResponses[keyof MyLearningApiWorkersMeLearningGetResponses];
+
+export type UnderstandingApiAnalyticsUnderstandingGetData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Days
+         */
+        days?: number;
+    };
+    url: '/api/analytics/understanding';
+};
+
+export type UnderstandingApiAnalyticsUnderstandingGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UnderstandingApiAnalyticsUnderstandingGetError = UnderstandingApiAnalyticsUnderstandingGetErrors[keyof UnderstandingApiAnalyticsUnderstandingGetErrors];
+
+export type UnderstandingApiAnalyticsUnderstandingGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeUnderstanding;
+};
+
+export type UnderstandingApiAnalyticsUnderstandingGetResponse = UnderstandingApiAnalyticsUnderstandingGetResponses[keyof UnderstandingApiAnalyticsUnderstandingGetResponses];
 
 export type PassportApiWorkersWorkerIdPassportGetData = {
     body?: never;
