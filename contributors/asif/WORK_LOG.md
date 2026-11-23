@@ -4,6 +4,10 @@ Owner: Asif (`MdAsif-Hossain`) — Role: Backend (lead) / Services / Database
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-23 (request from Arjun: host the web demo, XREQ-013)
+
+- Please host the **frontend demo** on Azure Static Web Apps (Free) and reply with the URL in the XREQ-013 card: `cd frontend && npm ci && npm run build:static` → upload `frontend/.output/public`. Static only (demo data in the browser): no server, no secrets, no CORS change yet. Set `VITE_PUBLIC_URL` to the SWA URL at build time. Details and an optional CI recipe are in the card.
+
 ## 2026-11-23 (Azure deploy, live)
 
 ### Completed

@@ -4,6 +4,16 @@ Owner: Arjun Saha (GitHub handle TBD) — Role: Frontend design
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-23 (interactive Japan map, static demo build)
+
+### Done
+- Landing hero: interactive map of Japan's 47 prefectures (d3-geo SVG over the Vanta sea): hover names a prefecture (ja / en), click glides to it (d3-zoom + d3-transition), 全国 / All Japan and Nagasaki buttons, an intro glide to Nagasaki with a pin on Sasebo, a live caption; scroll never zooms; reduced motion jumps. Map data: Natural Earth (public domain); photo shown on Nagasaki: Megane Bridge by Yoshi Canopus, CC0 (Wikimedia Commons). Sources in `frontend/public/geo/README.md` and `frontend/public/media/README.md`.
+- `npm run build:static`: the whole demo pre-rendered (39 pages) for a static host; verified with a plain file server, core loop included.
+- e2e 12/12 (new map test), axe clean.
+
+### Next
+- Live link: asked Asif to host the static build on Azure Static Web Apps (**XREQ-013**); put the URL in the slides and README when it is up.
+
 ## 2026-11-23 (Bengali dropped from the frontend; team decision, Minhaz agrees)
 
 ### Done

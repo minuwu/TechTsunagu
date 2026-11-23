@@ -68,6 +68,7 @@ This file is:
 | `XREQ-011` | P2 | Frontend (Minhaz, Android app) | Backend (Anim), AI (Galib) | Gaps in live routes: Worker reads, ETag and Idempotency-Key, get-one Notice, Glossary PATCH, analytics, per-shop AI languages, XREQ status upkeep | `[PENDING]` | 2026-11-23 08:25 |
 | `XREQ-012` | P1 | Backend (Anim, database) | Backend (Asif, deploy) | Point the Azure API at the Supabase database (`backend/deploy/SUPABASE.md`), reseed, smoke, then delete Azure PostgreSQL | `[PENDING]` | 2026-11-23 17:30 |
 
+| `XREQ-013` | P1 | Frontend (Arjun) | Backend (Asif, deploy) | Host the frontend demo on Azure Static Web Apps (static build, `npm run build:static`) and reply with the live URL | `[PENDING]` | 2026-11-23 18:30 |
 *(When adding a request: append a row above AND add a detailed card in 2.2. Never insert in the middle.)*
 
 ### 2.2 Detailed Request Cards
@@ -522,6 +523,40 @@ scripts/smoke.py → "13/13 passed" (with --origin)
 - **Branch / Commit**: 
 - **Status / Notes**: 
 - **Verification Proof**: 
+
+#### `[XREQ-013]` Host the frontend demo on Azure Static Web Apps
+- **Priority**: `P1 (High)`
+- **From**: Frontend (Arjun)
+- **To**: Backend (Asif, deploy)
+- **Status**: `[PENDING]`
+- **Created**: `2026-11-23 18:30 (UTC+6)`
+- **Target Interface / Endpoint**: a public HTTPS URL for the web demo (landing with the Japan map, the Check → Panel loop, Foreman and Poster screens)
+
+**Requirement Details:**
+The team needs one live link for judges. The demo runs fully in the browser on its demo data (`VITE_USE_MOCK=true`), so it is a **static site**: no Node server, no API, no database, no secrets. Arjun asked for it on the team's Azure instead of a personal host.
+1. Build (on `main`, from `frontend/`): `npm ci && npm run build:static`. It pre-renders all 39 demo pages to **`frontend/.output/public`** (about 15 MB with the brand kit). Verified locally by serving that folder with a plain file server.
+2. Host that folder on **Azure Static Web Apps (Free plan)**, resource group of your choice, region East Asia or the nearest. `frontend/public/staticwebapp.config.json` is already in the output (caching, manifest MIME type, fallback for unknown URLs).
+3. Set **`VITE_PUBLIC_URL`** to the final `https://<name>.azurestaticapps.net` at build time: the QR stickers, Senpai links and the share-card image use it.
+4. Optional CI: the `Azure/static-web-apps-deploy` action with `app_location: frontend/.output/public`, `skip_app_build: true`, after a `npm ci && npm run build:static` step, token in `AZURE_STATIC_WEB_APPS_API_TOKEN`. Or a one-off `swa deploy ./frontend/.output/public --env production`.
+5. Later (not now): when the frontend switches to the real API (XREQ-001), add the SWA origin to the API's CORS list (`backend/deploy/set-cors.ps1`).
+
+Known limitation: pages are pre-rendered in English; a Japanese browser switches them to Japanese on load and React logs a recoverable hydration warning (#418) in the console. The visible page is correct.
+
+**Expected Request (Payload / Query Params / Headers):**
+```sh
+cd frontend && npm ci && npm run build:static   # → frontend/.output/public
+```
+
+**Expected Response (Status Code + Payload / Error Codes):**
+```text
+GET https://<name>.azurestaticapps.net/            → 200, the landing with the Japan map
+GET https://<name>.azurestaticapps.net/panel/m-press → 200, the Machine Panel
+```
+
+**Fulfillment & Proof (filled by recipient on completion):**
+- **Branch / Commit**:
+- **Status / Notes**:
+- **Verification Proof**:
 
 ### 2.3 Blank XREQ Template (copy & paste)
 
