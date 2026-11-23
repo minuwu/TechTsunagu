@@ -200,6 +200,27 @@ export function JapanMap({
         </span>
       )}
 
+      {/* Nagasaki: a public-domain photo of the place (public/media/README.md, CC0) */}
+      <figure
+        aria-hidden={focused !== HOME}
+        className={cn('japan-photo', focused === HOME && 'is-shown')}
+      >
+        <img
+          src="/media/megane-bridge-nagasaki-960.webp"
+          alt={m.map_photo_alt()}
+          width={960}
+          height={720}
+          loading="lazy"
+          decoding="async"
+        />
+        <figcaption>
+          <span className="font-bold">{m.map_photo_caption()}</span>
+          <span className="block text-muted-foreground">
+            {m.map_photo_credit()}
+          </span>
+        </figcaption>
+      </figure>
+
       {/* Controls and what is shown: real buttons, so the map works from the keyboard too */}
       <div
         className={cn(

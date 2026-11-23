@@ -419,5 +419,8 @@
   "panel_unknown_word": "不明",
   "map_label": "日本地図。都道府県をクリックすると拡大します",
   "map_all": "全国",
-  "map_pilot": "実証の場：佐世保市"
+  "map_pilot": "実証の場：佐世保市",
+  "map_photo_alt": "長崎市の眼鏡橋。中島川の水面に二つの石のアーチが映り、手前に飛び石が並んでいます。",
+  "map_photo_caption": "眼鏡橋（長崎市）",
+  "map_photo_credit": "写真：Yoshi Canopus（CC0）"
 }

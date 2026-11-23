@@ -525,6 +525,52 @@ input[type='file']::file-selector-button:hover {
   color: var(--primary-foreground);
 }
 
+/* The place photo on the map (shown while Nagasaki is in focus): fades and rises in */
+.japan-photo {
+  position: absolute;
+  z-index: 10;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: min(11rem, 42%);
+  overflow: hidden;
+  border: 1px solid var(--tile-border);
+  border-radius: 0.875rem;
+  background: var(--card);
+  box-shadow: var(--shadow-lg);
+  opacity: 0;
+  visibility: hidden;
+  translate: 0 8px;
+  transition:
+    opacity 300ms var(--ease-out),
+    translate 300ms var(--ease-out),
+    visibility 0s 300ms;
+}
+.japan-photo.is-shown {
+  opacity: 1;
+  visibility: visible;
+  translate: 0 0;
+  transition:
+    opacity 400ms 500ms var(--ease-out),
+    translate 400ms 500ms var(--ease-out);
+}
+.japan-photo img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.japan-photo figcaption {
+  padding: 0.4rem 0.6rem 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+@media (min-width: 1024px) {
+  .japan-photo {
+    top: 1.5rem;
+    right: 1.5rem;
+    width: 16rem;
+  }
+}
+
 /* Over the map, under the hero text (wide screens): zoomed-in land fades out behind the words.
    pointer-events: none in the markup, so the map underneath stays clickable. */
 .hero-text-veil {
@@ -598,6 +644,10 @@ html.lenis body {
   }
   .japan-pin-pulse {
     animation: none;
+  }
+  .japan-photo,
+  .japan-photo.is-shown {
+    transition: none;
   }
   .tabbar-pill,
   .tile,

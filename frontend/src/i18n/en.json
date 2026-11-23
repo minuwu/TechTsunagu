@@ -419,5 +419,8 @@
   "panel_unknown_word": "UNKNOWN",
   "map_label": "Map of Japan. Click a prefecture to zoom in",
   "map_all": "All Japan",
-  "map_pilot": "pilot site: Sasebo"
+  "map_pilot": "pilot site: Sasebo",
+  "map_photo_alt": "Megane Bridge in Nagasaki: two stone arches reflected in the Nakashima River, stepping stones in front.",
+  "map_photo_caption": "Megane Bridge, Nagasaki",
+  "map_photo_credit": "Photo: Yoshi Canopus (CC0)"
 }
