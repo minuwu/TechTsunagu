@@ -186,10 +186,11 @@ def main() -> None:
             _reset(db)
         elif db.scalar(select(func.count()).select_from(Shop)):
             raise SystemExit("The database already has shops; run with --reset to replace them.")
-        from app.seed_life import seed_life  # here, not at the top: seed_life imports this module's helpers
+        from app.seed_chat import seed_chat  # here, not at the top: both import this module's helpers
+        from app.seed_life import seed_life
 
         now = datetime.now(ZoneInfo("UTC"))
-        refs = seed_life(db, pepper, seed_work(db, pepper, now), now)
+        refs = seed_chat(db, seed_life(db, pepper, seed_work(db, pepper, now), now), now)
         db.commit()
     engine.dispose()
     print(f"Seeded {len(refs)} rows by key. Demo: shop SASEBO01, Foreman PIN 246810, Worker PIN 2468.")  # noqa: T201

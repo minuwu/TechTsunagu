@@ -432,8 +432,8 @@ def _follow_up_out(f: FollowUp, name: str) -> FollowUpOut:
 
 
 def list_follow_ups(db: Session, who: Principal, status: str | None, page: PageParams) -> Page[FollowUpOut]:
-    shop_id, _ = _me(who)
-    rows = repo.follow_ups_page(db, shop_id, status, page.after_id, page.limit)
+    shop_id, user_id = _me(who)
+    rows = repo.follow_ups_page(db, shop_id, user_id, status, page.after_id, page.limit)
     shown = rows[: page.limit]
     cursor = encode_cursor(shown[-1][0].id) if len(rows) > page.limit else None
     return Page(items=[_follow_up_out(f, n) for f, n in shown], next_cursor=cursor)
@@ -444,8 +444,10 @@ def update_follow_up(
 ) -> FollowUpOut:
     shop_id, user_id = _me(who)
     f = repo.follow_up(db, shop_id, follow_up_id, for_update=True)
-    if f is None:
+    m = repo.message(db, shop_id, f.message_id) if f is not None else None
+    if f is None or m is None:
         raise _not_found()
+    _thread(db, who, m.thread_id)  # 403 for a Foreman who is not in that Thread
     if not can_move(f.status, body.status):  # pyright: ignore[reportArgumentType]  # CHECK constraint
         raise ApiError(409, "CONFLICT", f"A Follow-up that is {f.status} cannot become {body.status}")
     f.status, f.note, f.resolved_by, f.resolved_at = body.status, body.note, user_id, now
@@ -565,6 +567,8 @@ def update_task(db: Session, who: Principal, task_id: int, body: TaskUpdate, ver
         raise _not_found()
     if t.version != version:
         raise ApiError(412, "VERSION_CONFLICT", "Someone moved this Task first; reload the board")
+    if who.role != "foreman" and ("due_at" in body.model_fields_set or body.assignee_ids is not None):
+        raise ApiError(403, "FORBIDDEN", "Workers can move a Task; the Foreman changes who and when")
     if body.column is not None:
         t.board_column = body.column
     if "due_at" in body.model_fields_set:

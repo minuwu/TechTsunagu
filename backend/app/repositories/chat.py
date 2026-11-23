@@ -148,11 +148,19 @@ def follow_up(db: Session, shop_id: int, follow_up_id: int, *, for_update: bool 
 
 
 def follow_ups_page(
-    db: Session, shop_id: int, status: str | None, after_id: int | None, limit: int
+    db: Session, shop_id: int, viewer_id: int, status: str | None, after_id: int | None, limit: int
 ) -> list[tuple[FollowUp, str]]:
+    """Follow-ups from Threads the viewer is in."""
     stmt = (
         select(FollowUp, User.display_name)
         .join(User, (User.id == FollowUp.user_id) & (User.shop_id == FollowUp.shop_id))
+        .join(Message, (Message.id == FollowUp.message_id) & (Message.shop_id == FollowUp.shop_id))
+        .join(
+            ThreadMember,
+            (ThreadMember.thread_id == Message.thread_id)
+            & (ThreadMember.shop_id == Message.shop_id)
+            & (ThreadMember.user_id == viewer_id),
+        )
         .where(FollowUp.shop_id == shop_id)
     )
     if status is not None:
