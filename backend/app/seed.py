@@ -168,8 +168,17 @@ def seed_work(db: Session, pepper: str, now: datetime) -> Refs:
     return refs
 
 
+# Kept across a demo reset: the AI answers warmed before filming (the reset runs at every container start), and the
+# day's model calls, which the provider counts whether or not our data was reset.
+_KEEP_ON_RESET = {"ai_cache", "ai_usage"}
+
+
+def reset_tables() -> list[str]:
+    return [t.name for t in Base.metadata.sorted_tables if t.name not in _KEEP_ON_RESET]
+
+
 def _reset(db: Session) -> None:
-    tables = ", ".join(t.name for t in Base.metadata.sorted_tables)  # our own table names, never input
+    tables = ", ".join(reset_tables())  # our own table names, never input
     db.execute(text(f"TRUNCATE {tables} RESTART IDENTITY CASCADE"))
 
 
