@@ -1,7 +1,7 @@
 # Shared settings for the Azure deploy scripts (Windows PowerShell 5.1+). Names, not secrets.
 $ErrorActionPreference = "Stop"
 $Rg = "wakatta-rg"; $Loc = "japaneast"; $EnvName = "wakatta-env"; $App = "wakatta-api"; $Identity = "wakatta-id"
-$Image = "techtsunagu-api"; $DbAdmin = "wakattaadmin"
+$Image = "techtsunagu-api"
 # Browser origins allowed by CORS (comma-separated). Add the hosted frontend here and run deploy/set-cors.ps1.
 $FrontendOrigins = "http://localhost:3000"
 
@@ -65,4 +65,3 @@ function Read-DotEnv([string[]]$Names) {
     $vals
 }
 function Get-Acr { Invoke-Az acr list -g $Rg --query "[0].name" -o tsv }
-function Get-DbServer { Invoke-Az postgres flexible-server list -g $Rg --query "[0].name" -o tsv }

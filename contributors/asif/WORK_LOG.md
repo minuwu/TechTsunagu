@@ -16,6 +16,7 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 - **Express environments (student subscriptions):** no Jobs, one revision name, no `latestReadyRevisionName`. So `backend/jobs/start.py` creates roles + database on first boot, migrates on every start, reloads the demo on request; the API holds the owner credential (documented tradeoff, architecture §15).
 - Ops scripts in `backend/deploy/`: `azure-setup.ps1` (one-time, re-runnable), `reset-demo.ps1` (before filming), `set-cors.ps1` (add the hosted frontend's origin), `set-ai-key.ps1` (`-Chain demo` for filming).
 - Fixes found on the way: seed question ids (500s), Check response built before commit, UTC sessions, `public` schema ownership on Azure Postgres, `GET /api/meetups`, CORS origin list.
+- **Database moved to Supabase (Anim's project, Tokyo) the same day:** `deploy/use-supabase.ps1` created our two roles through the Session pooler with TLS `verify-full`, migrated, seeded, and repointed the API; Anim's `scripts/smoke.py` passes 13/13 against the live URL; the Azure Postgres server is deleted. Anim's `dbinit` change (revoke `public` from the Data API roles, UTC on the app role) adopted. CI now sets `TEST_ADMIN_DATABASE_URL` so his `test_dbinit` runs.
 - **Handover to Minhaz:** [docs/FRONTEND_API_HANDOVER.md](../../docs/FRONTEND_API_HANDOVER.md), linked from XREQ-001.
 
 ### Next
