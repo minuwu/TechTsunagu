@@ -2,8 +2,8 @@
 
 from typing import Annotated, Literal, Self
 
-from pydantic import Field, SecretStr, StringConstraints, model_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import Field, SecretStr, StringConstraints, field_validator, model_validator
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 from app.ai.chains import Chain, Tier
 
@@ -14,7 +14,8 @@ Origin = Annotated[str, StringConstraints(pattern=r"^https?://[^/\s*]+$")]
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore", frozen=True)
 
-    frontend_origin: Origin
+    # FRONTEND_ORIGIN: one exact origin, or several separated by commas (local dev and the hosted frontend).
+    frontend_origin: Annotated[list[Origin], NoDecode, Field(min_length=1)]
     # The app role (DML only). Migrations use MIGRATION_DATABASE_URL (the owner), read by migrations/env.py only.
     database_url: Annotated[str, StringConstraints(pattern=r"^postgresql\+psycopg://")]
     # HMAC key mixed into every PIN hash before argon2id; at least 32 characters, never in git (architecture §12).
@@ -30,6 +31,11 @@ class Settings(BaseSettings):
     groq_api_key: SecretStr | None = None  # optional backup at the end of the chain; empty turns it off
     ai_timeout_seconds: int = 45
     ai_max_concurrent: int = 2
+
+    @field_validator("frontend_origin", mode="before")
+    @classmethod
+    def _split_origins(cls, value: object) -> object:
+        return [o.strip() for o in value.split(",")] if isinstance(value, str) else value
 
     @model_validator(mode="after")
     def _gemini_needs_a_key(self) -> Self:

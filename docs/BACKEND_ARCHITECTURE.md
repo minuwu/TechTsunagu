@@ -628,7 +628,7 @@ A 10 MB body limit applies before multipart parsing. Pillow's decompression-bomb
 | Isolation | scope from the session only; repository layer adds the scope; composite FKs; cross-scope ids are 404; the guard test (§3.3) and a two-shop isolation test suite (§14). |
 | Answer leak | Worker response models have no `correctIndex`; a test asserts that the field is absent in every Worker-facing schema. |
 | Senpai links | 128-bit, hashed, expiring, revocable, one active per Worker; `Referrer-Policy: no-referrer`; a wrong token is 404. |
-| CORS | only `FRONTEND_ORIGIN`; methods `GET, POST, PUT, PATCH, DELETE`; headers `Authorization, Content-Type, Idempotency-Key`; no credentials. |
+| CORS | only the origins in `FRONTEND_ORIGIN` (exact, comma-separated: local dev and the hosted frontend); methods `GET, POST, PUT, PATCH, DELETE`; headers `Authorization, Content-Type, Idempotency-Key`; no credentials. |
 | Headers | `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`, `Cache-Control: no-store` on authenticated JSON. |
 | Database role | the app connects as `wakatta_app`. It has DML on the app tables, no DDL, and only `insert, select` on `audit_events`. Migrations run as `wakatta_owner`. The `public` schema is revoked from `PUBLIC`. |
 | Secrets | env only (`DATABASE_URL`, `MIGRATION_DATABASE_URL`, `PIN_PEPPER`, `GEMINI_API_KEY`); `.env.example` lists every variable with a dummy value; gitleaks in CI (G-37). |
@@ -677,7 +677,7 @@ Coverage target 80% on `domain`, `services`, `repositories`, `ai` (G-22). CI `ba
 | `web` app | Minhaz's Nitro build, same environment | same |
 | Images | GitHub Actions → GHCR (public repo) | free |
 | Secrets | Container App secrets mapped to env | — |
-| Migrations | the `wakatta-migrate` Container Apps Job runs `alembic upgrade head` as `wakatta_owner` before each rollout (`backend/deploy/azure-deploy.ps1`); the API container only serves, as `wakatta_app`, and never holds the owner credential. | — |
+| Migrations | `backend/jobs/start.py` (the image's CMD) runs `alembic upgrade head` as `wakatta_owner` on every start, then execs Uvicorn; first boot also creates the roles and database, and `SEED_ON_START=reset` reloads the demo. Tradeoff: Azure for Students gets only *express* Container Apps environments, which have no Jobs, so the API container holds the owner credential and runs exactly one replica. Upgrade path: a non-express environment, a migration Job, and only `DATABASE_URL` for the API. | — |
 | Seed | `python -m app.seed --reset` via `az containerapp exec`, again before filming | — |
 
 ### 15.2 Demo-day checklist

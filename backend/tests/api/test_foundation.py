@@ -125,6 +125,28 @@ def test_cors_allows_only_the_frontend_origin(client: TestClient) -> None:
     assert "access-control-allow-origin" not in refused.headers
 
 
+def test_cors_allows_every_listed_origin_so_local_dev_and_the_hosted_frontend_both_work(settings: Settings) -> None:
+    hosted = "https://wakatta.example"
+    both = settings.model_copy(update={"frontend_origin": [FRONTEND, hosted]})
+    preflight = {"Access-Control-Request-Method": "GET", "Access-Control-Request-Headers": "Authorization"}
+
+    with TestClient(create_app(both)) as c:
+        for origin in (FRONTEND, hosted):
+            res = c.options("/api/health", headers={"Origin": origin, **preflight})
+            assert res.headers["access-control-allow-origin"] == origin
+
+
+def test_frontend_origin_reads_a_comma_separated_list() -> None:
+    parsed = Settings(
+        frontend_origin="http://localhost:3000, https://wakatta.example",  # pyright: ignore[reportArgumentType]
+        database_url="postgresql+psycopg://u@h/db",
+        pin_pepper="p" * 32,  # pyright: ignore[reportArgumentType]
+        _env_file=None,  # pyright: ignore[reportCallIssue]
+    )
+
+    assert parsed.frontend_origin == ["http://localhost:3000", "https://wakatta.example"]
+
+
 def test_security_headers_are_on_every_response(client: TestClient) -> None:
     res = client.get("/api/health")
 

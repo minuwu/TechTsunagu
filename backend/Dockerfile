@@ -19,7 +19,6 @@ COPY --from=build --chown=wakatta:wakatta /app /app
 ENV PATH="/app/.venv/bin:$PATH" PYTHONUNBUFFERED=1
 USER wakatta
 EXPOSE 8000
-# Serves only, as the app role. Migrations run in the wakatta-migrate job (deploy/azure-deploy.ps1) with the owner
-# credential, so the API never holds it and can scale past one replica.
-# --forwarded-allow-ips=* trusts X-Forwarded-For because the container is reachable only through Azure's ingress.
-CMD ["uvicorn", "app.main:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000", "--no-access-log", "--proxy-headers", "--forwarded-allow-ips=*"]
+# jobs/start.py: first-boot database setup, migrations and an optional demo reset, then uvicorn (express Container
+# Apps environments have no Jobs). It trusts X-Forwarded-For because the container is reachable only via Azure's ingress.
+CMD ["python", "/app/jobs/start.py"]

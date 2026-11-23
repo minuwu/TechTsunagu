@@ -1,4 +1,4 @@
-# Builds the backend image into Azure Container Registry, migrates, and rolls the API (architecture §15).
+# Builds the backend image into Azure Container Registry and rolls the API, which migrates on start (architecture §15).
 # Runs only after backend-ci passes on main (or by hand). Signs in to Azure with a short-lived OIDC token: the
 # identity wakatta-ci trusts only this repository's main branch, so there is no stored password or token.
 # One-time infrastructure: backend/deploy/azure-setup.ps1. These IDs are identifiers, not secrets.
@@ -60,7 +60,7 @@ jobs:
             ${{ env.ACR }}.azurecr.io/${{ env.IMAGE }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
-      - name: Migrate, roll the API, wait until it is healthy
+      - name: Roll the API (it migrates on start) and wait until it is healthy
         env:
           SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
         run: |
@@ -72,16 +72,7 @@ jobs:
             exit 0
           fi
 
-          for job in wakatta-seed wakatta-migrate; do az containerapp job update -n "$job" -g "$RG" --image "$ref" -o none; done
-          exec_name=$(az containerapp job start -n wakatta-migrate -g "$RG" --query name -o tsv)
-          for _ in $(seq 1 60); do
-            status=$(az containerapp job execution show -n wakatta-migrate -g "$RG" --job-execution-name "$exec_name" --query properties.status -o tsv)
-            [ "$status" = Succeeded ] && break
-            [ "$status" = Failed ] && { echo "::error::migration failed; the API was not rolled"; exit 1; }
-            sleep 10
-          done
-          [ "$status" = Succeeded ] || { echo "::error::migration still running after 10 min"; exit 1; }
-
+          # The container migrates on start (backend/jobs/start.py): express environments have no Jobs.
           az containerapp update -n wakatta-api -g "$RG" --image "$ref" -o none
           fqdn=$(az containerapp show -n wakatta-api -g "$RG" --query properties.configuration.ingress.fqdn -o tsv)
           for _ in $(seq 1 30); do
