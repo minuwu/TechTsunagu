@@ -160,6 +160,41 @@ class Reexplanation(AiModel):
     question: AiQuestion
 
 
+class DialectTerm(AiModel):
+    """One dialect word heard in a Talk Thread entry: the words as said, standard Japanese, and the meaning."""
+
+    dialect: Text
+    plain: Text
+    meaning: Text
+    """In the owner's language."""
+
+
+class ReplyOption(AiModel):
+    """A short polite answer the Worker can show or read aloud, with its meaning for the Worker."""
+
+    ja: Text
+    meaning: Text
+
+
+class UtteranceExplanation(AiModel):
+    """explain_utterance (XREQ-018, Talk Threads): what someone said to the Worker (often an elderly person, often in
+    Kyushu dialect), as heard, in plain Japanese and in the Worker's language. Not per-shop: one owner language."""
+
+    transcript: Text
+    """What was said, in Japanese as heard (dialect kept); the typed text when the Worker typed it."""
+    plain_ja: Text
+    meaning: Text
+    terms: Annotated[list[DialectTerm], Field(max_length=8)]
+    reply_options: Annotated[list[ReplyOption], Field(min_length=2, max_length=3)]
+
+
+class UnderstandingGrade(AiModel):
+    """grade_understanding (XREQ-018): the Worker's own words against the meaning. green = the key points are there,
+    orange = some are, red = wrong or missing."""
+
+    grade: Literal["green", "orange", "red"]
+
+
 _LANGUAGE_MODELS = ("AiTri", "BackTranslation")
 
 

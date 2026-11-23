@@ -73,7 +73,7 @@ This file is:
 | `XREQ-015` | P0 | Backend (Anim) | Backend (Asif, Azure owner) | Give Anim's Azure account Contributor on the Wakatta resource group (Asif is off the project; Anim runs deploy now) | `[RESOLVED]` | 2026-11-23 19:30 |
 | `XREQ-016` | P0 | AI (Galib) | Frontend (Minhaz, Arjun; Android: Minhaz) | Chatbot screen on the Worker home and the Machine screen: `POST /api/knowledge/asks` (cited answer + self-check; emergency card; not covered → forward to Senpai) | `[IN_PROGRESS]` (web done; Android open) | 2026-11-23 23:00 |
 | `XREQ-017` | P1 | Frontend (Minhaz, Android app) | Backend (Anim), AI (Galib) | Contacts, My QR, Contact Threads (routes now live; Talk Threads and group controls moved to XREQ-018 and 019); notification list stays push-only | `[PENDING]` | 2026-11-23 19:50 |
-| `XREQ-018` | P1 | Frontend (Minhaz, Android app) | Backend (Anim), AI (Galib) | Talk Threads: threads and entries routes plus the two AI pipelines | `[PENDING]` | 2026-11-23 23:56 |
+| `XREQ-018` | P1 | Frontend (Minhaz, Android app) | Backend (Anim), AI (Galib) | Talk Threads: threads and entries routes plus the two AI pipelines | `[RESOLVED]` | 2026-11-23 23:56 |
 | `XREQ-019` | P2 | Frontend (Minhaz, Android app) | Backend (Anim) | Group controls on work Threads: create, members, roles, mute/pin/archive, leave, announce-only | `[PENDING]` | 2026-11-23 23:56 |
 | `XREQ-020` | P1 | Frontend (Minhaz, Android app) | Backend (Anim) | Worker can read own Follow-ups and Learning History; analytics trend and per-Worker counts | `[PENDING]` | 2026-11-23 23:56 |
 | `XREQ-021` | P2 | Frontend (Minhaz, Android app) | Backend (Anim) | Machine gaps: Remind a Worker, Idempotency-Key on overrides, Task filter by Machine | `[PENDING]` | 2026-11-23 23:56 |
@@ -747,7 +747,7 @@ Push (XREQ-014): a new Contact message sends one generic push "New message from 
 - **Priority**: `P1 (High)`
 - **From**: `Frontend (Minhaz, Android app)`
 - **To**: `Backend (Anim)`, `AI (Galib)`
-- **Status**: `[PENDING]`
+- **Status**: `[RESOLVED]`
 - **Created**: `2026-11-23 23:56 (UTC+6)`
 - **Target Interface / Endpoint**: `/api/talk-threads` (none of it exists in `docs/openapi.yaml` yet, 82 paths)
 
@@ -760,9 +760,9 @@ Split out of XREQ-017 item 3 so it can be answered alone. The Android app has th
 ```
 
 **Fulfillment & Proof (filled by recipient on completion):**
-- **Branch / Commit**: 
-- **Status / Notes**: 
-- **Verification Proof**: 
+- **Branch / Commit**: `main` (Galib, 2026-11-24: routes and tables as well as the two AI pipelines, so the Android app can switch tonight). Migration `f440ca5739ea` (`talk_threads`, `talk_entries`).
+- **Status / Notes**: All 8 routes as proposed (Foreman and Worker; another user's thread is a 404; hard delete; nothing notifies; no Foreman, Poster or Support Log route reads them). `POST /entries` is multipart: `text` **or** `audio` (same formats as notes), optional `Idempotency-Key`. **One change from the proposal:** `replyOptions` is `[{ja, meaning}]`, not `["…"]`: the Worker also needs to know what the Japanese reply says (`meaning` is in their language). `terms` is `[{dialect, plain, meaning}]` as proposed. `needsStaff` is a fixed word rule (`app/domain/talk.py`: pain, illness, falls, appetite, breathing, medicine, toilet), never the model. AI down: the entry keeps the transcript (typed text; empty for a recording) with `needsEdit: true`, `meaning: null`; a grade the model cannot make is `grade: null`. `PATCH` an entry with exactly one of `ownText` (graded again), `replyJa` (clears `confirmed`), `confirmed` (else 422). Rate limit: 10 entries or grades a minute per user (429). Prompts `explain_utterance.v1` (Kyushu dialect aware; never lists a word that was not said, checked in code) and `grade_understanding.v1`.
+- **Verification Proof**: `tests/api/test_talk.py` (5: explain → grade → reply → confirm; AI down keeps the transcript; an invented dialect word is retried; privacy against another Worker and the Foreman; rename, delete, idempotent create, validation) and `tests/test_talk_rules.py`; full backend suite, ruff, pyright strict, import-linter green; `docs/openapi.yaml` regenerated. **Live (Groq gpt-oss-120b; Gemini was 503 all night):** the prototype's 3 Kyushu sentences were explained correctly (いたか→痛い, けん→ので, せんばい→しません, お茶ば→お茶を, ばってん→でも), the staff flag set for pain and appetite, a staff reply offered; grading 7 of 8 as expected. The 8th ("Her knee hurts so no walk today" → orange) came from a meaning written as "Your knee hurts"; the prompt now says the meaning is in the speaker's words. Not re-run live: Groq's free daily limit was used up and Gemini was 503.
 
 #### `[XREQ-019]` Group controls on work Threads
 
@@ -828,7 +828,7 @@ The still-open item 1 of XREQ-011. (1) `GET /follow-ups` is Foreman-only, so a W
 The Foreman's flow is: dictate, see the transcript, edit, then send (Auto-send Countdown). The live routes create a draft from `text` or `audio` and `POST /messages/{id}/send` publishes it, but there is no way to **edit the draft text** between the two. Needed: `PATCH /messages/{id}` `{text}` on an unsent draft, which re-runs translation and Check Question generation (or says clearly in the Fulfillment block that `needsEdit` drafts are re-created by posting again). **Re-explanation:** `ReexplainIn` takes only `{userId, termJa}`; the app lets the Foreman see the simpler version first, edit it, and then send. Please add a draft step (`POST /messages/{id}/reexplain/draft` returning `{easyJa, explanation: Tri, question: {prompt: Tri, options: [Tri], termId}}`) or accept the edited `easyJa`, `explanation` and question in `ReexplainIn`. **Ask the Foreman:** a Worker taps "ask again" on a term; no route creates a message of kind `ask` (contract D-24): either add it (`POST /messages/{id}/ask` `{termJa}`) or tell us it is dropped.
 
 **Fulfillment & Proof (filled by recipient on completion):**
-- **Branch / Commit**: `main` (Galib, 2026-11-24, Galib built the routes as well as the AI part, at the user.s request).
+- **Branch / Commit**: `main` (Galib, 2026-11-24, Galib built the routes as well as the AI part, so the Android app is unblocked tonight).
 - **Status / Notes**: All three, names as proposed except where noted. (1) **`PATCH /api/messages/{id}` `{textJa}`** (Foreman, own unsent draft): runs `draft_message` again on the corrected Japanese and returns the draft like the POST (translations, questions, `taskDrafts`); the AI down → `needsEdit: true` with the Foreman's text; already sent → `409 ALREADY_SENT`. (2) **`POST /api/messages/{id}/reexplain/draft` `{userId, termJa}`** returns `{text, question}` and stores nothing: `text.ja` is the easy Japanese (your `easyJa`), the other languages are the explanation, `question` is a full `CheckQuestion` (with `termId`, `correctIndex`). Then **`POST /reexplain`** accepts the edited `text` and `question` (both or neither, else 422) and sends them as written with no model call; without them it works as before. (3) **`POST /api/messages/{id}/ask` `{termJa}`** (Worker, 201): a fixed sentence, no AI (「〇〇がわかりません。もう一度教えてください。」 / "I don't understand ..."), kind `ask`, `refMessageId` = the message, and one open Follow-up on the term for the Foreman (asking twice opens one).
 - **Verification Proof**: `tests/api/test_chat.py` (4 new tests: edit re-translates, edit without the model, re-explanation draft then edited send, Worker ask + Follow-up + roles); full backend suite, ruff, pyright strict, import-linter green; `docs/openapi.yaml` regenerated (3 new paths).
 
