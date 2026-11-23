@@ -4,6 +4,12 @@ Owner: Anim (`anim710`) — Role: Backend (WS10 Notices + Events, WS11 Asks + Se
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-23 (from Arjun: done for you on `main`)
+
+- **XREQ-011 item 2, ETag part** (`351a27a`): `GET /board`, `/threads` and `/tasks` send an `ETag` and answer **304** on a matching `If-None-Match`. One helper, `app/api/conditional.py`, now serves those and the existing Panel and message poll (the copies in `work.py` / `chat.py` and `floor.etag` are gone). Response schemas unchanged; `openapi.yaml` differs only in three summaries. `/near-misses` is not covered: the route does not exist yet (WS7). The `Idempotency-Key` half of item 2 is still open (needs columns, so Asif's schema).
+- **XREQ-011 item 5b / your voice-Ask request** (`eadef5f`): voice Asks keep their transcript (`AskDraft.question_text`), so forwarding sends the Senpai the question.
+- Verified on a local PostgreSQL 16.14: full backend suite, ruff, pyright, lint-imports.
+
 ## 2026-11-22 (proto → production handoff from Minhaz)
 
 Minhaz mapped the prototype (`prototypes/wakatta/`) and the frontend against `main` (`c07a8fb`). Decisions: the prototype's **Chat is in production scope (WS12, P1)**; Course stays P2 and frontend-only. Read [BACKEND_PLAN.md](../../docs/BACKEND_PLAN.md) decision #8 and the new XREQ cards in [AGENTS.md](../../AGENTS.md) §2.2. Do the items in this order.

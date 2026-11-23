@@ -65,10 +65,10 @@ class _Limiter:
         self._recent: deque[float] = deque()
         self._limits = limits
 
-    def acquire(self) -> bool:
-        if not self._slots.acquire(timeout=self._limits.wait_seconds):
+    def acquire(self, wait_seconds: float) -> bool:
+        if not self._slots.acquire(timeout=wait_seconds):
             return False
-        deadline = time.monotonic() + self._limits.wait_seconds
+        deadline = time.monotonic() + wait_seconds
         while True:
             with self._lock:
                 now = time.monotonic()
@@ -119,18 +119,23 @@ class AiRunner:
         head = f"{req.scope}|{req.pipeline}|v{req.prompt.version}|{model}|".encode()
         return hashlib.sha256(head + req.cache_input).hexdigest()
 
-    def _call[T: BaseModel](self, link: _Link, req: AiRequest[T], extra: list[Part], now: datetime) -> str | None:
+    def _call[T: BaseModel](
+        self, link: _Link, req: AiRequest[T], extra: list[Part], now: datetime, *, wait: bool
+    ) -> str | None:
+        """One call to one model. `wait`: queue for its per-minute slot (the last model of the chain, and the
+        validation retry); otherwise a busy model is skipped at once, because the next model answers sooner.
+        The per-minute slot is taken before the day's budget, so a skipped call never spends a daily call."""
         day, model = pacific_day(now), link.client.model
-        with self._sessions() as db:
-            allowed = repo.take_budget(db, day, model, link.limits.daily_budget)
-            db.commit()
-        if not allowed:
-            _log.info("ai budget exhausted: %s", model, extra={"route": req.pipeline})
-            return None
-        if not link.limiter.acquire():
+        if not link.limiter.acquire(link.limits.wait_seconds if wait else 0):
             _log.info("ai limiter busy: %s", model, extra={"route": req.pipeline})
             return None
         try:
+            with self._sessions() as db:
+                allowed = repo.take_budget(db, day, model, link.limits.daily_budget)
+                db.commit()
+            if not allowed:
+                _log.info("ai budget exhausted: %s", model, extra={"route": req.pipeline})
+                return None
             return link.client.generate(req.prompt, [*req.parts, *extra], req.schema)
         except QuotaExhausted:
             with self._sessions() as db:
@@ -163,14 +168,14 @@ class AiRunner:
                     return AiResult(req.schema.model_validate(hit.response), "cached")
 
         for link in self._chain:
-            raw = self._call(link, req, [], now)
+            raw = self._call(link, req, [], now, wait=link is self._chain[-1])
             if raw is None:
                 continue  # unavailable, out of budget or busy: the next model, at once
             value, problems = self._parse(req, raw, validate)
             outcome: Outcome = "ok"
             if value is None:
                 note = "Your previous answer had these problems; fix them and answer again:\n- " + "\n- ".join(problems)
-                raw = self._call(link, req, [Part.text(note)], now)
+                raw = self._call(link, req, [Part.text(note)], now, wait=True)
                 value, _ = self._parse(req, raw, validate) if raw is not None else (None, [])
                 outcome = "retried"
             if value is None:

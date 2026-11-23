@@ -41,6 +41,8 @@ export function usePanel() {
 
   return {
     loading: machines.isPending,
+    // No data is not "no Machine" and not "nobody here": the Panel must say it cannot tell
+    unknown: [machines, workers, signOffs].some((q) => q.isError),
     notFound: machines.isSuccess && !machine,
     machine,
     worker,

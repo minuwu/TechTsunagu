@@ -10,9 +10,9 @@ import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { DOORS, type Door } from '@/domain/course'
 import { m } from '@/i18n/paraglide/messages'
-import { usePersisted } from '@/lib/persisted'
 import { HarbourWaves } from '@/ui/v3/components/HarbourWaves'
 import { MOTION_OK, scrollToSection } from '@/ui/v3/lib/motion'
+import { useTheme } from '@/ui/v3/lib/theme'
 import { cn } from '@/ui/v3/lib/utils'
 
 const DOOR_NAME: Record<Door, () => string> = {
@@ -145,7 +145,7 @@ function useLandingMotion() {
 /** The pitch: why this project, the gap, how it is covered (docs/superpowers/plans/2026-11-22-wakatta.md). */
 export function Landing() {
   const scope = useLandingMotion()
-  const [theme] = usePersisted('wakatta.theme', 'dark')
+  const [theme] = useTheme()
   const steps = [
     [m.lp_how1_t(), m.lp_how1()],
     [m.lp_how2_t(), m.lp_how2()],
@@ -155,8 +155,15 @@ export function Landing() {
   return (
     <div ref={scope}>
       <section className="card-surface door mb-14 bg-transparent! p-6 sm:min-h-[28rem] sm:p-10 lg:min-h-[32rem]">
-        <HarbourWaves theme={theme === 'light' ? 'light' : 'dark'} />
-        <p data-hero className="mb-3 font-bold text-[var(--indigo)]">
+        <HarbourWaves theme={theme} />
+        <p
+          data-hero
+          className="mb-3 flex items-center gap-2.5 font-bold text-[var(--indigo)]"
+        >
+          <span
+            aria-hidden="true"
+            className="size-2.5 shrink-0 rounded-[2px] bg-[var(--seal)]"
+          />
           {m.lp_eyebrow()}
         </p>
         <h1
@@ -214,7 +221,12 @@ export function Landing() {
           ))}
         </div>
         <p className="mt-4 text-sm text-muted-foreground">
-          <a href={MHLW} className="underline" rel="noreferrer" target="_blank">
+          <a
+            href={MHLW}
+            className="inline-flex min-h-11 items-center underline"
+            rel="noreferrer"
+            target="_blank"
+          >
             {m.lp_source()}
           </a>
         </p>

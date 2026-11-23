@@ -2,10 +2,14 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { Link, useLocation } from '@tanstack/react-router'
 import { m } from '@/i18n/paraglide/messages'
 import { ping } from '@/lib/audio'
+import { useDataStatus } from '@/features/health'
+import { useDemoScenario } from '@/features/hub'
 import { usePersisted } from '@/lib/persisted'
 import { startSmoothScroll } from './lib/motion'
+import { useTheme } from './lib/theme'
 import { BridgeMark } from './components/Brand'
 import { Toaster } from './components/Feedback'
+import { Mark } from './components/Icon'
 import { LocaleSwitcher } from './components/LocaleSwitcher'
 
 // The splash belongs to the first document load only, never to in-app navigation
@@ -138,6 +142,70 @@ function HeaderTabs({ path, sound }: { path: string; sound: boolean }) {
   )
 }
 
+const SCENARIO_LABEL = {
+  live: m.demo_live,
+  loading: m.demo_loading,
+  empty: m.demo_empty,
+  error: m.demo_error,
+} as const
+
+/** Demo-state switcher for presenting (mock data only; see useDemoScenario). */
+function DemoSwitcher() {
+  const demo = useDemoScenario()
+  if (!demo.available) return null
+  return (
+    <aside
+      aria-label={m.demo_state()}
+      className="glass fixed bottom-28 left-3 z-40 flex items-center gap-1 rounded-xl p-1 text-sm lg:bottom-4"
+    >
+      <span className="px-2 font-bold text-muted-foreground">
+        {m.demo_state()}
+      </span>
+      {demo.options.map((s) => (
+        <button
+          key={s}
+          type="button"
+          aria-pressed={demo.scenario === s}
+          onClick={() => demo.choose(s)}
+          className={`min-h-9 cursor-pointer rounded-lg px-2.5 font-bold transition-colors ${demo.scenario === s ? 'bg-primary text-primary-foreground' : 'hover:bg-accent'}`}
+        >
+          {SCENARIO_LABEL[s]()}
+        </button>
+      ))}
+    </aside>
+  )
+}
+
+/** Offline or a failed read: a caution band under the header, never silent stale data. */
+function ConnectionBanner() {
+  const { status, retry } = useDataStatus()
+  if (status === 'ok') return null
+  return (
+    <div
+      role="alert"
+      className="border-b border-warning/40 bg-[color-mix(in_oklch,var(--warning)_12%,var(--background))] text-foreground"
+    >
+      <div
+        className={`${frame} flex flex-wrap items-center gap-x-4 gap-y-2 py-2.5`}
+      >
+        <Mark id="alert" className="size-5 shrink-0 text-warning" />
+        <p className="flex-1 font-bold">
+          {status === 'offline' ? m.data_offline() : m.data_error()}
+        </p>
+        {status === 'error' && (
+          <button
+            type="button"
+            onClick={retry}
+            className="min-h-11 cursor-pointer rounded-md border border-border bg-card px-4 font-bold hover:border-primary"
+          >
+            {m.retry()}
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // One width for header and content: the Foreman console uses the extra room on wide screens
 const frame = 'mx-auto w-full max-w-6xl px-4 lg:px-8 xl:max-w-7xl'
 
@@ -146,7 +214,7 @@ const toggle =
 
 export function Layout({ children }: { children: ReactNode }) {
   const path = useLocation({ select: (l) => l.pathname })
-  const [theme, setTheme] = usePersisted('wakatta.theme', 'dark')
+  const [theme, setTheme] = useTheme()
   const [soundPref, setSound] = usePersisted('wakatta.sound', 'on')
   const sound = soundPref === 'on'
   const light = theme === 'light'
@@ -164,7 +232,7 @@ export function Layout({ children }: { children: ReactNode }) {
       >
         {m.skip_to_main()}
       </a>
-      <header className="sticky top-0 z-30 bg-[var(--shell)]/70 text-[var(--shell-foreground)] backdrop-blur-md">
+      <header className="sticky top-0 z-30 bg-[var(--shell)]/95 text-[var(--shell-foreground)] backdrop-blur-md">
         <div
           className={`${frame} flex items-center justify-between gap-3 py-2`}
         >
@@ -172,7 +240,7 @@ export function Layout({ children }: { children: ReactNode }) {
             to="/"
             className="flex min-w-0 items-center gap-3 rounded-md py-1 focus-visible:outline-[var(--shell-foreground)]"
           >
-            <BridgeMark className="w-10 text-[var(--indigo)]" />
+            <BridgeMark className="w-10 text-[var(--shell-accent)]" />
             <span className="display sr-only text-xl sm:not-sr-only sm:truncate">
               {m.app_name()}
             </span>
@@ -231,17 +299,29 @@ export function Layout({ children }: { children: ReactNode }) {
           </div>
         </div>
         <div className="harbour-line" />
+        <ConnectionBanner />
       </header>
-      <main
-        id="main"
-        className={`${frame} flex-1 pt-6 pb-32 sm:pt-10 lg:pb-16`}
-      >
+      <main id="main" className={`${frame} flex-1 pt-6 pb-16 sm:pt-10`}>
         {/* Re-keyed per route so each screen settles in (page transition) */}
         <div key={path} className="page-enter">
           {children}
         </div>
       </main>
+      <footer className="border-t border-[var(--rule)] pb-28 lg:pb-0">
+        <div
+          className={`${frame} flex flex-wrap items-center justify-between gap-x-6 gap-y-2 py-6 text-sm text-muted-foreground`}
+        >
+          <span className="flex items-center gap-2.5">
+            <BridgeMark className="w-7 text-[var(--indigo)]" />
+            {m.footer_made_by()}
+          </span>
+          <span>
+            {m.app_name()} · {m.app_tagline()}
+          </span>
+        </div>
+      </footer>
       <TabBar path={path} sound={sound} />
+      <DemoSwitcher />
       <Toaster />
     </div>
   )

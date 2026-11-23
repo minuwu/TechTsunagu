@@ -1,5 +1,6 @@
 """WS0 step 5: the AI fallback ladder (architecture §10.3, §10.4). Every case runs FakeAiClient; nothing hits Gemini."""
 
+import time
 from datetime import UTC, datetime
 
 import pytest
@@ -163,6 +164,22 @@ def test_a_model_out_of_budget_is_skipped_without_a_call(db: Session) -> None:
 
     assert second.value == Echo(word="c")
     assert (best.calls, backup.calls) == (1, 1)
+
+
+def test_a_model_at_its_per_minute_limit_hands_over_at_once_without_spending_its_day(db: Session) -> None:
+    best = _named("best", {"echo": [{"word": "a"}]})
+    backup = _named("backup", {"echo": [{"word": "b"}]})
+    limits = AiLimits(max_concurrent=2, per_minute=1, daily_budget=18, wait_seconds=30)
+    runner = AiRunner(best, db.info["factory"], limits, [(backup, limits)])
+    runner.run(_request("one"), _no_problems, NOW)  # best uses its one call this minute
+
+    started = time.monotonic()
+    second = runner.run(_request("two"), _no_problems, NOW)
+
+    assert second.value == Echo(word="b")
+    assert time.monotonic() - started < 5  # no 30 s wait for best's per-minute slot
+    usage = db.get(AiUsage, (pacific_day(NOW), "best"))
+    assert usage is not None and usage.calls == 1  # the skip did not spend one of best's daily calls
 
 
 def test_a_cached_answer_from_any_model_of_the_chain_is_reused(db: Session) -> None:

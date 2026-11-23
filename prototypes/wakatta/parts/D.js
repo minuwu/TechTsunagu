@@ -44,6 +44,12 @@ const ICON = {
   coffee: 'M2 21h18v-2H2v2zM20 8h-2V5h2v3zm0-5H4v10c0 2.21 1.79 4 4 4h6c2.21 0 4-1.79 4-4v-3h2c1.11 0 2-.9 2-2V5c0-1.11-.89-2-2-2z',
   print: 'M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z',
   note: 'M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zM6 20V4h7v5h5v11H6z',
+  qr: 'M3 11h8V3H3v8zm2-6h4v4H5V5zM3 21h8v-8H3v8zm2-6h4v4H5v-4zm8-12v8h8V3h-8zm6 6h-4V5h4v4zm0 10h2v2h-2zM13 13h2v2h-2zm2 2h2v2h-2zm-2 2h2v2h-2zm2 2h2v2h-2zm2-2h2v2h-2zm0-4h2v2h-2zm2 2h2v2h-2z',
+  share: 'M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z',
+  delete: 'M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z',
+  edit: 'M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z',
+  block: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM4 12c0-4.42 3.58-8 8-8 1.85 0 3.55.63 4.9 1.69L5.69 16.9C4.63 15.55 4 13.85 4 12zm8 8c-1.85 0-3.55-.63-4.9-1.69L18.31 7.1C19.37 8.45 20 10.15 20 12c0 4.42-3.58 8-8 8z',
+  more: 'M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z',
 };
 const ic = (n, cls = '') => `<svg class="lf-i ${cls}" viewBox="0 0 24 24" aria-hidden="true"><path d="${ICON[n]}"/></svg>`;
 const icBig = n => `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="${ICON[n]}"/></svg>`;
@@ -120,6 +126,13 @@ Object.assign(DATA, {
     {id: 'mu2', worker: 'u_rahim', senpai: 'u_sato', kind: 'coffee', date: '2026-11-05', noteJa: '給料明細の見かたを説明', noteEn: 'Explained how to read the pay slip', by: 'u_sato'},
     {id: 'mu3', worker: 'u_nguyen', senpai: 'u_sato', kind: 'coffee', date: '2026-11-12', noteJa: '病院の行きかたを相談', noteEn: 'Talked about how to visit a clinic', by: 'u_sato'},
     {id: 'mu4', worker: 'u_siti', senpai: 'u_sato', kind: 'drill', date: '2026-11-16', noteJa: '駅前で避難経路を確認', noteEn: 'Checked the evacuation route near the station', by: 'u_sato'},
+  ],
+  /* interview: {id, worker, date:'YYYY-MM-DD', method:'face'|'online', consent?:true, noteJa, by}. 定期面談 = support item 10, at least every 3 months.
+     Three seeded states for the demo: Rahim ok, Nguyen due in days, Siti overdue. */
+  interviews: [
+    {id: 'iv1', worker: 'u_rahim', date: '2026-10-20', method: 'face', noteJa: '仕事も生活も問題なし。日本語を勉強している。', by: 'u_tanaka'},
+    {id: 'iv2', worker: 'u_nguyen', date: '2026-08-28', method: 'online', consent: true, noteJa: '残業が多いと相談。来月の班の予定を見直す。', by: 'u_tanaka'},
+    {id: 'iv3', worker: 'u_siti', date: '2026-07-15', method: 'face', noteJa: '寮の部屋の暖房について相談。', by: 'u_tanaka'},
   ],
 });
 const rebuild = () => { DATA.events = DATA.notices.flatMap(n => (n.events || []).map((e, i) => Object.assign({id: n.id + '_' + i, noticeId: n.id}, e))); };
@@ -199,6 +212,43 @@ const myAsks = () => DATA.asks.filter(a => a.user === ME);
 const nextMeet = () => { const e = upcoming().find(x => { const n = nOf(x.noticeId); return n && n.meet; }); return e && {e, n: nOf(e.noticeId)}; };
 const isPoster = () => FM;
 
+/* ---------- 定期面談 (foreman only): when each Worker is next due, and what the app already knows for the talk ---------- */
+const addMonths = (iso, n) => { const [y, m, d] = dm(iso), end = new Date(Date.UTC(y, m + n, 0)).getUTCDate(); return new Date(Date.UTC(y, m - 1 + n, Math.min(d, end))).toISOString().slice(0, 10); };
+const lastIv = u => DATA.interviews.filter(x => x.worker === u).map(x => x.date).sort().pop() || null;
+function ivDue(u) {
+  const last = lastIv(u); if (!last) return {s: 'red', last, label: '未実施'};
+  const due = addMonths(last, 3), left = dayDiff(due);
+  return {s: left < 0 ? 'red' : left <= 14 ? 'orange' : 'green', last, due, label: left < 0 ? `期限超過 ${-left}日` : `あと${left}日`};
+}
+function ivFacts(u) {
+  const from = lastIv(u) || addMonths(LF_TODAY, -3), nns = DATA.notices.filter(n => n.at > from);
+  return {from, mus: DATA.meetups.filter(x => x.worker === u && x.date > from).length, nns: nns.length, ok: nns.filter(n => stOf(n, u) === 'green').length,
+    bad: nns.filter(n => stOf(n, u) === 'orange' || stOf(n, u) === 'red'),
+    terms: [...new Set((DATA.confusions || []).filter(c => c.user === u && String(c.at).slice(0, 10) > from).map(c => c.term))],
+    // shortcut: Ask.at has no year, so forwarded Asks are listed without a date filter
+    asks: DATA.asks.filter(a => a.user === u && (a.status === 'forwarded' || a.status === 'replied'))};
+}
+// shortcut: fixed ja/en questions; the real app translates them into the Worker's language with the AI pipeline
+const IV_Q = [
+  ['仕事で困っていることはありますか？', 'Is anything difficult at work?'],
+  ['機械や作業の説明で、わかりにくい言葉はありますか？', 'Are there words in the instructions you do not understand?', f => f.terms.length && `記録されたつまずき: ${f.terms.join('、')}`],
+  ['最近のお知らせで、わからなかったことはありますか？', 'Was anything unclear in the recent notices?', f => f.bad.length && `要確認: ${f.bad.map(n => n.titleJa).join('、')}`],
+  ['給料・住まい・健康で、相談したいことはありますか？', 'Do you want to talk about pay, housing or health?', f => f.asks.length && `先輩に転送した質問: ${f.asks.map(a => a.qJa).join('、')}`],
+  ['先輩や職場の人との関係はどうですか？', 'How are things with your Senpai and coworkers?'],
+  ['法律に違反することやハラスメントなど、困っていることはありませんか？', 'Is anything illegal or unfair happening, such as harassment?'],
+];
+
+/* Today's word: a Japanese person learns one word of a Worker's language. // shortcut: seeded languages and words; the real app reads the Worker's account language and the Foreman's own word list */
+const WORDS = {
+  u_rahim: {lang: 'ベンガル語', items: [['ধন্যবাদ', 'dhonnobad', 'ありがとう'], ['শুভ সকাল', 'shubho shokal', 'おはよう'], ['আপনি কেমন আছেন?', 'apni kemon achhen?', 'お元気ですか？']]},
+  u_nguyen: {lang: 'ベトナム語', items: [['Cảm ơn', '', 'ありがとう'], ['Chào buổi sáng', '', 'おはよう'], ['Bạn khỏe không?', '', 'お元気ですか？']]},
+  u_siti: {lang: 'インドネシア語', items: [['Terima kasih', '', 'ありがとう'], ['Selamat pagi', '', 'おはよう'], ['Apa kabar?', '', 'お元気ですか？']]},
+};
+function wordCard() {
+  const day = Math.round(dt(LF_TODAY) / 864e5), ws = WORKERS.filter(u => WORDS[u]), u = ws[day % ws.length], items = WORDS[u].items, w = items[Math.floor(day / ws.length) % items.length];
+  return `<div class="card lf-word"><small>今日のひとこと · ${esc(short(u))}さんの言葉（${WORDS[u].lang}）</small><b lang="${u === 'u_rahim' ? 'bn' : u === 'u_nguyen' ? 'vi' : 'id'}">${esc(w[0])}</b><span>${w[1] ? esc(w[1]) + ' = ' : '= '}${esc(w[2])}</span><small>今日、声をかけてみましょう</small></div>`;
+}
+
 function matchNotice(q) {
   const low = q.toLowerCase(), words = low.match(/[a-z]+/g) || [];
   const hit = k => /^[a-z]+$/.test(k) ? words.includes(k) : q.includes(k);
@@ -241,7 +291,7 @@ function renderLife(el, anim) {
       ${senCard()}
     </div>`;
   } else {
-    const fw = DATA.asks.filter(a => a.status === 'forwarded').length;
+    const fw = DATA.asks.filter(a => a.status === 'forwarded').length, late = WORKERS.filter(u => ivDue(u).s !== 'green').length;
     c.innerHTML = `<div class="lf-pad${st}">
       <div><button class="btn lf-newbtn block" data-push="notice-new">${ic('add')}お知らせを作成</button></div>
       <div><h3 class="lf-h">配信済みのお知らせ</h3><div class="card">${DATA.notices.map(n => { const k = cnt(n);
@@ -251,7 +301,7 @@ function renderLife(el, anim) {
       <div><h3 class="lf-h">先輩・支援記録</h3><div class="card">
         <button class="list-item lf-row" data-tap data-push="senpai"><span class="lf-tile">${ic('groups')}</span><span class="lf-rmid"><b>先輩ペア</b><small>${Object.keys(DATA.senpai).length}組 · 面談 ${DATA.meetups.length}件</small></span>${ic('next', 'lf-chev')}</button>
         <button class="list-item lf-row" data-tap data-push="ask"><span class="lf-tile">${ic('help')}</span><span class="lf-rmid"><b>転送された質問</b><small>${fw ? `返信待ち ${fw}件（佐藤さん宛）` : '返信待ちはありません'}</small></span>${fw ? `<span class="lf-badge">${fw}</span>` : ''}${ic('next', 'lf-chev')}</button>
-        <button class="list-item lf-row" data-tap data-push="supportlog"><span class="lf-tile">${ic('note')}</span><span class="lf-rmid"><b>支援記録</b><small>面談とお知らせ確認の記録 · PDF出力</small></span>${ic('next', 'lf-chev')}</button></div></div>
+        <button class="list-item lf-row" data-tap data-push="supportlog"><span class="lf-tile">${ic('note')}</span><span class="lf-rmid"><b>支援記録</b><small>${late ? `定期面談 ${late}人が期限間近・超過` : '面談とお知らせ確認の記録 · PDF出力'}</small></span>${late ? `<span class="lf-badge">${late}</span>` : ''}${ic('next', 'lf-chev')}</button></div></div>
     </div>`;
   }
 }
@@ -465,6 +515,7 @@ function renderSenpai(el, anim) {
   } else {
     const list = DATA.meetups.slice().sort((a, b) => b.date.localeCompare(a.date));
     c.innerHTML = `<div class="lf-pad${st}">
+      <div>${wordCard()}</div>
       <div><h3 class="lf-h">先輩ペア（タップで支援記録）</h3><div class="card">${Object.keys(DATA.senpai).map(w => { const mine = DATA.meetups.filter(x => x.worker === w).sort((a, b) => b.date.localeCompare(a.date));
         return `<button class="list-item lf-row" data-tap data-push="supportlog" ${prm({worker: w})}>${av(w)}<span class="lf-rmid"><b>${esc(nameOf(w))} ← ${esc(nameOf(DATA.senpai[w]))}</b><small>面談 ${mine.length}件${mine[0] ? ' · 最後 ' + fmtDate(mine[0].date) : ' · まだありません'}</small></span>${ic('next', 'lf-chev')}</button>`; }).join('')}</div></div>
       <div><h3 class="lf-h"> </h3>${nextCard()}</div>
@@ -500,9 +551,12 @@ function logData() {
   const mus = DATA.meetups.filter(x => (w === 'all' || x.worker === w) && (m === 'all' || mkey(x.date) === m)).sort((a, b) => b.date.localeCompare(a.date));
   const nns = DATA.notices.filter(n => m === 'all' || mkey(n.at) === m).sort((a, b) => b.at.localeCompare(a.at));
   const wl = w === 'all' ? WORKERS : [w];
+  const ivs = DATA.interviews.filter(x => (w === 'all' || x.worker === w) && (m === 'all' || mkey(x.date) === m)).sort((a, b) => b.date.localeCompare(a.date));
   let ok = 0, tot = 0; nns.forEach(n => wl.forEach(u => { tot++; if (stOf(n, u) === 'green') ok++; }));
-  return {mus, nns, wl, ok, tot, label: m === 'all' ? '全期間' : mlabel(m)};
+  return {mus, nns, wl, ivs, ok, tot, label: m === 'all' ? '全期間' : mlabel(m)};
 }
+const ivRow = u => { const x = ivDue(u);
+  return `<button class="list-item lf-row" data-tap data-push="interview" ${prm({worker: u})}>${av(u)}<span class="lf-rmid"><b>${esc(nameOf(u))}</b><small>前回 ${x.last || 'なし'}${x.due ? ' · 期限 ' + x.due : ''}</small></span><span class="lf-st" data-s="${x.s}">${x.label}</span>${ic('next', 'lf-chev')}</button>`; };
 function renderLog(el) {
   const c = $('.content', el), ms = monthsAll();
   if (!S.log.m) S.log.m = ms[ms.length - 1] || 'all';
@@ -510,9 +564,10 @@ function renderLog(el) {
   c.innerHTML = `<div>
     <div class="lf-fl">作業者</div><div class="lf-flt" role="group">${[['all', '全員']].concat(WORKERS.map(u => [u, short(u)])).map(([k, l]) => `<button class="chip${w === k ? ' on' : ''}" data-lf="flw:${k}">${k !== 'all' ? av(k, 'sm') : ''}${esc(l)}</button>`).join('')}</div>
     <div class="lf-fl">月</div><div class="lf-flt" role="group">${['all'].concat(ms).map(k => `<button class="chip${S.log.m === k ? ' on' : ''}" data-lf="flm:${k}">${k === 'all' ? '全期間' : mlabel(k)}</button>`).join('')}</div>
-    <div class="card lf-sum"><b>${d.label}: 面談 ${d.mus.length}件 · お知らせ確認 ${d.ok}/${d.tot}</b><small>${w === 'all' ? '全員' : esc(nameOf(w))} · 登録支援機関への報告用</small></div>
+    <div class="card lf-sum"><b>${d.label}: 定期面談 ${d.ivs.length}件 · 先輩との面談 ${d.mus.length}件 · お知らせ確認 ${d.ok}/${d.tot}</b><small>${w === 'all' ? '全員' : esc(nameOf(w))} · 登録支援機関への報告用</small></div>
     <button class="btn tonal lf-exp block" data-lf="export" style="width:calc(100% - 32px)">${ic('print')}PDFを書き出す</button>
-    <div class="lf-pad"><h3 class="lf-h">面談（${d.mus.length}件）</h3><div class="card">${d.mus.map(x => mu(x, true)).join('') || '<div class="lf-empty">この期間の面談はありません</div>'}</div>
+    <div class="lf-pad"><h3 class="lf-h">定期面談（3か月に1回以上）</h3><div class="card">${d.wl.map(ivRow).join('')}</div>
+    <h3 class="lf-h">先輩との面談（${d.mus.length}件）</h3><div class="card">${d.mus.map(x => mu(x, true)).join('') || '<div class="lf-empty">この期間の面談はありません</div>'}</div>
     <h3 class="lf-h">お知らせ確認（${d.ok}/${d.tot}）</h3><div class="card">${d.nns.map(n => `<div class="lf-ng"><div class="lf-ngt"><span>${esc(n.titleJa)}</span><small>${fmtDate(n.at)}</small></div>
       <div class="lf-wchips">${d.wl.map(u => `<span class="lf-wc" data-s="${stOf(n, u)}">${av(u, 'sm')}${esc(short(u))} ${chip(stOf(n, u))}</span>`).join('')}</div></div>`).join('') || '<div class="lf-empty">この期間のお知らせはありません</div>'}</div></div></div>`;
 }
@@ -521,16 +576,57 @@ function openPdf() {
   $('#lf-pdf-body').innerHTML = `<h2 class="lf-sh">PDFプレビュー</h2>
     <div class="lf-pv"><div class="lf-paper"><h2>支援記録</h2><div class="lf-ps">特定技能1号 · 生活支援の実施記録 · ${d.label}</div>
       <h3>対象</h3><div>第2工場（長崎）· ${w === 'all' ? '作業者全員' : esc(nameOf(w))}</div>
-      <h3>概要</h3><div>面談 ${d.mus.length}件 · お知らせ確認 ${d.ok}/${d.tot}</div>
-      <h3>面談</h3><table class="lf-tb"><tr><th>日付</th><th>作業者</th><th>内容</th></tr>${d.mus.map(x => `<tr><td>${fmtDate(x.date)}</td><td>${esc(nameOf(x.worker))}</td><td>${esc(KIND[x.kind].ja)}${x.noteJa ? '：' + esc(x.noteJa) : ''}</td></tr>`).join('') || '<tr><td colspan="3">なし</td></tr>'}</table>
+      <h3>概要</h3><div>定期面談 ${d.ivs.length}件 · 先輩との面談 ${d.mus.length}件 · お知らせ確認 ${d.ok}/${d.tot}</div>
+      <h3>定期面談</h3><table class="lf-tb"><tr><th>日付</th><th>作業者</th><th>方法・内容</th></tr>${d.ivs.map(x => `<tr><td>${fmtDate(x.date)}</td><td>${esc(nameOf(x.worker))}</td><td>${x.method === 'online' ? 'オンライン（本人の同意あり）' : '対面'}：${esc(x.noteJa)}</td></tr>`).join('') || '<tr><td colspan="3">なし</td></tr>'}</table>
+      <h3>先輩との面談</h3><table class="lf-tb"><tr><th>日付</th><th>作業者</th><th>内容</th></tr>${d.mus.map(x => `<tr><td>${fmtDate(x.date)}</td><td>${esc(nameOf(x.worker))}</td><td>${esc(KIND[x.kind].ja)}${x.noteJa ? '：' + esc(x.noteJa) : ''}</td></tr>`).join('') || '<tr><td colspan="3">なし</td></tr>'}</table>
       <h3>お知らせ確認</h3><table class="lf-tb"><tr><th>お知らせ</th><th>作業者</th><th>結果</th></tr>${d.nns.flatMap(n => d.wl.map(u => `<tr><td>${esc(n.titleJa)}</td><td>${esc(short(u))}</td><td>${ST_JA[stOf(n, u)]}</td></tr>`)).join('')}</table>
       <div class="lf-sign"><span>発行日 ${fmtDate(LF_TODAY)}</span><span>職長 ${esc(nameOf(ME))}</span></div></div></div>
     <div class="lf-pbtns"><button class="btn outlined" data-close>キャンセル</button><button class="btn" data-lf="savepdf">${ic('print')}PDFを保存</button></div>`;
   App.open('lf-pdf');
 }
 
+/* ---------- 定期面談シート ---------- */
+const syncIv = () => { // keep typed text when a chip re-renders the screen
+  const el = scr('interview'), v = S.iv; if (!el || !v) return;
+  const n = $('#lf-ivn', el), d = $('#lf-ivd', el), c = $('#lf-ivc', el);
+  if (n) v.note = n.value; if (d && d.value) v.date = d.value; if (c) v.consent = c.checked;
+};
+function renderIv(el) {
+  if (!S.iv) return;
+  syncIv();
+  const v = S.iv, u = v.w, due = ivDue(u), f = ivFacts(u), mine = DATA.interviews.filter(x => x.worker === u).sort((a, b) => b.date.localeCompare(a.date));
+  const row = (k, val) => `<div class="lf-ivr"><span>${k}</span><b>${val}</b></div>`;
+  $('.content', el).innerHTML = `<div>
+    <div class="lf-fl">作業者</div><div class="lf-flt" role="group">${WORKERS.map(w => `<button class="chip${w === u ? ' on' : ''}" data-lf="ivw:${w}">${av(w, 'sm')}${esc(short(w))}</button>`).join('')}</div>
+    <div class="card lf-sum"><b>${esc(nameOf(u))} · ${due.label}</b><small>${due.due ? `次の期限 ${due.due}` : '期限: 初回の面談から3か月'} · 前回 ${due.last || 'なし'} · 3か月に1回以上</small></div>
+    <div class="lf-pad"><h3 class="lf-h">前回（${f.from}）からの記録</h3>
+      <div class="card lf-ivf">${row('先輩との面談', f.mus + '件')}${row('お知らせの確認', `${f.ok}/${f.nns}`)}
+        ${f.bad.length ? row('要確認のお知らせ', f.bad.map(n => esc(n.titleJa)).join('、')) : ''}${f.terms.length ? row('つまずいた言葉', f.terms.map(esc).join('、')) : ''}
+        ${f.asks.length ? row('先輩に転送した質問', f.asks.map(a => esc(a.qJa)).join('、')) : ''}</div>
+      <h3 class="lf-h">面談で聞くこと</h3>
+      <ol class="card lf-ivq">${IV_Q.map(([ja, en, hint]) => { const h = hint && hint(f); return `<li>${esc(ja)}<div class="lf-alt">${esc(en)}</div>${h ? `<span class="lf-ivh">${esc(h)}</span>` : ''}</li>`; }).join('')}</ol>
+      <h3 class="lf-h">面談の記録</h3>
+      <div class="card lf-ivform"><div class="lf-lbl" style="margin-top:0">方法</div>
+        <div class="lf-wrap">${[['face', '対面'], ['online', 'オンライン']].map(([k, l]) => `<button class="chip${v.method === k ? ' on' : ''}" data-lf="ivm:${k}">${l}</button>`).join('')}</div>
+        ${v.method === 'online' ? `<label class="lf-ivc"><input type="checkbox" id="lf-ivc" data-lf="ivc"${v.consent ? ' checked' : ''}><span>本人の同意を得ました（録画は雇用契約の終了後1年以上、保管が必要です）</span></label>` : ''}
+        <div class="lf-lbl">日付</div><input class="field" type="date" id="lf-ivd" value="${v.date}" max="${LF_TODAY}" aria-label="日付">
+        <div class="lf-lbl">内容・対応</div><textarea class="lf-ta" id="lf-ivn" placeholder="聞いたこと、対応したこと">${esc(v.note)}</textarea>
+        <button class="btn block" data-lf="ivsave" style="margin-top:16px">${ic('tick')}面談を記録</button></div>
+      ${mine.length ? `<h3 class="lf-h">これまでの面談</h3><div class="card">${mine.map(x => `<div class="list-item lf-row"><span class="lf-tile">${ic('note')}</span><span class="lf-rmid"><b>${x.date} · ${x.method === 'online' ? 'オンライン' : '対面'}</b><small>${esc(x.noteJa)}</small></span></div>`).join('')}</div>` : ''}
+      <p class="lf-ivnote">参考様式第5-5号に書く内容の下書きです。正式な様式ではありません。監督者との面談（第5-6号）も3か月に1回必要です。</p></div></div>`;
+}
+function saveIv() {
+  syncIv(); const v = S.iv;
+  if (!v.note.trim()) { App.toast('面談の内容を入れてください'); return; }
+  if (v.date > LF_TODAY) { App.toast('未来の日付は記録できません'); return; }
+  if (v.method === 'online' && !v.consent) { App.toast('オンライン面談は本人の同意が必要です'); return; }
+  Bus.emit('interview:new', {interview: {id: 'iv' + Date.now().toString(36), worker: v.w, date: v.date, method: v.method, consent: v.method === 'online' || undefined, noteJa: v.note.trim(), by: ME}});
+  v.note = ''; v.consent = false; v.date = LF_TODAY;
+  App.toast('面談を記録しました');
+}
+
 /* ---------- screens ---------- */
-const R = {life: renderLife, notice: renderNotice, ask: renderAsk, senpai: renderSenpai, supportlog: renderLog};
+const R = {life: renderLife, notice: renderNotice, ask: renderAsk, senpai: renderSenpai, supportlog: renderLog, interview: renderIv, pchat: renderPchat};
 Object.assign(SCREENS, {
   life(el) { shell(el, t('くらし', 'Life')); renderLife(el, true); },
   notice(el, p) {
@@ -550,6 +646,29 @@ Object.assign(SCREENS, {
     renderAsk(el, true, true);
   },
   senpai(el) { shell(el, t('先輩', 'My Senpai')); renderSenpai(el, true); },
+  connect(el) {
+    shell(el, t('つながる', 'Connect'), `<button class="icon-btn" data-push="connect-scan" aria-label="${t('QRをスキャン', 'Scan a QR')}">${icBig('qr')}</button>`);
+    $('.content', el).innerHTML = `<div class="lf-pad"><div class="card lf-qrbox"><div class="lf-myqr">${window.sfQrSvg ? window.sfQrSvg('wk:' + ME) : ''}</div><h2>${esc(nameOf(ME))}</h2><small translate="no">${LANG_NAME[LANG_OF[ME]] || ''}</small></div>
+      <p class="lf-qrnote">${t('相手がこのQRを読み取ると、チャットでつながれます。相手に見えるのは、名前と言語だけです。仕事以外でも使えます。', 'When someone scans this, you can chat. They see only your name and language. It works outside work too.')}</p>
+      <button class="btn block" data-push="connect-scan">${ic('qr')}${t('QRをスキャン', 'Scan a QR')}</button>
+      <button class="btn tonal block" data-lf="qrshare" style="margin-top:12px">${ic('share')}${t('QRを共有', 'Share my QR')}</button></div>`;
+  },
+  'connect-scan'(el) { renderCScan(el); },
+  pchat(el, p) {
+    const th = ptOf(p && p.thread); PT.th = th ? th.id : null;
+    if (!th) { shell(el, t('チャット', 'Chat')); $('.content', el).innerHTML = `<div class="lf-empty">${t('見つかりません', 'Not found')}</div>`; return; }
+    const talk = th.kind === 'talk', mt = t('メッセージ', 'Message');
+    shell(el, talk ? `<button class="lf-ttl" data-lf="pop:rename">${esc(ptTitle(th))}${ic('edit')}</button>` : esc(ptTitle(th)),
+      `<button class="icon-btn" data-lf="pop:menu" aria-label="${t('メニュー', 'Menu')}">${icBig('more')}</button>`,
+      talk ? `<div class="lf-comp"><button class="btn block lf-listen" data-lf="tklisten">${ic('mic')}<span>${t('聞く', 'Listen')}</span></button></div>`
+        : `<div class="lf-comp"><div class="lf-crow"><input class="lf-pin" id="lf-ci" placeholder="${mt}" aria-label="${mt}" autocomplete="off"><button class="lf-send" data-lf="csend" aria-label="${t('送信', 'Send')}">${icBig('send')}</button></div></div>`);
+    th.unread = 0; renderPchat(el); scrollEnd(el); hmRefresh();
+  },
+  interview(el, p) {
+    if (!FM) { shell(el, 'Interview'); guardForeman(el); return; }
+    S.iv = {w: (p && p.worker) || WORKERS[0], method: 'face', date: LF_TODAY, note: '', consent: false};
+    shell(el, '定期面談シート'); renderIv(el);
+  },
   supportlog(el, p) {
     if (!FM) { shell(el, 'Support log'); guardForeman(el); return; }
     S.log.w = (p && p.worker) || 'all';
@@ -557,6 +676,138 @@ Object.assign(SCREENS, {
     renderLog(el);
   },
 });
+
+/* ---------- Talk Threads and Contacts: private to their members (ADR 0014) ---------- */
+// shortcut: this state is local to the phone and never goes on the Bus, so the other phone never holds it. The real app keeps personal threads in user-scoped tables.
+Object.assign(DATA.users, {u_mai: {name: '田辺 舞', en: 'Tanabe Mai', role: 'contact', initials: '舞', color: '#6a1b9a'}});
+const PT = {th: null, n: 0, noticed: false, blocked: new Set(), vals: {}, listening: false, scanBusy: false};
+try { PT.noticed = localStorage.getItem('lf-talk-notice') === '1'; } catch (e) { /* storage blocked: the notice shows again */ }
+// shortcut: seeded languages, the real app reads each account's language
+const LANG_OF = {u_tanaka: 'ja', u_sato: 'ja', u_mai: 'ja', u_rahim: 'en', u_nguyen: 'en', u_siti: 'en'};
+const LANG_NAME = {ja: '日本語', en: 'English'};
+// shortcut: three canned utterances in Kyushu dialect stand in for speech recognition; check the dialect with a native speaker before showing it to care staff
+const UTTER = [
+  {ja: '膝のいたかけん、今日は散歩はせんばい。', plain: '膝が痛いので、今日は散歩をしません。', en: 'My knee hurts, so I will not go for a walk today.',
+   terms: [['いたか', '痛い'], ['けん', 'ので'], ['せんばい', 'しません']], need: 3, flag: true,
+   must: [['knee', 'leg'], ['hurt', 'pain', 'sore', 'ache'], ['walk', 'stroll', 'outside'], ['not', "n't", 'no ', 'skip', 'cancel']],
+   hint: ['何が痛いのか、何をしないのかを確かめましょう。', 'Check what hurts and what they will not do.'],
+   chips: [['Then let us rest today. Shall I call the nurse?', 'では、今日は休みましょう。看護師さんを呼びましょうか？'], ['I understand. Would you like some tea?', 'わかりました。お茶はいかがですか？']]},
+  {ja: 'お茶ばもう一杯ちょうだい。', plain: 'お茶をもう一杯ください。', en: 'Please give me one more cup of tea.',
+   terms: [['お茶ば', 'お茶を']], need: 2, must: [['tea'], ['more', 'another', 'again']],
+   hint: ['何を、どのくらい頼まれたか確かめましょう。', 'Check what they asked for and how much.'],
+   chips: [['Yes, I will bring it now.', 'はい、すぐにお持ちします。'], ['Hot or cold tea?', '温かいお茶と冷たいお茶、どちらがいいですか？']]},
+  {ja: 'ばってん、今日はあんまり食欲のなかと。', plain: 'でも、今日はあまり食欲がありません。', en: 'But I do not have much appetite today.',
+   terms: [['ばってん', 'でも'], ['のなか', 'がない']], need: 2, flag: true,
+   must: [['appetite', 'hungry', 'eat', 'food'], ['not', "n't", 'no ', 'little', 'low', 'lack'], ['today']],
+   hint: ['何がどうなのか、いつのことかを確かめましょう。', 'Check what is wrong and when.'],
+   chips: [['Would you like something light, like soup?', 'スープなど、軽いものはいかがですか？'], ['I will tell the staff. Is that okay?', '職員に伝えますね。いいですか？']]},
+];
+DATA.threads.push({id: 'tt_demo', kind: 'talk', title: '山田さん（施設）', titleEn: 'Mr. Yamada (care home)', members: ['u_rahim'], unread: 0});
+DATA.messages.tt_demo = [{id: 'x_seed', thread: 'tt_demo', from: 'u_rahim', at: '09:12', ja: UTTER[1].ja, en: UTTER[1].en, u: 1,
+  mine: {text: 'She wants one more cup of tea', st: 'green'}, reply: {src: UTTER[1].chips[0][0], ja: UTTER[1].chips[0][1]}, ok: true}];
+
+const ptOf = id => DATA.threads.find(x => x.id === id);
+const ptTitle = th => FM ? th.title : th.titleEn;
+const exOf = id => (DATA.messages[PT.th] || []).find(m => m.id === id);
+const exSt = ex => ex.ok === true ? 'green' : ex.ok === false ? 'red' : ex.mine ? ex.mine.st : 'wait';
+const scrollEnd = el => requestAnimationFrame(() => { const c = el && $('.content', el); if (c) c.scrollTop = c.scrollHeight; });
+const rp = () => renderPchat(scr('pchat'));
+const hmRefresh = () => { if (window.hmRefresh) window.hmRefresh(); };
+const sayJa = text => {
+  const ss = window.speechSynthesis;
+  if (!ss || typeof SpeechSynthesisUtterance === 'undefined') { App.toast(t('このブラウザは読み上げに未対応です', 'Read-aloud is not supported in this browser')); return; }
+  ss.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = 'ja-JP'; u.rate = .85; ss.speak(u);
+};
+// shortcut: counts how many ideas match; the real app asks the AI to compare the worker's words with the transcript
+function grade(text, u) {
+  const low = ' ' + text.toLowerCase() + ' ', n = u.must.filter(g => g.some(k => low.includes(k))).length;
+  return n >= u.need ? 'green' : n ? 'orange' : 'red';
+}
+// shortcut: a four-phrase lookup stands in for the translate pipeline
+const FAKE_TR = [[/\b(hello|hi)\b/i, 'こんにちは！'], [/thank/i, 'ありがとうございます。'], [/festival|matsuri/i, 'お祭り、楽しみです。'], [/\b(yes|ok|sure)\b/i, 'はい、いいですよ。']];
+const fakeTr = s => (FAKE_TR.find(([r]) => r.test(s)) || [])[1] || '';
+const GREET = {ja: 'はじめまして。QRでつながれてうれしいです。', en: 'Nice to meet you. I am glad we connected by QR.'};
+const REPLIES = [{ja: 'ありがとう！お祭り、いっしょに行きましょう。', en: 'Thank you! Let us go to the festival together.'}, {ja: 'いいですね。また連絡します。', en: 'Sounds good. I will message you again.'}];
+
+function exCard(ex) {
+  const u = UTTER[ex.u], st = exSt(ex), id = esc(ex.id), m = ex.mine, meaning = LANG === 'ja' ? u.plain : u.en;
+  const head = `<div class="lf-exh"><span class="lf-tile">${ic('mic')}</span><small>${t('聞きとったこと', 'What they said')} · ${esc(ex.at)}</small>${m ? chip(st) : ''}</div>
+    <div class="lf-hj"><span lang="ja" translate="no">${esc(u.ja)}</span><button class="icon-btn" data-lf="say:${id}" aria-label="${t('もう一度聞く', 'Play again')}">${icBig('volume')}</button></div>`;
+  if (!m) return `<div class="card lf-ex">${head}
+    <div class="lf-lbl">${t('何と言っていましたか？ あなたのことばで書いてください', 'What did they say? Write it in your own words')}</div>
+    <div class="lf-crow"><input class="lf-pin" id="lf-a-${id}" placeholder="${t('たとえば…', 'For example…')}" aria-label="${t('あなたの理解', 'Your understanding')}" autocomplete="off"><button class="lf-send" data-lf="tkgo:${id}" aria-label="${t('確認', 'Check')}">${icBig('send')}</button></div>
+    <button class="btn text block" data-lf="tkshow:${id}">${t('意味を見る', 'Show the meaning')}</button></div>`;
+  const msg = m.skipped ? t('先に意味を見ました。', 'You looked at the meaning first. ') + t(...u.hint)
+    : m.st === 'green' ? t('その通りです。', 'Yes, you understood.') : (m.st === 'orange' ? t('おしい。', 'Close. ') : t('ちがいます。', 'Not quite. ')) + t(...u.hint);
+  let h = `<div class="card lf-ex" data-s="${st}">${head}
+    ${m.text ? `<div class="lf-mine"><small>${t('あなたの理解', 'Your understanding')}</small>${esc(m.text)}</div>` : ''}
+    <div class="lf-res" data-s="${m.st}">${ic(m.st === 'green' ? 'tick' : m.st === 'red' ? 'close' : 'info')}<div>${msg}</div></div>
+    <div class="lf-mean"><small>${t('意味', 'Meaning')}</small><b>${esc(meaning)}</b>${LANG === 'ja' ? '' : `<span class="lf-alt" translate="no">${esc(u.plain)}</span>`}
+      <div class="lf-dias">${u.terms.map(([a, b]) => `<span class="lf-dia" lang="ja" translate="no">${esc(a)} → ${esc(b)}</span>`).join('')}</div></div>
+    ${u.flag ? `<div class="lf-flag">${ic('warning')}<span>${t('痛みや食欲がないときは、職員（看護師）に伝えましょう。施設のルールに従ってください。', 'Tell a staff member or nurse about pain or loss of appetite. Follow your facility rules.')}</span></div>` : ''}`;
+  if (!ex.reply) h += `<div class="lf-lbl">${t('返事を選ぶ', 'Choose your reply')}</div><div class="lf-chipcol">${u.chips.map((c, i) => `<button class="lf-rc" data-lf="tkrep:${id}:${i}">${esc(LANG === 'ja' ? c[1] : c[0])}${LANG === 'ja' ? '' : `<small translate="no">${esc(c[1])}</small>`}</button>`).join('')}</div>`;
+  else if (ex.ok === null) h += `<div class="lf-show"><small>${t('相手に画面を見せてください', 'Show this screen to them')}</small><div class="lf-big" lang="ja" translate="no">${esc(ex.reply.ja)}</div>
+    <button class="btn tonal block" data-lf="say:${id}:r">${ic('volume')}${t('読み上げる', 'Read aloud')}</button>
+    <div class="lf-yn"><button class="lf-y" translate="no" data-lf="tkok:${id}:1">はい</button><button class="lf-n" translate="no" data-lf="tkok:${id}:0">いいえ</button></div></div>`;
+  else h += ex.ok ? `<div class="lf-res" data-s="green">${ic('tick')}<div>${t('相手が「はい」と言いました。通じました。', 'They said yes. It got through.')}</div></div>`
+    : `<div class="lf-res" data-s="red">${ic('close')}<div>${t('伝わりませんでした。', 'They did not understand.')}<br><button class="btn tonal" data-lf="tkretry:${id}">${t('別の返事にする', 'Try another reply')}</button></div></div>`;
+  return h + '</div>';
+}
+const bub = m => { const me = m.from === ME, ja = LANG === 'ja', alt = (ja ? m.en : m.ja) || t('（翻訳はプロトタイプ未対応）', '(no translation in the prototype)');
+  return `<div class="lf-bub${me ? ' me' : ''}">${esc((ja ? m.ja : m.en) || alt)}<small translate="no">${me ? t('相手に表示: ', 'They see: ') : t('原文: ', 'Original: ')}${esc(alt)}</small></div>`; };
+function renderPchat(el) {
+  const th = el && ptOf(PT.th); if (!th || !el.dataset.lf) return;
+  $$('.lf-pin', el).forEach(i => { PT.vals[i.id] = i.value; });
+  const msgs = DATA.messages[th.id] || [], c = $('.content', el);
+  c.innerHTML = th.kind === 'talk'
+    ? `<div class="lf-pad lf-tk">${msgs.map(exCard).join('') || `<div class="lf-empty">${t('「聞く」を押して、相手の近くでスマホを持ちます。', 'Tap Listen and hold the phone near the person.')}</div>`}${PT.listening ? `<div class="card lf-lis">${ic('mic', 'lg')}<div>${t('聞いています…', 'Listening…')}</div></div>` : ''}</div>`
+    : `<div class="lf-pad lf-ct">${msgs.map(bub).join('')}</div>`;
+  $$('.lf-pin', c).forEach(i => { if (PT.vals[i.id] != null) i.value = PT.vals[i.id]; });
+}
+
+/* ---------- popups for Talk Threads and Contacts ---------- */
+function pop(mode, arg) {
+  const th = ptOf(PT.th), nm = th ? ptTitle(th) : '';
+  const row = (a, icon, label) => `<button class="list-item lf-row" data-lf="pop:${a}"><span class="lf-tile">${ic(icon)}</span><span class="lf-rmid"><b>${label}</b></span></button>`;
+  const form = (val, act, label) => `<div class="lf-lbl">${t('名前（相手の名前など）', 'Name (the person, for example)')}</div><input class="field" id="lf-pop-n" value="${esc(val)}" maxlength="40" aria-label="${t('名前', 'Name')}"><button class="btn block" data-lf="${act}" style="margin-top:16px">${label}</button>`;
+  let h;
+  if (mode === 'new') h = PT.noticed
+    ? `<h2 class="lf-sh">${t('新しい会話', 'New talk')}</h2>${form(t('会話 ', 'Talk ') + (DATA.threads.filter(x => x.kind === 'talk' && x.members.includes(ME)).length + 1), 'tkcreate', t('作成', 'Create'))}`
+    : `<h2 class="lf-sh">${t('録音する前に', 'Before you record')}</h2><p class="lf-qrnote">${t('相手に、録音してよいか聞きましょう。名前などの個人情報は話さないようにしましょう。施設のルールに従ってください。', 'Ask the person if recording is okay. Avoid names and other personal details. Follow your workplace rules.')}</p><button class="btn block" data-lf="noticeok">${t('わかりました', 'I understand')}</button>`;
+  else if (mode === 'rename') h = `<h2 class="lf-sh">${t('名前を変える', 'Rename')}</h2>${form(nm, 'tkrename', t('保存', 'Save'))}`;
+  else if (mode === 'del') h = `<h2 class="lf-sh">${t('この会話を削除しますか？', 'Delete this talk?')}</h2><p class="lf-qrnote">${esc(nm)} · ${t('メッセージもすべて消えます。', 'All its messages will be deleted too.')}</p><button class="btn block" data-lf="tkdel" style="background:var(--error)">${ic('delete')}${t('削除する', 'Delete')}</button><button class="btn text block" data-close>${t('キャンセル', 'Cancel')}</button>`;
+  else if (mode === 'block') h = `<h2 class="lf-sh">${t('ブロックしますか？', 'Block this person?')}</h2><p class="lf-qrnote">${esc(nm)} · ${t('このチャットは消えます。', 'This chat will be removed.')}</p><button class="btn block" data-lf="blockok" style="background:var(--error)">${ic('block')}${t('ブロック', 'Block')}</button><button class="btn text block" data-close>${t('キャンセル', 'Cancel')}</button>`;
+  else if (mode === 'menu') h = th && th.kind === 'talk' ? row('rename', 'edit', t('名前を変える', 'Rename')) + row('del', 'delete', t('削除', 'Delete')) : row('block', 'block', t('ブロック', 'Block'));
+  else if (mode === 'connect') h = `<div class="lf-conf">${av(arg, 'lg')}<h2 class="lf-sh">${esc(nameOf(arg))}</h2><small translate="no">${LANG_NAME[LANG_OF[arg]] || ''}</small>
+    <p class="lf-qrnote">${t('つながると、メッセージを送りあえます。上司（職長）には見えません。', 'You can message each other. Your Foreman cannot see this chat.')}</p>
+    <button class="btn block" data-lf="conok:${arg}">${ic('add')}${t('つながる', 'Connect')}</button><button class="btn text block" data-close>${t('キャンセル', 'Cancel')}</button></div>`;
+  $('#lf-pop-body').innerHTML = `<div class="lf-sheet">${h}</div>`;
+  App.open('lf-pop');
+}
+function scanC(uid) {
+  const el = scr('connect-scan'); if (!el || PT.scanBusy) return;
+  if (PT.blocked.has(uid)) { App.toast(t('この人はブロック中です', 'You blocked this person')); return; }
+  const existing = DATA.threads.find(x => x.kind === 'contact' && x.members.includes(ME) && x.members.includes(uid));
+  if (existing) { App.toast(t('すでにつながっています', 'Already connected')); App.push('pchat', {thread: existing.id}); return; }
+  PT.scanBusy = true;
+  const vf = $('.sf-vf', el), msg = $('.sf-cam-msg', el);
+  $('.sf-qr', el).innerHTML = window.sfQrSvg ? window.sfQrSvg('wk:' + uid) : '';
+  vf.classList.add('sf-hit'); msg.textContent = t('読み取りました: ', 'Read: ') + nameOf(uid);
+  setTimeout(() => {
+    pop('connect', uid);
+    setTimeout(() => { vf.classList.remove('sf-hit'); $('.sf-qr', el).innerHTML = ''; msg.textContent = t('相手のQRを枠に合わせてください', "Point the camera at the other person's QR"); PT.scanBusy = false; }, 600);
+  }, 700);
+}
+function renderCScan(el) {
+  // shortcut: fake camera, the chips stand in for people whose QR you scan; swap for getUserMedia + a QR decoder
+  const ppl = ['u_mai', 'u_siti', 'u_nguyen', 'u_rahim', 'u_sato'].filter(u => u !== ME).slice(0, 4);
+  el.innerHTML = `<div class="sf-cam"><div class="sf-cam-bg"></div>
+    <header class="sf-cam-top"><button class="icon-btn" data-back aria-label="${t('閉じる', 'Close')}">${icBig('close')}</button><b>${t('QRをスキャン', 'Scan a QR')}</b></header>
+    <div class="sf-vf"><i class="tl"></i><i class="tr"></i><i class="bl"></i><i class="br"></i><i class="sf-line"></i><div class="sf-qr"></div></div>
+    <p class="sf-cam-msg" aria-live="polite">${t('相手のQRを枠に合わせてください', "Point the camera at the other person's QR")}</p>
+    <div class="sf-cam-chips">${ppl.map(u => `<button class="sf-cchip" data-lf="scan:${u}"><span class="sf-mini">${window.sfQrSvg ? window.sfQrSvg('wk:' + u) : ''}</span><span>${esc(short(u))}</span></button>`).join('')}</div>
+    <p class="sf-cam-tip">${t('人をタップして、スキャンを再現します', 'Tap a person to simulate a scan')}</p></div>`;
+}
 
 /* ---------- Bus: shared state ---------- */
 function refresh(scroll) {
@@ -590,6 +841,13 @@ Bus.on('meetup:new', ({meetup}) => {
   const i = DATA.meetups.findIndex(x => x.id === meetup.id);
   if (i < 0) DATA.meetups.push(meetup); else DATA.meetups[i] = meetup;
   const k = mkey(meetup.date); if (S.log.m && S.log.m !== 'all' && !monthsAll().includes(S.log.m)) S.log.m = k;
+  refresh();
+});
+
+Bus.on('interview:new', ({interview}) => {
+  if (!interview || !interview.id) return;
+  const i = DATA.interviews.findIndex(x => x.id === interview.id);
+  if (i < 0) DATA.interviews.push(interview); else DATA.interviews[i] = interview;
   refresh();
 });
 
@@ -642,6 +900,95 @@ document.addEventListener('click', e => {
     case 'meetnew': openMeet(arg); break;
     case 'mk': case 'mw': $$(`[data-lf^="${act}:"]`, el.parentElement).forEach(x => x.classList.toggle('on', x === el)); break;
     case 'meetsave': saveMeet(); break;
+    case 'ivw': S.iv.w = arg; refresh(); break;
+    case 'ivm': S.iv.method = arg; refresh(); break;
+    case 'ivc': S.iv.consent = el.checked; break;
+    case 'ivsave': saveIv(); break;
+    case 'newtalk': pop('new'); break;
+    case 'noticeok':
+      PT.noticed = true; try { localStorage.setItem('lf-talk-notice', '1'); } catch (e) { /* storage blocked: the notice shows again */ }
+      pop('new'); break;
+    case 'pop': pop(arg); break;
+    case 'tkcreate': {
+      const name = (($('#lf-pop-n') || {}).value || '').trim(); if (!name) { App.toast(t('名前を入れてください', 'Enter a name')); return; }
+      const id = 'tt_' + Date.now().toString(36);
+      DATA.threads.unshift({id, kind: 'talk', title: name, titleEn: name, members: [ME], unread: 0}); DATA.messages[id] = [];
+      App.close(); hmRefresh(); setTimeout(() => App.push('pchat', {thread: id}), 260); break;
+    }
+    case 'tkrename': {
+      const th = ptOf(PT.th), name = (($('#lf-pop-n') || {}).value || '').trim(); if (!th) return;
+      if (!name) { App.toast(t('名前を入れてください', 'Enter a name')); return; }
+      th.title = th.titleEn = name; App.close(); hmRefresh();
+      const h = $('.lf-ttl', scr('pchat')); if (h) h.firstChild.textContent = name;
+      break;
+    }
+    case 'tkdel': case 'blockok': {
+      const th = ptOf(PT.th), i = DATA.threads.indexOf(th); if (i < 0) return;
+      if (act === 'blockok') th.members.filter(u => u !== ME).forEach(u => PT.blocked.add(u));
+      DATA.threads.splice(i, 1); delete DATA.messages[th.id]; PT.th = null;
+      App.close(); hmRefresh();
+      setTimeout(() => { App.back(); App.toast(act === 'blockok' ? t('ブロックしました', 'Blocked') : t('削除しました', 'Deleted')); }, 260); break;
+    }
+    case 'scan': scanC(arg); break;
+    case 'conok': {
+      if (PT.blocked.has(arg)) return;
+      const id = 'tc_' + ME + '_' + arg;
+      if (!ptOf(id)) {
+        const u = DATA.users[arg];
+        DATA.threads.unshift({id, kind: 'contact', title: u.name, titleEn: u.en || u.name, members: [ME, arg], unread: 0});
+        DATA.messages[id] = [{id: 'cm' + Date.now().toString(36), thread: id, from: arg, at: nowHM(), ...GREET}];
+      }
+      App.close(); hmRefresh(); setTimeout(() => App.push('pchat', {thread: id}), 260); break;
+    }
+    case 'qrshare': {
+      const text = t('Wakatta? でつながりましょう', "Let's connect on Wakatta?") + ' https://wakatta.example/c/demo-token'; // shortcut: placeholder link, the real one is an opaque revocable token
+      if (navigator.share) navigator.share({title: 'Wakatta?', text}).catch(() => {});
+      else if (navigator.clipboard) navigator.clipboard.writeText(text).then(() => App.toast(t('リンクをコピーしました', 'Link copied')), () => App.toast(text));
+      else App.toast(text);
+      break;
+    }
+    case 'csend': {
+      const i = $('#lf-ci'), s = i ? i.value.trim() : '', th = ptOf(PT.th); if (!s || !th) return;
+      i.value = ''; PT.vals['lf-ci'] = '';
+      const ja = LANG === 'ja', other = th.members.find(u => u !== ME), arr = DATA.messages[th.id], r = REPLIES[arr.length % REPLIES.length];
+      arr.push({id: 'cm' + Date.now().toString(36), thread: th.id, from: ME, at: nowHM(), ja: ja ? s : fakeTr(s), en: ja ? '' : s});
+      rp(); scrollEnd(scr('pchat')); hmRefresh();
+      // shortcut: the contact answers with a canned line; the real app delivers to the other person's phone
+      setTimeout(() => {
+        if (!ptOf(th.id)) return;
+        arr.push({id: 'cm' + Date.now().toString(36), thread: th.id, from: other, at: nowHM(), ja: r.ja, en: r.en});
+        if (PT.th === th.id) { rp(); scrollEnd(scr('pchat')); } else th.unread = (th.unread || 0) + 1;
+        hmRefresh();
+      }, 1400);
+      break;
+    }
+    case 'tklisten': {
+      const th = ptOf(PT.th), arr = th && DATA.messages[th.id]; if (!arr || PT.listening) return;
+      PT.listening = true; const b = $('.lf-listen', scr('pchat')); if (b) b.classList.add('on');
+      rp(); scrollEnd(scr('pchat'));
+      // shortcut: fake speech, plays the next canned utterance; the real app transcribes and keeps no audio
+      setTimeout(() => {
+        PT.listening = false; const bb = $('.lf-listen', scr('pchat')); if (bb) bb.classList.remove('on');
+        if (!ptOf(th.id)) return;
+        const u = PT.n++ % UTTER.length;
+        arr.push({id: 'x' + Date.now().toString(36), thread: th.id, from: ME, at: nowHM(), ja: UTTER[u].ja, en: UTTER[u].en, u, mine: null, reply: null, ok: null});
+        hmRefresh(); if (PT.th === th.id) { rp(); scrollEnd(scr('pchat')); }
+      }, 1600);
+      break;
+    }
+    case 'tkgo': {
+      const ex = exOf(arg), i = $('#lf-a-' + arg); if (!ex) return;
+      const text = i ? i.value.trim() : ''; if (!text) { App.toast(t('先に書いてください', 'Write something first')); return; }
+      ex.mine = {text, st: grade(text, UTTER[ex.u])}; delete PT.vals['lf-a-' + arg]; rp(); break;
+    }
+    case 'tkshow': { const ex = exOf(arg); if (!ex) return; ex.mine = {text: '', st: 'orange', skipped: true}; rp(); break; }
+    case 'tkrep': {
+      const [id, i] = arg.split(':'), ex = exOf(id); if (!ex) return;
+      const c = UTTER[ex.u].chips[Number(i)]; ex.reply = {src: c[0], ja: c[1]}; ex.ok = null; rp(); scrollEnd(scr('pchat')); break;
+    }
+    case 'tkok': { const [id, v] = arg.split(':'), ex = exOf(id); if (!ex) return; ex.ok = v === '1'; rp(); break; }
+    case 'tkretry': { const ex = exOf(arg); if (!ex) return; ex.reply = null; ex.ok = null; rp(); break; }
+    case 'say': { const [id, r] = arg.split(':'), ex = exOf(id); if (ex) sayJa(r ? ex.reply.ja : UTTER[ex.u].ja); break; }
     case 'flw': S.log.w = arg; refresh(); break;
     case 'flm': S.log.m = arg; refresh(); break;
     case 'export': openPdf(); break;
@@ -653,6 +1000,7 @@ document.addEventListener('click', e => {
 document.addEventListener('input', e => { if (e.target.matches && e.target.matches('[data-lf-text]') && S.nn) S.nn.text = e.target.value; });
 document.addEventListener('keydown', e => {
   if (e.key === 'Enter' && e.target.matches && e.target.matches('.lf-in')) { e.preventDefault(); const q = e.target.value; e.target.value = ''; sendAsk(q, 'text'); }
+  if (e.key === 'Enter' && e.target.matches && e.target.matches('.lf-pin')) { e.preventDefault(); const b = e.target.parentElement.querySelector('.lf-send'); if (b) b.click(); }
 });
 
 window.lfPending = pendingCount; // for Home: number of notices a worker has not answered yet

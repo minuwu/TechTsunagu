@@ -5,8 +5,13 @@ import { useHub } from '@/features/hub'
 import { m } from '@/i18n/paraglide/messages'
 import { Landing } from './Landing'
 import { Card } from '@/ui/v3/components/Card'
-import { ConfirmDialog, Skeleton } from '@/ui/v3/components/Feedback'
+import {
+  ConfirmDialog,
+  EmptyState,
+  Skeleton,
+} from '@/ui/v3/components/Feedback'
 import { Mark } from '@/ui/v3/components/Icon'
+import { Spot } from '@/ui/v3/components/Spot'
 import { Button } from '@/ui/v3/components/ui/button'
 import { uiLang } from '@/ui/v3/lib/format'
 import { useToastWhen } from '@/ui/v3/lib/toast'
@@ -44,7 +49,7 @@ export function HomeScreen() {
         <p className="mb-6 flex flex-wrap items-center gap-3 text-muted-foreground">
           {m.hub_sub()}
           {hub.isMock && (
-            <span className="inline-flex items-center gap-2 rounded-full border border-[var(--rule)] bg-[var(--shell-raised)] px-3 py-1 text-sm font-bold">
+            <span className="inline-flex items-center gap-2 rounded-full border border-[var(--rule)] bg-muted px-3 py-1 text-sm font-bold">
               <span
                 aria-hidden="true"
                 className="size-2 rounded-full bg-[var(--life)]"
@@ -57,11 +62,14 @@ export function HomeScreen() {
           <Card
             title={m.hub_worker()}
             id="hub-worker"
+            aside={<Spot name="role-worker" className="-my-2 size-12" />}
             className="lg:col-span-5"
           >
             <p className="mb-4 text-muted-foreground">{m.hub_worker_body()}</p>
-            {hub.workers.length === 0 ? (
+            {hub.loading ? (
               <RowsSkeleton />
+            ) : hub.workers.length === 0 ? (
+              <EmptyState>{m.hub_empty()}</EmptyState>
             ) : (
               <ul className="space-y-2">
                 {hub.workers.map((w) => (
@@ -93,8 +101,10 @@ export function HomeScreen() {
             <p className="mb-4 text-muted-foreground">
               {m.hub_machines_body()}
             </p>
-            {hub.machines.length === 0 ? (
+            {hub.loading ? (
               <RowsSkeleton />
+            ) : hub.machines.length === 0 ? (
+              <EmptyState>{m.hub_empty()}</EmptyState>
             ) : (
               <ul className="space-y-2">
                 {hub.machines.map((mc) => (
@@ -126,6 +136,7 @@ export function HomeScreen() {
           <Card
             title={m.hub_foreman()}
             id="hub-foreman"
+            aside={<Spot name="role-foreman" className="-my-2 size-12" />}
             className="lg:col-span-4"
           >
             <p className="mb-4 text-muted-foreground">
@@ -140,6 +151,7 @@ export function HomeScreen() {
           <Card
             title={m.hub_community()}
             id="hub-community"
+            aside={<Spot name="role-poster" className="-my-2 size-12" />}
             tone="life"
             className="lg:col-span-4"
           >
@@ -155,6 +167,7 @@ export function HomeScreen() {
           <Card
             title={m.hub_senpai()}
             id="hub-senpai"
+            aside={<Spot name="role-senpai" className="-my-2 size-12" />}
             tone="life"
             className="lg:col-span-4"
           >

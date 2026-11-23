@@ -13,7 +13,7 @@ PLACEHOLDERS = {
     "build_briefing.v1.md": {"glossary"},
     "build_notice.v1.md": {"glossary", "today"},
     "build_notice.v2.md": {"glossary", "today"},
-    "answer_ask.v1.md": {"glossary", "notices"},
+    "answer_ask.v2.md": {"glossary", "notices"},
     "translate.v1.md": {"glossary", "source_lang", "target_lang"},
     "draft_message.v1.md": {"glossary", "members", "machines", "now"},
     "reexplain.v1.md": {"glossary", "term"},

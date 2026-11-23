@@ -239,6 +239,22 @@ def test_a_foreman_of_another_shop_sees_nothing(client: TestClient, db: Session,
     assert client.get(f"/api/machines/{shop.machine.id}/panel", headers=_auth(token)).status_code == 404
 
 
+def test_an_unchanged_board_is_a_304_and_a_change_is_not(client: TestClient, shop: Shop) -> None:
+    first = client.get("/api/board", headers=_auth(shop.foreman))
+    tag = first.headers["ETag"]
+
+    same = client.get("/api/board", headers={**_auth(shop.foreman), "If-None-Match": tag})
+    client.put(  # the board changes: someone is put on a Machine today
+        "/api/shift-assignments",
+        headers=_auth(shop.foreman),
+        json={"machineId": str(shop.machine.id), "shift": "day", "workerId": str(shop.worker_id)},
+    )
+    changed = client.get("/api/board", headers={**_auth(shop.foreman), "If-None-Match": tag})
+
+    assert same.status_code == 304
+    assert changed.status_code == 200 and changed.headers["ETag"] != tag
+
+
 def test_the_board_flags_an_assigned_worker_without_a_sign_off(client: TestClient, shop: Shop) -> None:
     put = client.put(
         "/api/shift-assignments",

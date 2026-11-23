@@ -407,5 +407,16 @@
   "course_quiz_right": "Correct.",
   "course_quiz_wrong": "Not quite.",
   "course_glossary": "Words to know",
-  "course_refs": "Based on"
+  "course_refs": "Based on",
+  "data_error": "Can't reach the server. What you see may be out of date or incomplete.",
+  "data_offline": "You're offline. Nothing can be saved until you reconnect.",
+  "panel_unknown": "Status unknown: no connection. Ask your foreman before you start.",
+  "board_empty": "No Machines in this shop yet.",
+  "hub_empty": "Nothing here yet.",
+  "demo_state": "Demo state",
+  "demo_live": "Live",
+  "demo_loading": "Loading",
+  "demo_empty": "Empty",
+  "demo_error": "Error",
+  "panel_unknown_word": "UNKNOWN"
 }

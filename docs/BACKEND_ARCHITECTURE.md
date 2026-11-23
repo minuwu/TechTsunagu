@@ -553,24 +553,34 @@ class AiClient(Protocol):
 
 Each pipeline owns: cache lookup → limiter → model call → schema parse → domain validation (§7.4–7.6) → one retry with the validation error → fallback. Services never see Gemini types, prompts or retries.
 
-### 10.3 Limits (from Galib's review, points 2, 3 and 7)
+### 10.3 Models and limits (XREQ-003, [AI_PLAN.md](../contributors/galib/AI_PLAN.md) §2–§4)
+
+The models and every budget live in one table, [`app/ai/chains.py`](../backend/app/ai/chains.py); changing a model is one line there.
+
+| Setting | Values | Meaning |
+| :--- | :--- | :--- |
+| `AI_MODE` | `fake` (default) / `gemini` | `fake`: no network, every AI step takes its fallback |
+| `AI_CHAIN` | `dev` (default) / `demo` | `dev`: 3.5 → 3.1 Flash-Lite (prompt work, eval). `demo`: 3.8 Flash → 3.6 Flash → 3.5 → 3.1 Flash-Lite (filming, live demo) |
+| `AI_TIER` | `free` (default) / `paid` | `free`: budgets just under each free quota; `paid`: the same table as a cost cap |
+| `GROQ_API_KEY` | empty (default) / key | when set, the Groq backup is last in every chain: Whisper turns audio into text, then `openai/gpt-oss-120b` writes the draft |
+| `AI_MAX_CONCURRENT` | 2 | process semaphore across all models |
+| `AI_TIMEOUT_SECONDS` | 45 | per call |
 
 | Limit | Value | When hit |
 | :--- | :--- | :--- |
-| Concurrent calls | `AI_MAX_CONCURRENT=2` (process semaphore, wait ≤ 10 s) | fallback |
-| Calls per minute, whole app | `AI_RPM=4` (token bucket; Gemini's project limit is 5) | fallback |
-| Calls per day per model | `AI_DAILY_BUDGET=18` in `ai_usage` (incremented in its own short transaction before the call) | fallback, no call |
+| Calls per day, per model | `chains.BUDGETS[tier][model][0]` (free: 18 for the Flash models, 450 for the Flash-Lites, 40 for Groq) in `ai_usage`, taken in its own short transaction before the call | that model is skipped, no call |
+| Calls per minute, per model | `chains.BUDGETS[tier][model][1]` (free: 4, 12, 1), in-memory limiter per model | that model is skipped |
 | Per user | 10 AI requests per minute per user | 429 |
-| Timeout | `AI_TIMEOUT_SECONDS=45` per call | fallback |
 
-- Retry once with jitter on a Gemini 429 or 5xx that is per-minute or transient. **Never retry a 429 that means the daily quota is used up**: mark `ai_usage` as exhausted for the day and go straight to the fallback. The same applies to the validation retry, which spends a second call.
-- **Model split:** `GEMINI_MODEL` (filmed takes and the live demo: `gemini-3.8-flash`, about 20 calls a day) and `GEMINI_MODEL_DEV` (prompt work: `gemini-3.5-flash-lite`, about 500 a day). These are Galib's numbers, read from AI Studio on 2026-11-22; recheck on the day.
+- **A busy or failing model is skipped at once** (5xx such as 503 "high demand", a per-minute 429, a timeout): the next model of the chain answers. **A daily-quota 429 is never retried**: the model is marked exhausted in `ai_usage` and skipped for the rest of the day (resets at midnight Pacific, 14:00 Bangladesh time).
+- The only retry is the **validation retry** (§10.4 step 3), on the model that answered, and it spends that model's budget.
 - The limiter is in memory, which is correct only because the API runs exactly one replica (§15). The daily budget is in Postgres, so a restart cannot reset it.
+- Free-tier numbers are Galib's, read from AI Studio on 2026-11-22; recheck on the day.
 
 ### 10.4 Fallback ladder (G-32)
-1. Cache hit (`ai_cache`). Key = `sha256(scope + pipeline + prompt version + model + input bytes + glossary hash)`, so a Glossary edit misses the cache.
-2. Live call, validated.
-3. One retry with the validation error (only while within the budget).
+1. Cache hit (`ai_cache`), looked up under **every model of the chain, best first**, so a filmed 3.8 Flash take is reused even when 3.8 Flash is out of quota. Key = `sha256(scope + pipeline + prompt version + model + input bytes + glossary hash)`, so a Glossary edit (or a new prompt version) misses the cache.
+2. Live call to each model of the chain in order (§10.3), validated; a model that is out of budget, busy or failing is skipped.
+3. One retry with the validation error, on the model that answered (only while within its budget); if that also fails, the next model.
 4. Seeded result for the demo Machines and the demo flyer (put in `ai_cache` by `seed.py` from `tests/fixtures/ai/`).
 5. Degraded result, 200, never a 500:
    - **Notes, Briefings, Notices:** a `needs_edit` draft holding whatever was usable (at least the transcript or typed text). The Foreman or Poster can edit it.
@@ -671,7 +681,7 @@ Coverage target 80% on `domain`, `services`, `repositories`, `ai` (G-22). CI `ba
 | Seed | `python -m app.seed --reset` via `az containerapp exec`, again before filming | — |
 
 ### 15.2 Demo-day checklist
-- `AI_MODE=gemini`, `GEMINI_MODEL` set, `ai_cache` holds every filmed take, `ai_usage` checked that morning (the quota resets at 14:00 Bangladesh time).
+- `AI_MODE=gemini`, `AI_CHAIN=demo` (`AI_TIER=paid` once billing is on), `GEMINI_API_KEY` and `GROQ_API_KEY` set as secrets, `ai_cache` holds every filmed take, `ai_usage` checked that morning (the quota resets at 14:00 Bangladesh time).
 - min = max = 1 replica; `/api/health/ready` green; seed reset; Panel token issued on the tablet.
 
 ### 15.3 Scaling past one replica (not needed for the hackathon)

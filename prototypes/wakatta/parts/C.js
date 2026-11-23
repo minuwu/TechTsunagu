@@ -138,6 +138,8 @@ function qrSvg(seed) {
   return `<svg viewBox="0 0 25 25" aria-hidden="true"><rect width="25" height="25" class="sf-qrbg"/><g class="sf-qrfg">${r}</g></svg>`;
 }
 
+window.sfQrSvg = qrSvg; // part D draws My QR with it
+
 /* =====================================================================
    1. scan
    ===================================================================== */

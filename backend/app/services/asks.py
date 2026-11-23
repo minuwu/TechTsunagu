@@ -21,7 +21,7 @@ from app.schemas.asks import AskOut
 from app.services.ai_runner import AiRequest, AiRunner
 from app.services.auth import Principal
 
-ASK_PROMPT_VERSION = 1
+ASK_PROMPT_VERSION = 2  # v2 adds question_text, so voice Asks keep a transcript
 TRANSLATE_PROMPT_VERSION = 1
 AI_LANGUAGES = ("bn", "en")  # shortcut: the AI schema is fixed to ja/bn/en (as notes.AI_LANGUAGES)
 NOTICES_SENT = 20  # the newest published Notices of the district go into the prompt
@@ -131,8 +131,9 @@ def create(
         shop_id=shop_id,
         worker_id=worker_id,
         source_kind="voice" if audio else "text",
-        # shortcut: a voice Ask keeps no transcript, because AskDraft has none; add one to AskDraft (WS1).
-        text_src=text or "",
+        # A typed Ask keeps the Worker's own words; a voice Ask keeps the model's transcript, so forwarding
+        # it to the Senpai sends the question instead of an empty message ("" only when the AI was unavailable).
+        text_src=text or (draft.question_text if draft else ""),
         language=language,
         covered=grounded.covered,
         answer=dict(grounded.answer) if grounded.answer else None,

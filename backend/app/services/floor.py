@@ -1,6 +1,5 @@
 """The shop floor (architecture §6.6, §7.1–7.3, §8.1): machines, scan, Panel, Checks, board, shifts, glossary."""
 
-import hashlib
 import uuid
 from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
@@ -376,7 +375,3 @@ def add_glossary(db: Session, who: Principal, body: GlossaryIn) -> GlossaryOut:
         raise ApiError(409, "CONFLICT", "This term is already in the glossary") from exc
     db.commit()
     return glossary_out(t)
-
-
-def etag(body: str) -> str:
-    return '"' + hashlib.sha256(body.encode()).hexdigest()[:32] + '"'
