@@ -47,11 +47,21 @@ def glossary_problems(
         if _nfkc(term.ja) not in easy_ja:
             problems.append(f"The Japanese steps must keep the shop word 「{term.ja}」 as written.")
         for lang in languages:
-            joined = "\n".join(getattr(t, lang) for t in texts)
+            joined = "\n".join(getattr(t, lang) or "" for t in texts)
             fixed = term.translations.get(lang, "")
             if fixed and not _contains(joined, fixed, lang):
                 problems.append(f"The {lang} text must use the fixed translation 「{fixed}」 for 「{term.ja}」.")
     return problems
+
+
+def language_problems(texts: Sequence[AiTri], languages: Collection[str]) -> list[str]:
+    """Every text is written in ja and in each of the shop's languages (shops.languages, XREQ-011 item 5)."""
+    missing = sorted({lang for t in texts for lang in languages if not (getattr(t, lang) or "").strip()})
+    return [f"Write every text in {lang} as well (the shop's languages: {', '.join(languages)})." for lang in missing]
+
+
+def question_texts(questions: Sequence[AiQuestion]) -> list[AiTri]:
+    return [t for q in questions for t in (q.prompt, *q.options)]
 
 
 def question_problems(questions: Sequence[AiQuestion], glossary: Sequence[GlossaryTerm]) -> list[str]:
@@ -59,9 +69,12 @@ def question_problems(questions: Sequence[AiQuestion], glossary: Sequence[Glossa
     known = {_nfkc(t.ja) for t in glossary}
     problems: list[str] = []
     for n, q in enumerate(questions, start=1):
-        # Two options with the same text would both be "correct"; check every language, not just ja.
-        for lang in ("ja", "bn", "en"):
-            texts = [_nfkc(getattr(o, lang)).strip() for o in q.options]
+        # Two options with the same text would both be "correct"; check every language they are written in.
+        for lang in AiTri.model_fields:
+            values: list[str | None] = [getattr(o, lang) for o in q.options]
+            if None in values:
+                continue
+            texts = [_nfkc(v or "").strip() for v in values]
             if len(set(texts)) < len(texts):
                 problems.append(f"Question {n}: two options have the same {lang} text.")
         if q.term_ja is not None and _nfkc(q.term_ja) not in known:
@@ -107,8 +120,10 @@ def message_problems(
 ) -> list[str]:
     """A Chat message: shop words locked in every language, valid questions, Tasks only for real people and
     Machines, and a due time only when one was said."""
+    texts = [draft.text, *question_texts(draft.questions), *(t.title for t in draft.tasks)]
     return (
-        glossary_problems(draft.transcript_ja, [draft.text], glossary, languages)
+        language_problems(texts, languages)
+        + glossary_problems(draft.transcript_ja, [draft.text], glossary, languages)
         + question_problems(draft.questions, glossary)
         + task_problems(draft.tasks, draft.transcript_ja, member_ids, machine_ids)
     )
@@ -119,7 +134,8 @@ def reexplain_problems(
 ) -> list[str]:
     """The new explanation keeps the missed term and its fixed translations, and the question is about that term."""
     term = next((t for t in glossary if t.ja == term_ja), GlossaryTerm(id="", ja=term_ja, reading="", translations={}))
-    problems = glossary_problems(term.ja, [draft.text], [term], languages)
+    problems = language_problems([draft.text, *question_texts([draft.question])], languages)
+    problems += glossary_problems(term.ja, [draft.text], [term], languages)
     problems += question_problems([draft.question], glossary)
     if draft.question.term_ja is None or _nfkc(draft.question.term_ja) != _nfkc(term_ja):
         problems.append(f"The question must be about 「{term_ja}」: set term_ja to it.")
@@ -128,6 +144,10 @@ def reexplain_problems(
 
 def note_problems(draft: NoteDraft, glossary: Sequence[GlossaryTerm], languages: Collection[str]) -> list[str]:
     texts = [s.text for s in draft.steps]
-    return glossary_problems(draft.transcript_ja, texts, glossary, languages) + question_problems(
-        draft.questions, glossary
+    back = [f"The back_translation needs {lang}." for lang in languages if not getattr(draft.back_translation, lang)]
+    return (
+        language_problems([*texts, *question_texts(draft.questions)], languages)
+        + back
+        + glossary_problems(draft.transcript_ja, texts, glossary, languages)
+        + question_problems(draft.questions, glossary)
     )

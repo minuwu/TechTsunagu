@@ -103,7 +103,7 @@ Errors: `401 UNAUTHORIZED` (wrong PIN), `423 PIN_LOCKED` (`details.until`), `429
 
 **Fulfillment & Proof (filled by recipient on completion):**
 - **Branch / Commit**: 
-- **Status / Notes**: 
+- **Status / Notes**: 2026-11-23 Asif: the backend side is live on Azure and verified from outside (CORS from localhost:3000, roster, login, `/auth/me`, authenticated lists). Everything Minhaz needs is in [docs/FRONTEND_API_HANDOVER.md](docs/FRONTEND_API_HANDOVER.md): URL, sign-in flow, headers, list shape, the 5 path changes, demo accounts.
 - **Verification Proof**: 
 
 #### `[XREQ-002]` Life contract: Notices, Events, Asks, Senpai, Meet-ups
@@ -498,14 +498,15 @@ GET /api/tasks?machineId={id}
 - **To**: `Backend (Asif, deploy)`
 - **Status**: `[PENDING]`
 - **Created**: `2026-11-23 17:30 (UTC+6)`
-- **Target Interface / Endpoint**: Azure Container App secrets and env; no code change in `jobs/`
+- **Target Interface / Endpoint**: `backend/deploy/use-supabase.ps1` (Asif's) against project `jpajxyejcbtfivrylcaf`
 
 **Requirement Details:**
-Team decision 2026-11-23: Anim owns the database and it moves to Supabase (free project `wakatta`, ref `jpajxyejcbtfivrylcaf`, Tokyo); the API stays on Azure. The project is ready and rehearsed (roles, migrations up/down/up on Postgres 17, seed, smoke 13/13 through the pooler, Data API roles locked out). Steps, values and checks: [backend/deploy/SUPABASE.md](backend/deploy/SUPABASE.md) "Cutover".
+Team decision 2026-11-23: Anim owns the database and it moves to Supabase (free project `wakatta`, ref `jpajxyejcbtfivrylcaf`, Tokyo); the API stays on Azure. The project is ready and rehearsed (roles, migrations up/down/up on Postgres 17, seed, smoke 13/13 through the pooler, Data API roles locked out). Steps and checks: [backend/deploy/SUPABASE.md](backend/deploy/SUPABASE.md) "Cutover".
 1. Get the Supabase database password from Anim privately (not in git or chat logs).
-2. Set the Container App secrets/env as the runbook lists: the **session pooler** host `aws-0-ap-northeast-1.pooler.supabase.com:5432`, usernames `<role>.jpajxyejcbtfivrylcaf`, **`DB_NAME=postgres`**, `ADMIN_USER=postgres`, new `OWNER_PASSWORD` / `APP_PASSWORD`, `SEED_ON_START=reset` for one revision.
-3. After the first boot remove `ADMIN_DATABASE_URL` and `SEED_ON_START`; run `uv run python scripts/smoke.py https://<api-host> --origin https://<frontend-origin>`.
+2. `SUPABASE_DB_URL` in your `backend/.env` = the Session pooler string on **`aws-0-ap-northeast-1`** (the `aws-1` host does not know this project); run `use-supabase.ps1`.
+3. Run `uv run python scripts/smoke.py https://<api-host> --origin https://<frontend-origin>`.
 4. When the smoke is all PASS, delete the Azure PostgreSQL server (decided 2026-11-23).
+5. FYI `jobs/dbinit.py` (merged with your `3f2b7f6`): it now also revokes `public` from PUBLIC on a shared database and from `anon` / `authenticated`, and sets `TimeZone UTC` on the app role; reason in its comments and the runbook.
 
 **Expected Request (Payload / Query Params / Headers):**
 ```

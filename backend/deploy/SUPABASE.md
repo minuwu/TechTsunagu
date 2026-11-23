@@ -37,11 +37,11 @@ Pooler usernames carry the project ref: `wakatta_app.jpajxyejcbtfivrylcaf`, `wak
 
 Done on the project with throwaway passwords, then the passwords were set to NULL and the local copies deleted:
 
-- roles created as `dbinit.prepare_schema` does on Supabase; logins through the pooler work for both custom roles,
+- roles created as `jobs/dbinit.py` does on Supabase; logins through the pooler work for both custom roles,
   and the role settings arrive (`TimeZone UTC`, `statement_timeout 5s`);
 - `alembic upgrade head` → `downgrade base` → `upgrade head` clean on Postgres 17; head `c10c87c5bd34`;
 - `python -m app.seed --reset` loaded (59 rows by key) with a **throwaway PIN pepper**: the demo PINs will not work until
-  the first boot below reseeds with the real pepper;
+  the cutover below reseeds with its own pepper;
 - the API ran locally against the pooler as `wakatta_app`: `scripts/smoke.py` 13/13 PASS (health, demo sign-in, board,
   Skill Matrix, Notices without the answer key, Events, Chat poll 304, Task Board, Senpai link, Support Log CSV,
   Near-miss list, CORS preflight);
@@ -50,27 +50,24 @@ Done on the project with throwaway passwords, then the passwords were set to NUL
 - Supabase security advisor: no findings. Performance advisor: INFO only (composite foreign keys without their own
   index; unused indexes on a new database).
 
-Right now `wakatta_owner` and `wakatta_app` have **no password** (they cannot log in) until Asif's first boot sets them.
+Right now `wakatta_owner` and `wakatta_app` have **no password** (they cannot log in) until `use-supabase.ps1` sets them.
 
-## Cutover (Asif, Azure)
+## Cutover (Asif, Azure): `deploy/use-supabase.ps1`
+
+Asif's script does it from his machine, through the session pooler, with nothing printed:
+`jobs/dbinit.py` (fresh role passwords, `DB_NAME=postgres`) → `alembic upgrade head` → `python -m app.seed --reset`
+(new PIN pepper) → Container App secrets `database-url`, `migration-database-url`, `pin-pepper` → new revision → a
+roster call.
 
 1. **Anim** resets the database password (Dashboard → Project Settings → Database → Reset database password; nobody
-   knows the one generated at creation) and gives it to Asif privately. The Supabase API keys are not needed by the
-   app.
-2. **Asif** sets the Container App secrets and env (same names `jobs/start.py` and `jobs/dbinit.py` already read):
-   - `ADMIN_DATABASE_URL` = `postgresql://postgres.jpajxyejcbtfivrylcaf:<db password>@aws-0-ap-northeast-1.pooler.supabase.com:5432/postgres?sslmode=require`
-   - `ADMIN_USER` = `postgres` (the role name, without the ref)
-   - **`DB_NAME` = `postgres`** (the default `wakatta` would create a second database the pooler is not set up for)
-   - `OWNER_PASSWORD`, `APP_PASSWORD` = new random values (as `azure-setup.ps1` makes them)
-   - `MIGRATION_DATABASE_URL` = `postgresql+psycopg://wakatta_owner.jpajxyejcbtfivrylcaf:<owner pw>@aws-0-ap-northeast-1.pooler.supabase.com:5432/postgres?sslmode=require`
-   - `DATABASE_URL` = the same with `wakatta_app.jpajxyejcbtfivrylcaf:<app pw>`
-   - `SEED_ON_START=reset` for this one revision (the real `PIN_PEPPER` is already a secret)
-3. First boot runs `dbinit` (sets both passwords, safe to re-run), `alembic upgrade head` (nothing to do), the seed
-   (real pepper). Then remove `ADMIN_DATABASE_URL` and `SEED_ON_START`, as `azure-setup.ps1` already does.
-4. Check: `uv run python scripts/smoke.py https://<api-host> --origin https://<frontend-origin>` → all PASS.
-5. When green: delete the Azure PostgreSQL server (decided 2026-11-23: Asif deletes it after cutover).
+   knows the one generated at creation) and gives it to Asif privately. The Supabase API keys are not needed.
+2. **Asif** puts the Session pooler string in his `backend/.env` as `SUPABASE_DB_URL`
+   (`postgresql://postgres.jpajxyejcbtfivrylcaf:<db password>@aws-0-ap-northeast-1.pooler.supabase.com:5432/postgres`;
+   `aws-0`, not `aws-1`) and runs `powershell -ExecutionPolicy Bypass -File backend\deploy\use-supabase.ps1`.
+3. Check: `uv run python scripts/smoke.py https://<api-host> --origin https://<frontend-origin>` → all PASS.
+4. When green: delete the Azure PostgreSQL server (decided 2026-11-23: Asif deletes it after cutover).
 
-Rollback before step 5: point `DATABASE_URL` / `MIGRATION_DATABASE_URL` back to the Azure server and restart.
+Rollback before step 4: set the two database secrets back to the Azure server's URLs and start a new revision.
 
 ## Checks to rerun any time (SQL editor or `execute_sql`)
 

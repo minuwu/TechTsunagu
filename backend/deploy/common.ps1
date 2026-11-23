@@ -8,9 +8,13 @@ $FrontendOrigins = "http://localhost:3000"
 # Use `az` from PATH; otherwise the uv-installed CLI (uv tool install --prerelease=allow "azure-cli>=2.70").
 $UvAz = Join-Path $env:APPDATA "uv\tools\azure-cli\Scripts\python.exe"
 function Invoke-Az {
+    # Windows PowerShell 5.1 turns any stderr line (even a blank progress line) into a fatal error under "Stop" when
+    # 2>&1 is used, so relax it for the call and judge success by the CLI's exit code below.
+    $ErrorActionPreference = "Continue"
     if (Get-Command az.cmd -ErrorAction SilentlyContinue) { $out = & az.cmd @args --only-show-errors 2>&1 }
     else { $out = & $UvAz -m azure.cli @args --only-show-errors 2>&1 }
     $code = $LASTEXITCODE
+    $ErrorActionPreference = "Stop"
     $out | ForEach-Object { "$_" } | Where-Object { $_ -notmatch 'pkg_resources|SyntaxWarning|^\s+import |excludedActions|^\s*$' }
     if ($code) { throw "az $($args[0..2] -join ' ') failed (exit $code)" }
 }
@@ -41,6 +45,24 @@ function Wait-Ready {
         Start-Sleep -Seconds 15
     }
     throw "not ready after 10 min. Logs: az containerapp logs show -n $App -g $Rg --tail 80"
+}
+# Azure allows one change at a time per app (a CI rollout may be running): wait until it is idle before changing it.
+function Wait-Idle {
+    foreach ($i in 1..60) {
+        $state = Invoke-Az containerapp show -n $App -g $Rg --query properties.provisioningState -o tsv
+        if ($state -notin @("InProgress", "Updating", "Provisioning")) { return }
+        Start-Sleep -Seconds 10
+    }
+    throw "$App stayed busy for 10 min (provisioningState $state)"
+}
+# Reads the named keys from backend/.env into a hashtable (values are never printed).
+function Read-DotEnv([string[]]$Names) {
+    $vals = @{}
+    $pattern = '^\s*(' + ($Names -join '|') + ')\s*=\s*(.+?)\s*$'
+    Get-Content (Join-Path (Split-Path $PSScriptRoot -Parent) ".env") -Encoding UTF8 | ForEach-Object {
+        if ($_ -match $pattern) { $vals[$Matches[1]] = $Matches[2] }
+    }
+    $vals
 }
 function Get-Acr { Invoke-Az acr list -g $Rg --query "[0].name" -o tsv }
 function Get-DbServer { Invoke-Az postgres flexible-server list -g $Rg --query "[0].name" -o tsv }

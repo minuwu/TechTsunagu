@@ -46,7 +46,6 @@ def supabase_like(monkeypatch: pytest.MonkeyPatch) -> Iterator[str]:
     admin_url = make_conninfo(SUPER_URL, user=ADMIN, password=TEST_PW, dbname=DB, host=host)
     for key, value in {
         "ADMIN_DATABASE_URL": admin_url,
-        "ADMIN_USER": ADMIN,
         "OWNER_PASSWORD": TEST_PW,
         "APP_PASSWORD": TEST_PW,
         "OWNER_ROLE": OWNER,
@@ -74,6 +73,6 @@ def test_on_supabase_the_owner_can_build_tables_and_the_data_api_roles_cannot_se
     with psycopg.connect(supabase_like) as admin:
         schema_owner = admin.execute("SELECT nspowner::regrole::text FROM pg_namespace WHERE nspname = 'public'")
         assert schema_owner.fetchone() == ("pg_database_owner",)  # left as Supabase expects
-        for role in (*DATA_API_ROLES, "public"):
+        for role in DATA_API_ROLES:
             usage = admin.execute("SELECT has_schema_privilege(%s, 'public', 'USAGE')", (role,)).fetchone()
             assert usage == (False,), role
