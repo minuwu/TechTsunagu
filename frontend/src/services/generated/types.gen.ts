@@ -329,6 +329,20 @@ export type BoardOut = {
 };
 
 /**
+ * Body_add_entry_api_talk_threads__thread_id__entries_post
+ */
+export type BodyAddEntryApiTalkThreadsThreadIdEntriesPost = {
+    /**
+     * Text
+     */
+    text?: string | null;
+    /**
+     * Audio
+     */
+    audio?: Blob | File | null;
+};
+
+/**
  * Body_ask_knowledge_api_knowledge_asks_post
  */
 export type BodyAskKnowledgeApiKnowledgeAsksPost = {
@@ -929,6 +943,24 @@ export type DeviceOut = {
      * Lastseenat
      */
     lastSeenAt: string;
+};
+
+/**
+ * DialectTermOut
+ */
+export type DialectTermOut = {
+    /**
+     * Dialect
+     */
+    dialect: string;
+    /**
+     * Plain
+     */
+    plain: string;
+    /**
+     * Meaning
+     */
+    meaning: string;
 };
 
 /**
@@ -1685,6 +1717,36 @@ export type EnvelopePageSignOffOut = {
 };
 
 /**
+ * Envelope[Page[TalkEntryOut]]
+ */
+export type EnvelopePageTalkEntryOut = {
+    /**
+     * Success
+     */
+    success?: true;
+    data: PageTalkEntryOut;
+    /**
+     * Message
+     */
+    message?: string;
+};
+
+/**
+ * Envelope[Page[TalkThreadOut]]
+ */
+export type EnvelopePageTalkThreadOut = {
+    /**
+     * Success
+     */
+    success?: true;
+    data: PageTalkThreadOut;
+    /**
+     * Message
+     */
+    message?: string;
+};
+
+/**
  * Envelope[Page[TaskOut]]
  */
 export type EnvelopePageTaskOut = {
@@ -1813,6 +1875,36 @@ export type EnvelopeSkillMatrix = {
      */
     success?: true;
     data: SkillMatrix;
+    /**
+     * Message
+     */
+    message?: string;
+};
+
+/**
+ * Envelope[TalkEntryOut]
+ */
+export type EnvelopeTalkEntryOut = {
+    /**
+     * Success
+     */
+    success?: true;
+    data: TalkEntryOut;
+    /**
+     * Message
+     */
+    message?: string;
+};
+
+/**
+ * Envelope[TalkThreadOut]
+ */
+export type EnvelopeTalkThreadOut = {
+    /**
+     * Success
+     */
+    success?: true;
+    data: TalkThreadOut;
     /**
      * Message
      */
@@ -3517,6 +3609,34 @@ export type PageSignOffOut = {
 };
 
 /**
+ * Page[TalkEntryOut]
+ */
+export type PageTalkEntryOut = {
+    /**
+     * Items
+     */
+    items: Array<TalkEntryOut>;
+    /**
+     * Nextcursor
+     */
+    nextCursor: string | null;
+};
+
+/**
+ * Page[TalkThreadOut]
+ */
+export type PageTalkThreadOut = {
+    /**
+     * Items
+     */
+    items: Array<TalkThreadOut>;
+    /**
+     * Nextcursor
+     */
+    nextCursor: string | null;
+};
+
+/**
  * Page[TaskOut]
  */
 export type PageTaskOut = {
@@ -3751,6 +3871,23 @@ export type ReexplainIn = {
         [key: string]: string;
     } | null;
     question?: CheckQuestion | null;
+};
+
+/**
+ * ReplyOptionOut
+ *
+ * A reply the Worker can show or read aloud. Proposed `replyOptions: ["…"]` became objects: the Worker also needs
+ * to know what the Japanese reply says (`meaning`, in their language).
+ */
+export type ReplyOptionOut = {
+    /**
+     * Ja
+     */
+    ja: string;
+    /**
+     * Meaning
+     */
+    meaning: string;
 };
 
 /**
@@ -4050,6 +4187,117 @@ export type StepEdit = {
      * Ja
      */
     ja: string;
+};
+
+/**
+ * TalkEntryOut
+ */
+export type TalkEntryOut = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Transcript
+     */
+    transcript: string;
+    /**
+     * Plainja
+     */
+    plainJa: string | null;
+    /**
+     * Meaning
+     */
+    meaning: string | null;
+    /**
+     * Terms
+     */
+    terms: Array<DialectTermOut>;
+    /**
+     * Needsstaff
+     */
+    needsStaff: boolean;
+    /**
+     * Needsedit
+     */
+    needsEdit: boolean;
+    /**
+     * Owntext
+     */
+    ownText: string | null;
+    /**
+     * Grade
+     */
+    grade: 'green' | 'orange' | 'red' | null;
+    /**
+     * Replyoptions
+     */
+    replyOptions: Array<ReplyOptionOut>;
+    /**
+     * Replyja
+     */
+    replyJa: string | null;
+    /**
+     * Confirmed
+     */
+    confirmed: boolean | null;
+    /**
+     * Createdat
+     */
+    createdAt: string;
+};
+
+/**
+ * TalkEntryUpdate
+ *
+ * PATCH an entry with exactly one of: ownText (graded again), replyJa (the reply shown), confirmed (it got
+ * through or not).
+ */
+export type TalkEntryUpdate = {
+    /**
+     * Owntext
+     */
+    ownText?: string | null;
+    /**
+     * Replyja
+     */
+    replyJa?: string | null;
+    /**
+     * Confirmed
+     */
+    confirmed?: boolean | null;
+};
+
+/**
+ * TalkThreadIn
+ */
+export type TalkThreadIn = {
+    /**
+     * Title
+     */
+    title: string;
+};
+
+/**
+ * TalkThreadOut
+ */
+export type TalkThreadOut = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Updatedat
+     */
+    updatedAt: string;
+    /**
+     * Entrycount
+     */
+    entryCount: number;
 };
 
 /**
@@ -7408,3 +7656,271 @@ export type SendMessageApiContactsContactIdMessagesPostResponses = {
 };
 
 export type SendMessageApiContactsContactIdMessagesPostResponse = SendMessageApiContactsContactIdMessagesPostResponses[keyof SendMessageApiContactsContactIdMessagesPostResponses];
+
+export type ListThreadsApiTalkThreadsGetData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Limit
+         */
+        limit?: number;
+        /**
+         * Cursor
+         */
+        cursor?: string | null;
+    };
+    url: '/api/talk-threads';
+};
+
+export type ListThreadsApiTalkThreadsGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ListThreadsApiTalkThreadsGetError = ListThreadsApiTalkThreadsGetErrors[keyof ListThreadsApiTalkThreadsGetErrors];
+
+export type ListThreadsApiTalkThreadsGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopePageTalkThreadOut;
+};
+
+export type ListThreadsApiTalkThreadsGetResponse = ListThreadsApiTalkThreadsGetResponses[keyof ListThreadsApiTalkThreadsGetResponses];
+
+export type CreateThreadApiTalkThreadsPostData = {
+    body: TalkThreadIn;
+    headers?: {
+        /**
+         * Idempotency-Key
+         */
+        'Idempotency-Key'?: string | null;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/talk-threads';
+};
+
+export type CreateThreadApiTalkThreadsPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateThreadApiTalkThreadsPostError = CreateThreadApiTalkThreadsPostErrors[keyof CreateThreadApiTalkThreadsPostErrors];
+
+export type CreateThreadApiTalkThreadsPostResponses = {
+    /**
+     * Successful Response
+     */
+    201: EnvelopeTalkThreadOut;
+};
+
+export type CreateThreadApiTalkThreadsPostResponse = CreateThreadApiTalkThreadsPostResponses[keyof CreateThreadApiTalkThreadsPostResponses];
+
+export type DeleteThreadApiTalkThreadsThreadIdDeleteData = {
+    body?: never;
+    path: {
+        /**
+         * Thread Id
+         */
+        thread_id: string;
+    };
+    query?: never;
+    url: '/api/talk-threads/{thread_id}';
+};
+
+export type DeleteThreadApiTalkThreadsThreadIdDeleteErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteThreadApiTalkThreadsThreadIdDeleteError = DeleteThreadApiTalkThreadsThreadIdDeleteErrors[keyof DeleteThreadApiTalkThreadsThreadIdDeleteErrors];
+
+export type DeleteThreadApiTalkThreadsThreadIdDeleteResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeNoneType;
+};
+
+export type DeleteThreadApiTalkThreadsThreadIdDeleteResponse = DeleteThreadApiTalkThreadsThreadIdDeleteResponses[keyof DeleteThreadApiTalkThreadsThreadIdDeleteResponses];
+
+export type RenameThreadApiTalkThreadsThreadIdPatchData = {
+    body: TalkThreadIn;
+    path: {
+        /**
+         * Thread Id
+         */
+        thread_id: string;
+    };
+    query?: never;
+    url: '/api/talk-threads/{thread_id}';
+};
+
+export type RenameThreadApiTalkThreadsThreadIdPatchErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type RenameThreadApiTalkThreadsThreadIdPatchError = RenameThreadApiTalkThreadsThreadIdPatchErrors[keyof RenameThreadApiTalkThreadsThreadIdPatchErrors];
+
+export type RenameThreadApiTalkThreadsThreadIdPatchResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeTalkThreadOut;
+};
+
+export type RenameThreadApiTalkThreadsThreadIdPatchResponse = RenameThreadApiTalkThreadsThreadIdPatchResponses[keyof RenameThreadApiTalkThreadsThreadIdPatchResponses];
+
+export type ListEntriesApiTalkThreadsThreadIdEntriesGetData = {
+    body?: never;
+    path: {
+        /**
+         * Thread Id
+         */
+        thread_id: string;
+    };
+    query?: {
+        /**
+         * Limit
+         */
+        limit?: number;
+        /**
+         * Cursor
+         */
+        cursor?: string | null;
+    };
+    url: '/api/talk-threads/{thread_id}/entries';
+};
+
+export type ListEntriesApiTalkThreadsThreadIdEntriesGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ListEntriesApiTalkThreadsThreadIdEntriesGetError = ListEntriesApiTalkThreadsThreadIdEntriesGetErrors[keyof ListEntriesApiTalkThreadsThreadIdEntriesGetErrors];
+
+export type ListEntriesApiTalkThreadsThreadIdEntriesGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopePageTalkEntryOut;
+};
+
+export type ListEntriesApiTalkThreadsThreadIdEntriesGetResponse = ListEntriesApiTalkThreadsThreadIdEntriesGetResponses[keyof ListEntriesApiTalkThreadsThreadIdEntriesGetResponses];
+
+export type AddEntryApiTalkThreadsThreadIdEntriesPostData = {
+    body?: BodyAddEntryApiTalkThreadsThreadIdEntriesPost;
+    headers?: {
+        /**
+         * Idempotency-Key
+         */
+        'Idempotency-Key'?: string | null;
+    };
+    path: {
+        /**
+         * Thread Id
+         */
+        thread_id: string;
+    };
+    query?: never;
+    url: '/api/talk-threads/{thread_id}/entries';
+};
+
+export type AddEntryApiTalkThreadsThreadIdEntriesPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type AddEntryApiTalkThreadsThreadIdEntriesPostError = AddEntryApiTalkThreadsThreadIdEntriesPostErrors[keyof AddEntryApiTalkThreadsThreadIdEntriesPostErrors];
+
+export type AddEntryApiTalkThreadsThreadIdEntriesPostResponses = {
+    /**
+     * Successful Response
+     */
+    201: EnvelopeTalkEntryOut;
+};
+
+export type AddEntryApiTalkThreadsThreadIdEntriesPostResponse = AddEntryApiTalkThreadsThreadIdEntriesPostResponses[keyof AddEntryApiTalkThreadsThreadIdEntriesPostResponses];
+
+export type DeleteEntryApiTalkThreadsThreadIdEntriesEntryIdDeleteData = {
+    body?: never;
+    path: {
+        /**
+         * Thread Id
+         */
+        thread_id: string;
+        /**
+         * Entry Id
+         */
+        entry_id: string;
+    };
+    query?: never;
+    url: '/api/talk-threads/{thread_id}/entries/{entry_id}';
+};
+
+export type DeleteEntryApiTalkThreadsThreadIdEntriesEntryIdDeleteErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteEntryApiTalkThreadsThreadIdEntriesEntryIdDeleteError = DeleteEntryApiTalkThreadsThreadIdEntriesEntryIdDeleteErrors[keyof DeleteEntryApiTalkThreadsThreadIdEntriesEntryIdDeleteErrors];
+
+export type DeleteEntryApiTalkThreadsThreadIdEntriesEntryIdDeleteResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeNoneType;
+};
+
+export type DeleteEntryApiTalkThreadsThreadIdEntriesEntryIdDeleteResponse = DeleteEntryApiTalkThreadsThreadIdEntriesEntryIdDeleteResponses[keyof DeleteEntryApiTalkThreadsThreadIdEntriesEntryIdDeleteResponses];
+
+export type UpdateEntryApiTalkThreadsThreadIdEntriesEntryIdPatchData = {
+    body: TalkEntryUpdate;
+    path: {
+        /**
+         * Thread Id
+         */
+        thread_id: string;
+        /**
+         * Entry Id
+         */
+        entry_id: string;
+    };
+    query?: never;
+    url: '/api/talk-threads/{thread_id}/entries/{entry_id}';
+};
+
+export type UpdateEntryApiTalkThreadsThreadIdEntriesEntryIdPatchErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UpdateEntryApiTalkThreadsThreadIdEntriesEntryIdPatchError = UpdateEntryApiTalkThreadsThreadIdEntriesEntryIdPatchErrors[keyof UpdateEntryApiTalkThreadsThreadIdEntriesEntryIdPatchErrors];
+
+export type UpdateEntryApiTalkThreadsThreadIdEntriesEntryIdPatchResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeTalkEntryOut;
+};
+
+export type UpdateEntryApiTalkThreadsThreadIdEntriesEntryIdPatchResponse = UpdateEntryApiTalkThreadsThreadIdEntriesEntryIdPatchResponses[keyof UpdateEntryApiTalkThreadsThreadIdEntriesEntryIdPatchResponses];
