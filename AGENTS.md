@@ -69,6 +69,8 @@ This file is:
 | `XREQ-012` | P1 | Backend (Anim, database) | Backend (Asif, deploy) | Point the Azure API at the Supabase database (`backend/deploy/SUPABASE.md`), reseed, smoke, then delete Azure PostgreSQL | `[DONE]` | 2026-11-23 17:30 |
 
 | `XREQ-013` | P1 | Frontend (Arjun) | Backend (Asif, deploy) | Host the frontend demo on Azure Static Web Apps (static build, `npm run build:static`) and reply with the live URL | `[PENDING]` | 2026-11-23 18:30 |
+| `XREQ-014` | P1 | Backend (Anim) | Frontend (Minhaz, Android + Firebase) | Firebase for push: project, Android app, FCM token upload to `PUT /api/devices/me`, service-account key to Anim privately | `[PENDING]` | 2026-11-23 19:30 |
+| `XREQ-015` | P0 | Backend (Anim) | Backend (Asif, Azure owner) | Give Anim's Azure account Contributor on the Wakatta resource group (Asif is off the project; Anim runs deploy now) | `[PENDING]` | 2026-11-23 19:30 |
 *(When adding a request: append a row above AND add a detailed card in 2.2. Never insert in the middle.)*
 
 ### 2.2 Detailed Request Cards
@@ -557,6 +559,70 @@ GET https://<name>.azurestaticapps.net/panel/m-press → 200, the Machine Panel
 - **Branch / Commit**:
 - **Status / Notes**:
 - **Verification Proof**:
+
+#### `[XREQ-014]` Firebase for push notifications (Android)
+- **Priority**: `P1 (High)`
+- **From**: `Backend (Anim)`
+- **To**: `Frontend (Minhaz, Android app; owner of the Firebase part)`
+- **Status**: `[PENDING]`
+- **Created**: `2026-11-23 19:30 (UTC+6)`
+- **Target Interface / Endpoint**: Firebase console; Android app; `PUT /api/devices/me`, `DELETE /api/devices/me?installId=`
+
+**Requirement Details:**
+Team decision 2026-11-23: Firebase is Minhaz's; the backend stores each install's token and (once the key below arrives) sends. Rules from XREQ-009 item 3 and [MOBILE_PLATFORM_CONTRACT.md](docs/MOBILE_PLATFORM_CONTRACT.md) §1.3. Do these in order:
+1. **Project.** In https://console.firebase.google.com create project `wakatta` on the free **Spark** plan (no card). Turn Google Analytics off (not needed, less data).
+2. **Android app.** Project overview → Add app → Android. Package name = the app's `applicationId` (you own it; tell Anim). Download `google-services.json` into `android/app/` (it is already in `.gitignore`; it is not a secret, but keep it out of the public repo anyway).
+3. **Gradle.** Add the Google services plugin and the Firebase BoM with `firebase-messaging` (check the versions on https://firebase.google.com/docs/android/setup when you add them, and pin them).
+4. **Token upload.** In a `FirebaseMessagingService`, on `onNewToken` and after every sign-in, call `PUT /api/devices/me` (Bearer) with `{"installId": <UUID made once at first launch>, "platform": "android", "fcmToken": <token>, "appVersion": "1.0.0", "osApiLevel": <Build.VERSION.SDK_INT>, "locale": <BCP 47>, "notificationsEnabled": NotificationManagerCompat.from(ctx).areNotificationsEnabled()}`. Upload again on cold start after 7 days or when a field changes. Before `POST /api/auth/logout`, call `DELETE /api/devices/me?installId=<uuid>` (best effort).
+5. **Permission and channel.** Ask `POST_NOTIFICATIONS` at runtime on Android 13+ (API 33) at a moment the user understands (after sign-in, not at launch). Create one channel `messages` (importance default) before the first notification.
+6. **Handling.** Payloads carry ids only (`type`, `threadId`, `messageId`), never message text. On tap, open the Thread. For Contact Threads the server sends one generic "New message from <name>"; Talk Threads never notify.
+7. **Server key (sending).** Project settings → Service accounts → **Generate new private key** (a JSON file). Do **not** commit it or paste it in chat or this file: send it to Anim privately. Anim stores it as an Azure Container App secret and adds the sender (FCM HTTP v1); tell Anim the project id.
+8. **Test.** Firebase console → Messaging → "Send test message" to your device's token; then, after step 7, sign in on the phone and post a Chat message from the Foreman on the web: the phone gets one notification without the text.
+
+**Expected Request (Payload / Query Params / Headers):**
+```json
+PUT /api/devices/me
+{ "installId": "6f0c1e4a-5b7d-4c0e-9d57-3c1f0a1b2c3d", "platform": "android", "fcmToken": "<from the SDK>", "appVersion": "1.0.0", "osApiLevel": 34, "locale": "ja-JP", "notificationsEnabled": true }
+```
+
+**Expected Response (Status Code + Payload / Error Codes):**
+```json
+{ "success": true, "data": { "registered": true, "lastSeenAt": "2026-11-23T10:20:00Z" } }
+```
+
+**Fulfillment & Proof (filled by recipient on completion):**
+- **Branch / Commit**: 
+- **Status / Notes**: 
+- **Verification Proof**: 
+
+#### `[XREQ-015]` Azure access for Anim (Contributor on the Wakatta resource group)
+- **Priority**: `P0 (Blocker)`
+- **From**: `Backend (Anim)`
+- **To**: `Backend (Asif, owner of the Azure for Students subscription)`
+- **Status**: `[PENDING]`
+- **Created**: `2026-11-23 19:30 (UTC+6)`
+- **Target Interface / Endpoint**: Azure role assignment
+
+**Requirement Details:**
+Asif is off the project, so deploy and operations are Anim's. Without access these stay blocked: hosting the web demo (XREQ-013), CORS for its origin (`deploy/set-cors.ps1`), the demo reset before filming (`deploy/reset-demo.ps1`), the demo AI chain (`deploy/set-ai-key.ps1 -Chain demo`), deleting the old Azure PostgreSQL server. Code changes still ship through `backend-deploy.yml` on every push to `main`.
+1. Azure portal → the Wakatta resource group → Access control (IAM) → Add role assignment → **Contributor** → Members: Anim's Microsoft account (Anim sends the address privately). Scope: that resource group only, not the subscription.
+2. No passwords or keys are shared; Anim signs in with `az login` on his own machine.
+3. Reply here with the resource group name and the subscription name, so Anim's scripts target them.
+
+**Expected Request (Payload / Query Params / Headers):**
+```
+az role assignment create --assignee <anim's account> --role Contributor --scope /subscriptions/<id>/resourceGroups/<rg>
+```
+
+**Expected Response (Status Code + Payload / Error Codes):**
+```
+Anim: az group show -n <rg> → succeeds
+```
+
+**Fulfillment & Proof (filled by recipient on completion):**
+- **Branch / Commit**: 
+- **Status / Notes**: 
+- **Verification Proof**: 
 
 ### 2.3 Blank XREQ Template (copy & paste)
 
