@@ -395,3 +395,37 @@ def test_the_knowledge_library_lists_a_machines_versions_newest_first(
     assert [v["versionNo"] for v in res.json()["data"]["items"]] == [2, 1]
     assert res.json()["data"]["items"][1]["approvedBy"] == "山口 隆"
     assert workers.status_code == 403
+
+
+def test_effort_metrics_measure_drafts_edits_clean_ai_and_first_try_checks(
+    client: TestClient, fake_ai: FakeAiClient, shop: Shop
+) -> None:
+    note = _record(client, fake_ai, shop)
+    _approve(client, shop, note["id"])
+    _record(client, fake_ai, shop)  # a second draft, never approved
+    _check(client, shop, note["id"], [1, 0])  # wrong first try
+    _check(client, shop, note["id"], [0, 0])  # passes the second time: still not first try
+
+    res = client.get("/api/metrics/effort", headers=_auth(shop.foreman))
+    data = res.json()["data"]
+
+    assert res.status_code == 200
+    assert (data["drafts"], data["approved"]) == (2, 1)
+    assert data["medianSecondsToApprove"] >= 0
+    assert data["medianEditsPerDraft"] == 0
+    assert data["cleanAiShare"] == 1.0
+    assert data["firstTryPassShare"] == 0.0
+    assert client.get("/api/metrics/effort", headers=_auth(shop.worker)).status_code == 403
+
+
+def test_effort_metrics_are_empty_not_an_error_for_a_new_shop(client: TestClient, shop: Shop) -> None:
+    data = client.get("/api/metrics/effort", headers=_auth(shop.foreman)).json()["data"]
+
+    assert data == {
+        "drafts": 0,
+        "approved": 0,
+        "medianSecondsToApprove": None,
+        "medianEditsPerDraft": None,
+        "cleanAiShare": None,
+        "firstTryPassShare": None,
+    }

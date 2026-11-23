@@ -1249,6 +1249,27 @@
         }
       }
     },
+    "/api/metrics/effort": {
+      "get": {
+        "tags": [
+          "work"
+        ],
+        "summary": "Effort metrics: time to approve, edits, clean AI drafts, first-try Checks",
+        "operationId": "effort_api_metrics_effort_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_EffortOut_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/sign-offs": {
       "get": {
         "tags": [
@@ -3573,6 +3594,74 @@
         "title": "ConfusionOut",
         "description": "From a Work Check (checkId and machineId set) or from a Chat message's Check (messageId set)."
       },
+      "EffortOut": {
+        "properties": {
+          "drafts": {
+            "type": "integer",
+            "title": "Drafts"
+          },
+          "approved": {
+            "type": "integer",
+            "title": "Approved"
+          },
+          "medianSecondsToApprove": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mediansecondstoapprove"
+          },
+          "medianEditsPerDraft": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Medianeditsperdraft"
+          },
+          "cleanAiShare": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cleanaishare"
+          },
+          "firstTryPassShare": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Firsttrypassshare"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "drafts",
+          "approved",
+          "medianSecondsToApprove",
+          "medianEditsPerDraft",
+          "cleanAiShare",
+          "firstTryPassShare"
+        ],
+        "title": "EffortOut",
+        "description": "How much work the AI saves a Foreman (architecture §9.3); every share is 0..1, null when there is no data."
+      },
       "Envelope_AccountOut_": {
         "properties": {
           "success": {
@@ -3687,6 +3776,29 @@
           "data"
         ],
         "title": "Envelope[ConfusionOut]"
+      },
+      "Envelope_EffortOut_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/EffortOut"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[EffortOut]"
       },
       "Envelope_ForwardedAsk_": {
         "properties": {
