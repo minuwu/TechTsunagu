@@ -5,8 +5,8 @@
 @theme inline {
   /* Manrope draws Latin letters and digits; every Japanese glyph still comes from Noto Sans JP (F-09) */
   --font-sans:
-    'Manrope', 'Noto Sans JP', 'Hind Siliguri', 'Hiragino Sans',
-    'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', 'Meiryo', system-ui, sans-serif;
+    'Manrope', 'Noto Sans JP', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN',
+    'Yu Gothic UI', 'Meiryo', system-ui, sans-serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -29,20 +29,6 @@
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
-}
-
-/* Bengali: Hind Siliguri first, so Bengali and the Latin inside it (names, numbers) share one design;
-   Japanese inside Bengali text still falls back to Noto Sans JP, never a Chinese font (F-09).
-   Mixed on one line with Japanese, Bengali needs a little more height (F-11) */
-:lang(bn) {
-  font-family: 'Hind Siliguri', var(--font-sans);
-  line-height: 1.85;
-}
-/* No tracking on Bengali: spacing pulls vowel signs and conjuncts apart. Two classes of
-   specificity so it also wins over a kit's `.display` heading tracking (ui/<v>/tokens.css) */
-:root:lang(bn),
-:root :lang(bn) {
-  letter-spacing: 0;
 }
 
 /* English body: the 0.04em tracking below is for Japanese (F-12); Latin in Manrope reads loose with it.

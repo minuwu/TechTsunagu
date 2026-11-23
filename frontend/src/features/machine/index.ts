@@ -63,7 +63,7 @@ export function useMachineCheck(workerId: string | null) {
     workers: workers.data ?? [],
     status,
     cleared: status ? isCleared(status.status) : false,
-    lang: lang ?? worker?.language ?? 'bn',
+    lang: lang ?? worker?.language ?? 'en',
     setLang,
     step,
     answers,

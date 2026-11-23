@@ -4,6 +4,17 @@ Owner: Arjun Saha (GitHub handle TBD) — Role: Frontend design
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-23 (Bengali dropped from the frontend; team decision, Minhaz agrees)
+
+### Done
+- Frontend is Japanese + English only: `Lang` is `'ja' | 'en'`; `bn` removed from the i18n locales (`bn.json` deleted), the language switchers and the Worker's content toggle in all three kits, the Hind Siliguri font and its `:lang(bn)` rules, all mock data and the 19 course files (2,693 `t()` calls; done with the TypeScript parser, not regex), and every screen (Bengali lines dropped where English already showed; English shown where Bengali was the only second language: notice steps, Near-miss text, QR stickers). Demo Workers Rahim, Sadia, Tanvir now read English. Copy that promised Bengali (landing, record, notices, near-misses) is rewritten in ja and en; the competitor fact about カミナシ supporting Bengali stays.
+- e2e: a hydration-safe `resetDemo()`; the flyer and new-version flows now really reset the demo (they never confirmed the dialog before). 11/11 in CI mode with axe.
+
+### Still Bengali (other owners)
+- Backend and AI (Galib; Asif/Anim): prompts, `AiTri`, `AI_LANGUAGES`, glossary seed and seed data still produce `bn`. The frontend ignores the extra field.
+- Android plan (Minhaz): D-08 bundled Bengali font, D-13 ja/en/bn strings, WP-0C and WP-QA checks.
+- Prototype (`prototypes/wakatta`): still has the JA / EN / BN switch.
+
 ## 2026-11-23 (Nagasaki porcelain redesign, branch `feat/techtsunagu-ui`)
 
 ### Done (each milestone pushed; PR not opened yet)

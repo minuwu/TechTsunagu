@@ -14,7 +14,6 @@ export interface Term {
   ja: string // base form, no furigana braces
   reading: string // hiragana
   en: string
-  bn: string
   note?: Tri
 }
 

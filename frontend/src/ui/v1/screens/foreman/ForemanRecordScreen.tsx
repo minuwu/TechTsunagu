@@ -94,9 +94,6 @@ export function ForemanRecordScreen() {
                       <span lang="ja">{s.text.ja}</span>
                     )}
                   </div>
-                  <p lang="bn" className="text-sm">
-                    {s.text.bn}
-                  </p>
                   <p lang="en" className="text-sm text-muted-foreground">
                     {s.text.en}
                   </p>
@@ -107,10 +104,6 @@ export function ForemanRecordScreen() {
           <Card id="back" title={m.back_translation()} tone="warning">
             <p className="mb-2 text-sm text-muted-foreground">
               {m.back_translation_body()}
-            </p>
-            <p className="mb-1 text-sm font-bold">{m.from_bn()}</p>
-            <p lang="ja" className="mb-3 whitespace-pre-line">
-              {r.draft.backTranslation.bn}
             </p>
             <p className="mb-1 text-sm font-bold">{m.from_en()}</p>
             <p lang="ja" className="whitespace-pre-line">

@@ -43,12 +43,11 @@ export interface Db {
 
 export const SHOP_NAME: Tri = {
   ja: '佐世保鋼材加工（架空）',
-  bn: 'সাসেবো স্টিল প্রসেসিং (কাল্পনিক)',
   en: 'Sasebo Steel Processing (fictional)',
 }
 export const FOREMAN_NAME = '山口 隆'
 
-const t = (ja: string, bn: string, en: string): Tri => ({ ja, bn, en })
+const t = (ja: string, en: string): Tri => ({ ja, en })
 
 const q = (
   id: string,
@@ -63,105 +62,90 @@ const glossary: GlossaryTerm[] = [
     id: 'g-sunpo',
     ja: '寸法',
     reading: 'すんぽう',
-    bn: 'মাপ (সুনপো)',
     en: 'dimensions (sunpō)',
   },
   {
     id: 'g-dandori',
     ja: '段取り',
     reading: 'だんどり',
-    bn: 'প্রস্তুতি (দানদোরি)',
     en: 'set-up (dandori)',
   },
   {
     id: 'g-tamakake',
     ja: '玉掛け',
     reading: 'たまかけ',
-    bn: 'স্লিং বাঁধা (তামাকাকে)',
     en: 'slinging (tamakake)',
   },
   {
     id: 'g-bari',
     ja: 'バリ',
     reading: 'ばり',
-    bn: 'ধারালো কিনারা (বারি)',
     en: 'burr (bari)',
   },
   {
     id: 'g-goggles',
     ja: '保護メガネ',
     reading: 'ほごめがね',
-    bn: 'সুরক্ষা চশমা',
     en: 'safety glasses',
   },
   {
     id: 'g-estop',
     ja: '非常停止',
     reading: 'ひじょうていし',
-    bn: 'জরুরি বন্ধ বোতাম',
     en: 'emergency stop',
   },
   {
     id: 'g-kanetsu',
     ja: '高温注意',
     reading: 'こうおんちゅうい',
-    bn: 'গরম — সাবধান',
     en: 'hot — caution',
   },
   {
     id: 'g-kanki',
     ja: '換気',
     reading: 'かんき',
-    bn: 'বাতাস চলাচল',
     en: 'ventilation',
   },
   {
     id: 'g-kakunin',
     ja: '指差し確認',
     reading: 'ゆびさしかくにん',
-    bn: 'আঙুল দিয়ে দেখিয়ে যাচাই',
     en: 'point-and-call check',
   },
   {
     id: 'g-tsuriage',
     ja: '吊り荷',
     reading: 'つりに',
-    bn: 'ঝুলন্ত মাল',
     en: 'suspended load',
   },
   {
     id: 'g-kanen',
     ja: '可燃ごみ',
     reading: 'かねんごみ',
-    bn: 'পোড়ানো যায় এমন ময়লা',
     en: 'burnable garbage',
   },
   {
     id: 'g-shiteibukuro',
     ja: '指定袋',
     reading: 'していぶくろ',
-    bn: 'সিটির নির্দিষ্ট ব্যাগ',
     en: "city's designated bag",
   },
   {
     id: 'g-sodai',
     ja: '粗大ごみ',
     reading: 'そだいごみ',
-    bn: 'বড় আকারের ময়লা',
     en: 'oversized garbage',
   },
   {
     id: 'g-hinanjo',
     ja: '避難所',
     reading: 'ひなんじょ',
-    bn: 'আশ্রয়কেন্দ্র',
     en: 'evacuation shelter',
   },
   {
     id: 'g-jichikai',
     ja: '自治会',
     reading: 'じちかい',
-    bn: 'পাড়ার সমিতি (জিচিকাই)',
     en: 'neighbourhood association',
   },
 ]
@@ -174,7 +158,7 @@ function notes(now: Date): NoteVersion[] {
   const base = {
     status: 'approved' as const,
     recordedBy: FOREMAN_NAME,
-    backTranslation: { bn: '', en: '' },
+    backTranslation: { en: '' },
   }
   return [
     {
@@ -186,17 +170,12 @@ function notes(now: Date): NoteVersion[] {
         'プラズマは段取りしてから。保護メガネ忘れるなよ。切ったらバリ取って、寸法は必ず測ってから次へ。',
       steps: [
         {
-          text: t(
-            '保護メガネをかけます。',
-            'সুরক্ষা চশমা পরুন।',
-            'Put on safety glasses.',
-          ),
+          text: t('保護メガネをかけます。', 'Put on safety glasses.'),
           icon: 'ppe-goggles',
         },
         {
           text: t(
             '段取り（材料の位置と設定）を確認します。',
-            'দানদোরি (প্রস্তুতি): মালের জায়গা আর সেটিং দেখে নিন।',
             'Check the set-up (dandori): material position and settings.',
           ),
           icon: 'check-list',
@@ -204,7 +183,6 @@ function notes(now: Date): NoteVersion[] {
         {
           text: t(
             '切ったあと、バリを取ります。',
-            'কাটার পরে ধারালো কিনারা (বারি) পরিষ্কার করুন।',
             'After cutting, remove the burr (bari).',
           ),
           icon: 'ppe-gloves',
@@ -212,14 +190,12 @@ function notes(now: Date): NoteVersion[] {
         {
           text: t(
             '次の作業の前に、寸法を必ず測ります。',
-            'পরের কাজের আগে অবশ্যই মাপ (সুনপো) নিন।',
             'Always measure the dimensions (sunpō) before the next job.',
           ),
           icon: 'measure',
         },
       ],
       backTranslation: {
-        bn: '保護メガネをかける。段取り（材料の場所と設定）を見る。切ったあとバリをきれいにする。次の仕事の前に必ず寸法を測る。',
         en: '保護メガネをかける。段取り（材料の位置と設定）を確認。切断後にバリを取る。次の作業の前に必ず寸法を測る。',
       },
       questions: [
@@ -228,36 +204,26 @@ function notes(now: Date): NoteVersion[] {
           'g-sunpo',
           t(
             '次の作業の前に、何をしますか？',
-            'পরের কাজের আগে কী করবেন?',
             'What do you do before the next job?',
           ),
           [
-            t('寸法を測る', 'মাপ নেব', 'Measure the dimensions'),
-            t(
-              'すぐ次を切る',
-              'সঙ্গে সঙ্গে পরেরটা কাটব',
-              'Cut the next piece right away',
-            ),
-            t(
-              '機械を止めて帰る',
-              'মেশিন বন্ধ করে চলে যাব',
-              'Stop the machine and leave',
-            ),
+            t('寸法を測る', 'Measure the dimensions'),
+            t('すぐ次を切る', 'Cut the next piece right away'),
+            t('機械を止めて帰る', 'Stop the machine and leave'),
           ],
           0,
         ),
         q(
           'q-plasma-2',
           'g-bari',
-          t('「バリ」は何ですか？', '"বারি" মানে কী?', 'What is "bari"?'),
+          t('「バリ」は何ですか？', 'What is "bari"?'),
           [
-            t('材料の名前', 'মালের নাম', 'The name of the material'),
+            t('材料の名前', 'The name of the material'),
             t(
               '切ったあとの、とがった部分',
-              'কাটার পরে ধারালো কিনারা',
               'The sharp edge left after cutting',
             ),
-            t('機械のボタン', 'মেশিনের বোতাম', 'A button on the machine'),
+            t('機械のボタン', 'A button on the machine'),
           ],
           1,
         ),
@@ -276,7 +242,6 @@ function notes(now: Date): NoteVersion[] {
         {
           text: t(
             '型の中に手を入れません。',
-            'ডাইয়ের ভিতরে হাত দেবেন না।',
             'Never put your hands inside the die.',
           ),
           icon: 'hands-clear',
@@ -284,7 +249,6 @@ function notes(now: Date): NoteVersion[] {
         {
           text: t(
             '両手をはなしてから、ペダルを踏みます。',
-            'দুই হাত সরিয়ে তারপর প্যাডেল চাপুন।',
             'Take both hands away, then press the pedal.',
           ),
           icon: 'hands-clear',
@@ -292,14 +256,12 @@ function notes(now: Date): NoteVersion[] {
         {
           text: t(
             'おかしいと思ったら、すぐ非常停止を押します。',
-            'কিছু অস্বাভাবিক মনে হলে সঙ্গে সঙ্গে জরুরি বন্ধ বোতাম চাপুন।',
             'If anything seems wrong, press the emergency stop at once.',
           ),
           icon: 'emergency-stop',
         },
       ],
       backTranslation: {
-        bn: '型の中に手を入れない。両手をどけてからペダルを押す。何か変なら、すぐ非常停止ボタンを押す。',
         en: '型の中に手を入れない。両手を離してからペダルを踏む。何かおかしければすぐ非常停止を押す。',
       },
       questions: [
@@ -308,40 +270,26 @@ function notes(now: Date): NoteVersion[] {
           'g-estop',
           t(
             '音がおかしいとき、何をしますか？',
-            'আওয়াজ অস্বাভাবিক হলে কী করবেন?',
             'What do you do when the sound is strange?',
           ),
           [
-            t('そのまま続ける', 'চালিয়ে যাব', 'Keep going'),
-            t(
-              '非常停止を押す',
-              'জরুরি বন্ধ বোতাম চাপব',
-              'Press the emergency stop',
-            ),
-            t('音楽を止める', 'গান বন্ধ করব', 'Turn off the music'),
+            t('そのまま続ける', 'Keep going'),
+            t('非常停止を押す', 'Press the emergency stop'),
+            t('音楽を止める', 'Turn off the music'),
           ],
           1,
         ),
         q(
           'q-press-2',
           null,
-          t(
-            'ペダルを踏むのはいつですか？',
-            'প্যাডেল কখন চাপবেন?',
-            'When do you press the pedal?',
-          ),
+          t('ペダルを踏むのはいつですか？', 'When do you press the pedal?'),
           [
-            t(
-              '両手をはなしたあと',
-              'দুই হাত সরানোর পরে',
-              'After both hands are away',
-            ),
+            t('両手をはなしたあと', 'After both hands are away'),
             t(
               '片手で材料をおさえながら',
-              'এক হাতে মাল ধরে রেখে',
               'While holding the material with one hand',
             ),
-            t('いつでもよい', 'যেকোনো সময়', 'Any time'),
+            t('いつでもよい', 'Any time'),
           ],
           0,
         ),
@@ -360,7 +308,6 @@ function notes(now: Date): NoteVersion[] {
         {
           text: t(
             '玉掛けは、資格のある人だけがします。',
-            'তামাকাকে (স্লিং বাঁধা) শুধু লাইসেন্সধারী করবেন।',
             'Only licensed people do the slinging (tamakake).',
           ),
           icon: 'crane-sling',
@@ -368,7 +315,6 @@ function notes(now: Date): NoteVersion[] {
         {
           text: t(
             '吊り荷の下に、ぜったいに入りません。',
-            'ঝুলন্ত মালের নিচে কখনও যাবেন না।',
             'Never stand under a suspended load.',
           ),
           icon: 'crane-sling',
@@ -376,14 +322,12 @@ function notes(now: Date): NoteVersion[] {
         {
           text: t(
             '合図の前に、指差し確認をします。',
-            'সংকেত দেওয়ার আগে আঙুল দিয়ে দেখিয়ে যাচাই করুন।',
             'Do a point-and-call check before giving the signal.',
           ),
           icon: 'check-list',
         },
       ],
       backTranslation: {
-        bn: '玉掛けは免許のある人だけ。つっている荷物の下に行かない。合図の前に指で示して確認する。',
         en: '玉掛けは資格者のみ。吊り荷の下に立たない。合図の前に指差し確認。',
       },
       questions: [
@@ -392,28 +336,23 @@ function notes(now: Date): NoteVersion[] {
           'g-tsuriage',
           t(
             '吊り荷が動いているとき、どこに立ちますか？',
-            'ঝুলন্ত মাল চলার সময় কোথায় দাঁড়াবেন?',
             'Where do you stand while a load is moving?',
           ),
           [
-            t('吊り荷の真下', 'মালের ঠিক নিচে', 'Right under the load'),
-            t('吊り荷から離れた場所', 'মাল থেকে দূরে', 'Away from the load'),
-            t('クレーンの上', 'ক্রেনের উপরে', 'On top of the crane'),
+            t('吊り荷の真下', 'Right under the load'),
+            t('吊り荷から離れた場所', 'Away from the load'),
+            t('クレーンの上', 'On top of the crane'),
           ],
           1,
         ),
         q(
           'q-crane-2',
           'g-tamakake',
-          t(
-            '玉掛けをしてよいのはだれですか？',
-            'তামাকাকে কে করতে পারবেন?',
-            'Who may do the slinging?',
-          ),
+          t('玉掛けをしてよいのはだれですか？', 'Who may do the slinging?'),
           [
-            t('だれでも', 'যে কেউ', 'Anyone'),
-            t('資格のある人', 'লাইসেন্সধারী ব্যক্তি', 'A licensed person'),
-            t('新人', 'নতুন কর্মী', 'New staff'),
+            t('だれでも', 'Anyone'),
+            t('資格のある人', 'A licensed person'),
+            t('新人', 'New staff'),
           ],
           1,
         ),
@@ -432,7 +371,6 @@ function notes(now: Date): NoteVersion[] {
         {
           text: t(
             '溶接の前に、換気をつけます。',
-            'ওয়েল্ডিংয়ের আগে বাতাস চলাচল (ফ্যান) চালু করুন।',
             'Turn on the ventilation before welding.',
           ),
           icon: 'ventilation',
@@ -440,14 +378,12 @@ function notes(now: Date): NoteVersion[] {
         {
           text: t(
             '終わったあとも材料は熱いです。素手でさわりません。',
-            'কাজ শেষেও মাল গরম থাকে। খালি হাতে ধরবেন না।',
             'The material stays hot after welding. Do not touch it bare-handed.',
           ),
           icon: 'hot-surface',
         },
       ],
       backTranslation: {
-        bn: '溶接の前に換気（ファン）をつける。終わっても材料は熱い。素手で持たない。',
         en: '溶接前に換気をつける。溶接後も材料は熱いので素手で触らない。',
       },
       questions: [
@@ -456,25 +392,12 @@ function notes(now: Date): NoteVersion[] {
           'g-kanetsu',
           t(
             '溶接が終わった材料は？',
-            'ওয়েল্ডিং শেষ হওয়া মাল কেমন?',
             'What about material just after welding?',
           ),
           [
-            t(
-              'すぐ素手で運ぶ',
-              'সঙ্গে সঙ্গে খালি হাতে নেব',
-              'Carry it bare-handed right away',
-            ),
-            t(
-              'まだ熱いので手袋を使う',
-              'এখনও গরম, তাই গ্লাভস ব্যবহার করব',
-              'Still hot, so use gloves',
-            ),
-            t(
-              '水をかけて食べる',
-              'পানি দিয়ে খাব',
-              'Pour water on it and eat it',
-            ),
+            t('すぐ素手で運ぶ', 'Carry it bare-handed right away'),
+            t('まだ熱いので手袋を使う', 'Still hot, so use gloves'),
+            t('水をかけて食べる', 'Pour water on it and eat it'),
           ],
           1,
         ),
@@ -488,37 +411,33 @@ function notes(now: Date): NoteVersion[] {
 export function seed(now: Date): Db {
   const today = tokyoDate(now)
   const workers: Worker[] = [
-    { id: 'w-rahim', name: 'Rahim Uddin', language: 'bn' },
-    { id: 'w-sadia', name: 'Sadia Akter', language: 'bn' },
-    { id: 'w-tanvir', name: 'Tanvir Hasan', language: 'bn' },
+    { id: 'w-rahim', name: 'Rahim Uddin', language: 'en' },
+    { id: 'w-sadia', name: 'Sadia Akter', language: 'en' },
+    { id: 'w-tanvir', name: 'Tanvir Hasan', language: 'en' },
     { id: 'w-tanaka', name: '田中 健', language: 'ja' },
   ]
   const machines: Machine[] = [
     {
       id: 'm-plasma',
-      name: t('プラズマ切断機 #1', 'প্লাজমা কাটার #১', 'Plasma cutter #1'),
+      name: t('プラズマ切断機 #1', 'Plasma cutter #1'),
       currentVersionId: 'n-plasma-1',
       activeWorkerId: null,
     },
     {
       id: 'm-press',
-      name: t('プレスブレーキ #2', 'প্রেস ব্রেক #২', 'Press brake #2'),
+      name: t('プレスブレーキ #2', 'Press brake #2'),
       currentVersionId: 'n-press-1',
       activeWorkerId: null,
     },
     {
       id: 'm-crane',
-      name: t(
-        '天井クレーン（玉掛け）#3',
-        'ওভারহেড ক্রেন (তামাকাকে) #৩',
-        'Overhead crane (slinging) #3',
-      ),
+      name: t('天井クレーン（玉掛け）#3', 'Overhead crane (slinging) #3'),
       currentVersionId: 'n-crane-1',
       activeWorkerId: null,
     },
     {
       id: 'm-weld',
-      name: t('溶接ブース #4', 'ওয়েল্ডিং বুথ #৪', 'Welding booth #4'),
+      name: t('溶接ブース #4', 'Welding booth #4'),
       currentVersionId: 'n-weld-1',
       activeWorkerId: null,
     },
@@ -554,19 +473,11 @@ export function seed(now: Date): Db {
   const drillQuestion = q(
     'q-notice-drill',
     'g-hinanjo',
-    t(
-      '訓練の日、どこに集まりますか？',
-      'মহড়ার দিন কোথায় জড়ো হবেন?',
-      'Where do you gather on drill day?',
-    ),
+    t('訓練の日、どこに集まりますか？', 'Where do you gather on drill day?'),
     [
-      t(
-        'みなと小学校の体育館',
-        'মিনাতো প্রাথমিক বিদ্যালয়ের জিমনেসিয়াম',
-        'Minato Elementary School gym',
-      ),
-      t('会社', 'কোম্পানি', 'The company'),
-      t('駅', 'স্টেশন', 'The station'),
+      t('みなと小学校の体育館', 'Minato Elementary School gym'),
+      t('会社', 'The company'),
+      t('駅', 'The station'),
     ],
     0,
   )
@@ -580,32 +491,19 @@ export function seed(now: Date): Db {
       sourceJa:
         '12月6日（日）9時から、みなと町の防災訓練を行います。みなと小学校の体育館に集合してください。',
       photo: null,
-      title: t(
-        '防災訓練（12月6日）',
-        'দুর্যোগ মহড়া (৬ ডিসেম্বর)',
-        'Disaster drill (6 Dec)',
-      ),
+      title: t('防災訓練（12月6日）', 'Disaster drill (6 Dec)'),
       steps: [
-        t(
-          '12月6日（日）9:00に集まります。',
-          '৬ ডিসেম্বর (রবিবার) সকাল ৯টায় জড়ো হবেন।',
-          'Gather on Sunday 6 Dec at 9:00.',
-        ),
+        t('12月6日（日）9:00に集まります。', 'Gather on Sunday 6 Dec at 9:00.'),
         t(
           '場所：みなと小学校の体育館（避難所）。',
-          'জায়গা: মিনাতো প্রাথমিক বিদ্যালয়ের জিমনেসিয়াম (আশ্রয়কেন্দ্র)।',
           'Place: Minato Elementary School gym (evacuation shelter).',
         ),
-        t(
-          '動きやすい服で来てください。',
-          'চলাফেরায় সুবিধাজনক কাপড় পরে আসুন।',
-          'Wear clothes you can move in.',
-        ),
+        t('動きやすい服で来てください。', 'Wear clothes you can move in.'),
       ],
       events: [
         {
           id: 'ev-drill',
-          title: t('防災訓練', 'দুর্যোগ মহড়া', 'Disaster drill'),
+          title: t('防災訓練', 'Disaster drill'),
           startsAt: '2026-12-06T09:00:00+09:00',
           rrule: null,
           confirmed: true,
@@ -623,27 +521,18 @@ export function seed(now: Date): Db {
       sourceJa:
         '12月13日（日）11時から、みなと公園で冬まつりがあります。外国人の方もぜひ参加してください。',
       photo: null,
-      title: t(
-        'みなと公園 冬まつり',
-        'মিনাতো পার্ক শীত উৎসব',
-        'Minato Park winter festival',
-      ),
+      title: t('みなと公園 冬まつり', 'Minato Park winter festival'),
       steps: [
         t(
           '12月13日（日）11:00から、みなと公園で。',
-          '১৩ ডিসেম্বর (রবিবার) সকাল ১১টা থেকে, মিনাতো পার্কে।',
           'Sunday 13 Dec from 11:00, Minato Park.',
         ),
-        t(
-          'だれでも参加できます。無料です。',
-          'যে কেউ যোগ দিতে পারেন। বিনামূল্যে।',
-          'Anyone can join. Free.',
-        ),
+        t('だれでも参加できます。無料です。', 'Anyone can join. Free.'),
       ],
       events: [
         {
           id: 'ev-festival',
-          title: t('冬まつり', 'শীত উৎসব', 'Winter festival'),
+          title: t('冬まつり', 'Winter festival'),
           startsAt: '2026-12-13T11:00:00+09:00',
           rrule: null,
           confirmed: true,
@@ -654,13 +543,12 @@ export function seed(now: Date): Db {
         null,
         t(
           'まつりに参加するのに、お金はいりますか？',
-          'উৎসবে যেতে টাকা লাগবে?',
           'Does the festival cost money?',
         ),
         [
-          t('いらない（無料）', 'না (বিনামূল্যে)', 'No (free)'),
-          t('1万円', '১০,০০০ ইয়েন', '¥10,000'),
-          t('会社が払う', 'কোম্পানি দেবে', 'The company pays'),
+          t('いらない（無料）', 'No (free)'),
+          t('1万円', '¥10,000'),
+          t('会社が払う', 'The company pays'),
         ],
         0,
       ),
@@ -675,27 +563,18 @@ export function seed(now: Date): Db {
       sourceJa:
         '毎月第1日曜は自治会の清掃当番です。8時に公民館前に集合。軍手を持ってきてください。',
       photo: null,
-      title: t(
-        '自治会の清掃当番',
-        'পাড়ার সমিতির পরিষ্কার-পরিচ্ছন্নতা',
-        'Neighbourhood clean-up duty',
-      ),
+      title: t('自治会の清掃当番', 'Neighbourhood clean-up duty'),
       steps: [
         t(
           '毎月の第1日曜、8:00に公民館の前に集まります。',
-          'প্রতি মাসের প্রথম রবিবার সকাল ৮টায় কমিউনিটি হলের সামনে।',
           'First Sunday of each month, 8:00, in front of the community hall.',
         ),
-        t(
-          '軍手を持ってきます。',
-          'কাজের গ্লাভস নিয়ে আসুন।',
-          'Bring work gloves.',
-        ),
+        t('軍手を持ってきます。', 'Bring work gloves.'),
       ],
       events: [
         {
           id: 'ev-cleanup',
-          title: t('清掃当番', 'পরিষ্কার-পরিচ্ছন্নতা', 'Clean-up duty'),
+          title: t('清掃当番', 'Clean-up duty'),
           startsAt: '2026-12-06T08:00:00+09:00',
           rrule: null,
           confirmed: true,
@@ -706,13 +585,12 @@ export function seed(now: Date): Db {
         null,
         t(
           '清掃当番に何を持っていきますか？',
-          'পরিষ্কারের দিন কী নিয়ে যাবেন?',
           'What do you bring to clean-up duty?',
         ),
         [
-          t('軍手', 'কাজের গ্লাভস', 'Work gloves'),
-          t('お弁当', 'দুপুরের খাবার', 'A lunch box'),
-          t('パスポート', 'পাসপোর্ট', 'Passport'),
+          t('軍手', 'Work gloves'),
+          t('お弁当', 'A lunch box'),
+          t('パスポート', 'Passport'),
         ],
         0,
       ),
@@ -725,7 +603,6 @@ export function seed(now: Date): Db {
     id: 'b-1',
     text: t(
       '今日は午後から雨です。外の材料置き場は、すべりやすいです。台車はゆっくり押してください。',
-      'আজ দুপুর থেকে বৃষ্টি। বাইরের মাল রাখার জায়গা পিচ্ছিল হবে। ট্রলি আস্তে ঠেলুন।',
       'Rain from this afternoon. The outdoor material yard will be slippery. Push trolleys slowly.',
     ),
     question: q(
@@ -733,14 +610,9 @@ export function seed(now: Date): Db {
       null,
       t(
         '午後、外の材料置き場はどうなりますか？',
-        'দুপুরে বাইরের মাল রাখার জায়গা কেমন হবে?',
         'What happens to the outdoor yard this afternoon?',
       ),
-      [
-        t('すべりやすい', 'পিচ্ছিল হবে', 'Slippery'),
-        t('閉まる', 'বন্ধ থাকবে', 'Closed'),
-        t('暑い', 'গরম হবে', 'Hot'),
-      ],
+      [t('すべりやすい', 'Slippery'), t('閉まる', 'Closed'), t('暑い', 'Hot')],
       0,
     ),
     createdAt: ago(now, 0.1),
@@ -850,7 +722,6 @@ export function seed(now: Date): Db {
         machineId: 'm-crane',
         text: t(
           'クレーンのフックの安全レバーが戻りにくいです。荷がはずれそうになりました。',
-          'ক্রেনের হুকের সেফটি লিভার ঠিকমতো ফিরছে না। মাল প্রায় খুলে যাচ্ছিল।',
           'The safety latch on the crane hook does not spring back well. A load nearly slipped off.',
         ),
         photo: null,

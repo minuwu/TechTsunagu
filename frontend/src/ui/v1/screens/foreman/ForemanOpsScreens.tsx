@@ -53,7 +53,6 @@ export function ForemanBriefingScreen() {
               <p lang="ja" className="font-bold">
                 {b.draft.text.ja}
               </p>
-              <p lang="bn">{b.draft.text.bn}</p>
               <p lang="en" className="text-muted-foreground">
                 {b.draft.text.en}
               </p>
@@ -138,8 +137,8 @@ export function ForemanNearMissesScreen() {
                 <p lang="ja" className="text-lg font-bold">
                   {r.text.ja}
                 </p>
-                <p lang="bn" className="text-sm">
-                  {r.text.bn}
+                <p lang="en" className="text-sm">
+                  {r.text.en}
                 </p>
                 {r.photo && (
                   <img
@@ -269,8 +268,8 @@ export function ForemanQrScreen() {
               <p className="font-black" lang="ja">
                 {s.machine.name.ja}
               </p>
-              <p className="text-sm" lang="bn">
-                {s.machine.name.bn}
+              <p className="text-sm" lang="en">
+                {s.machine.name.en}
               </p>
               <p className="text-xs break-all">{s.url}</p>
             </li>

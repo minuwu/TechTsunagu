@@ -109,7 +109,6 @@ export function CommunityScreen() {
                 <p className="text-lg font-bold" lang="ja">
                   {c.draft.title.ja}
                 </p>
-                <p lang="bn">{c.draft.title.bn}</p>
                 <p lang="en" className="text-muted-foreground">
                   {c.draft.title.en}
                 </p>
@@ -118,8 +117,8 @@ export function CommunityScreen() {
                 {c.draft.steps.map((s, i) => (
                   <li key={i}>
                     <span lang="ja">{s.ja}</span>
-                    <span lang="bn" className="block text-sm">
-                      {s.bn}
+                    <span lang="en" className="block text-sm">
+                      {s.en}
                     </span>
                   </li>
                 ))}
