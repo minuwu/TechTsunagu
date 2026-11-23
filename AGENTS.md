@@ -60,7 +60,7 @@ This file is:
 | `XREQ-004` | P2 | AI (Galib) | Frontend (Minhaz, Arjun) | "Dictate instead" fallback, degraded-draft message, provenance line ([AI_PLAN.md](contributors/galib/AI_PLAN.md) §2, §8) | `[PENDING]` | 2026-11-22 22:40 |
 | `XREQ-005` | P1 | Frontend (Minhaz) | Backend (Anim, Asif) | Chat API: Threads, Messages (voice/text), Wakatta Status answers, Follow-ups, Re-explanation, Nudge, Tasks + Task Board | `[DONE]` | 2026-11-22 17:55 |
 | `XREQ-006` | P1 | Frontend (Minhaz) | AI (Galib) | Chat AI: voice → transcript → translation → Check Questions → Task extraction (`build_message`), Worker reply translation, Re-explanation | `[PENDING]` | 2026-11-22 17:55 |
-| `XREQ-007` | P1 | Frontend (Minhaz) | AI (Galib), Backend (Asif, Anim) | Pick the Japanese ⇄ English transcription and translation models by a bake-off on our own audio, not on free-tier quota | `[PENDING]` | 2026-11-23 03:48 |
+| `XREQ-007` | P1 | Frontend (Minhaz) | AI (Galib), Backend (Asif, Anim) | Pick the Japanese ⇄ English transcription and translation models by a bake-off on our own audio, not on free-tier quota | `[IN_PROGRESS]` | 2026-11-23 03:48 |
 
 | `XREQ-008` | P0 | Frontend (Minhaz, Android app) | Backend (Asif) | Hosted API: public base URL, test shop and accounts, health check, Bearer scheme in `openapi.yaml` | `[PENDING]` | 2026-11-23 08:25 |
 | `XREQ-009` | P1 | Frontend (Minhaz, Android app) | Backend (Asif) | App platform routes: `GET /app/config` (version gate), device registration, notification list, photo limits | `[PENDING]` | 2026-11-23 08:25 |
@@ -306,7 +306,7 @@ Fallback outcome `degraded`: `{ "transcriptJa": "…" , "needsEdit": true }` (`t
 - **Priority**: `P1 (High)`
 - **From**: Frontend (Minhaz)
 - **To**: AI (Galib: the bake-off and the choice), Backend (Asif, Anim: the seam)
-- **Status**: `[PENDING]`
+- **Status**: `[IN_PROGRESS]`
 - **Created**: `2026-11-23 03:48 (UTC+6)`
 - **Target Interface / Endpoint**: `app/ai/` (model table, chain), `contributors/galib/AI_PLAN.md` §2 and §6, `docs/ai-eval.md`, `backend/tests/fixtures/ai/`
 
@@ -353,9 +353,9 @@ TASK_MODELS = {
 No API or error-code change.
 
 **Fulfillment & Proof (filled by recipient on completion):**
-- **Branch / Commit**: 
-- **Status / Notes**: 
-- **Verification Proof**: 
+- **Branch / Commit**: `main` (Galib, 2026-11-23): `backend/app/ai/bakeoff.py`, `backend/tests/fixtures/ai/bakeoff/clips.json`, `docs/ai-bakeoff.md`, `docs/ai-bakeoff-sheet.csv`
+- **Status / Notes**: Choice made on TTS clips (Haruka ja-JP, Zira en-US, 3 noisy): **transcribe = Groq whisper-large-v3-turbo** (ja CER 5.6%, en WER 1.4%, 0.4 s; fallback whisper-large-v3, better on noise), then the Gemini text path (Whisper does not keep shop words in ja form; the text path and glossary lock do). **Translate ja→en = gemini-3.1-flash-lite** (26/26 shop words); en→ja = 3.5-flash-lite (both 10/10 valid). **Extract = 3.5-flash-lite** (eval 30/30). `gemini-3.5-transcribe` stalled on the free tier (retry on paid). Still open: real recordings (20 ja + 10 en), the Japanese reader's 1–3 scores (`docs/ai-bakeoff-sheet.csv`), 50-call robustness; seam (Asif, Anim): Whisper as its own step before the text path, and a glossary check in `translate`.
+- **Verification Proof**: `cd backend; uv run python -m app.ai.bakeoff --clips <folder>`; tables in `docs/ai-bakeoff.md`.
 
 #### `[XREQ-008]` Hosted API: public base URL, test shop and accounts, Bearer scheme
 
