@@ -667,7 +667,7 @@ Coverage target 80% on `domain`, `services`, `repositories`, `ai` (G-22). CI `ba
 | `web` app | Minhaz's Nitro build, same environment | same |
 | Images | GitHub Actions → GHCR (public repo) | free |
 | Secrets | Container App secrets mapped to env | — |
-| Migrations | entrypoint runs `alembic upgrade head` as `wakatta_owner`, then Uvicorn. Shortcut: safe only with one replica; becomes a Container Apps Job when the API scales out. | — |
+| Migrations | the `wakatta-migrate` Container Apps Job runs `alembic upgrade head` as `wakatta_owner` before each rollout (`backend/deploy/azure-deploy.ps1`); the API container only serves, as `wakatta_app`, and never holds the owner credential. | — |
 | Seed | `python -m app.seed --reset` via `az containerapp exec`, again before filming | — |
 
 ### 15.2 Demo-day checklist

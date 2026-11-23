@@ -38,6 +38,7 @@ describe('progress', () => {
       watch: true,
       inspect: true,
       drills: ['a', 'b', 'c'],
+      quiz: 0,
     }
     expect(doorDone(done, 'play')).toBe(true)
     expect(passportEarned(done)).toBe(true)

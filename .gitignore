@@ -32,6 +32,7 @@ pgdata/
 !.env.*.example
 *.pem
 *.key
+*keys*.txt
 
 # Build outputs
 *.tsbuildinfo

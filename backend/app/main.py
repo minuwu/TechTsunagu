@@ -8,23 +8,40 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from sqlalchemy.orm import Session, sessionmaker
 
+from app.ai.chains import BUDGETS, GEMINI_CHAINS, GROQ_MODEL
 from app.ai.client import AiClient
 from app.ai.fake import FakeAiClient
 from app.ai.gemini import GeminiClient
+from app.ai.groq import GroqClient
 from app.api.context import RequestContextMiddleware, configure_logging
 from app.api.errors import install_error_handlers
 from app.api.limits import BodyLimitMiddleware
 from app.config import Settings
 from app.db import make_engine, make_session_factory
-from app.routers import auth, health, life, support, users, work
+from app.routers import auth, chat, health, life, skills, support, users, work
 from app.services.ai_runner import AiLimits, AiRunner
 
 
-def _ai_client(settings: Settings) -> AiClient:
-    if settings.ai_mode == "gemini" and settings.gemini_api_key is not None:
-        key = settings.gemini_api_key.get_secret_value()
-        return GeminiClient(key, settings.gemini_model, settings.ai_timeout_seconds)
-    return FakeAiClient()  # development: nothing scripted, so every AI step takes the fallback path
+def _limits(settings: Settings, model: str) -> AiLimits:
+    per_day, per_minute = BUDGETS[settings.ai_tier][model]
+    return AiLimits(settings.ai_max_concurrent, per_minute, per_day, wait_seconds=10)
+
+
+def ai_runner(settings: Settings, factory: sessionmaker[Session], ai_client: AiClient | None = None) -> AiRunner:
+    """Tests pass one scripted client. AI_MODE=gemini builds the chain of AI_CHAIN, plus Groq when its key is set."""
+    if ai_client is not None or settings.ai_mode != "gemini" or settings.gemini_api_key is None:
+        # development: nothing scripted, so every AI step takes the fallback path
+        return AiRunner(ai_client or FakeAiClient(), factory, AiLimits(settings.ai_max_concurrent, 4, 18, 10))
+    timeout = settings.ai_timeout_seconds
+    key = settings.gemini_api_key.get_secret_value()
+    links: list[tuple[AiClient, AiLimits]] = [
+        (GeminiClient(key, model, timeout), _limits(settings, model)) for model in GEMINI_CHAINS[settings.ai_chain]
+    ]
+    if settings.groq_api_key is not None:
+        groq = GroqClient(settings.groq_api_key.get_secret_value(), GROQ_MODEL, timeout)
+        links.append((groq, _limits(settings, GROQ_MODEL)))
+    (first, first_limits), *backups = links
+    return AiRunner(first, factory, first_limits, backups)
 
 
 def create_app(
@@ -37,8 +54,7 @@ def create_app(
     configure_logging(settings.log_level)
     engine = None if session_factory else make_engine(settings.database_url)
     factory = session_factory or make_session_factory(engine)  # pyright: ignore[reportArgumentType]
-    limits = AiLimits(settings.ai_max_concurrent, settings.ai_per_minute, settings.ai_daily_budget, wait_seconds=10)
-    runner = AiRunner(ai_client or _ai_client(settings), factory, limits)
+    runner = ai_runner(settings, factory, ai_client)
 
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncGenerator[None]:
@@ -58,7 +74,7 @@ def create_app(
     app.state.session_factory = factory
     app.state.ai = runner
     install_error_handlers(app)
-    for module in (health, auth, users, work, life, support):
+    for module in (health, auth, users, work, life, support, skills, chat):
         app.include_router(module.router)
 
     # Added last = runs first: the request context wraps CORS, which wraps GZip.

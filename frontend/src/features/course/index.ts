@@ -12,8 +12,8 @@ import { buzzer } from '@/lib/audio'
 import { usePersisted } from '@/lib/persisted'
 
 /** The worker's course progress. Offline-first in localStorage (spec §5.1); the real API comes with the XREQ. */
-export function useCourse() {
-  const [raw, set] = usePersisted(PROGRESS_KEY, null)
+export function useCourse(id: string) {
+  const [raw, set] = usePersisted(`${PROGRESS_KEY}:${id}`, null)
   const progress = parseProgress(raw)
   const save = (p: Progress) => set(JSON.stringify(p))
   return {
@@ -27,6 +27,36 @@ export function useCourse() {
         ? undefined
         : save({ ...progress, drills: [...progress.drills, id] }),
     reset: () => set(null),
+    saveQuiz: (score: number) =>
+      score > progress.quiz ? save({ ...progress, quiz: score }) : undefined,
+  }
+}
+
+/** Quiz: one question at a time; the answer locks, the score counts first tries. */
+export function useQuiz(items: { answer: number }[]) {
+  const [i, setI] = useState(0)
+  const [picked, setPicked] = useState<number | null>(null)
+  const [score, setScore] = useState(0)
+  const finished = i >= items.length
+  return {
+    i,
+    picked,
+    score,
+    finished,
+    answer: (n: number) => {
+      if (picked !== null || finished) return
+      setPicked(n)
+      if (n === items[i]!.answer) setScore((s) => s + 1)
+    },
+    next: () => {
+      setPicked(null)
+      setI((x) => x + 1)
+    },
+    restart: () => {
+      setI(0)
+      setPicked(null)
+      setScore(0)
+    },
   }
 }
 

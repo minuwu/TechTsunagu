@@ -3,7 +3,7 @@
 import uuid
 from datetime import date, datetime
 
-from sqlalchemy import delete, func, select
+from sqlalchemy import delete, func, select, text
 from sqlalchemy.dialects.postgresql import distinct_on, insert
 from sqlalchemy.orm import Session
 
@@ -170,10 +170,10 @@ def clear_assignment(db: Session, shop_id: int, machine_id: int, day: date, shif
 def open_confusion_counts(db: Session, shop_id: int) -> dict[int, int]:
     stmt = (
         select(Confusion.machine_id, func.count())
-        .where(Confusion.shop_id == shop_id, Confusion.acknowledged_at.is_(None))
+        .where(Confusion.shop_id == shop_id, Confusion.acknowledged_at.is_(None), Confusion.machine_id.is_not(None))
         .group_by(Confusion.machine_id)
     )
-    return {machine_id: count for machine_id, count in db.execute(stmt)}
+    return {machine_id: count for machine_id, count in db.execute(stmt) if machine_id is not None}
 
 
 def confusions_page(db: Session, shop_id: int, open_only: bool, before_id: int | None, limit: int) -> list[Confusion]:
@@ -187,3 +187,62 @@ def confusions_page(db: Session, shop_id: int, open_only: bool, before_id: int |
 
 def confusion(db: Session, shop_id: int, confusion_id: int) -> Confusion | None:
     return db.scalar(select(Confusion).where(Confusion.shop_id == shop_id, Confusion.id == confusion_id))
+
+
+def sign_offs_page(
+    db: Session, shop_id: int, worker_id: int | None, before_id: int | None, limit: int
+) -> list[SignOff]:
+    stmt = select(SignOff).where(SignOff.shop_id == shop_id)
+    if worker_id is not None:
+        stmt = stmt.where(SignOff.worker_id == worker_id)
+    if before_id is not None:
+        stmt = stmt.where(SignOff.id < before_id)
+    return list(db.scalars(stmt.order_by(SignOff.id.desc()).limit(limit + 1)))
+
+
+def versions_page(db: Session, shop_id: int, machine_id: int, before_id: int | None, limit: int) -> list[NoteVersion]:
+    stmt = select(NoteVersion).where(NoteVersion.shop_id == shop_id, NoteVersion.machine_id == machine_id)
+    if before_id is not None:
+        stmt = stmt.where(NoteVersion.id < before_id)
+    return list(db.scalars(stmt.order_by(NoteVersion.id.desc()).limit(limit + 1)))
+
+
+def override(db: Session, shop_id: int, machine_id: int, override_id: int) -> PanelOverride | None:
+    return db.scalar(
+        select(PanelOverride).where(
+            PanelOverride.shop_id == shop_id, PanelOverride.machine_id == machine_id, PanelOverride.id == override_id
+        )
+    )
+
+
+_NOTE_EFFORT = text(
+    """
+    SELECT count(*),
+           count(*) FILTER (WHERE status = 'approved'),
+           percentile_cont(0.5) WITHIN GROUP (ORDER BY extract(epoch FROM approved_at - created_at))
+               FILTER (WHERE status = 'approved'),
+           percentile_cont(0.5) WITHIN GROUP (ORDER BY edit_count) FILTER (WHERE status = 'approved'),
+           avg((ai_outcome = 'ok')::int) FILTER (WHERE ai_outcome <> 'typed')
+    FROM note_versions WHERE shop_id = :shop_id
+    """
+)
+# Each Worker's first Check on each Note Version, by insertion order.
+_FIRST_TRY = text(
+    """
+    SELECT avg(passed::int) FROM (
+        SELECT DISTINCT ON (worker_id, note_version_id) passed
+        FROM checks WHERE shop_id = :shop_id AND note_version_id IS NOT NULL
+        ORDER BY worker_id, note_version_id, id
+    ) AS first_checks
+    """
+)
+
+
+def effort(db: Session, shop_id: int) -> tuple[int, int, float | None, float | None, float | None, float | None]:
+    drafts, approved, seconds, edits, clean = db.execute(_NOTE_EFFORT, {"shop_id": shop_id}).one()
+    first_try = db.execute(_FIRST_TRY, {"shop_id": shop_id}).scalar_one()
+
+    def num(v: object) -> float | None:
+        return None if v is None else float(str(v))
+
+    return int(drafts), int(approved), num(seconds), num(edits), num(clean), num(first_try)

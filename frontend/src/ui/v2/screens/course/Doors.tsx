@@ -1,8 +1,8 @@
-import { useState } from 'react'
-import { HANDBOOK, PANELS, REEL, INSPECT } from '@/domain/courseContent'
+import { useMemo, useState } from 'react'
+import type { CourseData } from '@/domain/courses/types'
 import { plain, rubyParts } from '@/domain/course'
 import { pick, type Tri } from '@/domain/wakatta'
-import { useReel } from '@/features/course'
+import { useQuiz, useReel } from '@/features/course'
 import { m } from '@/i18n/paraglide/messages'
 import { Card } from '@/ui/v2/components/Card'
 import { Button } from '@/ui/v2/components/ui/button'
@@ -80,12 +80,15 @@ function Line({
 
 /** Door 1: Comic or Handbook, with furigana and translation toggles. */
 export function ReadDoor({
+  course,
   done,
   onFinish,
 }: {
+  course: CourseData
   done: boolean
   onFinish: () => void
 }) {
+  const { panels: PANELS, handbook: HANDBOOK } = course
   const [mode, setMode] = useState<'comic' | 'handbook'>('comic')
   const [furi, setFuri] = useState(true)
   const [trans, setTrans] = useState(true)
@@ -123,21 +126,24 @@ export function ReadDoor({
       <Button onClick={onFinish} disabled={done}>
         {done ? m.course_done() : m.course_finish_read()}
       </Button>
+      <Glossary course={course} />
     </div>
   )
 }
 
-const REEL_JA = REEL.map((r) => plain(r.ja))
-
 /** Door 2: pointing-and-calling reel with karaoke lines and a slow toggle. */
 export function WatchDoor({
+  course,
   done,
   onFinish,
 }: {
+  course: CourseData
   done: boolean
   onFinish: () => void
 }) {
-  const r = useReel(REEL_JA, onFinish)
+  const REEL = course.reel
+  const reelJa = useMemo(() => REEL.map((r) => plain(r.ja)), [REEL])
+  const r = useReel(reelJa, onFinish)
   return (
     <div className="space-y-4">
       <p className="text-muted-foreground">{m.course_watch_hint()}</p>
@@ -178,6 +184,12 @@ export function WatchDoor({
 }
 
 // Two parts per item so the exploded-view slider can pull them apart; `bad` is drawn only on a defective sample
+const GENERIC_SHAPE = {
+  body: 'M16 20h68v22H16z',
+  cap: 'M40 8h20v12H40z',
+  bad: 'M36 22l10 8-8 6 10 6',
+}
+
 const SHAPES: Record<string, { body: string; cap: string; bad: string }> = {
   harness: {
     body: 'M10 8h20l20 32 20-32h20v6H74L50 52 26 14H10z',
@@ -197,7 +209,14 @@ const SHAPES: Record<string, { body: string; cap: string; bad: string }> = {
 }
 
 /** Door 4: tap the check points, pull the parts apart, then pass or reject. */
-export function InspectDoor({ onFinish }: { onFinish: () => void }) {
+export function InspectDoor({
+  course,
+  onFinish,
+}: {
+  course: CourseData
+  onFinish: () => void
+}) {
+  const INSPECT = course.inspect
   const lang = uiLang()
   const [i, setI] = useState(0)
   const [gap, setGap] = useState(0)
@@ -205,7 +224,7 @@ export function InspectDoor({ onFinish }: { onFinish: () => void }) {
   const [right, setRight] = useState<Record<string, boolean>>({})
   const [wrong, setWrong] = useState(false)
   const item = INSPECT[i]!
-  const shape = SHAPES[item.id]!
+  const shape = SHAPES[item.id] ?? GENERIC_SHAPE
   const looked = seen[item.id] ?? []
 
   const judge = (reject: boolean) => {
@@ -340,5 +359,108 @@ export function InspectDoor({ onFinish }: { onFinish: () => void }) {
         </div>
       </Card>
     </div>
+  )
+}
+
+/** Words to know: Japanese with reading, then English and Bengali. */
+function Glossary({ course }: { course: CourseData }) {
+  return (
+    <Card title={m.course_glossary()}>
+      <dl className="grid gap-x-4 gap-y-2 sm:grid-cols-2">
+        {course.glossary.map((g) => (
+          <div key={g.ja}>
+            <dt className="font-bold">
+              <span lang="ja">{g.ja}</span>{' '}
+              <span lang="ja" className="text-muted-foreground">
+                {g.reading}
+              </span>
+            </dt>
+            <dd className="text-muted-foreground">
+              {g.en} · <span lang="bn">{g.bn}</span>
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </Card>
+  )
+}
+
+/** Extra Door: multiple choice, one question at a time. */
+export function QuizDoor({
+  course,
+  best,
+  onScore,
+}: {
+  course: CourseData
+  best: number
+  onScore: (n: number) => void
+}) {
+  const lang = uiLang()
+  const items = course.quiz
+  const q = useQuiz(items)
+  const item = items[q.i]
+  if (!item)
+    return (
+      <Card title={m.course_quiz_score({ n: q.score, total: items.length })}>
+        <p className="text-muted-foreground">
+          {m.course_quiz_best({ n: Math.max(best, q.score) })}
+        </p>
+        <Button
+          className="mt-4"
+          onClick={() => {
+            onScore(q.score)
+            q.restart()
+          }}
+        >
+          {m.course_retry()}
+        </Button>
+      </Card>
+    )
+  return (
+    <Card title={m.course_quiz_progress({ n: q.i + 1, total: items.length })}>
+      <Line t={item.q} furi trans />
+      <ul className="mt-4 space-y-2">
+        {item.options.map((o, n) => {
+          const right = q.picked !== null && n === item.answer
+          const wrong = q.picked === n && n !== item.answer
+          return (
+            <li key={n}>
+              <button
+                type="button"
+                disabled={q.picked !== null}
+                onClick={() => q.answer(n)}
+                className={cn(
+                  'tile min-h-14 w-full px-4 py-2 text-left',
+                  right && 'border-success text-success',
+                  wrong && 'border-destructive text-destructive',
+                )}
+              >
+                <Line t={o} furi trans />
+              </button>
+            </li>
+          )
+        })}
+      </ul>
+      {q.picked !== null && (
+        <div className="mt-4 space-y-3" aria-live="polite">
+          <p className="font-bold">
+            {q.picked === item.answer
+              ? m.course_quiz_right()
+              : m.course_quiz_wrong()}
+          </p>
+          <p className="text-muted-foreground">{pick(item.why, lang)}</p>
+          <Button
+            onClick={() => {
+              if (q.i + 1 >= items.length) onScore(q.score)
+              q.next()
+            }}
+          >
+            {q.i + 1 >= items.length
+              ? m.course_quiz_finish()
+              : m.course_quiz_next()}
+          </Button>
+        </div>
+      )}
+    </Card>
   )
 }

@@ -4,6 +4,16 @@ Owner: Asif (`MdAsif-Hossain`) — Role: Backend (lead) / Services / Database
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-23
+
+### Completed
+- **XREQ-005 item 1 (Chat tables), Anim unblocked** (`9ca7da7`): migration `c10c87c5bd34` adds `threads`, `thread_members` (`last_read_at` for unread), `messages` (stage 0–5; `sent_at` set exactly at stage ≥ 4; a Re-explanation needs `to_user_id` + `ref_message_id`), `message_checks` (1–3 questions), `message_answers` (unique message + user, answers −1..2), `follow_ups` (unique message + user + term; `resolved_at` set exactly when not `open`), `tasks` (`board_column` because `column` is an SQL keyword, `version` for `If-Match`) and **`task_assignees`** (a join table, not an id array, so the database refuses an assignee from another shop). Every reference is a composite `(shop_id, id)` FK. Factories `thread`, `message`, `task` in `tests/factories.py`; 9 schema tests in `tests/db/test_chat_schema.py`.
+- **Chat Confusions:** `confusions.message_id` added; `check_id` and `machine_id` are now nullable with `one_source` (exactly one of check / message) and `work_check_has_machine`. `ConfusionOut` gains `messageId`, and `checkId` / `machineId` can be null (additive; Work Confusions are unchanged). Foreman Board counts skip Chat Confusions (no machine). `docs/openapi.yaml` regenerated.
+- AI keys from Galib moved into `backend/.env` (gitignored, `AI_MODE=fake` until the deploy); the keys file is deleted; `.env.example` documents `AI_MODE`, `GEMINI_API_KEY`, `GROQ_API_KEY`; `*keys*.txt` is gitignored (`3773b99`).
+
+### Blockers / handoff
+- **Anim:** pull, run `alembic upgrade head`, then `python -m app.seed --reset`. The tables are ready for XREQ-005 items 2–8.
+
 ## 2026-11-22 (proto → production handoff from Minhaz)
 
 Minhaz mapped the prototype (`prototypes/wakatta/`) and the frontend against `main` (`c07a8fb`). Decisions: the prototype's **Chat is in production scope (WS12, P1)**; Course stays P2 and frontend-only. Read [BACKEND_PLAN.md](../../docs/BACKEND_PLAN.md) decision #8 and the new XREQ cards in [AGENTS.md](../../AGENTS.md) §2.2. Do the items in this order.

@@ -6,6 +6,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#e4effb">
 <title>Wakatta? — workplace chat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap">
 <style>
 /* ===== Tokens ===== */
 :root{
@@ -17,7 +20,7 @@
   --shadow-sm:0 1px 2px rgba(20,33,61,.06),0 2px 8px -2px rgba(20,33,61,.08);
   --shadow-md:0 2px 4px rgba(20,33,61,.06),0 10px 24px -8px rgba(20,33,61,.18);
   --error:#b3261e;--scrim:rgba(0,0,0,.32);
-  --font:Roboto,"Noto Sans JP","Noto Sans Bengali","Google Sans",system-ui,sans-serif;
+  --font:Roboto,"Noto Sans JP","Hind Siliguri","Google Sans",system-ui,sans-serif;
   --r-s:8px;--r-m:12px;--r-l:16px;--r-xl:28px;
   --ease:cubic-bezier(.2,0,0,1);--ease-out:cubic-bezier(.05,.7,.1,1);--dur:400ms;
   --status-h:36px;--nav-h:24px;
@@ -35,6 +38,9 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%}
 body{display:grid;place-items:center;background:linear-gradient(180deg,#d6e8f8 0,#f2f7fc 60%) fixed;font:16px/1.4 var(--font);color:var(--on);user-select:none;-webkit-user-select:none}
+/* Bengali (LANG=bn, or a lang="bn" fragment): Hind Siliguri first on Android and iOS alike, no tracking */
+:root:lang(bn){--font:"Hind Siliguri",Roboto,"Noto Sans JP",system-ui,sans-serif}
+:lang(bn){font-family:"Hind Siliguri",var(--font);letter-spacing:0}
 button{font:inherit;color:inherit;border:0;background:none;padding:0;cursor:pointer}
 input,textarea{font:inherit;color:inherit;user-select:text}
 

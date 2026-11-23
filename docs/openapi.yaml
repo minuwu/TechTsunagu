@@ -1071,6 +1071,267 @@
         }
       }
     },
+    "/api/machines/{machine_id}/overrides": {
+      "post": {
+        "tags": [
+          "work"
+        ],
+        "summary": "Panel Override: allow without a Sign-off",
+        "operationId": "start_override_api_machines__machine_id__overrides_post",
+        "parameters": [
+          {
+            "name": "machine_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Machine Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OverrideIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_OverrideOut_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/machines/{machine_id}/overrides/{override_id}": {
+      "delete": {
+        "tags": [
+          "work"
+        ],
+        "summary": "End a Panel Override early",
+        "operationId": "end_override_api_machines__machine_id__overrides__override_id__delete",
+        "parameters": [
+          {
+            "name": "machine_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Machine Id"
+            }
+          },
+          {
+            "name": "override_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Override Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_OverrideOut_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/machines/{machine_id}/versions": {
+      "get": {
+        "tags": [
+          "work"
+        ],
+        "summary": "Knowledge Library: a Machine's Note Versions, newest first",
+        "operationId": "list_versions_api_machines__machine_id__versions_get",
+        "parameters": [
+          {
+            "name": "machine_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Machine Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 40
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Page_NoteVersionOut__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/metrics/effort": {
+      "get": {
+        "tags": [
+          "work"
+        ],
+        "summary": "Effort metrics: time to approve, edits, clean AI drafts, first-try Checks",
+        "operationId": "effort_api_metrics_effort_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_EffortOut_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sign-offs": {
+      "get": {
+        "tags": [
+          "work"
+        ],
+        "summary": "Sign-offs, newest first (Workers see their own)",
+        "operationId": "list_sign_offs_api_sign_offs_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 40
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Page_SignOffOut__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/confusions": {
       "get": {
         "tags": [
@@ -2372,6 +2633,743 @@
           }
         }
       }
+    },
+    "/api/skill-matrix": {
+      "get": {
+        "tags": [
+          "work"
+        ],
+        "summary": "Skill Matrix (力量表): every Worker × Machine with its Sign-off status",
+        "operationId": "skill_matrix_api_skill_matrix_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_SkillMatrix_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/heatmap": {
+      "get": {
+        "tags": [
+          "work"
+        ],
+        "summary": "Confusions per Glossary Term × Machine, most confused term first",
+        "operationId": "heatmap_api_heatmap_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Heatmap_"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workers/{worker_id}/passport": {
+      "get": {
+        "tags": [
+          "work"
+        ],
+        "summary": "Skill Passport: a Foreman sees any Worker, a Worker only self",
+        "operationId": "passport_api_workers__worker_id__passport_get",
+        "parameters": [
+          {
+            "name": "worker_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Worker Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Passport_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/threads": {
+      "get": {
+        "tags": [
+          "chat"
+        ],
+        "summary": "Your Threads with unread counts, newest activity first",
+        "operationId": "list_threads_api_threads_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_list_ThreadOut__"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/threads/{thread_id}/messages": {
+      "post": {
+        "tags": [
+          "chat"
+        ],
+        "summary": "Foreman: voice/text → AI draft. Worker: sent",
+        "operationId": "post_message_api_threads__thread_id__messages_post",
+        "parameters": [
+          {
+            "name": "thread_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Thread Id"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_post_message_api_threads__thread_id__messages_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_MessageForSender_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "chat"
+        ],
+        "summary": "Poll messages after a cursor; send If-None-Match to get 304 when nothing changed",
+        "operationId": "poll_messages_api_threads__thread_id__messages_get",
+        "parameters": [
+          {
+            "name": "thread_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Thread Id"
+            }
+          },
+          {
+            "name": "after",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[1-9][0-9]{0,18}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "After"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_MessagesPage_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/messages/{message_id}/send": {
+      "post": {
+        "tags": [
+          "chat"
+        ],
+        "summary": "Send the edited draft; the Tasks kept go on the Task Board",
+        "operationId": "send_message_api_messages__message_id__send_post",
+        "parameters": [
+          {
+            "name": "message_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Message Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_MessageForSender_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/messages/{message_id}/answers": {
+      "post": {
+        "tags": [
+          "chat"
+        ],
+        "summary": "Answer a message's questions (-1 = not sure) → Wakatta Status",
+        "operationId": "answer_message_api_messages__message_id__answers_post",
+        "parameters": [
+          {
+            "name": "message_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Message Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnswersIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_AnswerResult_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/follow-ups": {
+      "get": {
+        "tags": [
+          "chat"
+        ],
+        "summary": "Follow-ups of your shop, newest first",
+        "operationId": "list_follow_ups_api_follow_ups_get",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "open",
+                    "clarified",
+                    "understood"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 40
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Page_FollowUpOut__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/follow-ups/{follow_up_id}": {
+      "patch": {
+        "tags": [
+          "chat"
+        ],
+        "summary": "Mark a Follow-up clarified or understood",
+        "operationId": "update_follow_up_api_follow_ups__follow_up_id__patch",
+        "parameters": [
+          {
+            "name": "follow_up_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Follow Up Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FollowUpUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_FollowUpOut_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/messages/{message_id}/reexplain": {
+      "post": {
+        "tags": [
+          "chat"
+        ],
+        "summary": "Re-explain one term to one Worker (AI)",
+        "operationId": "reexplain_api_messages__message_id__reexplain_post",
+        "parameters": [
+          {
+            "name": "message_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Message Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReexplainIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_MessageForSender_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/messages/{message_id}/nudge": {
+      "post": {
+        "tags": [
+          "chat"
+        ],
+        "summary": "Show a Worker you are waiting for their answer (rate-limited)",
+        "operationId": "nudge_api_messages__message_id__nudge_post",
+        "parameters": [
+          {
+            "name": "message_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Message Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NudgeIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tasks": {
+      "get": {
+        "tags": [
+          "chat"
+        ],
+        "summary": "The Task Board of your shop",
+        "operationId": "list_tasks_api_tasks_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 40
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Page_TaskOut__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "chat"
+        ],
+        "summary": "Add a Task by hand",
+        "operationId": "create_task_api_tasks_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_TaskOut_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tasks/{task_id}": {
+      "patch": {
+        "tags": [
+          "chat"
+        ],
+        "summary": "Move or edit a Task; If-Match: <version>, 412 when it changed meanwhile",
+        "operationId": "update_task_api_tasks__task_id__patch",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Task Id"
+            }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "If-Match"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_TaskOut_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2535,6 +3533,54 @@
         "additionalProperties": false,
         "type": "object",
         "title": "AccountUpdate"
+      },
+      "AnswerResult": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "green",
+              "orange",
+              "red"
+            ],
+            "title": "Status"
+          },
+          "followUpIds": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Followupids"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "status",
+          "followUpIds"
+        ],
+        "title": "AnswerResult"
+      },
+      "AnswersIn": {
+        "properties": {
+          "answers": {
+            "items": {
+              "type": "integer",
+              "maximum": 2.0,
+              "minimum": -1.0
+            },
+            "type": "array",
+            "maxItems": 3,
+            "minItems": 1,
+            "title": "Answers"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "answers"
+        ],
+        "title": "AnswersIn"
       },
       "ApproveIn": {
         "properties": {
@@ -2954,6 +4000,36 @@
         ],
         "title": "Body_create_notice_api_notices_post"
       },
+      "Body_post_message_api_threads__thread_id__messages_post": {
+        "properties": {
+          "text": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          },
+          "audio": {
+            "anyOf": [
+              {
+                "type": "string",
+                "contentMediaType": "application/octet-stream"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Audio"
+          }
+        },
+        "type": "object",
+        "title": "Body_post_message_api_threads__thread_id__messages_post"
+      },
       "Body_record_note_api_machines__machine_id__notes_post": {
         "properties": {
           "text": {
@@ -3248,8 +4324,26 @@
             "title": "Id"
           },
           "checkId": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Checkid"
+          },
+          "messageId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Messageid"
           },
           "questionId": {
             "type": "string",
@@ -3267,7 +4361,14 @@
             "title": "Termid"
           },
           "machineId": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Machineid"
           },
           "workerId": {
@@ -3297,6 +4398,7 @@
         "required": [
           "id",
           "checkId",
+          "messageId",
           "questionId",
           "termId",
           "machineId",
@@ -3304,7 +4406,76 @@
           "createdAt",
           "acknowledgedAt"
         ],
-        "title": "ConfusionOut"
+        "title": "ConfusionOut",
+        "description": "From a Work Check (checkId and machineId set) or from a Chat message's Check (messageId set)."
+      },
+      "EffortOut": {
+        "properties": {
+          "drafts": {
+            "type": "integer",
+            "title": "Drafts"
+          },
+          "approved": {
+            "type": "integer",
+            "title": "Approved"
+          },
+          "medianSecondsToApprove": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mediansecondstoapprove"
+          },
+          "medianEditsPerDraft": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Medianeditsperdraft"
+          },
+          "cleanAiShare": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cleanaishare"
+          },
+          "firstTryPassShare": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Firsttrypassshare"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "drafts",
+          "approved",
+          "medianSecondsToApprove",
+          "medianEditsPerDraft",
+          "cleanAiShare",
+          "firstTryPassShare"
+        ],
+        "title": "EffortOut",
+        "description": "How much work the AI saves a Foreman (architecture §9.3); every share is 0..1, null when there is no data."
       },
       "Envelope_AccountOut_": {
         "properties": {
@@ -3328,6 +4499,29 @@
           "data"
         ],
         "title": "Envelope[AccountOut]"
+      },
+      "Envelope_AnswerResult_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/AnswerResult"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[AnswerResult]"
       },
       "Envelope_AskOut_": {
         "properties": {
@@ -3421,6 +4615,52 @@
         ],
         "title": "Envelope[ConfusionOut]"
       },
+      "Envelope_EffortOut_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/EffortOut"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[EffortOut]"
+      },
+      "Envelope_FollowUpOut_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/FollowUpOut"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[FollowUpOut]"
+      },
       "Envelope_ForwardedAsk_": {
         "properties": {
           "success": {
@@ -3489,6 +4729,29 @@
           "data"
         ],
         "title": "Envelope[Health]"
+      },
+      "Envelope_Heatmap_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/Heatmap"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[Heatmap]"
       },
       "Envelope_LoginOut_": {
         "properties": {
@@ -3581,6 +4844,52 @@
           "data"
         ],
         "title": "Envelope[MeetupOut]"
+      },
+      "Envelope_MessageForSender_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/MessageForSender"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[MessageForSender]"
+      },
+      "Envelope_MessagesPage_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/MessagesPage"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[MessagesPage]"
       },
       "Envelope_NoneType_": {
         "properties": {
@@ -3675,6 +4984,29 @@
         ],
         "title": "Envelope[NoticeReach]"
       },
+      "Envelope_OverrideOut_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/OverrideOut"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[OverrideOut]"
+      },
       "Envelope_Page_AccountOut__": {
         "properties": {
           "success": {
@@ -3744,6 +5076,29 @@
         ],
         "title": "Envelope[Page[ConfusionOut]]"
       },
+      "Envelope_Page_FollowUpOut__": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/Page_FollowUpOut_"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[Page[FollowUpOut]]"
+      },
       "Envelope_Page_MachineOut__": {
         "properties": {
           "success": {
@@ -3766,6 +5121,29 @@
           "data"
         ],
         "title": "Envelope[Page[MachineOut]]"
+      },
+      "Envelope_Page_NoteVersionOut__": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/Page_NoteVersionOut_"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[Page[NoteVersionOut]]"
       },
       "Envelope_Page_PosterOut__": {
         "properties": {
@@ -3813,6 +5191,52 @@
         ],
         "title": "Envelope[Page[SenpaiPairOut]]"
       },
+      "Envelope_Page_SignOffOut__": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/Page_SignOffOut_"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[Page[SignOffOut]]"
+      },
+      "Envelope_Page_TaskOut__": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/Page_TaskOut_"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[Page[TaskOut]]"
+      },
       "Envelope_PanelOut_": {
         "properties": {
           "success": {
@@ -3859,6 +5283,29 @@
         ],
         "title": "Envelope[PanelToken]"
       },
+      "Envelope_Passport_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/Passport"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[Passport]"
+      },
       "Envelope_SenpaiPairCreated_": {
         "properties": {
           "success": {
@@ -3904,6 +5351,52 @@
           "data"
         ],
         "title": "Envelope[SenpaiView]"
+      },
+      "Envelope_SkillMatrix_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/SkillMatrix"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[SkillMatrix]"
+      },
+      "Envelope_TaskOut_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/TaskOut"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[TaskOut]"
       },
       "Envelope_Union_AssignmentOut__NoneType__": {
         "properties": {
@@ -4097,6 +5590,33 @@
         ],
         "title": "Envelope[list[RosterEntry]]"
       },
+      "Envelope_list_ThreadOut__": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/ThreadOut"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[list[ThreadOut]]"
+      },
       "EventOccurrence": {
         "properties": {
           "eventId": {
@@ -4251,6 +5771,98 @@
         "title": "EventUpdate",
         "description": "PATCH /notices/{id}/events/{eventId}. A field left out keeps its value; `rrule: null` makes the Event\none-off (the service tells them apart with `model_fields_set`). Invalid dates are a 422 with the reason\nfrom app.domain.recurrence."
       },
+      "FollowUpOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "messageId": {
+            "type": "string",
+            "title": "Messageid"
+          },
+          "userId": {
+            "type": "string",
+            "title": "Userid"
+          },
+          "displayName": {
+            "type": "string",
+            "title": "Displayname"
+          },
+          "termJa": {
+            "type": "string",
+            "title": "Termja"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "clarified",
+              "understood"
+            ],
+            "title": "Status"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "resolvedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolvedat"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "messageId",
+          "userId",
+          "displayName",
+          "termJa",
+          "status",
+          "note",
+          "createdAt",
+          "resolvedAt"
+        ],
+        "title": "FollowUpOut"
+      },
+      "FollowUpUpdate": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "clarified",
+              "understood"
+            ],
+            "title": "Status"
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Note",
+            "default": ""
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "FollowUpUpdate"
+      },
       "ForwardedAsk": {
         "properties": {
           "id": {
@@ -4398,6 +6010,96 @@
           "status"
         ],
         "title": "Health"
+      },
+      "HeatCell": {
+        "properties": {
+          "machineId": {
+            "type": "string",
+            "title": "Machineid"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "machineId",
+          "count"
+        ],
+        "title": "HeatCell"
+      },
+      "HeatRow": {
+        "properties": {
+          "termId": {
+            "type": "string",
+            "title": "Termid"
+          },
+          "ja": {
+            "type": "string",
+            "title": "Ja"
+          },
+          "reading": {
+            "type": "string",
+            "title": "Reading"
+          },
+          "translations": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Translations"
+          },
+          "cells": {
+            "items": {
+              "$ref": "#/components/schemas/HeatCell"
+            },
+            "type": "array",
+            "title": "Cells"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "termId",
+          "ja",
+          "reading",
+          "translations",
+          "cells",
+          "total"
+        ],
+        "title": "HeatRow"
+      },
+      "Heatmap": {
+        "properties": {
+          "machines": {
+            "items": {
+              "$ref": "#/components/schemas/SkillMachine"
+            },
+            "type": "array",
+            "title": "Machines"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/HeatRow"
+            },
+            "type": "array",
+            "title": "Rows"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "machines",
+          "rows"
+        ],
+        "title": "Heatmap",
+        "description": "GET /heatmap: Confusions per Glossary Term × Machine; only terms with at least one, most confused first."
       },
       "LoginIn": {
         "properties": {
@@ -4683,6 +6385,303 @@
         ],
         "title": "MeetupOut"
       },
+      "MessageForSender": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "threadId": {
+            "type": "string",
+            "title": "Threadid"
+          },
+          "fromUserId": {
+            "type": "string",
+            "title": "Fromuserid"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "voice",
+              "text",
+              "ask",
+              "reexplain"
+            ],
+            "title": "Kind"
+          },
+          "language": {
+            "type": "string",
+            "title": "Language"
+          },
+          "stage": {
+            "type": "integer",
+            "title": "Stage"
+          },
+          "needsEdit": {
+            "type": "boolean",
+            "title": "Needsedit"
+          },
+          "transcriptJa": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Transcriptja"
+          },
+          "text": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Text"
+          },
+          "toUserId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Touserid"
+          },
+          "refMessageId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Refmessageid"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "sentAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sentat"
+          },
+          "questions": {
+            "items": {
+              "$ref": "#/components/schemas/CheckQuestion"
+            },
+            "type": "array",
+            "title": "Questions"
+          },
+          "taskDrafts": {
+            "items": {
+              "$ref": "#/components/schemas/TaskDraft"
+            },
+            "type": "array",
+            "title": "Taskdrafts",
+            "default": []
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "threadId",
+          "fromUserId",
+          "kind",
+          "language",
+          "stage",
+          "needsEdit",
+          "transcriptJa",
+          "text",
+          "toUserId",
+          "refMessageId",
+          "createdAt",
+          "sentAt",
+          "questions"
+        ],
+        "title": "MessageForSender",
+        "description": "The Foreman's view: the answer key, and the Task drafts on the response to POST (they are not stored)."
+      },
+      "MessageForWorker": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "threadId": {
+            "type": "string",
+            "title": "Threadid"
+          },
+          "fromUserId": {
+            "type": "string",
+            "title": "Fromuserid"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "voice",
+              "text",
+              "ask",
+              "reexplain"
+            ],
+            "title": "Kind"
+          },
+          "language": {
+            "type": "string",
+            "title": "Language"
+          },
+          "stage": {
+            "type": "integer",
+            "title": "Stage"
+          },
+          "needsEdit": {
+            "type": "boolean",
+            "title": "Needsedit"
+          },
+          "transcriptJa": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Transcriptja"
+          },
+          "text": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Text"
+          },
+          "toUserId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Touserid"
+          },
+          "refMessageId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Refmessageid"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "sentAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sentat"
+          },
+          "questions": {
+            "items": {
+              "$ref": "#/components/schemas/CheckQuestionForWorker"
+            },
+            "type": "array",
+            "title": "Questions"
+          },
+          "myStatus": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "green",
+                  "orange",
+                  "red"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mystatus"
+          },
+          "nudged": {
+            "type": "boolean",
+            "title": "Nudged"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "threadId",
+          "fromUserId",
+          "kind",
+          "language",
+          "stage",
+          "needsEdit",
+          "transcriptJa",
+          "text",
+          "toUserId",
+          "refMessageId",
+          "createdAt",
+          "sentAt",
+          "questions",
+          "myStatus",
+          "nudged"
+        ],
+        "title": "MessageForWorker"
+      },
+      "MessagesPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/MessageForSender"
+                },
+                {
+                  "$ref": "#/components/schemas/MessageForWorker"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "MessagesPage"
+      },
       "NoteForWorker": {
         "properties": {
           "id": {
@@ -4743,6 +6742,17 @@
           "recordedBy": {
             "type": "string",
             "title": "Recordedby"
+          },
+          "approvedBy": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approvedby"
           },
           "transcriptJa": {
             "type": "string",
@@ -4822,6 +6832,7 @@
           "versionNo",
           "status",
           "recordedBy",
+          "approvedBy",
           "transcriptJa",
           "steps",
           "backTranslation",
@@ -5288,6 +7299,124 @@
         "title": "NoticeUpdate",
         "description": "PATCH /notices/{id} on a draft; only the fields sent change."
       },
+      "NudgeIn": {
+        "properties": {
+          "userId": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]{0,18}$",
+            "title": "Userid"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "userId"
+        ],
+        "title": "NudgeIn"
+      },
+      "OverrideIn": {
+        "properties": {
+          "workerId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[1-9][0-9]{0,18}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workerid"
+          },
+          "minutes": {
+            "type": "integer",
+            "maximum": 480.0,
+            "minimum": 1.0,
+            "title": "Minutes"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 3,
+            "title": "Reason"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "workerId",
+          "minutes",
+          "reason"
+        ],
+        "title": "OverrideIn",
+        "description": "Panel Override (architecture §7.1): a named Foreman lets a Worker (or anyone, workerId null) run the machine\nwithout a Sign-off for up to 8 hours, with a reason that goes into the Support Log."
+      },
+      "OverrideOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "machineId": {
+            "type": "string",
+            "title": "Machineid"
+          },
+          "workerId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workerid"
+          },
+          "by": {
+            "type": "string",
+            "title": "By"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "startsAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Startsat"
+          },
+          "endsAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Endsat"
+          },
+          "revokedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revokedat"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "machineId",
+          "workerId",
+          "by",
+          "reason",
+          "startsAt",
+          "endsAt",
+          "revokedAt"
+        ],
+        "title": "OverrideOut"
+      },
       "Page_AccountOut_": {
         "properties": {
           "items": {
@@ -5375,6 +7504,35 @@
         ],
         "title": "Page[ConfusionOut]"
       },
+      "Page_FollowUpOut_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/FollowUpOut"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "nextCursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nextcursor"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "title": "Page[FollowUpOut]"
+      },
       "Page_MachineOut_": {
         "properties": {
           "items": {
@@ -5403,6 +7561,35 @@
           "nextCursor"
         ],
         "title": "Page[MachineOut]"
+      },
+      "Page_NoteVersionOut_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/NoteVersionOut"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "nextCursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nextcursor"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "title": "Page[NoteVersionOut]"
       },
       "Page_NoticeForPoster_": {
         "properties": {
@@ -5519,6 +7706,64 @@
           "nextCursor"
         ],
         "title": "Page[SenpaiPairOut]"
+      },
+      "Page_SignOffOut_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SignOffOut"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "nextCursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nextcursor"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "title": "Page[SignOffOut]"
+      },
+      "Page_TaskOut_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/TaskOut"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "nextCursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nextcursor"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "title": "Page[TaskOut]"
       },
       "PanelOut": {
         "properties": {
@@ -5650,6 +7895,42 @@
         ],
         "title": "PanelWorker"
       },
+      "Passport": {
+        "properties": {
+          "workerId": {
+            "type": "string",
+            "title": "Workerid"
+          },
+          "displayName": {
+            "type": "string",
+            "title": "Displayname"
+          },
+          "machines": {
+            "items": {
+              "$ref": "#/components/schemas/SkillMachine"
+            },
+            "type": "array",
+            "title": "Machines"
+          },
+          "cells": {
+            "items": {
+              "$ref": "#/components/schemas/SkillCell"
+            },
+            "type": "array",
+            "title": "Cells"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "workerId",
+          "displayName",
+          "machines",
+          "cells"
+        ],
+        "title": "Passport",
+        "description": "GET /workers/{id}/passport: one Worker's Sign-off status on every Machine of the shop."
+      },
       "PinChangeIn": {
         "properties": {
           "currentPin": {
@@ -5740,6 +8021,28 @@
         ],
         "title": "ReceiptTarget"
       },
+      "ReexplainIn": {
+        "properties": {
+          "userId": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]{0,18}$",
+            "title": "Userid"
+          },
+          "termJa": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Termja"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "userId",
+          "termJa"
+        ],
+        "title": "ReexplainIn"
+      },
       "RosterEntry": {
         "properties": {
           "id": {
@@ -5758,6 +8061,56 @@
           "displayName"
         ],
         "title": "RosterEntry"
+      },
+      "SendIn": {
+        "properties": {
+          "text": {
+            "additionalProperties": {
+              "type": "string",
+              "maxLength": 1000
+            },
+            "propertyNames": {
+              "enum": [
+                "ja",
+                "bn",
+                "en",
+                "vi",
+                "id",
+                "ne",
+                "my",
+                "tl",
+                "zh"
+              ]
+            },
+            "type": "object",
+            "title": "Text"
+          },
+          "questions": {
+            "items": {
+              "$ref": "#/components/schemas/CheckQuestion"
+            },
+            "type": "array",
+            "maxItems": 3,
+            "title": "Questions",
+            "default": []
+          },
+          "tasks": {
+            "items": {
+              "$ref": "#/components/schemas/TaskDraft"
+            },
+            "type": "array",
+            "maxItems": 10,
+            "title": "Tasks",
+            "default": []
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "SendIn",
+        "description": "POST /messages/{id}/send: the edited message; the questions and Tasks the Foreman kept."
       },
       "SenpaiPairCreate": {
         "properties": {
@@ -6011,6 +8364,124 @@
         ],
         "title": "SignOffOut"
       },
+      "SkillCell": {
+        "properties": {
+          "machineId": {
+            "type": "string",
+            "title": "Machineid"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "valid",
+              "expiring",
+              "expired",
+              "none"
+            ],
+            "title": "Status"
+          },
+          "passedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Passedat"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "machineId",
+          "status",
+          "passedAt"
+        ],
+        "title": "SkillCell"
+      },
+      "SkillMachine": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "name": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Name"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "code",
+          "name"
+        ],
+        "title": "SkillMachine"
+      },
+      "SkillMatrix": {
+        "properties": {
+          "machines": {
+            "items": {
+              "$ref": "#/components/schemas/SkillMachine"
+            },
+            "type": "array",
+            "title": "Machines"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/SkillRow"
+            },
+            "type": "array",
+            "title": "Rows"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "machines",
+          "rows"
+        ],
+        "title": "SkillMatrix",
+        "description": "GET /skill-matrix: every active Worker × every Machine of the shop (力量表)."
+      },
+      "SkillRow": {
+        "properties": {
+          "workerId": {
+            "type": "string",
+            "title": "Workerid"
+          },
+          "displayName": {
+            "type": "string",
+            "title": "Displayname"
+          },
+          "cells": {
+            "items": {
+              "$ref": "#/components/schemas/SkillCell"
+            },
+            "type": "array",
+            "title": "Cells"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "workerId",
+          "displayName",
+          "cells"
+        ],
+        "title": "SkillRow"
+      },
       "Step": {
         "properties": {
           "text": {
@@ -6062,6 +8533,345 @@
           "ja"
         ],
         "title": "StepEdit"
+      },
+      "TaskCreate": {
+        "properties": {
+          "title": {
+            "additionalProperties": {
+              "type": "string",
+              "maxLength": 1000
+            },
+            "propertyNames": {
+              "enum": [
+                "ja",
+                "bn",
+                "en",
+                "vi",
+                "id",
+                "ne",
+                "my",
+                "tl",
+                "zh"
+              ]
+            },
+            "type": "object",
+            "title": "Title"
+          },
+          "assigneeIds": {
+            "items": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$"
+            },
+            "type": "array",
+            "maxItems": 10,
+            "title": "Assigneeids",
+            "default": []
+          },
+          "dueAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dueat"
+          },
+          "machineId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[1-9][0-9]{0,18}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Machineid"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "title"
+        ],
+        "title": "TaskCreate"
+      },
+      "TaskDraft": {
+        "properties": {
+          "title": {
+            "additionalProperties": {
+              "type": "string",
+              "maxLength": 1000
+            },
+            "propertyNames": {
+              "enum": [
+                "ja",
+                "bn",
+                "en",
+                "vi",
+                "id",
+                "ne",
+                "my",
+                "tl",
+                "zh"
+              ]
+            },
+            "type": "object",
+            "title": "Title"
+          },
+          "assigneeIds": {
+            "items": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$"
+            },
+            "type": "array",
+            "maxItems": 10,
+            "title": "Assigneeids",
+            "default": []
+          },
+          "dueAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dueat"
+          },
+          "machineId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[1-9][0-9]{0,18}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Machineid"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "title"
+        ],
+        "title": "TaskDraft",
+        "description": "A Task the AI found in a message, or one the Foreman keeps when sending."
+      },
+      "TaskOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "additionalProperties": {
+              "type": "string",
+              "maxLength": 1000
+            },
+            "propertyNames": {
+              "enum": [
+                "ja",
+                "bn",
+                "en",
+                "vi",
+                "id",
+                "ne",
+                "my",
+                "tl",
+                "zh"
+              ]
+            },
+            "type": "object",
+            "title": "Title"
+          },
+          "column": {
+            "type": "string",
+            "enum": [
+              "todo",
+              "doing",
+              "done"
+            ],
+            "title": "Column"
+          },
+          "assigneeIds": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Assigneeids"
+          },
+          "dueAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dueat"
+          },
+          "machineId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Machineid"
+          },
+          "fromMessageId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Frommessageid"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updatedat"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "column",
+          "assigneeIds",
+          "dueAt",
+          "machineId",
+          "fromMessageId",
+          "version",
+          "updatedAt"
+        ],
+        "title": "TaskOut"
+      },
+      "TaskUpdate": {
+        "properties": {
+          "column": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "todo",
+                  "doing",
+                  "done"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Column"
+          },
+          "assigneeIds": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string",
+                  "pattern": "^[1-9][0-9]{0,18}$"
+                },
+                "type": "array",
+                "maxItems": 10
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assigneeids"
+          },
+          "dueAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dueat"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "TaskUpdate",
+        "description": "PATCH /tasks/{id} with `If-Match: <version>`; only the fields sent change (`dueAt: null` clears it)."
+      },
+      "ThreadOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "titleJa": {
+            "type": "string",
+            "title": "Titleja"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "group",
+              "direct"
+            ],
+            "title": "Kind"
+          },
+          "memberIds": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Memberids"
+          },
+          "unread": {
+            "type": "integer",
+            "title": "Unread"
+          },
+          "lastMessageAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lastmessageat"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "titleJa",
+          "kind",
+          "memberIds",
+          "unread",
+          "lastMessageAt"
+        ],
+        "title": "ThreadOut"
       },
       "UserOut": {
         "properties": {

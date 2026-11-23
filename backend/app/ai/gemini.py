@@ -4,6 +4,7 @@ import logging
 
 from google import genai
 from google.genai import errors, types
+from pydantic import TypeAdapter
 
 from app.ai.client import AiUnavailable, Part, Prompt, QuotaExhausted
 
@@ -29,7 +30,10 @@ class GeminiClient:
                 contents.append(types.Part.from_bytes(data=part.data, mime_type=mime))
             elif part.text_value is not None:
                 contents.append(part.text_value)
-        config = types.GenerateContentConfig(response_mime_type="application/json", response_schema=schema)
+        # JSON Schema, not the class: response_schema rejects additionalProperties, which every AiModel has
+        # (extra="forbid"), so each real call got HTTP 400 (Galib's benchmark, 2026-11-23).
+        json_schema = TypeAdapter(schema).json_schema()
+        config = types.GenerateContentConfig(response_mime_type="application/json", response_json_schema=json_schema)
         try:
             # The SDK's `contents` union names PIL.Image, which is not installed, so pyright sees it as Unknown.
             response = self._client.models.generate_content(  # pyright: ignore[reportUnknownMemberType]

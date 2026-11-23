@@ -56,7 +56,7 @@ This file is:
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | `XREQ-001` | P1 | Backend (Asif) | Frontend (Minhaz) | Auth, ids and list shape for the real API ([BACKEND_ARCHITECTURE.md §17](docs/BACKEND_ARCHITECTURE.md#17-frontend-contract-changes)) | `[PENDING]` | 2026-11-22 19:10 |
 | `XREQ-002` | P1 | Backend (Anim) | Frontend (Minhaz) | Life contract: Notices, Events, Asks, Senpai, Meet-ups (`backend/app/schemas/`) | `[PENDING]` | 2026-11-22 20:06 |
-| `XREQ-003` | P1 | AI (Galib) | Backend (Asif) | Review the free-AI plan: model chain, budgets, Groq Whisper, settings; Briefing receipts route ([AI_PLAN.md](contributors/galib/AI_PLAN.md)) | `[PENDING]` | 2026-11-22 22:40 |
+| `XREQ-003` | P1 | AI (Galib) | Backend (Asif) | Review the free-AI plan: model chain, budgets, Groq Whisper, settings; Briefing receipts route ([AI_PLAN.md](contributors/galib/AI_PLAN.md)) | `[IN_PROGRESS]` | 2026-11-22 22:40 |
 | `XREQ-004` | P2 | AI (Galib) | Frontend (Minhaz, Arjun) | "Dictate instead" fallback, degraded-draft message, provenance line ([AI_PLAN.md](contributors/galib/AI_PLAN.md) §2, §8) | `[PENDING]` | 2026-11-22 22:40 |
 | `XREQ-005` | P1 | Frontend (Minhaz) | Backend (Anim, Asif) | Chat API: Threads, Messages (voice/text), Wakatta Status answers, Follow-ups, Re-explanation, Nudge, Tasks + Task Board | `[PENDING]` | 2026-11-22 17:55 |
 | `XREQ-006` | P1 | Frontend (Minhaz) | AI (Galib) | Chat AI: voice → transcript → translation → Check Questions → Task extraction (`build_message`), Worker reply translation, Re-explanation | `[PENDING]` | 2026-11-22 17:55 |
@@ -148,7 +148,7 @@ Errors: `404 NOT_FOUND` (wrong or revoked Senpai token), `409 NO_ACTIVE_PAIR` (f
 - **Priority**: `P1 (High)`
 - **From**: AI (Galib)
 - **To**: Backend (Asif)
-- **Status**: `[PENDING]`
+- **Status**: `[IN_PROGRESS]`
 - **Created**: `2026-11-22 22:40 (UTC+6)`
 - **Target Interface / Endpoint**: `docs/BACKEND_ARCHITECTURE.md` §10.3, §10.4; `backend/.env.example`; `backend/pyproject.toml`; `app/ai/`
 
@@ -179,7 +179,7 @@ Errors: `403 FORBIDDEN` (not a Foreman), `404 NOT_FOUND` (another shop's Briefin
 
 **Fulfillment & Proof (filled by recipient on completion):**
 - **Branch / Commit**: 
-- **Status / Notes**: 
+- **Status / Notes**: 2026-11-23 Asif: **all 7 items accepted as written**, `httpx` approved as a runtime dependency. Galib builds items 1–4 and 7 (`AI_CHAIN`, ladder with Groq Whisper, per-model budgets, settings, `ai_pipelines.py`; the `transcribed` value for `note_versions.ai_outcome` needs a migration: ask Asif, schema owner). Asif builds items 5 (`GET /briefings/{id}/receipts`; the glossary already lives in `app/seed_data/`) and 6 (`approvedBy` on Note Version). `GROQ_API_KEY` is in `.env.example` and in Asif's local `.env`. Also decided: Anim takes Skill Matrix / Heatmap / Skill Passport (WS5) from Asif's list.
 - **Verification Proof**: 
 
 #### `[XREQ-004]` "Dictate instead", degraded-draft message and provenance line

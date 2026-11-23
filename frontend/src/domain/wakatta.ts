@@ -4,7 +4,9 @@ export type Lang = 'ja' | 'bn' | 'en'
 export type Tri = Record<Lang, string>
 export const LANGS: Lang[] = ['ja', 'bn', 'en']
 
-export const pick = (text: Tri, lang: Lang) => text[lang] || text.ja
+// Course Japanese carries furigana as 漢字{よみ}; plain reading screens strip it
+export const pick = (text: Tri, lang: Lang) =>
+  (text[lang] || text.ja).replace(/{[^}]*}/g, '')
 
 export type IconId =
   | 'ppe-goggles'

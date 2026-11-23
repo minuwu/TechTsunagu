@@ -12,7 +12,7 @@ import { Button } from '@/ui/v3/components/ui/button'
 import { fmtDate, uiLang } from '@/ui/v3/lib/format'
 import { StatePlate, type PlateState } from '@/ui/v3/components/StatePlate'
 
-/** Every Foreman screen: PIN, nav, title. */
+/** Every Foreman screen: PIN, nav, title. From lg the nav is a sticky sidebar (console layout). */
 export function ForemanPage({
   title,
   sub,
@@ -23,9 +23,23 @@ export function ForemanPage({
   children: ReactNode
 }) {
   return (
-    <PinGate gate="foreman">
-      <ForemanNav />
-      <PageTitle sub={sub}>{title}</PageTitle>
+    <PinGate
+      gate="foreman"
+      frame={(lock, screen) => (
+        <div className="lg:grid lg:grid-cols-[13.5rem_minmax(0,1fr)] lg:items-start lg:gap-10">
+          <aside className="flex flex-col lg:sticky lg:top-24">
+            <div className="mb-2 flex justify-end lg:mb-3 lg:justify-start">
+              {lock}
+            </div>
+            <ForemanNav />
+          </aside>
+          <div className="min-w-0">
+            <PageTitle sub={sub}>{title}</PageTitle>
+            {screen}
+          </div>
+        </div>
+      )}
+    >
       {children}
     </PinGate>
   )
@@ -40,12 +54,14 @@ export function ForemanBoardScreen() {
       {b.loading ? (
         <ScreenSkeleton panels={4} />
       ) : (
-        <div className="space-y-4">
+        // Phone: flags, machines, Confusions in one column. Wide (xl): machines left, alerts right.
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_21rem] xl:grid-rows-[auto_1fr] xl:items-start xl:[grid-template-areas:'mach_flags'_'mach_conf']">
           {b.flags.length > 0 && (
             <Card
               tone="danger"
               title={m.flags_title({ count: b.flags.length })}
               id="flags"
+              className="xl:[grid-area:flags]"
             >
               <ul className="space-y-2">
                 {b.flags.map((f) => (
@@ -65,7 +81,7 @@ export function ForemanBoardScreen() {
             </Card>
           )}
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2 xl:[grid-area:mach]">
             {b.rows.map((r) => (
               <Card
                 key={r.machine.id}
@@ -128,7 +144,12 @@ export function ForemanBoardScreen() {
             ))}
           </div>
 
-          <Card title={m.confusions_title()} id="confusions" tone="warning">
+          <Card
+            title={m.confusions_title()}
+            id="confusions"
+            tone="warning"
+            className="xl:[grid-area:conf]"
+          >
             {b.openNearMisses > 0 && (
               <p className="mb-3">
                 <Link

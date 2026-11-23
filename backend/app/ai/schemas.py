@@ -101,3 +101,28 @@ class AskDraft(AiModel):
 
 class Translation(AiModel):
     text: Text
+
+
+class AiTaskDraft(AiModel):
+    """A Task the Foreman's message asks for; the service checks every id against the Thread and the shop."""
+
+    title: AiTri
+    assignee_ids: Annotated[list[str], Field(max_length=10)]
+    due_at: Annotated[str | None, Field(description="ISO 8601 with +09:00 only when a time was said, else null")]
+    machine_id: str | None
+
+
+class MessageDraft(AiModel):
+    """draft_message (XREQ-006 item 1). Proposed by Anim so WS12 can run on the fake client; Galib owns the prompt."""
+
+    transcript_ja: Text
+    text: AiTri
+    questions: Annotated[list[AiQuestion], Field(min_length=1, max_length=3)]
+    tasks: Annotated[list[AiTaskDraft], Field(max_length=5)]
+
+
+class Reexplanation(AiModel):
+    """reexplain (XREQ-006 item 4): a simpler sentence about one missed term, and one new question on it."""
+
+    text: AiTri
+    question: AiQuestion
