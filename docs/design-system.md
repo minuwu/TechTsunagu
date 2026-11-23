@@ -32,7 +32,7 @@ Never type a hex in a component. Use the token (Tailwind: `bg-primary`, `text-mu
 
 ## Typography
 
-- Stack (all kits, `theme/base.css`, F-09): Noto Sans JP first, then Hiragino and Yu Gothic UI; Bengali (`:lang(bn)`) puts Hind Siliguri first, with no letter spacing.
+- Stack (all kits, `theme/base.css`, F-09): **Manrope** for Latin letters and digits, then **Noto Sans JP** for every Japanese glyph, then Hiragino and Yu Gothic UI; Bengali (`:lang(bn)`) puts **Hind Siliguri** first, with no letter spacing. Manrope's open, slightly geometric Latin gives headings and figures (46.2%, 3.98) an editorial voice; Noto Sans JP keeps Japanese neutral and legible.
 - Body 16 px minimum (F-10), line height 1.75 (Bengali 1.85), letter spacing 0.04em on Japanese body (F-12).
 - `.display` headings: weight 700, `palt` kerning, 0.02em (Latin −0.01em).
 - Scale (Tailwind): page title `text-3xl`/`sm:text-4xl`; landing H1 `text-4xl`/`sm:text-6xl`; card title `text-lg`; body `text-base`; meta `text-sm`. Nothing smaller than `text-sm` for content (F-10).

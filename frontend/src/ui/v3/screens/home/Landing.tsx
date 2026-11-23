@@ -156,7 +156,14 @@ export function Landing() {
     <div ref={scope}>
       <section className="card-surface door mb-14 bg-transparent! p-6 sm:min-h-[28rem] sm:p-10 lg:min-h-[32rem]">
         <HarbourWaves theme={theme} />
-        <p data-hero className="mb-3 font-bold text-[var(--indigo)]">
+        <p
+          data-hero
+          className="mb-3 flex items-center gap-2.5 font-bold text-[var(--indigo)]"
+        >
+          <span
+            aria-hidden="true"
+            className="size-2.5 shrink-0 rounded-[2px] bg-[var(--seal)]"
+          />
           {m.lp_eyebrow()}
         </p>
         <h1

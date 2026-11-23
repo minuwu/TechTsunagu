@@ -233,15 +233,25 @@ export function Layout({ children }: { children: ReactNode }) {
         </div>
         <div className="harbour-line" />
       </header>
-      <main
-        id="main"
-        className={`${frame} flex-1 pt-6 pb-32 sm:pt-10 lg:pb-16`}
-      >
+      <main id="main" className={`${frame} flex-1 pt-6 pb-16 sm:pt-10`}>
         {/* Re-keyed per route so each screen settles in (page transition) */}
         <div key={path} className="page-enter">
           {children}
         </div>
       </main>
+      <footer className="border-t border-[var(--rule)] pb-28 lg:pb-0">
+        <div
+          className={`${frame} flex flex-wrap items-center justify-between gap-x-6 gap-y-2 py-6 text-sm text-muted-foreground`}
+        >
+          <span className="flex items-center gap-2.5">
+            <BridgeMark className="w-7 text-[var(--indigo)]" />
+            {m.footer_made_by()}
+          </span>
+          <span>
+            {m.app_name()} · {m.app_tagline()}
+          </span>
+        </div>
+      </footer>
       <TabBar path={path} sound={sound} />
       <Toaster />
     </div>
