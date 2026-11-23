@@ -373,8 +373,8 @@ function renderAnalytics() {
   const bars = ws.map(u => { const b = BASE.bars[u] || [0, 0, 0], p = lt.per[u] || {green: 0, orange: 0, red: 0}, g = b[0] + p.green, o = b[1] + p.orange, r = b[2] + p.red;
     return `<button class="ux-bar" data-go="learning" ${param({user: u})}>${av(u)}<div class="grow"><div class="ux-bn">${esc(nameOf(u))}</div><div class="hm-bar"><i data-s="green" style="flex:${g}"></i><i data-s="orange" style="flex:${o}"></i><i data-s="red" style="flex:${r}"></i></div></div><span class="ux-bc">${Math.round(100 * g / Math.max(1, g + o + r))}%</span></button>`; }).join('');
   $('.content', el).innerHTML = `<div class="pad">
-    <div class="ux-kpis"><div class="card ux-kpi"><small>${t('節約した時間', 'Time saved')}</small><div><b data-k="h" class="ux-kn">0</b><span>${t('時間/週', 'h/week')}</span></div></div>
-      <div class="card ux-kpi"><small>${t('手戻り防止', 'Rework avoided')}</small><div><b data-k="r" class="ux-kn">0</b><span>${t('件', 'cases')}</span></div></div></div>
+    <div class="ux-kpis"><div class="card ux-kpi"><small>${t('節約した時間（デモ値）', 'Time saved (demo value)')}</small><div><b data-k="h" class="ux-kn">0</b><span>${t('時間/週', 'h/week')}</span></div></div>
+      <div class="card ux-kpi"><small>${t('手戻り防止（デモ値）', 'Rework avoided (demo value)')}</small><div><b data-k="r" class="ux-kn">0</b><span>${t('件', 'cases')}</span></div></div></div>
     <div class="hm-h">${t('理解度の推移 (4週間)', 'Understanding rate, 4 weeks')}</div>
     <div class="card ux-chartw">${trendSvg(vals)}</div>
     <div class="hm-h">${t('ループの流れ', 'Loop funnel')}</div>

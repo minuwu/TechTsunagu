@@ -247,3 +247,64 @@
 .lf-sign span{border-top:1px solid var(--outline);padding-top:4px;min-width:40%}
 .lf-pbtns{display:flex;gap:8px;margin-top:16px}
 .lf-pbtns .btn{flex:1;height:48px;border-radius:24px}
+
+/* 定期面談 sheet + today's word */
+.lf-word{padding:16px;margin:12px 0 0;background:var(--surface-2)}
+.lf-word b{display:block;font-size:28px;font-weight:500;line-height:1.3;margin:6px 0 2px}
+.lf-word span{display:block;font-size:16px}
+.lf-word small{display:block;font-size:13px;color:var(--on-2);margin-top:6px}
+.lf-ivf{padding:4px 16px}
+.lf-ivr{display:flex;justify-content:space-between;gap:16px;padding:12px 0;font-size:15px;line-height:1.4;border-bottom:1px solid var(--outline)}
+.lf-ivr:last-child{border-bottom:0}
+.lf-ivr span{color:var(--on-2);flex-shrink:0}
+.lf-ivr b{font-weight:500;text-align:right}
+.lf-ivq{margin:0;padding:8px 16px 8px 40px;font-size:15px;line-height:1.5}
+.lf-ivq li{padding:8px 0}
+.lf-ivh{display:block;margin-top:4px;font-size:13px;color:var(--primary)}
+.lf-ivform{padding:16px}
+.lf-ivc{display:flex;gap:12px;align-items:flex-start;margin-top:12px;font-size:14px;line-height:1.5}
+.lf-ivc input{width:24px;height:24px;flex-shrink:0}
+.lf-ivnote{margin:16px 4px 24px;font-size:13px;line-height:1.5;color:var(--on-2)}
+
+/* Talk Threads, Contacts, My QR */
+.lf-tk,.lf-ct{display:flex;flex-direction:column;gap:12px;padding-bottom:24px}
+.lf-ex{padding:16px;border-left:4px solid var(--wait)}
+.lf-ex[data-s=green]{border-left-color:var(--ok)}
+.lf-ex[data-s=orange]{border-left-color:var(--warn)}
+.lf-ex[data-s=red]{border-left-color:var(--bad)}
+.lf-exh{display:flex;align-items:center;gap:10px;color:var(--on-2)}
+.lf-exh small{flex:1}
+.lf-hj{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:8px 0 4px;font-size:22px;line-height:1.5;font-weight:500}
+.lf-pin{flex:1;min-width:0;height:48px;padding:0 20px;border-radius:24px;border:0;outline:none;background:var(--surface-3);font-size:16px}
+.lf-pin:focus{box-shadow:inset 0 0 0 2px var(--primary)}
+.lf-mine{margin-top:12px;font-size:15px;line-height:1.4}
+.lf-mine small,.lf-mean small{display:block;color:var(--on-2);font-size:12px}
+.lf-mean{margin-top:12px}
+.lf-mean b{display:block;font-size:17px;font-weight:500;line-height:1.4}
+.lf-dias{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.lf-dia{padding:4px 10px;border-radius:12px;background:var(--surface-3);font-size:14px}
+.lf-flag{display:flex;gap:10px;align-items:flex-start;margin-top:12px;padding:12px 14px;border-radius:12px;background:var(--warn-c);font-size:14px;line-height:1.4}
+.lf-chipcol{display:flex;flex-direction:column;gap:8px}
+.lf-rc{min-height:56px;padding:10px 16px;border-radius:16px;border:1px solid var(--outline);background:none;text-align:left;font-size:15px;line-height:1.4}
+.lf-rc small{display:block;margin-top:2px;color:var(--on-2);font-size:13px}
+.lf-show{margin-top:16px;padding:16px;border-radius:16px;background:var(--surface-2);text-align:center}
+.lf-show small{color:var(--on-2)}
+.lf-big{margin:12px 0 16px;font-size:28px;line-height:1.5;font-weight:500}
+.lf-yn{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.lf-yn button{height:80px;border-radius:20px;border:0;font-size:28px;font-weight:600;color:var(--on)}
+.lf-y{background:var(--ok-c)}
+.lf-n{background:var(--bad-c)}
+.lf-listen{height:64px;font-size:18px}
+.lf-listen.on{animation:lf-pulse 1s ease-in-out infinite}
+@keyframes lf-pulse{50%{transform:scale(.97);opacity:.8}}
+@media (prefers-reduced-motion:reduce){.lf-listen.on{animation:none}}
+.lf-lis{padding:16px;text-align:center}
+.lf-ttl{display:inline-flex;align-items:center;gap:8px;padding:0;border:0;background:none;color:inherit;font:inherit;text-align:left}
+.lf-bub{max-width:85%;align-self:flex-start;padding:10px 14px;border-radius:18px;background:var(--surface-3);font-size:16px;line-height:1.4}
+.lf-bub.me{align-self:flex-end;background:var(--primary-c);color:var(--on-primary-c)}
+.lf-bub small{display:block;margin-top:4px;font-size:13px;opacity:.75}
+.lf-qrbox{display:grid;justify-items:center;gap:6px;margin-top:12px;padding:24px;text-align:center}
+.lf-myqr{width:min(240px,70%)}
+.lf-myqr svg{display:block;width:100%;height:auto;border-radius:12px}
+.lf-qrnote{margin:16px 4px;font-size:14px;line-height:1.5;color:var(--on-2)}
+.lf-conf{display:grid;justify-items:center;gap:8px;text-align:center}
