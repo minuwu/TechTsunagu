@@ -187,3 +187,29 @@ def confusions_page(db: Session, shop_id: int, open_only: bool, before_id: int |
 
 def confusion(db: Session, shop_id: int, confusion_id: int) -> Confusion | None:
     return db.scalar(select(Confusion).where(Confusion.shop_id == shop_id, Confusion.id == confusion_id))
+
+
+def sign_offs_page(
+    db: Session, shop_id: int, worker_id: int | None, before_id: int | None, limit: int
+) -> list[SignOff]:
+    stmt = select(SignOff).where(SignOff.shop_id == shop_id)
+    if worker_id is not None:
+        stmt = stmt.where(SignOff.worker_id == worker_id)
+    if before_id is not None:
+        stmt = stmt.where(SignOff.id < before_id)
+    return list(db.scalars(stmt.order_by(SignOff.id.desc()).limit(limit + 1)))
+
+
+def versions_page(db: Session, shop_id: int, machine_id: int, before_id: int | None, limit: int) -> list[NoteVersion]:
+    stmt = select(NoteVersion).where(NoteVersion.shop_id == shop_id, NoteVersion.machine_id == machine_id)
+    if before_id is not None:
+        stmt = stmt.where(NoteVersion.id < before_id)
+    return list(db.scalars(stmt.order_by(NoteVersion.id.desc()).limit(limit + 1)))
+
+
+def override(db: Session, shop_id: int, machine_id: int, override_id: int) -> PanelOverride | None:
+    return db.scalar(
+        select(PanelOverride).where(
+            PanelOverride.shop_id == shop_id, PanelOverride.machine_id == machine_id, PanelOverride.id == override_id
+        )
+    )

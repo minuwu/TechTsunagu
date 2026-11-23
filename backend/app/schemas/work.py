@@ -48,6 +48,8 @@ class NoteVersionOut(CamelModel):
     version_no: int
     status: Literal["draft", "approved"]
     recorded_by: str
+    # Display name for the provenance line (XREQ-004); null until approved.
+    approved_by: str | None
     transcript_ja: str
     steps: list[Step]
     back_translation: dict[str, str]
@@ -109,6 +111,26 @@ class PanelOverrideOut(CamelModel):
     by: str
     until: datetime
     reason: str
+
+
+class OverrideIn(CamelModel):
+    """Panel Override (architecture §7.1): a named Foreman lets a Worker (or anyone, workerId null) run the machine
+    without a Sign-off for up to 8 hours, with a reason that goes into the Support Log."""
+
+    worker_id: IdIn | None
+    minutes: Annotated[int, Field(ge=1, le=480)]
+    reason: Annotated[str, StringConstraints(strip_whitespace=True, min_length=3, max_length=200)]
+
+
+class OverrideOut(CamelModel):
+    id: str
+    machine_id: str
+    worker_id: str | None
+    by: str
+    reason: str
+    starts_at: datetime
+    ends_at: datetime
+    revoked_at: datetime | None
 
 
 class PanelOut(CamelModel):

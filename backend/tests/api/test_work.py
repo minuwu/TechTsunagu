@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.ai.client import AiUnavailable
 from app.ai.fake import FakeAiClient
+from app.models.scopes import Shop as ShopRow
 from app.models.work import GlossaryTerm, Machine
 from tests import factories as f
 
@@ -74,7 +75,7 @@ def _login(client: TestClient, user_id: int, pin: str) -> str:
 @pytest.fixture
 def shop(client: TestClient, db: Session) -> Shop:
     s = f.shop(db)
-    foreman = f.user(db, s, role="foreman", pin="739215", must_change=False)
+    foreman = f.user(db, s, role="foreman", name="山口 隆", pin="739215", must_change=False)
     worker = f.user(db, s, name="Rahim", pin="2468", must_change=False)
     machine = f.machine(db, s, code="press-2")
     term = GlossaryTerm(shop_id=s.id, ja="玉掛け", reading="たまがけ", translations={"bn": "স্লিং", "en": "slinging"})
@@ -285,3 +286,112 @@ def test_a_worker_cannot_record_or_approve(client: TestClient, shop: Shop) -> No
     )
 
     assert res.status_code == 403
+
+
+def test_an_approved_note_names_who_approved_it(client: TestClient, fake_ai: FakeAiClient, shop: Shop) -> None:
+    draft = _record(client, fake_ai, shop)
+    assert draft["approvedBy"] is None
+
+    _approve(client, shop, draft["id"])
+    note = client.get(f"/api/note-versions/{draft['id']}", headers=_auth(shop.foreman)).json()["data"]
+
+    assert note["approvedBy"] == "山口 隆"
+    assert note["needsEdit"] is False
+
+
+def _override(client: TestClient, shop: Shop, **body: object) -> object:
+    return client.post(
+        f"/api/machines/{shop.machine.id}/overrides",
+        headers=_auth(shop.foreman),
+        json={"workerId": str(shop.worker_id), "minutes": 30, "reason": "trainer stands beside him"} | body,
+    )
+
+
+def test_a_foreman_override_unlocks_the_panel_until_ended(
+    client: TestClient, fake_ai: FakeAiClient, shop: Shop
+) -> None:
+    _approve(client, shop, _record(client, fake_ai, shop)["id"])
+    client.post(f"/api/machines/{shop.machine.id}/scan", headers=_auth(shop.worker))
+    assert _panel(client, shop)["state"] == "locked"
+
+    res = _override(client, shop)
+    assert res.status_code == 201, res.text  # type: ignore[attr-defined]
+    ov = res.json()["data"]  # type: ignore[attr-defined]
+    assert ov["by"] == "山口 隆"
+    assert ov["workerId"] == str(shop.worker_id)
+    panel = _panel(client, shop)
+    assert panel["state"] == "override"
+    assert panel["override"]["reason"] == "trainer stands beside him"  # type: ignore[index]
+
+    ended = client.delete(f"/api/machines/{shop.machine.id}/overrides/{ov['id']}", headers=_auth(shop.foreman))
+    assert ended.status_code == 200
+    assert ended.json()["data"]["revokedAt"] is not None
+    assert _panel(client, shop)["state"] == "locked"
+
+
+@pytest.mark.parametrize(
+    "body", [{"minutes": 481}, {"minutes": 0}, {"reason": "ok"}, {"reason": "x" * 201}, {"extra": 1}]
+)
+def test_an_override_is_at_most_8_hours_with_a_real_reason(
+    client: TestClient, shop: Shop, body: dict[str, object]
+) -> None:
+    assert _override(client, shop, **body).status_code == 422  # type: ignore[attr-defined]
+
+
+def test_an_override_cannot_name_another_shops_worker_or_be_set_by_a_worker(
+    client: TestClient, db: Session, shop: Shop
+) -> None:
+    outsider = f.user(db, f.shop(db))
+
+    assert _override(client, shop, workerId=str(outsider.id)).status_code == 404  # type: ignore[attr-defined]
+    res = client.post(
+        f"/api/machines/{shop.machine.id}/overrides",
+        headers=_auth(shop.worker),
+        json={"workerId": None, "minutes": 30, "reason": "no reason at all"},
+    )
+    assert res.status_code == 403
+
+
+def test_ending_another_machines_override_is_not_found(client: TestClient, db: Session, shop: Shop) -> None:
+    ov = _override(client, shop).json()["data"]  # type: ignore[attr-defined]
+    other = f.machine(db, f.shop(db))
+
+    res = client.delete(f"/api/machines/{other.id}/overrides/{ov['id']}", headers=_auth(shop.foreman))
+
+    assert res.status_code == 404
+
+
+def test_sign_offs_list_all_for_the_foreman_and_only_their_own_for_a_worker(
+    client: TestClient, db: Session, fake_ai: FakeAiClient, shop: Shop
+) -> None:
+    note = _record(client, fake_ai, shop)
+    _approve(client, shop, note["id"])
+    _check(client, shop, note["id"], [0, 0])
+    home = db.get(ShopRow, shop.machine.shop_id)
+    assert home is not None
+    other = f.user(db, home, name="Sadia", pin="2468", must_change=False)
+    other_token = _login(client, other.id, "2468")
+
+    mine = client.get("/api/sign-offs", headers=_auth(shop.worker)).json()["data"]
+    theirs = client.get("/api/sign-offs", headers=_auth(other_token)).json()["data"]
+    everyone = client.get("/api/sign-offs", headers=_auth(shop.foreman)).json()["data"]
+
+    assert [s["workerId"] for s in mine["items"]] == [str(shop.worker_id)]
+    assert mine["items"][0]["noteVersionId"] == note["id"]
+    assert theirs["items"] == []
+    assert len(everyone["items"]) == 1
+
+
+def test_the_knowledge_library_lists_a_machines_versions_newest_first(
+    client: TestClient, fake_ai: FakeAiClient, shop: Shop
+) -> None:
+    v1 = _record(client, fake_ai, shop)
+    _approve(client, shop, v1["id"])
+    _record(client, fake_ai, shop)
+
+    res = client.get(f"/api/machines/{shop.machine.id}/versions", headers=_auth(shop.foreman))
+    workers = client.get(f"/api/machines/{shop.machine.id}/versions", headers=_auth(shop.worker))
+
+    assert [v["versionNo"] for v in res.json()["data"]["items"]] == [2, 1]
+    assert res.json()["data"]["items"][1]["approvedBy"] == "山口 隆"
+    assert workers.status_code == 403

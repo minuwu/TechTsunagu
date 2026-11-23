@@ -1071,6 +1071,246 @@
         }
       }
     },
+    "/api/machines/{machine_id}/overrides": {
+      "post": {
+        "tags": [
+          "work"
+        ],
+        "summary": "Panel Override: allow without a Sign-off",
+        "operationId": "start_override_api_machines__machine_id__overrides_post",
+        "parameters": [
+          {
+            "name": "machine_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Machine Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OverrideIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_OverrideOut_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/machines/{machine_id}/overrides/{override_id}": {
+      "delete": {
+        "tags": [
+          "work"
+        ],
+        "summary": "End a Panel Override early",
+        "operationId": "end_override_api_machines__machine_id__overrides__override_id__delete",
+        "parameters": [
+          {
+            "name": "machine_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Machine Id"
+            }
+          },
+          {
+            "name": "override_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Override Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_OverrideOut_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/machines/{machine_id}/versions": {
+      "get": {
+        "tags": [
+          "work"
+        ],
+        "summary": "Knowledge Library: a Machine's Note Versions, newest first",
+        "operationId": "list_versions_api_machines__machine_id__versions_get",
+        "parameters": [
+          {
+            "name": "machine_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Machine Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 40
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Page_NoteVersionOut__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sign-offs": {
+      "get": {
+        "tags": [
+          "work"
+        ],
+        "summary": "Sign-offs, newest first (Workers see their own)",
+        "operationId": "list_sign_offs_api_sign_offs_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 40
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Page_SignOffOut__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/confusions": {
       "get": {
         "tags": [
@@ -3702,6 +3942,29 @@
         ],
         "title": "Envelope[NoticeReach]"
       },
+      "Envelope_OverrideOut_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/OverrideOut"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[OverrideOut]"
+      },
       "Envelope_Page_AccountOut__": {
         "properties": {
           "success": {
@@ -3794,6 +4057,29 @@
         ],
         "title": "Envelope[Page[MachineOut]]"
       },
+      "Envelope_Page_NoteVersionOut__": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/Page_NoteVersionOut_"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[Page[NoteVersionOut]]"
+      },
       "Envelope_Page_PosterOut__": {
         "properties": {
           "success": {
@@ -3839,6 +4125,29 @@
           "data"
         ],
         "title": "Envelope[Page[SenpaiPairOut]]"
+      },
+      "Envelope_Page_SignOffOut__": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/Page_SignOffOut_"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[Page[SignOffOut]]"
       },
       "Envelope_PanelOut_": {
         "properties": {
@@ -4771,6 +5080,17 @@
             "type": "string",
             "title": "Recordedby"
           },
+          "approvedBy": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approvedby"
+          },
           "transcriptJa": {
             "type": "string",
             "title": "Transcriptja"
@@ -4849,6 +5169,7 @@
           "versionNo",
           "status",
           "recordedBy",
+          "approvedBy",
           "transcriptJa",
           "steps",
           "backTranslation",
@@ -5315,6 +5636,109 @@
         "title": "NoticeUpdate",
         "description": "PATCH /notices/{id} on a draft; only the fields sent change."
       },
+      "OverrideIn": {
+        "properties": {
+          "workerId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[1-9][0-9]{0,18}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workerid"
+          },
+          "minutes": {
+            "type": "integer",
+            "maximum": 480.0,
+            "minimum": 1.0,
+            "title": "Minutes"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 3,
+            "title": "Reason"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "workerId",
+          "minutes",
+          "reason"
+        ],
+        "title": "OverrideIn",
+        "description": "Panel Override (architecture §7.1): a named Foreman lets a Worker (or anyone, workerId null) run the machine\nwithout a Sign-off for up to 8 hours, with a reason that goes into the Support Log."
+      },
+      "OverrideOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "machineId": {
+            "type": "string",
+            "title": "Machineid"
+          },
+          "workerId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workerid"
+          },
+          "by": {
+            "type": "string",
+            "title": "By"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "startsAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Startsat"
+          },
+          "endsAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Endsat"
+          },
+          "revokedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revokedat"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "machineId",
+          "workerId",
+          "by",
+          "reason",
+          "startsAt",
+          "endsAt",
+          "revokedAt"
+        ],
+        "title": "OverrideOut"
+      },
       "Page_AccountOut_": {
         "properties": {
           "items": {
@@ -5431,6 +5855,35 @@
         ],
         "title": "Page[MachineOut]"
       },
+      "Page_NoteVersionOut_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/NoteVersionOut"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "nextCursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nextcursor"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "title": "Page[NoteVersionOut]"
+      },
       "Page_NoticeForPoster_": {
         "properties": {
           "items": {
@@ -5546,6 +5999,35 @@
           "nextCursor"
         ],
         "title": "Page[SenpaiPairOut]"
+      },
+      "Page_SignOffOut_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SignOffOut"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "nextCursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nextcursor"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "title": "Page[SignOffOut]"
       },
       "PanelOut": {
         "properties": {

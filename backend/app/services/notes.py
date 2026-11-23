@@ -34,13 +34,14 @@ def shop_of(who: Principal) -> int:
 
 
 def note_out(db: Session, n: NoteVersion) -> NoteVersionOut:
-    names = repo.display_names(db, n.shop_id, [n.recorded_by])
+    names = repo.display_names(db, n.shop_id, [n.recorded_by, *([n.approved_by] if n.approved_by else [])])
     return NoteVersionOut(
         id=str(n.id),
         machine_id=str(n.machine_id),
         version_no=n.version_no,
         status=n.status,  # pyright: ignore[reportArgumentType]  # CHECK constraint
         recorded_by=names.get(n.recorded_by, ""),
+        approved_by=names.get(n.approved_by) if n.approved_by else None,
         transcript_ja=n.transcript_ja,
         steps=[Step.model_validate(s) for s in n.steps],
         back_translation=n.back_translation,
