@@ -16,6 +16,7 @@ from zoneinfo import ZoneInfo
 from sqlalchemy import create_engine, func, select, text
 from sqlalchemy.orm import Session
 
+from app.db import UTC_SESSION
 from app.models import Base
 from app.models.scopes import District, Shop, User
 from app.models.work import Check, GlossaryTerm, Machine, NoteVersion, ShiftAssignment, SignOff
@@ -179,7 +180,7 @@ def main() -> None:
     url, pepper = os.environ.get("MIGRATION_DATABASE_URL"), os.environ.get("PIN_PEPPER", "")
     if not url or len(pepper) < 32:
         raise SystemExit("Set MIGRATION_DATABASE_URL and PIN_PEPPER (32+ chars) first.")
-    engine = create_engine(url)
+    engine = create_engine(url, connect_args=UTC_SESSION)
     with Session(engine) as db:
         if args.reset:
             _reset(db)
