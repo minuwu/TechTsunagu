@@ -121,8 +121,22 @@ Write-Output ""
 Write-Output "CI identity (not secrets; they go in .github/workflows/backend-deploy.yml):"
 Write-Output "  AZURE_CLIENT_ID=$ciClient  AZURE_TENANT_ID=$tenant  AZURE_SUBSCRIPTION_ID=$sub  ACR=$acr"
 
+# Removes the first-boot credential and the demo-wipe flag from the app, then rotates the admin password so any
+# copy left in an old revision is useless. Safe to call when they are already gone.
+function Remove-Bootstrap {
+    Step "removing the bootstrap credential and seed flag; rotating the admin password"
+    if (-not (Invoke-Az containerapp list -g $Rg --query "[?name=='$App'].name" -o tsv)) { return }  # create failed: nothing to clean
+    $present = @(Invoke-Az containerapp show -n $App -g $Rg --query "properties.template.containers[0].env[].name" -o tsv)
+    $leftover = @("ADMIN_DATABASE_URL", "ADMIN_USER", "OWNER_PASSWORD", "APP_PASSWORD", "SEED_ON_START") | Where-Object { $present -contains $_ }
+    if ($leftover) { Invoke-Az containerapp update -n $App -g $Rg --remove-env-vars @leftover -o none }
+    $secrets = @(Invoke-Az containerapp secret list -n $App -g $Rg --query "[].name" -o tsv)
+    $leftSecrets = @("admin-url", "owner-pw", "app-pw") | Where-Object { $secrets -contains $_ }
+    if ($leftSecrets) { Invoke-Az containerapp secret remove -n $App -g $Rg --secret-names @leftSecrets -o none }
+    Invoke-Az postgres flexible-server update -g $Rg -n $db --admin-password (New-Secret 32) -o none
+}
+
 if (Invoke-Az containerapp list -g $Rg --query "[?name=='$App'].name" -o tsv) {
-    Step "$App already exists: setup is complete (CI ships code from now on)"; return
+    Remove-Bootstrap; Step "$App already exists: setup is complete (CI ships code from now on)"; return
 }
 
 # Newest commit-tagged image (never the mutable "latest"). The repository does not exist until CI pushes one.
@@ -144,24 +158,23 @@ Invoke-Az postgres flexible-server update -g $Rg -n $db --admin-password $adminP
 $ownerUrl = "postgresql+psycopg://wakatta_owner:$ownerPw@${dbHost}:5432/wakatta?sslmode=require"
 $appUrl = "postgresql+psycopg://wakatta_app:$appPw@${dbHost}:5432/wakatta?sslmode=require"
 $adminUrl = "postgresql://${DbAdmin}:$adminPw@${dbHost}:5432/postgres?sslmode=require"
-$bootstrapEnv = @("ADMIN_DATABASE_URL", "ADMIN_USER", "OWNER_PASSWORD", "APP_PASSWORD", "SEED_ON_START")
 
 Step "container app ${App}: first boot creates the database, migrates and seeds"
-Invoke-Az containerapp create -n $App -g $Rg --environment $EnvName --image $ref `
-    --registry-server "$acr.azurecr.io" --registry-identity $idRes --user-assigned $idRes `
-    --target-port 8000 --ingress external --min-replicas 1 --max-replicas 1 --cpu 0.5 --memory 1.0Gi `
-    --secrets "database-url=$appUrl" "migration-database-url=$ownerUrl" "pin-pepper=$pepper" `
-    "admin-url=$adminUrl" "owner-pw=$ownerPw" "app-pw=$appPw" `
-    --env-vars "DATABASE_URL=secretref:database-url" "MIGRATION_DATABASE_URL=secretref:migration-database-url" `
-    "PIN_PEPPER=secretref:pin-pepper" "APP_DB_ROLE=wakatta_app" "FRONTEND_ORIGIN=$FrontendOrigins" `
-    "LOG_LEVEL=INFO" "AI_MODE=fake" `
-    "ADMIN_DATABASE_URL=secretref:admin-url" "ADMIN_USER=$DbAdmin" "OWNER_PASSWORD=secretref:owner-pw" `
-    "APP_PASSWORD=secretref:app-pw" "SEED_ON_START=reset" -o none
-$fqdn = Wait-Ready
-
-Step "remove the bootstrap credential and seed flag; rotate the admin password"
-Invoke-Az containerapp update -n $App -g $Rg --remove-env-vars @bootstrapEnv -o none
-Invoke-Az containerapp secret remove -n $App -g $Rg --secret-names admin-url owner-pw app-pw -o none
-Invoke-Az postgres flexible-server update -g $Rg -n $db --admin-password (New-Secret 32) -o none
+try {
+    Invoke-Az containerapp create -n $App -g $Rg --environment $EnvName --image $ref `
+        --registry-server "$acr.azurecr.io" --registry-identity $idRes --user-assigned $idRes `
+        --target-port 8000 --ingress external --min-replicas 1 --max-replicas 1 --cpu 0.5 --memory 1.0Gi `
+        --secrets "database-url=$appUrl" "migration-database-url=$ownerUrl" "pin-pepper=$pepper" `
+        "admin-url=$adminUrl" "owner-pw=$ownerPw" "app-pw=$appPw" `
+        --env-vars "DATABASE_URL=secretref:database-url" "MIGRATION_DATABASE_URL=secretref:migration-database-url" `
+        "PIN_PEPPER=secretref:pin-pepper" "APP_DB_ROLE=wakatta_app" "FRONTEND_ORIGIN=$FrontendOrigins" `
+        "LOG_LEVEL=INFO" "AI_MODE=fake" `
+        "ADMIN_DATABASE_URL=secretref:admin-url" "ADMIN_USER=$DbAdmin" "OWNER_PASSWORD=secretref:owner-pw" `
+        "APP_PASSWORD=secretref:app-pw" "SEED_ON_START=reset" -o none
+    $null = Wait-Ready
+} finally {
+    # Runs even if the first boot failed: never leave the admin credential or the wipe flag on the app.
+    Remove-Bootstrap
+}
 $fqdn = Wait-Ready
 Step "done: https://$fqdn/api  (demo: shop SASEBO01, Foreman PIN 246810, Workers PIN 2468)"

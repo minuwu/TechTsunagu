@@ -31,6 +31,9 @@ def main() -> None:
     if os.environ.get("SEED_ON_START") == "reset":
         sys.argv = ["app.seed", "--reset"]
         runpy.run_module("app.seed", run_name="__main__")
+    # The API itself needs only DATABASE_URL (the app role): drop the stronger credentials before it starts.
+    for name in ("MIGRATION_DATABASE_URL", "ADMIN_DATABASE_URL", "OWNER_PASSWORD", "APP_PASSWORD"):
+        os.environ.pop(name, None)
     os.execvp(UVICORN[0], UVICORN)  # noqa: S606  # fixed argv, no user input
 
 
