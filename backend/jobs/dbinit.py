@@ -44,7 +44,7 @@ def main() -> None:
         conn.execute(sql.SQL("SET ROLE {}").format(_ident(OWNER)))
         conn.execute("REVOKE ALL ON SCHEMA public FROM PUBLIC")
         conn.execute(sql.SQL("GRANT USAGE ON SCHEMA public TO {}").format(_ident(APP)))
-    print(f"roles {OWNER} and {APP} and database {DB} are ready")
+    print(f"roles {OWNER} and {APP} and database {DB} are ready")  # noqa: T201  # a job's log line
 
 
 if __name__ == "__main__":
