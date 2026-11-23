@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import { m } from '@/i18n/paraglide/messages'
+import { Spot } from '@/ui/v3/components/Spot'
 
 export function NotFoundScreen() {
   return (
@@ -7,6 +8,7 @@ export function NotFoundScreen() {
       aria-labelledby="not-found-title"
       className="max-w-[40em] space-y-4"
     >
+      <Spot name="state-404" className="size-40 sm:size-48" />
       <h1 id="not-found-title" className="display text-4xl">
         {m.not_found_title()}
       </h1>

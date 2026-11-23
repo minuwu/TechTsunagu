@@ -7,6 +7,7 @@ import { Landing } from './Landing'
 import { Card } from '@/ui/v3/components/Card'
 import { ConfirmDialog, Skeleton } from '@/ui/v3/components/Feedback'
 import { Mark } from '@/ui/v3/components/Icon'
+import { Spot } from '@/ui/v3/components/Spot'
 import { Button } from '@/ui/v3/components/ui/button'
 import { uiLang } from '@/ui/v3/lib/format'
 import { useToastWhen } from '@/ui/v3/lib/toast'
@@ -57,6 +58,7 @@ export function HomeScreen() {
           <Card
             title={m.hub_worker()}
             id="hub-worker"
+            aside={<Spot name="role-worker" className="-my-2 size-12" />}
             className="lg:col-span-5"
           >
             <p className="mb-4 text-muted-foreground">{m.hub_worker_body()}</p>
@@ -126,6 +128,7 @@ export function HomeScreen() {
           <Card
             title={m.hub_foreman()}
             id="hub-foreman"
+            aside={<Spot name="role-foreman" className="-my-2 size-12" />}
             className="lg:col-span-4"
           >
             <p className="mb-4 text-muted-foreground">
@@ -140,6 +143,7 @@ export function HomeScreen() {
           <Card
             title={m.hub_community()}
             id="hub-community"
+            aside={<Spot name="role-poster" className="-my-2 size-12" />}
             tone="life"
             className="lg:col-span-4"
           >
@@ -155,6 +159,7 @@ export function HomeScreen() {
           <Card
             title={m.hub_senpai()}
             id="hub-senpai"
+            aside={<Spot name="role-senpai" className="-my-2 size-12" />}
             tone="life"
             className="lg:col-span-4"
           >
