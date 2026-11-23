@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Common -->
+    <string name="nearmiss_loading">Loading...</string>
+    <string name="nearmiss_empty">No reports</string>
+    <string name="nearmiss_retry">Retry</string>
+    <string name="nearmiss_error">Error: %1$s</string>
+    <string name="nearmiss_done">Done</string>
+    <string name="nearmiss_screen_id">Screen: %1$s</string>
+
+    <!-- Near-miss New Screen -->
+    <string name="nearmiss_new_screen_title">Near-miss Report</string>
+    <string name="nearmiss_step_machine">1 · Which machine?</string>
+    <string name="nearmiss_step_what">2 · What happened? Hold to speak</string>
+    <string name="nearmiss_mic_label">Hold to record</string>
+    <string name="nearmiss_text_placeholder">Hold the mic and say what happened, or type here</string>
+    <string name="nearmiss_auto_translate_hint">Auto-translated to Japanese for Tanaka</string>
+    <string name="nearmiss_step_photo">3 · Photo (optional)</string>
+    <string name="nearmiss_add_photo">Add photo</string>
+    <string name="nearmiss_tap_circle_hint">Tap the photo to circle the spot</string>
+    <string name="nearmiss_remove_photo">Remove photo</string>
+    <string name="nearmiss_step_severity">4 · How serious?</string>
+    <string name="nearmiss_severity_low">Low</string>
+    <string name="nearmiss_severity_mid">Medium</string>
+    <string name="nearmiss_severity_high">High</string>
+    <string name="nearmiss_my_reports">My reports</string>
+    <string name="nearmiss_send_button">Send to %1$s</string>
+    <string name="nearmiss_send_button_default">Send report</string>
+    <string name="nearmiss_sent_title">Sent to %1$s</string>
+    <string name="nearmiss_sent_message">He gets a notice now. Thank you for speaking up.</string>
+    <string name="nearmiss_report_another">Report another</string>
+    <string name="nearmiss_foreman_info">Near-miss reports arrive from workers\' phones</string>
+    <string name="nearmiss_view_list">View reports list</string>
+    <string name="nearmiss_pick_machine_first">Pick the machine first</string>
+
+    <!-- Near-miss List Screen -->
+    <string name="nearmiss_list_screen_title">Near-miss reports</string>
+    <string name="nearmiss_filter_open">Open</string>
+    <string name="nearmiss_filter_ack">Seen</string>
+    <string name="nearmiss_empty_open">No open reports</string>
+    <string name="nearmiss_empty_ack">Nothing seen yet</string>
+    <string name="nearmiss_new_report_fab">New report</string>
+    <string name="nearmiss_status_seen">Seen by %1$s</string>
+    <string name="nearmiss_status_sent">Sent</string>
+    <string name="nearmiss_status_waiting">Waiting to send</string>
+
+    <!-- Near-miss Detail Screen -->
+    <string name="nearmiss_detail_screen_title">Near-miss</string>
+    <string name="nearmiss_not_found">Report not found</string>
+    <string name="nearmiss_header_ja_trans">Japanese translation</string>
+    <string name="nearmiss_header_original">Original text</string>
+    <string name="nearmiss_header_worker_said">What you said</string>
+    <string name="nearmiss_header_foreman_reads">What %1$s reads (Japanese)</string>
+    <string name="nearmiss_seen_at">Seen %1$s</string>
+    <string name="nearmiss_btn_make_task">Create Task</string>
+    <string name="nearmiss_btn_task_created">Task Created</string>
+    <string name="nearmiss_btn_ack">Acknowledge</string>
+    <string name="nearmiss_btn_acked">Seen</string>
+    <string name="nearmiss_task_created_toast">Task added to board</string>
+</resources>

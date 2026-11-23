@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="core_design_retry">Retry</string>
+    <string name="core_design_loading">Loading…</string>
+    <string name="core_design_back">Back</string>
+    <string name="core_design_status_green">Understood</string>
+    <string name="core_design_status_orange">Needs check</string>
+    <string name="core_design_status_red">Not understood</string>
+    <string name="core_design_status_wait">Waiting</string>
+</resources>

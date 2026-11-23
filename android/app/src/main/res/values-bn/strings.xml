@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Bottom navigation tabs -->
+    <string name="app_tab_home">হোম</string>
+    <string name="app_tab_chats">চ্যাট</string>
+    <string name="app_tab_board">বোর্ড</string>
+    <string name="app_tab_machines">মেশিন</string>
+    <string name="app_tab_me">আমি</string>
+
+    <!-- Demo and Auth strings -->
+    <string name="app_demo_worker">কর্মী (রহিম)</string>
+    <string name="app_demo_foreman">ফোরম্যান (তানাকা)</string>
+    <string name="app_demo_signin_prompt">ডেমো দ্রুত সাইন-ইন:</string>
+    <string name="app_demo_signout">সাইন আউট</string>
+</resources>

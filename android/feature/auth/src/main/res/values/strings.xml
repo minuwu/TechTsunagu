@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="auth_signin_title">Sign In</string>
+    <string name="auth_changepin_title">Change PIN</string>
+    <string name="auth_shop_code_label">Shop Code</string>
+    <string name="auth_shop_code_hint">8 characters (e.g. SHOP1234)</string>
+    <string name="auth_pin_label">PIN</string>
+    <string name="auth_pin_hint">4 to 6 digits</string>
+    <string name="auth_current_pin_label">Current PIN</string>
+    <string name="auth_new_pin_label">New PIN</string>
+    <string name="auth_confirm_pin_label">Confirm New PIN</string>
+    <string name="auth_submit">Sign In</string>
+    <string name="auth_change_pin_submit">Update PIN</string>
+    <string name="auth_select_worker">Select your name</string>
+    <string name="auth_screen_id">Screen: %1$s</string>
+    <string name="auth_loading">Loading...</string>
+    <string name="auth_empty">No workers found</string>
+    <string name="auth_retry">Retry</string>
+    <string name="auth_error">Error: %1$s</string>
+    <string name="auth_role_label">I am a</string>
+    <string name="auth_role_foreman">Foreman</string>
+    <string name="auth_role_worker">Worker</string>
+    <string name="auth_error_title">Something went wrong</string>
+    <string name="auth_error_wrong_pin">That PIN is not correct.</string>
+    <string name="auth_error_locked">Too many wrong PINs. You can try again after %1$s.</string>
+    <string name="auth_error_rate_limited">Too many tries. Wait %1$s seconds and try again.</string>
+    <string name="auth_error_offline">No connection. Check the network and try again.</string>
+    <string name="auth_error_timeout">The server did not answer in time. Try again.</string>
+    <string name="auth_error_server">The server has a problem. Try again later.</string>
+    <string name="auth_error_upgrade">Please update the app to continue.</string>
+    <string name="auth_error_unknown_shop">This shop code was not found.</string>
+    <string name="auth_error_pin_rejected">That PIN is not allowed. Use digits only, and not a repeat or a run.</string>
+    <string name="auth_error_unknown">Something went wrong. Try again.</string>
+</resources>

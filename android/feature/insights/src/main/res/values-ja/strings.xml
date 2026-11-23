@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Screen titles -->
+    <string name="insights_analytics_screen_title">理解度分析</string>
+    <string name="insights_skills_screen_title">力量表</string>
+    <string name="insights_followups_screen_title">フォローアップ</string>
+    <string name="insights_learning_screen_title">学習履歴</string>
+    <string name="insights_learning_title_of">%1$sさんの学習履歴</string>
+
+    <!-- States and errors -->
+    <string name="insights_loading">読み込み中...</string>
+    <string name="insights_retry">もう一度試す</string>
+    <string name="insights_error_offline">インターネットにつながっていないため、読み込めませんでした。接続を確認して、「もう一度試す」を押してください。</string>
+    <string name="insights_error_forbidden">このページは職長だけが見られます。必要なときは職長に聞いてください。</string>
+    <string name="insights_error_not_found">この人が見つかりませんでした。前の画面に戻って、選び直してください。</string>
+    <string name="insights_error_generic">問題が起きて、読み込めませんでした。しばらくしてから、「もう一度試す」を押してください。</string>
+
+    <!-- Time ago -->
+    <string name="insights_ago_now">たった今</string>
+    <string name="insights_ago_minutes">%1$d分前</string>
+    <string name="insights_ago_hours">%1$d時間前</string>
+    <string name="insights_ago_days">%1$d日前</string>
+
+    <!-- Follow-up status -->
+    <string name="insights_status_open">要フォロー</string>
+    <string name="insights_status_clarified">説明済</string>
+    <string name="insights_status_understood">理解</string>
+    <string name="insights_status_unknown">不明</string>
+
+    <!-- Value card -->
+    <string name="insights_value_title">1つの指示がもたらす価値</string>
+    <string name="insights_role_worker">作業者</string>
+    <string name="insights_role_foreman">職長</string>
+    <string name="insights_role_employer">会社</string>
+    <string name="insights_value_worker">言葉を理解できた</string>
+    <string name="insights_value_foreman">つまずきを見つけて解消</string>
+    <string name="insights_value_employer">ミスが減り、研修の記録が残る</string>
+
+    <!-- Analytics -->
+    <string name="insights_analytics_empty">まだ分析するデータがありません。作業者が最初のチェックに答えると、数字が表示されます。</string>
+    <string name="insights_kpi_time">節約した時間（デモ値）</string>
+    <string name="insights_kpi_rework">手戻り防止（デモ値）</string>
+    <string name="insights_kpi_hours">%1$.1f 時間/週</string>
+    <string name="insights_kpi_cases">%1$d 件</string>
+    <string name="insights_trend_title">理解度の推移（4週間）</string>
+    <string name="insights_trend_cd">4週間の理解度の推移。今週は%1$dパーセントです。</string>
+    <string name="insights_week_3_ago">3週前</string>
+    <string name="insights_week_2_ago">2週前</string>
+    <string name="insights_week_last">先週</string>
+    <string name="insights_week_this">今週</string>
+    <string name="insights_funnel_title">ループの流れ</string>
+    <string name="insights_funnel_sent">指示</string>
+    <string name="insights_funnel_understood">理解</string>
+    <string name="insights_funnel_followup">要フォロー</string>
+    <string name="insights_funnel_explained">説明済</string>
+    <string name="insights_funnel_reunderstood">再確認で理解</string>
+    <string name="insights_bars_title">作業者ごとの理解</string>
+    <string name="insights_bar_cd">%1$sさん、理解度%2$dパーセント。学習履歴を開きます。</string>
+    <string name="insights_vocab_title">つまずきやすい用語</string>
+    <string name="insights_vocab_none">まだ混乱は記録されていません</string>
+    <string name="insights_vocab_people_times">%1$d人・%2$d回</string>
+    <string name="insights_vocab_in_glossary">用語集済</string>
+    <string name="insights_vocab_add">用語集に追加</string>
+    <string name="insights_trend_worse">最近、混乱が増えています</string>
+    <string name="insights_trend_better">最近、混乱が減っています</string>
+    <string name="insights_heat_title">混乱ヒートマップ</string>
+    <string name="insights_heat_cell_cd">%1$s、%2$sさん：%3$d回</string>
+    <string name="insights_heat_hint">マスをタップすると、混乱のもとになった指示が見られます</string>
+    <string name="insights_heat_none">つまずきはありません</string>
+    <string name="insights_heat_source">「%1$s」を含む指示（%2$s）</string>
+
+    <!-- Skill Matrix -->
+    <string name="insights_skills_empty">表示する作業者または機械がありません。</string>
+    <string name="insights_skill_valid">有効</string>
+    <string name="insights_skill_expiring">まもなく失効</string>
+    <string name="insights_skill_expiring_legend">14日以内に失効</string>
+    <string name="insights_skill_expired">失効</string>
+    <string name="insights_skill_missing">未取得</string>
+    <string name="insights_skill_none">未</string>
+    <string name="insights_skill_days_left">あと%1$d日</string>
+    <string name="insights_skill_cell_cd">%1$sさん、%2$s：%3$s</string>
+    <string name="insights_skills_hint">マスをタップすると詳しく見られます</string>
+    <string name="insights_skill_signed_on">サインオフ日</string>
+    <string name="insights_skill_version">バージョン</string>
+    <string name="insights_skill_expires">有効期限</string>
+    <string name="insights_skill_view_learning">学習履歴を見る</string>
+
+    <!-- Follow-ups -->
+    <string name="insights_followups_none_open">要フォローはありません。みんな理解できています。</string>
+    <string name="insights_followups_none_yet">まだありません。ここに履歴が表示されます。</string>
+    <string name="insights_followup_wrong">誤答：%1$s</string>
+
+    <!-- Learning History -->
+    <string name="insights_learning_empty">まだ記録がありません。つまずいた言葉と覚えた言葉がここに表示されます。</string>
+    <string name="insights_learning_mastered">習得した言葉</string>
+    <string name="insights_learning_gaps">いまの課題</string>
+    <string name="insights_learning_streak">連続日数</string>
+    <string name="insights_learning_no_gaps">課題はありません</string>
+    <string name="insights_learning_timeline">学習の記録</string>
+    <string name="insights_learning_missed">%1$d回つまずきました</string>
+</resources>

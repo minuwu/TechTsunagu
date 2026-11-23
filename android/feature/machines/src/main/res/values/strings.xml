@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Common -->
+    <string name="machines_screen_title">Machines</string>
+    <string name="machines_machine_screen_title">Machine Detail</string>
+    <string name="machines_scan_screen_title">Scan QR</string>
+    <string name="machines_panel_screen_title">Machine Panel</string>
+    <string name="machines_note_screen_title">Work Instructions</string>
+    <string name="machines_screen_id">Screen: %1$s</string>
+    <string name="machines_loading">Loading...</string>
+    <string name="machines_empty">No machines found</string>
+    <string name="machines_retry">Retry</string>
+    <string name="machines_error">Error: %1$s</string>
+    <string name="machines_generic_error">An unexpected error occurred. Please try again.</string>
+    <string name="machines_you_tag">you</string>
+    <string name="machines_cd_back">Navigate back</string>
+    <string name="machines_cd_lock">Locked icon</string>
+    <string name="machines_cd_ready">Ready icon</string>
+    <string name="machines_cd_override">Override icon</string>
+    <string name="machines_cd_qr">Machine QR sticker</string>
+    <string name="machines_cd_speaker">Read instructions aloud</string>
+
+    <!-- Machines List -->
+    <string name="machines_ready_to_operate">Ready to operate</string>
+    <string name="machines_locked">Locked</string>
+    <string name="machines_expiring_soon">Expiring soon</string>
+    <string name="machines_take_check_to_unlock">Take the Check to unlock</string>
+    <string name="machines_workers_status">Worker status</string>
+    <string name="machines_signed_off_ratio">%1$d/%2$d Signed off</string>
+    <string name="machines_all_signed_off">All %1$d workers signed off</string>
+
+    <!-- Machine Detail -->
+    <string name="machines_everyone_on_machine">Everyone on this machine</string>
+    <string name="machines_open_panel">Open Machine Panel</string>
+    <string name="machines_machine_qr">Machine QR</string>
+    <string name="machines_qr_caption">Stick it on the machine. Scan to start the Check and sign-off.</string>
+    <string name="machines_print_qr">Print QR</string>
+    <string name="machines_qr_printed_toast">QR code ready for printing</string>
+    <string name="machines_recent_tasks">Recent tasks on this machine</string>
+    <string name="machines_no_tasks">No tasks yet</string>
+    <string name="machines_shift_assignment">Shift Assignment</string>
+    <string name="machines_current_operator">Operator: %1$s</string>
+    <string name="machines_no_operator">No operator assigned</string>
+    <string name="machines_change_operator">Change Operator</string>
+    <string name="machines_clear_operator">Unassign</string>
+    <string name="machines_view_work_instructions">View Work Instructions (Note %1$s)</string>
+
+    <!-- Scan Screen -->
+    <string name="machines_scan_camera_title">Scan the machine QR</string>
+    <string name="machines_scan_point_camera">Point the camera at the QR on the machine</string>
+    <string name="machines_scan_simulate_tip">Tap a machine to simulate a scan</string>
+    <string name="machines_scan_manual_input">Or enter machine code manually</string>
+    <string name="machines_scan_code_placeholder">Machine code (e.g. lathe-1, press-2)</string>
+    <string name="machines_scan_submit">Submit</string>
+    <string name="machines_scan_torch">Torch</string>
+    <string name="machines_scan_close">Close</string>
+    <string name="machines_scan_invalid_qr">Invalid QR code</string>
+    <string name="machines_scan_machine_not_found">Machine not found for this code</string>
+
+    <!-- Panel Screen -->
+    <string name="machines_panel_presence">Presence: at this machine</string>
+    <string name="machines_panel_presence_worker">Present: %1$s</string>
+    <string name="machines_panel_no_signoff_yet">No sign-off for Note %1$s yet</string>
+    <string name="machines_panel_signed_off_on">Signed off · Note %1$s</string>
+    <string name="machines_panel_locked_hint">You cannot use this machine until you read the Note and pass the Check.</string>
+    <string name="machines_panel_read_note">Read the Note</string>
+    <string name="machines_panel_near_miss">Near-miss</string>
+    <string name="machines_panel_per_worker_status">Per-worker status</string>
+    <string name="machines_panel_remind">Remind</string>
+    <string name="machines_panel_reminded_toast">Reminded %1$s to take the Check</string>
+    <string name="machines_panel_view_note_and_questions">View Note and Check Questions (%1$s)</string>
+    <string name="machines_panel_override_btn">Panel Override</string>
+    <string name="machines_panel_override_banner">OVERRIDE ACTIVE</string>
+    <string name="machines_panel_override_by">Authorized by %1$s</string>
+    <string name="machines_panel_override_reason">Reason: %1$s</string>
+    <string name="machines_panel_override_ends">Expires at %1$s</string>
+    <string name="machines_panel_override_end_btn">End Override</string>
+    <string name="machines_panel_override_sheet_title">Allow operation without Sign-off</string>
+    <string name="machines_panel_override_worker_label">Target Worker</string>
+    <string name="machines_panel_override_anyone">Anyone (All workers)</string>
+    <string name="machines_panel_override_duration_label">Duration</string>
+    <string name="machines_panel_override_reason_label">Reason (Required, 3-200 chars)</string>
+    <string name="machines_panel_override_reason_error">Reason must be between 3 and 200 characters</string>
+    <string name="machines_panel_override_review">Review Override</string>
+    <string name="machines_panel_override_confirm_title">Confirm Panel Override</string>
+    <string name="machines_panel_override_confirm_message">Are you sure you want to allow operation of this machine without passing the safety check?</string>
+    <string name="machines_panel_override_confirm_btn">Confirm &amp; Authorize</string>
+    <string name="machines_panel_cancel">Cancel</string>
+    <string name="machines_panel_mins_format">%1$d minutes</string>
+
+    <!-- Note Screen -->
+    <string name="machines_note_safe_use_note">Safe-use Note</string>
+    <string name="machines_note_updated_by">Updated %1$s · %2$s</string>
+    <string name="machines_note_version_label">Version %1$s</string>
+    <string name="machines_note_history_label">Version History</string>
+    <string name="machines_note_signed_off_banner">You are signed off on this Note · Machine is Ready for you</string>
+    <string name="machines_note_back_translation">Back-translation (EN→JA)</string>
+    <string name="machines_note_start_check">Start the Check · %1$d questions</string>
+    <string name="machines_note_listen">Read aloud</string>
+    <string name="machines_note_stop_listen">Stop</string>
+    <string name="machines_note_check_preview_title">Check Questions (%1$d)</string>
+    <string name="machines_note_correct_answer">Correct: %1$s</string>
+    <string name="machines_note_question_count">Question %1$d of %2$d</string>
+    <string name="machines_note_correct">Correct!</string>
+    <string name="machines_note_not_quite">Not quite</string>
+    <string name="machines_note_review_step">Review step %1$d: %2$s</string>
+    <string name="machines_note_next_question">Next question</string>
+    <string name="machines_note_see_result">See result</string>
+    <string name="machines_note_check_passed">Check passed</string>
+    <string name="machines_note_unlocking_machine">Unlocking %1$s… Sign-off valid for 90 days.</string>
+    <string name="machines_note_check_failed">Not yet</string>
+    <string name="machines_note_failed_score">%1$d of %2$d correct. The machine stays Locked.</string>
+    <string name="machines_note_read_steps_again">Read these steps again</string>
+    <string name="machines_note_reread_btn">Read the Note</string>
+    <string name="machines_note_retry_btn">Retry the Check</string>
+    <string name="machines_note_conflict_title">Work Instructions Updated</string>
+    <string name="machines_note_conflict_message">The work instructions were updated while you were taking the check. Please review the updated instructions and take the check again.</string>
+    <string name="machines_note_conflict_btn">Review Updated Instructions</string>
+
+    <!-- Typed errors, Panel UNKNOWN state, messages from ViewModels -->
+    <string name="machines_error_offline">No connection. Please try again.</string>
+    <string name="machines_error_not_found">Not found.</string>
+    <string name="machines_panel_override_authorized">Override authorized</string>
+    <string name="machines_panel_unknown">Status unknown: no connection. Ask your foreman before you start.</string>
+    <string name="machines_panel_state_ready">READY</string>
+    <string name="machines_panel_state_locked">LOCKED</string>
+    <string name="machines_panel_state_override">OVERRIDE</string>
+    <string name="machines_panel_state_unknown">UNKNOWN</string>
+    <string name="machines_panel_override_reason_hint">Line is stopped otherwise...</string>
+    <string name="machines_note_submit_failed">Could not send your answers. Check your connection and try again.</string>
+</resources>

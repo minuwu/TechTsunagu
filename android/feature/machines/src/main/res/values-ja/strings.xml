@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Common -->
+    <string name="machines_screen_title">機械</string>
+    <string name="machines_machine_screen_title">機械詳細</string>
+    <string name="machines_scan_screen_title">QR読み取り</string>
+    <string name="machines_panel_screen_title">マシンパネル</string>
+    <string name="machines_note_screen_title">作業手順</string>
+    <string name="machines_screen_id">画面: %1$s</string>
+    <string name="machines_loading">読み込み中...</string>
+    <string name="machines_empty">機械が見つかりません</string>
+    <string name="machines_retry">再試行</string>
+    <string name="machines_error">エラー: %1$s</string>
+    <string name="machines_generic_error">予期しないエラーが発生しました。もう一度お試しください。</string>
+    <string name="machines_you_tag">あなた</string>
+    <string name="machines_cd_back">前に戻る</string>
+    <string name="machines_cd_lock">ロック中アイコン</string>
+    <string name="machines_cd_ready">使用可能アイコン</string>
+    <string name="machines_cd_override">一時許可アイコン</string>
+    <string name="machines_cd_qr">機械貼付用QRコード</string>
+    <string name="machines_cd_speaker">手順を読み上げる</string>
+
+    <!-- Machines List -->
+    <string name="machines_ready_to_operate">使用可</string>
+    <string name="machines_locked">ロック中</string>
+    <string name="machines_expiring_soon">期限間近</string>
+    <string name="machines_take_check_to_unlock">チェックを受けてロック解除</string>
+    <string name="machines_workers_status">作業者の状態</string>
+    <string name="machines_signed_off_ratio">%1$d/%2$d サインオフ済み</string>
+    <string name="machines_all_signed_off">作業員全員（%1$d名）サインオフ済み</string>
+
+    <!-- Machine Detail -->
+    <string name="machines_everyone_on_machine">この機械の全員</string>
+    <string name="machines_open_panel">マシンパネルを開く</string>
+    <string name="machines_machine_qr">機械QR</string>
+    <string name="machines_qr_caption">機械に貼って、スキャンでチェックと承認を開始</string>
+    <string name="machines_print_qr">QRを印刷</string>
+    <string name="machines_qr_printed_toast">QRコードを印刷キューに送信しました</string>
+    <string name="machines_recent_tasks">この機械の最近のタスク</string>
+    <string name="machines_no_tasks">タスクなし</string>
+    <string name="machines_shift_assignment">シフト割当</string>
+    <string name="machines_current_operator">担当者: %1$s</string>
+    <string name="machines_no_operator">担当者未割当</string>
+    <string name="machines_change_operator">担当者を変更</string>
+    <string name="machines_clear_operator">割当を解除</string>
+    <string name="machines_view_work_instructions">作業手順を確認する (ノート %1$s)</string>
+
+    <!-- Scan Screen -->
+    <string name="machines_scan_camera_title">機械のQRをスキャン</string>
+    <string name="machines_scan_point_camera">機械のQRコードを枠に合わせてください</string>
+    <string name="machines_scan_simulate_tip">機械をタップして、スキャンを再現します</string>
+    <string name="machines_scan_manual_input">または機械コードを手入力</string>
+    <string name="machines_scan_code_placeholder">機械コード（例：lathe-1, press-2）</string>
+    <string name="machines_scan_submit">送信</string>
+    <string name="machines_scan_torch">ライト</string>
+    <string name="machines_scan_close">閉じる</string>
+    <string name="machines_scan_invalid_qr">無効なQRコード</string>
+    <string name="machines_scan_machine_not_found">該当する機械が見つかりません</string>
+
+    <!-- Panel Screen -->
+    <string name="machines_panel_presence">在席：この機械にいます</string>
+    <string name="machines_panel_presence_worker">在席: %1$s</string>
+    <string name="machines_panel_no_signoff_yet">ノート %1$s のサインオフ未取得</string>
+    <string name="machines_panel_signed_off_on">サインオフ済み · ノート %1$s</string>
+    <string name="machines_panel_locked_hint">作業手順を読んでチェックに合格するまで、この機械は使用できません。</string>
+    <string name="machines_panel_read_note">手順ノートを読む</string>
+    <string name="machines_panel_near_miss">ヒヤリハット報告</string>
+    <string name="machines_panel_per_worker_status">作業員ごとの状態</string>
+    <string name="machines_panel_remind">リマインド</string>
+    <string name="machines_panel_reminded_toast">%1$s にチェックのリマインドを送信しました</string>
+    <string name="machines_panel_view_note_and_questions">ノートと確認質問を見る (%1$s)</string>
+    <string name="machines_panel_override_btn">パネル一時許可</string>
+    <string name="machines_panel_override_banner">一時許可（オーバーライド）作動中</string>
+    <string name="machines_panel_override_by">承認者: %1$s</string>
+    <string name="machines_panel_override_reason">理由: %1$s</string>
+    <string name="machines_panel_override_ends">終了予定: %1$s</string>
+    <string name="machines_panel_override_end_btn">一時許可を終了</string>
+    <string name="machines_panel_override_sheet_title">サインオフなしでの運転許可</string>
+    <string name="machines_panel_override_worker_label">対象の作業者</string>
+    <string name="machines_panel_override_anyone">全員（制限なし）</string>
+    <string name="machines_panel_override_duration_label">有効時間</string>
+    <string name="machines_panel_override_reason_label">理由（必須、3〜200文字）</string>
+    <string name="machines_panel_override_reason_error">理由は3文字以上200文字以下で入力してください</string>
+    <string name="machines_panel_override_review">内容を確認</string>
+    <string name="machines_panel_override_confirm_title">一時許可の確定</string>
+    <string name="machines_panel_override_confirm_message">安全チェック未合格での機械運転を許可しますか？安全を確認してください。</string>
+    <string name="machines_panel_override_confirm_btn">確定して許可</string>
+    <string name="machines_panel_cancel">キャンセル</string>
+    <string name="machines_panel_mins_format">%1$d分</string>
+
+    <!-- Note Screen -->
+    <string name="machines_note_safe_use_note">現場安全ノート</string>
+    <string name="machines_note_updated_by">更新 %1$s · %2$s</string>
+    <string name="machines_note_version_label">バージョン %1$s</string>
+    <string name="machines_note_history_label">更新履歴</string>
+    <string name="machines_note_signed_off_banner">このノートにサインオフ済み · 機械を使用できます</string>
+    <string name="machines_note_back_translation">逆翻訳 (英→日)</string>
+    <string name="machines_note_start_check">チェックを開始 · %1$d問</string>
+    <string name="machines_note_listen">読み上げ</string>
+    <string name="machines_note_stop_listen">停止</string>
+    <string name="machines_note_check_preview_title">確認質問 (%1$d問)</string>
+    <string name="machines_note_correct_answer">正解: %1$s</string>
+    <string name="machines_note_question_count">質問 %1$d / %2$d</string>
+    <string name="machines_note_correct">正解！</string>
+    <string name="machines_note_not_quite">不正解</string>
+    <string name="machines_note_review_step">手順%1$dを確認: %2$s</string>
+    <string name="machines_note_next_question">次の質問</string>
+    <string name="machines_note_see_result">結果を見る</string>
+    <string name="machines_note_check_passed">チェック合格</string>
+    <string name="machines_note_unlocking_machine">%1$s をロック解除中… 90日間有効</string>
+    <string name="machines_note_check_failed">再確認が必要です</string>
+    <string name="machines_note_failed_score">%2$d問中 %1$d問正解。機械はロックされたままです。</string>
+    <string name="machines_note_read_steps_again">これらの手順をもう一度読みましょう</string>
+    <string name="machines_note_reread_btn">ノートを再確認</string>
+    <string name="machines_note_retry_btn">チェックを再試行</string>
+    <string name="machines_note_conflict_title">作業手順が更新されました</string>
+    <string name="machines_note_conflict_message">チェック実施中に作業手順が更新されました。最新の手順を確認して再度チェックを受けてください。</string>
+    <string name="machines_note_conflict_btn">最新の手順を確認する</string>
+
+    <!-- Typed errors, Panel UNKNOWN state, messages from ViewModels -->
+    <string name="machines_error_offline">接続できません。もう一度お試しください。</string>
+    <string name="machines_error_not_found">見つかりません。</string>
+    <string name="machines_panel_override_authorized">一時許可しました</string>
+    <string name="machines_panel_unknown">状態を確認できません（接続なし）。作業を始める前に職長に確認してください。</string>
+    <string name="machines_panel_state_ready">使用可</string>
+    <string name="machines_panel_state_locked">ロック中</string>
+    <string name="machines_panel_state_override">一時許可</string>
+    <string name="machines_panel_state_unknown">不明</string>
+    <string name="machines_panel_override_reason_hint">許可しないとラインが止まります</string>
+    <string name="machines_note_submit_failed">回答を送信できませんでした。接続を確認して、もう一度お試しください。</string>
+</resources>

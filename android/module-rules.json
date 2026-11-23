@@ -1,0 +1,35 @@
+{
+  "rules": {
+    ":core:model": [],
+    ":core:common": [":core:model"],
+    ":core:navigation": [":core:model"],
+    ":core:deeplink": [":core:model", ":core:navigation"],
+    ":core:network": [":core:model", ":core:common", ":core:testing"],
+    ":core:datastore": [":core:model", ":core:common"],
+    ":core:design": [":core:model"],
+    ":core:database": [":core:model", ":core:common"],
+    ":core:sync": [":core:model", ":core:common", ":core:database", ":core:network"],
+    ":core:data": [":core:model", ":core:common", ":core:network", ":core:database"],
+    ":core:media": [":core:model", ":core:common", ":core:design"],
+    ":core:testing": [":core:model", ":core:common"],
+    ":feature:*": [
+      ":core:model",
+      ":core:common",
+      ":core:design",
+      ":core:navigation",
+      ":core:network",
+      ":core:media",
+      ":core:testing"
+    ],
+    ":app": ["*"]
+  },
+  "forbidden": {
+    ":feature:*": [
+      ":feature:*",
+      ":core:data",
+      ":core:database",
+      ":core:datastore",
+      ":core:sync"
+    ]
+  }
+}

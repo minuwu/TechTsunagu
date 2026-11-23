@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="board_screen_title">Task Board</string>
+    <string name="board_task_screen_title">Task Detail</string>
+    <string name="board_screen_id">Screen: %1$s</string>
+    <string name="board_loading">Loading tasks…</string>
+    <string name="board_empty">No tasks</string>
+    <string name="board_retry">Retry</string>
+    <string name="board_error">Error: %1$s</string>
+
+    <string name="board_col_todo">To do</string>
+    <string name="board_col_doing">Doing</string>
+    <string name="board_col_done">Done</string>
+
+    <string name="board_empty_todo">No tasks to do · drop here</string>
+    <string name="board_empty_doing">No tasks in progress</string>
+    <string name="board_empty_done">No completed tasks</string>
+
+    <string name="board_add_task">New task</string>
+    <string name="board_add_task_title">Title</string>
+    <string name="board_add_task_assignees">Assignees</string>
+    <string name="board_add_task_due">Due</string>
+    <string name="board_add_task_machine">Machine (optional)</string>
+    <string name="board_add_task_submit">Add task</string>
+    <string name="board_add_task_title_required">Enter a title first</string>
+    <string name="board_task_added">Task added</string>
+
+    <string name="board_due_today">Today</string>
+    <string name="board_due_tomorrow">Tomorrow</string>
+    <string name="board_due_fri">Friday</string>
+
+    <string name="board_task_status">Status</string>
+    <string name="board_task_assigned_to">Assigned to</string>
+    <string name="board_task_due">Due</string>
+    <string name="board_task_machine">Machine</string>
+    <string name="board_task_from_chat">From chat</string>
+    <string name="board_task_source_message">Source message</string>
+    <string name="board_task_open_in_chat">Open in chat</string>
+    <string name="board_task_source_nearmiss">Source</string>
+    <string name="board_task_from_nearmiss">From near-miss report</string>
+    <string name="board_task_comments">Comments</string>
+    <string name="board_task_add_comment">Add a comment…</string>
+    <string name="board_task_comments_stub">Comments are not in the prototype</string>
+    <string name="board_filter_stub">Filters are not in the prototype</string>
+
+    <string name="board_move_task">Move task</string>
+    <string name="board_move_to_col">Move to %1$s</string>
+
+    <string name="board_conflict_title">Task Conflict (HTTP 412)</string>
+    <string name="board_conflict_message">This task was updated by someone else. Please reload to see the latest version.</string>
+    <string name="board_reload">Reload</string>
+    <string name="board_foreman_only">Only Foremen can add tasks</string>
+</resources>

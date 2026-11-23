@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="board_screen_title">টাস্ক বোর্ড</string>
+    <string name="board_task_screen_title">কাজের বিবরণ</string>
+    <string name="board_screen_id">স্ক্রিন আইডি: %1$s</string>
+    <string name="board_loading">টাস্ক লোড হচ্ছে…</string>
+    <string name="board_empty">কোনো কাজ নেই</string>
+    <string name="board_retry">পুনরায় চেষ্টা করুন</string>
+    <string name="board_error">ত্রুটি: %1$s</string>
+
+    <string name="board_col_todo">শুরু হয়নি</string>
+    <string name="board_col_doing">চলমান</string>
+    <string name="board_col_done">সম্পন্ন</string>
+
+    <string name="board_empty_todo">কোনো কাজ নেই · এখানে রাখুন</string>
+    <string name="board_empty_doing">কোনো কাজ চলমান নেই</string>
+    <string name="board_empty_done">কোনো কাজ সম্পন্ন হয়নি</string>
+
+    <string name="board_add_task">নতুন কাজ</string>
+    <string name="board_add_task_title">শিরোনাম</string>
+    <string name="board_add_task_assignees">দায়িত্বপ্রাপ্ত</string>
+    <string name="board_add_task_due">মেয়াদ</string>
+    <string name="board_add_task_machine">মেশিন (ঐচ্ছিক)</string>
+    <string name="board_add_task_submit">যোগ করুন</string>
+    <string name="board_add_task_title_required">প্রথমে একটি শিরোনাম লিখুন</string>
+    <string name="board_task_added">কাজ যোগ করা হয়েছে</string>
+
+    <string name="board_due_today">আজ</string>
+    <string name="board_due_tomorrow">আগামীকাল</string>
+    <string name="board_due_fri">শুক্রবার</string>
+
+    <string name="board_task_status">অবস্থা</string>
+    <string name="board_task_assigned_to">দায়িত্বপ্রাপ্ত</string>
+    <string name="board_task_due">মেয়াদ</string>
+    <string name="board_task_machine">মেশিন</string>
+    <string name="board_task_from_chat">চ্যাট থেকে</string>
+    <string name="board_task_source_message">মূল বার্তা</string>
+    <string name="board_task_open_in_chat">চ্যাটে খুলুন</string>
+    <string name="board_task_source_nearmiss">মূল রিপোর্ট</string>
+    <string name="board_task_from_nearmiss">হিয়ারিহাট্ট রিপোর্ট থেকে</string>
+    <string name="board_task_comments">মন্তব্য</string>
+    <string name="board_task_add_comment">একটি মন্তব্য যোগ করুন…</string>
+    <string name="board_task_comments_stub">প্রোটোটাইপে মন্তব্য সমর্থিত নয়</string>
+    <string name="board_filter_stub">প্রোটোটাইপে ফিল্টার সমর্থিত নয়</string>
+
+    <string name="board_move_task">কাজ স্থানান্তর</string>
+    <string name="board_move_to_col">%1$s-এ স্থানান্তর করুন</string>
+
+    <string name="board_conflict_title">সংস্করণ দ্বন্দ্ব (HTTP 412)</string>
+    <string name="board_conflict_message">এই কাজটি অন্য কেউ পরিবর্তন করেছেন। সর্বশেষ তথ্য দেখতে পুনরায় লোড করুন।</string>
+    <string name="board_reload">পুনরায় লোড</string>
+    <string name="board_foreman_only">শুধুমাত্র ফোরম্যান নতুন কাজ তৈরি করতে পারেন</string>
+</resources>

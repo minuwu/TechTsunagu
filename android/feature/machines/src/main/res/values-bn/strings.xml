@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Common -->
+    <string name="machines_screen_title">যন্ত্রপাতি</string>
+    <string name="machines_machine_screen_title">যন্ত্রের বিবরণ</string>
+    <string name="machines_scan_screen_title">QR স্ক্যান</string>
+    <string name="machines_panel_screen_title">মেশিন প্যানেল</string>
+    <string name="machines_note_screen_title">কাজের নির্দেশিকা</string>
+    <string name="machines_screen_id">স্ক্রিন: %1$s</string>
+    <string name="machines_loading">লোড হচ্ছে...</string>
+    <string name="machines_empty">কোনো যন্ত্রপাতি পাওয়া যায়নি</string>
+    <string name="machines_retry">পুনরায় চেষ্টা করুন</string>
+    <string name="machines_error">ত্রুটি: %1$s</string>
+    <string name="machines_generic_error">একটি অপ্রত্যাশিত ত্রুটি ঘটেছে। অনুগ্রহ করে আবার চেষ্টা করুন।</string>
+    <string name="machines_you_tag">আপনি</string>
+    <string name="machines_cd_back">পেছনে যান</string>
+    <string name="machines_cd_lock">লক আইকন</string>
+    <string name="machines_cd_ready">প্রস্তুত আইকন</string>
+    <string name="machines_cd_override">ওভাররাইড আইকন</string>
+    <string name="machines_cd_qr">মেশিনের QR স্টিকার</string>
+    <string name="machines_cd_speaker">নির্দেশিকা পড়ে শুনুন</string>
+
+    <!-- Machines List -->
+    <string name="machines_ready_to_operate">ব্যবহারের জন্য প্রস্তুত</string>
+    <string name="machines_locked">লক করা</string>
+    <string name="machines_expiring_soon">মেয়াদ শীঘ্রই শেষ হবে</string>
+    <string name="machines_take_check_to_unlock">আনলক করতে চেক দিন</string>
+    <string name="machines_workers_status">কর্মীদের অবস্থা</string>
+    <string name="machines_signed_off_ratio">%1$d/%2$d সাইন-অফ সম্পন্ন</string>
+    <string name="machines_all_signed_off">সকল %1$d জন কর্মীর সাইন-অফ সম্পন্ন</string>
+
+    <!-- Machine Detail -->
+    <string name="machines_everyone_on_machine">এই যন্ত্রের সকল কর্মী</string>
+    <string name="machines_open_panel">মেশিন প্যানেল খুলুন</string>
+    <string name="machines_machine_qr">মেশিন QR</string>
+    <string name="machines_qr_caption">মেশিনে এটি লাগান। চেক এবং সাইন-অফ শুরু করতে স্ক্যান করুন।</string>
+    <string name="machines_print_qr">QR প্রিন্ট করুন</string>
+    <string name="machines_qr_printed_toast">QR কোড প্রিন্টারে পাঠানো হয়েছে</string>
+    <string name="machines_recent_tasks">এই মেশিনের সাম্প্রতিক কাজ</string>
+    <string name="machines_no_tasks">এখনও কোনো কাজ নেই</string>
+    <string name="machines_shift_assignment">শিফট বরাদ্দ</string>
+    <string name="machines_current_operator">অপারেটর: %1$s</string>
+    <string name="machines_no_operator">কোনো অপারেটর বরাদ্দ নেই</string>
+    <string name="machines_change_operator">অপারেটর পরিবর্তন করুন</string>
+    <string name="machines_clear_operator">বরাদ্দ বাতিল</string>
+    <string name="machines_view_work_instructions">কাজের নির্দেশিকা দেখুন (নোট %1$s)</string>
+
+    <!-- Scan Screen -->
+    <string name="machines_scan_camera_title">মেশিনের QR স্ক্যান করুন</string>
+    <string name="machines_scan_point_camera">ক্যামেরাটি মেশিনের QR কোডের দিকে ধরুন</string>
+    <string name="machines_scan_simulate_tip">স্ক্যান অনুকরণ করতে একটি মেশিনে ট্যাপ করুন</string>
+    <string name="machines_scan_manual_input">অথবা ম্যানুয়ালি মেশিন কোড লিখুন</string>
+    <string name="machines_scan_code_placeholder">মেশিন কোড (যেমন lathe-1, press-2)</string>
+    <string name="machines_scan_submit">জমা দিন</string>
+    <string name="machines_scan_torch">টর্চ</string>
+    <string name="machines_scan_close">বন্ধ করুন</string>
+    <string name="machines_scan_invalid_qr">অবৈধ QR কোড</string>
+    <string name="machines_scan_machine_not_found">এই কোডের মেশিন খুঁজে পাওয়া যায়নি</string>
+
+    <!-- Panel Screen -->
+    <string name="machines_panel_presence">উপস্থিতি: এই মেশিনে আছেন</string>
+    <string name="machines_panel_presence_worker">উপস্থিত: %1$s</string>
+    <string name="machines_panel_no_signoff_yet">নোট %1$s এর জন্য এখনও সাইন-অফ নেই</string>
+    <string name="machines_panel_signed_off_on">সাইন-অফ সম্পন্ন · নোট %1$s</string>
+    <string name="machines_panel_locked_hint">আপনি নির্দেশিকা পড়ে এবং চেকে উত্তীর্ণ না হওয়া পর্যন্ত এই মেশিনটি ব্যবহার করতে পারবেন না।</string>
+    <string name="machines_panel_read_note">নির্দেশিকা নোট পড়ুন</string>
+    <string name="machines_panel_near_miss">নিয়ার-মিস রিপোর্ট</string>
+    <string name="machines_panel_per_worker_status">কর্মীভিত্তিক অবস্থা</string>
+    <string name="machines_panel_remind">স্মরণ করিয়ে দিন</string>
+    <string name="machines_panel_reminded_toast">%1$s কে চেক দেওয়ার কথা মনে করিয়ে দেওয়া হয়েছে</string>
+    <string name="machines_panel_view_note_and_questions">নোট এবং যাচাইকরণ প্রশ্নাবলী দেখুন (%1$s)</string>
+    <string name="machines_panel_override_btn">প্যানেল ওভাররাইড</string>
+    <string name="machines_panel_override_banner">ওভাররাইড সক্রিয়</string>
+    <string name="machines_panel_override_by">%1$s দ্বারা অনুমোদিত</string>
+    <string name="machines_panel_override_reason">কারণ: %1$s</string>
+    <string name="machines_panel_override_ends">%1$s এ মেয়াদ শেষ হবে</string>
+    <string name="machines_panel_override_end_btn">ওভাররাইড সমাপ্ত করুন</string>
+    <string name="machines_panel_override_sheet_title">সাইন-অফ ছাড়া চালানোর অনুমতি</string>
+    <string name="machines_panel_override_worker_label">উদ্দিষ্ট কর্মী</string>
+    <string name="machines_panel_override_anyone">যে কেউ (সকল কর্মী)</string>
+    <string name="machines_panel_override_duration_label">সময়কাল</string>
+    <string name="machines_panel_override_reason_label">কারণ (আবশ্যক, ৩-২০০ অক্ষর)</string>
+    <string name="machines_panel_override_reason_error">কারণ অবশ্যই ৩ থেকে ২০০ অক্ষরের মধ্যে হতে হবে</string>
+    <string name="machines_panel_override_review">ওভাররাইড পর্যালোচনা করুন</string>
+    <string name="machines_panel_override_confirm_title">প্যানেল ওভাররাইড নিশ্চিতকরণ</string>
+    <string name="machines_panel_override_confirm_message">আপনি কি নিরাপত্তা চেকে উত্তীর্ণ হওয়া ছাড়াই এই মেশিনটি চালানোর অনুমতি নিশ্চিত করছেন?</string>
+    <string name="machines_panel_override_confirm_btn">নিশ্চিত করুন এবং অনুমতি দিন</string>
+    <string name="machines_panel_cancel">বাতিল</string>
+    <string name="machines_panel_mins_format">%1$d মিনিট</string>
+
+    <!-- Note Screen -->
+    <string name="machines_note_safe_use_note">নিরাপদ ব্যবহারের নোট</string>
+    <string name="machines_note_updated_by">হালনাগাদ %1$s · %2$s</string>
+    <string name="machines_note_version_label">সংস্করণ %1$s</string>
+    <string name="machines_note_history_label">সংস্করণ ইতিহাস</string>
+    <string name="machines_note_signed_off_banner">আপনি এই নোটে সাইন-অফ করেছেন · মেশিনটি ব্যবহারের জন্য প্রস্তুত</string>
+    <string name="machines_note_back_translation">বিপরীত অনুবাদ (ইংরেজি→জাপানি)</string>
+    <string name="machines_note_start_check">চেক শুরু করুন · %1$dটি প্রশ্ন</string>
+    <string name="machines_note_listen">পড়ে শুনুন</string>
+    <string name="machines_note_stop_listen">থামুন</string>
+    <string name="machines_note_check_preview_title">যাচাইকরণ প্রশ্নাবলী (%1$dটি)</string>
+    <string name="machines_note_correct_answer">সঠিক: %1$s</string>
+    <string name="machines_note_question_count">প্রশ্ন %1$d / %2$d</string>
+    <string name="machines_note_correct">সঠিক!</string>
+    <string name="machines_note_not_quite">সঠিক নয়</string>
+    <string name="machines_note_review_step">ধাপ %1$d পুনরায় দেখুন: %2$s</string>
+    <string name="machines_note_next_question">পরবর্তী প্রশ্ন</string>
+    <string name="machines_note_see_result">ফলাফল দেখুন</string>
+    <string name="machines_note_check_passed">চেকে উত্তীর্ণ হয়েছেন</string>
+    <string name="machines_note_unlocking_machine">%1$s আনলক হচ্ছে… ৯০ দিনের জন্য বৈধ।</string>
+    <string name="machines_note_check_failed">এখনও উত্তীর্ণ হননি</string>
+    <string name="machines_note_failed_score">%2$dটির মধ্যে %1$dটি সঠিক হয়েছে। মেশিনটি লক করা থাকবে।</string>
+    <string name="machines_note_read_steps_again">এই ধাপগুলো আবার পড়ুন</string>
+    <string name="machines_note_reread_btn">নোটটি আবার পড়ুন</string>
+    <string name="machines_note_retry_btn">চেক পুনরায় দিন</string>
+    <string name="machines_note_conflict_title">কাজের নির্দেশিকা আপডেট হয়েছে</string>
+    <string name="machines_note_conflict_message">চেক দেওয়ার সময় কাজের নির্দেশিকা আপডেট করা হয়েছে। অনুগ্রহ করে নতুন নির্দেশিকা পর্যালোচনা করুন এবং পুনরায় চেক দিন।</string>
+    <string name="machines_note_conflict_btn">আপডেট করা নির্দেশিকা দেখুন</string>
+
+    <!-- Typed errors, Panel UNKNOWN state, messages from ViewModels -->
+    <string name="machines_error_offline">সংযোগ নেই। আবার চেষ্টা করুন।</string>
+    <string name="machines_error_not_found">খুঁজে পাওয়া যায়নি।</string>
+    <string name="machines_panel_override_authorized">ওভাররাইড অনুমোদিত হয়েছে</string>
+    <string name="machines_panel_unknown">অবস্থা জানা যাচ্ছে না: সংযোগ নেই। শুরু করার আগে আপনার ফোরম্যানকে জিজ্ঞাসা করুন।</string>
+    <string name="machines_panel_state_ready">প্রস্তুত</string>
+    <string name="machines_panel_state_locked">লক করা</string>
+    <string name="machines_panel_state_override">ওভাররাইড</string>
+    <string name="machines_panel_state_unknown">অজানা</string>
+    <string name="machines_panel_override_reason_hint">অনুমতি না দিলে লাইন বন্ধ থাকবে</string>
+    <string name="machines_note_submit_failed">উত্তর পাঠানো যায়নি। সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।</string>
+</resources>

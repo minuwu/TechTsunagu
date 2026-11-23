@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Screen titles -->
+    <string name="insights_analytics_screen_title">বোঝার বিশ্লেষণ</string>
+    <string name="insights_skills_screen_title">দক্ষতার তালিকা</string>
+    <string name="insights_followups_screen_title">ফলো-আপ</string>
+    <string name="insights_learning_screen_title">শেখার ইতিহাস</string>
+    <string name="insights_learning_title_of">%1$s-এর শেখার ইতিহাস</string>
+
+    <!-- States and errors -->
+    <string name="insights_loading">লোড হচ্ছে...</string>
+    <string name="insights_retry">আবার চেষ্টা করুন</string>
+    <string name="insights_error_offline">ফোনে ইন্টারনেট নেই, তাই পাতাটি লোড হয়নি। সংযোগ দেখে নিন, তারপর ‘আবার চেষ্টা করুন’ চাপুন।</string>
+    <string name="insights_error_forbidden">এই পাতাটি শুধু ফোরম্যান দেখতে পারেন। তথ্য দরকার হলে আপনার ফোরম্যানকে জিজ্ঞাসা করুন।</string>
+    <string name="insights_error_not_found">এই ব্যক্তিকে খুঁজে পাওয়া যায়নি। আগের পাতায় ফিরে গিয়ে আবার বেছে নিন।</string>
+    <string name="insights_error_generic">একটি সমস্যা হয়েছে, তাই পাতাটি লোড হয়নি। একটু অপেক্ষা করে ‘আবার চেষ্টা করুন’ চাপুন।</string>
+
+    <!-- Time ago -->
+    <string name="insights_ago_now">এইমাত্র</string>
+    <string name="insights_ago_minutes">%1$d মিনিট আগে</string>
+    <string name="insights_ago_hours">%1$d ঘণ্টা আগে</string>
+    <string name="insights_ago_days">%1$d দিন আগে</string>
+
+    <!-- Follow-up status -->
+    <string name="insights_status_open">ফলো-আপ দরকার</string>
+    <string name="insights_status_clarified">বুঝিয়ে বলা হয়েছে</string>
+    <string name="insights_status_understood">বুঝেছেন</string>
+    <string name="insights_status_unknown">অজানা</string>
+
+    <!-- Value card -->
+    <string name="insights_value_title">একটি নির্দেশ, তিনটি লাভ</string>
+    <string name="insights_role_worker">কর্মী</string>
+    <string name="insights_role_foreman">ফোরম্যান</string>
+    <string name="insights_role_employer">নিয়োগকর্তা</string>
+    <string name="insights_value_worker">শব্দটি শিখেছেন</string>
+    <string name="insights_value_foreman">অসুবিধা খুঁজে সমাধান করা হয়েছে</string>
+    <string name="insights_value_employer">ভুল কম, প্রশিক্ষণের রেকর্ড থাকে</string>
+
+    <!-- Analytics -->
+    <string name="insights_analytics_empty">বিশ্লেষণ করার মতো তথ্য এখনও নেই। কর্মীরা প্রথম চেকের উত্তর দিলে সংখ্যা দেখা যাবে।</string>
+    <string name="insights_kpi_time">বাঁচানো সময় (ডেমো মান)</string>
+    <string name="insights_kpi_rework">এড়ানো পুনরায় কাজ (ডেমো মান)</string>
+    <string name="insights_kpi_hours">%1$.1f ঘণ্টা/সপ্তাহ</string>
+    <string name="insights_kpi_cases">%1$dটি</string>
+    <string name="insights_trend_title">বোঝার হার, ৪ সপ্তাহ</string>
+    <string name="insights_trend_cd">৪ সপ্তাহের বোঝার হারের গতি। এই সপ্তাহে %1$d শতাংশ।</string>
+    <string name="insights_week_3_ago">৩ সপ্তাহ আগে</string>
+    <string name="insights_week_2_ago">২ সপ্তাহ আগে</string>
+    <string name="insights_week_last">গত সপ্তাহ</string>
+    <string name="insights_week_this">এই সপ্তাহ</string>
+    <string name="insights_funnel_title">ধাপে ধাপে অগ্রগতি</string>
+    <string name="insights_funnel_sent">পাঠানো</string>
+    <string name="insights_funnel_understood">বুঝেছেন</string>
+    <string name="insights_funnel_followup">ফলো-আপ</string>
+    <string name="insights_funnel_explained">বুঝিয়ে বলা</string>
+    <string name="insights_funnel_reunderstood">আবার বুঝেছেন</string>
+    <string name="insights_bars_title">কর্মী অনুযায়ী বোঝা</string>
+    <string name="insights_bar_cd">%1$s: %2$d শতাংশ বুঝেছেন। শেখার ইতিহাস খুলুন।</string>
+    <string name="insights_vocab_title">কঠিন শব্দ</string>
+    <string name="insights_vocab_none">এখনও কোনো বিভ্রান্তি নথিভুক্ত হয়নি</string>
+    <string name="insights_vocab_people_times">%1$d জন, %2$d বার</string>
+    <string name="insights_vocab_in_glossary">শব্দতালিকায় আছে</string>
+    <string name="insights_vocab_add">শব্দতালিকায় যোগ করুন</string>
+    <string name="insights_trend_worse">সম্প্রতি বিভ্রান্তি বেড়েছে</string>
+    <string name="insights_trend_better">সম্প্রতি বিভ্রান্তি কমেছে</string>
+    <string name="insights_heat_title">বিভ্রান্তির হিটম্যাপ</string>
+    <string name="insights_heat_cell_cd">%1$s, %2$s: %3$d বার</string>
+    <string name="insights_heat_hint">কোন নির্দেশ থেকে বিভ্রান্তি হয়েছে দেখতে একটি ঘরে ট্যাপ করুন</string>
+    <string name="insights_heat_none">এখানে কোনো বিভ্রান্তি নেই</string>
+    <string name="insights_heat_source">%1$s শব্দসহ নির্দেশ, %2$s</string>
+
+    <!-- Skill Matrix -->
+    <string name="insights_skills_empty">দেখানোর মতো কর্মী বা মেশিন এখনও নেই।</string>
+    <string name="insights_skill_valid">বৈধ</string>
+    <string name="insights_skill_expiring">শীঘ্রই মেয়াদ শেষ</string>
+    <string name="insights_skill_expiring_legend">১৪ দিনের মধ্যে</string>
+    <string name="insights_skill_expired">মেয়াদ শেষ</string>
+    <string name="insights_skill_missing">নেই</string>
+    <string name="insights_skill_none">নেই</string>
+    <string name="insights_skill_days_left">আর %1$d দিন</string>
+    <string name="insights_skill_cell_cd">%1$s, %2$s: %3$s</string>
+    <string name="insights_skills_hint">বিস্তারিত দেখতে একটি ঘরে ট্যাপ করুন</string>
+    <string name="insights_skill_signed_on">সাইন-অফের তারিখ</string>
+    <string name="insights_skill_version">ভার্সন</string>
+    <string name="insights_skill_expires">মেয়াদ শেষ</string>
+    <string name="insights_skill_view_learning">শেখার ইতিহাস দেখুন</string>
+
+    <!-- Follow-ups -->
+    <string name="insights_followups_none_open">কোনো ফলো-আপ নেই। সবাই বুঝেছেন।</string>
+    <string name="insights_followups_none_yet">এখনও কিছু নেই। ইতিহাস এখানে দেখা যাবে।</string>
+    <string name="insights_followup_wrong">ভুল উত্তর: %1$s</string>
+
+    <!-- Learning History -->
+    <string name="insights_learning_empty">এখনও কিছু নেই। না বোঝা ও শেখা শব্দ এখানে দেখা যাবে।</string>
+    <string name="insights_learning_mastered">শেখা শব্দ</string>
+    <string name="insights_learning_gaps">এখনকার অসুবিধা</string>
+    <string name="insights_learning_streak">টানা দিন</string>
+    <string name="insights_learning_no_gaps">এখন কোনো অসুবিধা নেই</string>
+    <string name="insights_learning_timeline">শেখার রেকর্ড</string>
+    <string name="insights_learning_missed">%1$d বার বুঝতে পারেননি</string>
+</resources>

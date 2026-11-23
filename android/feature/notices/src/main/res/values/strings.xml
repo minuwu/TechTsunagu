@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notices_life_screen_title">Life &amp; Community</string>
+    <string name="notices_notice_screen_title">Notice Detail</string>
+    <string name="notices_new_screen_title">Post Notice</string>
+    <string name="notices_screen_id">Screen: %1$s</string>
+    <string name="notices_loading">Loading...</string>
+    <string name="notices_empty">No notices found</string>
+    <string name="notices_retry">Retry</string>
+    <string name="notices_error">Error: %1$s</string>
+    <string name="notices_back">Back</string>
+    <string name="notices_close">Close</string>
+
+    <string name="notices_upcoming_events">This week &amp; coming up</string>
+    <string name="notices_no_events">No upcoming events</string>
+    <string name="notices_list_title">Notices</string>
+    <string name="notices_published_title">Published notices</string>
+    <string name="notices_pending_badge">%1$d to answer</string>
+
+    <string name="notices_ask_card_title">Ask about life here</string>
+    <string name="notices_ask_card_desc">Garbage, drills, festivals. Not sure? Your Senpai answers.</string>
+
+    <string name="notices_senpai_title">My Senpai</string>
+    <string name="notices_next_meet">Next: %1$s %2$s</string>
+    <string name="notices_senpai_support_title">Senpai &amp; Support</string>
+    <string name="notices_senpai_pairs">Senpai pairs</string>
+    <string name="notices_senpai_pairs_desc">%1$d pairs · %2$d meetups</string>
+    <string name="notices_forwarded_asks">Forwarded questions</string>
+    <string name="notices_forwarded_asks_desc">%1$d waiting for reply</string>
+    <string name="notices_support_log">Support log</string>
+    <string name="notices_support_log_desc">Interviews and notice confirmations</string>
+
+    <string name="notices_today_word_label">Today\'s Word · %1$s\'s language (%2$s)</string>
+    <string name="notices_today_word_hint">Try saying this to them today</string>
+
+    <string name="notices_what_to_do">What to do</string>
+    <string name="notices_dates">Dates</string>
+    <string name="notices_original">Original Notice</string>
+    <string name="notices_check">Check</string>
+    <string name="notices_check_results">Check Results</string>
+
+    <string name="notices_reminder_on">Reminder on</string>
+    <string name="notices_add_reminder">Add reminder</string>
+    <string name="notices_not_sure">I\'m not sure</string>
+    <string name="notices_answered_not_sure">Answered: Not sure</string>
+    <string name="notices_waiting_answer">Waiting for answer</string>
+    <string name="notices_correct_answer">Correct answer: %1$s</string>
+    <string name="notices_answer_prefix">Answer: %1$s</string>
+
+    <string name="notices_status_green_msg">Wakatta! That is right.</string>
+    <string name="notices_status_orange_msg">Thanks for telling us. Your foreman will explain it again.</string>
+    <string name="notices_status_red_msg">Not quite. The answer is \"%1$s\".</string>
+    <string name="notices_ask_question_btn">Ask a question</string>
+
+    <string name="notices_read_aloud">Read aloud</string>
+    <string name="notices_stop_read_aloud">Stop</string>
+    <string name="notices_photo_flyer">Photo of flyer</string>
+    <string name="notices_audio_recording">Voice notice (%1$s)</string>
+
+    <string name="notices_create_notice">Post Notice</string>
+    <string name="notices_create_notice_hidden">Notice posting is restricted to Community Posters.</string>
+    <string name="notices_source_flyer">Flyer photo</string>
+    <string name="notices_source_text">Text</string>
+    <string name="notices_source_voice">Voice</string>
+
+    <string name="notices_sample_flyers">Choose a sample flyer</string>
+    <string name="notices_enter_text">Notice text</string>
+    <string name="notices_enter_text_placeholder">Example: Neighborhood cleanup on Sunday Dec 13 from 8:00 at East Park.</string>
+    <string name="notices_insert_sample">Insert sample</string>
+    <string name="notices_process_ai">Read with AI</string>
+    <string name="notices_tap_to_talk">Tap to speak</string>
+    <string name="notices_listening">Listening...</string>
+    <string name="notices_processing_ocr">OCR: Reading text from flyer...</string>
+    <string name="notices_processing_ai">AI: Translating to plain Japanese &amp; English...</string>
+
+    <string name="notices_field_title">Title</string>
+    <string name="notices_field_steps">Easy steps (Japanese / English)</string>
+    <string name="notices_found_events">Found dates (confirm with checkbox)</string>
+    <string name="notices_no_events_found">No dates found</string>
+    <string name="notices_check_question_preview">Check question (1 question)</string>
+    <string name="notices_publish_btn">Publish notice</string>
+    <string name="notices_publish_success">Notice published successfully</string>
+    <string name="notices_publish_events_unconfirmed">Please confirm all dates before publishing</string>
+    <string name="notices_audience_info">Recipients: %1$d workers (%2$s)</string>
+</resources>

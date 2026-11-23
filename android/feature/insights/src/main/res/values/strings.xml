@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Screen titles -->
+    <string name="insights_analytics_screen_title">Comprehension Analytics</string>
+    <string name="insights_skills_screen_title">Skill Matrix</string>
+    <string name="insights_followups_screen_title">Follow-ups</string>
+    <string name="insights_learning_screen_title">Learning History</string>
+    <string name="insights_learning_title_of">Learning history: %1$s</string>
+
+    <!-- States and errors -->
+    <string name="insights_loading">Loading...</string>
+    <string name="insights_retry">Try again</string>
+    <string name="insights_error_offline">This page could not load because the phone is offline. Check the connection, then tap Try again.</string>
+    <string name="insights_error_forbidden">Only a Foreman can see this page. Ask your Foreman if you need this information.</string>
+    <string name="insights_error_not_found">We could not find this person. Go back and choose again.</string>
+    <string name="insights_error_generic">Something went wrong and the page could not load. Wait a moment, then tap Try again.</string>
+
+    <!-- Time ago -->
+    <string name="insights_ago_now">just now</string>
+    <string name="insights_ago_minutes">%1$d min ago</string>
+    <string name="insights_ago_hours">%1$d h ago</string>
+    <string name="insights_ago_days">%1$d d ago</string>
+
+    <!-- Follow-up status -->
+    <string name="insights_status_open">Open</string>
+    <string name="insights_status_clarified">Explained</string>
+    <string name="insights_status_understood">Understood</string>
+    <string name="insights_status_unknown">Unknown</string>
+
+    <!-- Value card -->
+    <string name="insights_value_title">One instruction, three wins</string>
+    <string name="insights_role_worker">Worker</string>
+    <string name="insights_role_foreman">Foreman</string>
+    <string name="insights_role_employer">Employer</string>
+    <string name="insights_value_worker">Learned the term</string>
+    <string name="insights_value_foreman">Gap found and fixed</string>
+    <string name="insights_value_employer">Fewer errors, training on record</string>
+
+    <!-- Analytics -->
+    <string name="insights_analytics_empty">Nothing to analyse yet. Numbers appear after Workers answer their first Checks.</string>
+    <string name="insights_kpi_time">Time saved (demo value)</string>
+    <string name="insights_kpi_rework">Rework avoided (demo value)</string>
+    <string name="insights_kpi_hours">%1$.1f h/week</string>
+    <string name="insights_kpi_cases">%1$d cases</string>
+    <string name="insights_trend_title">Understanding rate, 4 weeks</string>
+    <string name="insights_trend_cd">Understanding rate trend over 4 weeks. This week: %1$d percent.</string>
+    <string name="insights_week_3_ago">3 wk ago</string>
+    <string name="insights_week_2_ago">2 wk ago</string>
+    <string name="insights_week_last">Last wk</string>
+    <string name="insights_week_this">This wk</string>
+    <string name="insights_funnel_title">Loop funnel</string>
+    <string name="insights_funnel_sent">Sent</string>
+    <string name="insights_funnel_understood">Understood</string>
+    <string name="insights_funnel_followup">Follow-up</string>
+    <string name="insights_funnel_explained">Explained</string>
+    <string name="insights_funnel_reunderstood">Re-understood</string>
+    <string name="insights_bars_title">Understanding per Worker</string>
+    <string name="insights_bar_cd">%1$s: %2$d percent understood. Open learning history.</string>
+    <string name="insights_vocab_title">Hard words</string>
+    <string name="insights_vocab_none">No confusion recorded yet</string>
+    <string name="insights_vocab_people_times">%1$d people, %2$d times</string>
+    <string name="insights_vocab_in_glossary">In glossary</string>
+    <string name="insights_vocab_add">Add and pin</string>
+    <string name="insights_trend_worse">More confusion lately</string>
+    <string name="insights_trend_better">Less confusion lately</string>
+    <string name="insights_heat_title">Confusion heatmap</string>
+    <string name="insights_heat_cell_cd">%1$s, %2$s: %3$d</string>
+    <string name="insights_heat_hint">Tap a cell to see where the confusion came from</string>
+    <string name="insights_heat_none">No confusion here</string>
+    <string name="insights_heat_source">Instruction that included %1$s, %2$s</string>
+
+    <!-- Skill Matrix -->
+    <string name="insights_skills_empty">No Workers or Machines to show yet.</string>
+    <string name="insights_skill_valid">Valid</string>
+    <string name="insights_skill_expiring">Expiring soon</string>
+    <string name="insights_skill_expiring_legend">Within 14 days</string>
+    <string name="insights_skill_expired">Expired</string>
+    <string name="insights_skill_missing">Missing</string>
+    <string name="insights_skill_none">None</string>
+    <string name="insights_skill_days_left">%1$d d left</string>
+    <string name="insights_skill_cell_cd">%1$s, %2$s: %3$s</string>
+    <string name="insights_skills_hint">Tap a cell for details</string>
+    <string name="insights_skill_signed_on">Sign-off date</string>
+    <string name="insights_skill_version">Version</string>
+    <string name="insights_skill_expires">Expires</string>
+    <string name="insights_skill_view_learning">View learning history</string>
+
+    <!-- Follow-ups -->
+    <string name="insights_followups_none_open">No Follow-ups. Everyone understands.</string>
+    <string name="insights_followups_none_yet">Nothing here yet. History will show here.</string>
+    <string name="insights_followup_wrong">Wrong: %1$s</string>
+
+    <!-- Learning History -->
+    <string name="insights_learning_empty">Nothing here yet. Missed and learned words will show here.</string>
+    <string name="insights_learning_mastered">Words mastered</string>
+    <string name="insights_learning_gaps">Current gaps</string>
+    <string name="insights_learning_streak">Day streak</string>
+    <string name="insights_learning_no_gaps">No gaps right now</string>
+    <string name="insights_learning_timeline">Timeline</string>
+    <string name="insights_learning_missed">Missed %1$d times</string>
+</resources>

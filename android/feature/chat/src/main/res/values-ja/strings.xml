@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="chat_chats_screen_title">チャット</string>
+    <string name="chat_screen_title">チャット</string>
+    <string name="chat_screen_id">画面ID: %1$s</string>
+    <string name="chat_loading">読み込み中...</string>
+    <string name="chat_empty">メッセージがありません</string>
+    <string name="chat_retry">再試行</string>
+    <string name="chat_error">エラー: %1$s</string>
+
+    <string name="chat_error_offline">接続できません。メッセージは残っています。もう一度お試しください。</string>
+    <string name="chat_error_session">サインアウトされたか、この操作は許可されていません。</string>
+    <string name="chat_error_generic">問題が起きました。もう一度お試しください。</string>
+
+    <string name="chat_filter_all">すべて</string>
+    <string name="chat_filter_unread">未読</string>
+    <string name="chat_empty_threads">チャットはまだありません</string>
+    <string name="chat_members_count">%1$d人のメンバー</string>
+    <string name="chat_you_prefix">あなた: </string>
+    <string name="chat_role_foreman">職長</string>
+    <string name="chat_role_worker">作業員</string>
+    <string name="chat_switch_role">役割切替</string>
+
+    <string name="chat_show_original">原文を見る（日本語）</string>
+    <string name="chat_hide_original">原文を隠す</string>
+    <string name="chat_voice_message">音声メッセージ</string>
+    <string name="chat_read_aloud">読み上げ</string>
+
+    <string name="chat_auto_send_countdown">%1$d秒後に自動送信 · タップで今すぐ送信</string>
+    <string name="chat_cancel">キャンセル</string>
+    <string name="chat_editing">編集中</string>
+    <string name="chat_listening">音声を聞き取っています…話してください</string>
+    <string name="chat_input_placeholder">メッセージを入力…</string>
+    <string name="chat_send">送信</string>
+    <string name="chat_mic">音声入力</string>
+
+    <string name="chat_wk_title">わかった？確認</string>
+    <string name="chat_wk_step_1">音声認識</string>
+    <string name="chat_wk_step_2">翻訳完了</string>
+    <string name="chat_wk_step_3">確認質問作成</string>
+    <string name="chat_wk_step_4">タスク抽出</string>
+    <string name="chat_wk_step_5">作業員へ送信</string>
+    <string name="chat_wk_step_6">回答集約</string>
+
+    <string name="chat_wk_progress_title">進捗ステップ (6/6 完了)</string>
+    <string name="chat_wk_worker_status">作業員の理解状況</string>
+
+    <string name="chat_status_green">理解（わかった）</string>
+    <string name="chat_status_orange">要確認</string>
+    <string name="chat_status_red">再説明が必要</string>
+    <string name="chat_status_wait">回答待ち</string>
+
+    <string name="chat_nudge">催促する</string>
+    <string name="chat_nudged">催促済み</string>
+    <string name="chat_nudged_notice">田中さんが回答を待っています</string>
+    <string name="chat_reexplain">再説明する</string>
+
+    <string name="chat_questions_title">わかった？確認質問（%1$d問）</string>
+    <string name="chat_question_progress">質問 %1$d / %2$d</string>
+    <string name="chat_option_not_sure">自信がない</string>
+    <string name="chat_result_green">理解完了！全問正解</string>
+    <string name="chat_result_orange">一部確認が必要です</string>
+    <string name="chat_result_red">理解できませんでした。再説明します</string>
+    <string name="chat_added_to_board">タスクボードに追加されました</string>
+    <string name="chat_ask_again">田中さんに再説明をお願いする</string>
+
+    <string name="chat_glossary_title">現場固定用語</string>
+    <string name="chat_glossary_subtitle">AIはこの用語の訳を変更しません</string>
+    <string name="chat_close">閉じる</string>
+
+    <string name="chat_reexplain_title">%1$sさんへの再説明</string>
+    <string name="chat_reexplain_confused_term">間違えた用語: %1$s</string>
+    <string name="chat_reexplain_easy_ja">やさしい日本語</string>
+    <string name="chat_reexplain_worker_lang">相手の言語での説明</string>
+    <string name="chat_reexplain_new_question">新しい確認質問（1問）</string>
+    <string name="chat_reexplain_approve_send">承認して%1$sさんに送る</string>
+</resources>

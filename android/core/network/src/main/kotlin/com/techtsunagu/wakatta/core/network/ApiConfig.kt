@@ -1,0 +1,96 @@
+package com.techtsunagu.wakatta.core.network
+
+/**
+ * The only file that holds the server address and endpoint paths. Every Retrofit interface uses
+ * these constants; a unit test fails if the host or an api path appears in any other main source.
+ */
+object ApiConfig {
+    /** One line to point the whole app at another server. No trailing slash. */
+    const val BASE_URL = "https://wakatta-api.agreeablestone-840cfb57.japaneast.azurecontainerapps.io"
+
+    /** True: sign-in talks to the live backend. False: the Fake repository is used. */
+    const val USE_LIVE_API = true
+
+    /** A development override (a non-empty build field) wins over [BASE_URL]. */
+    fun baseUrl(override: String): String = override.trim().ifEmpty { BASE_URL }.trimEnd('/')
+
+    /** Path placeholders use the names of docs/openapi.yaml. */
+    object ApiPaths {
+        const val AUTH_PREFIX = "/api/auth/"
+        const val HEALTH = "/api/health"
+        const val HEALTH_READY = "/api/health/ready"
+        const val ROSTER = "/api/auth/roster"
+        const val LOGIN = "/api/auth/login"
+        const val ME = "/api/auth/me"
+        const val ME_PIN = "/api/auth/me/pin"
+        const val LOGOUT = "/api/auth/logout"
+        const val WORKERS = "/api/workers"
+        const val WORKER = "/api/workers/{user_id}"
+        const val FOREMEN = "/api/foremen"
+        const val FOREMAN = "/api/foremen/{user_id}"
+        const val MACHINES = "/api/machines"
+        const val MACHINE = "/api/machines/{machine_id}"
+        const val MACHINE_SCAN = "/api/machines/{machine_id}/scan"
+        const val MACHINE_PANEL = "/api/machines/{machine_id}/panel"
+        const val MACHINE_PANEL_TOKEN = "/api/machines/{machine_id}/panel-token"
+        const val MACHINE_NOTES = "/api/machines/{machine_id}/notes"
+        const val NOTE_VERSION = "/api/note-versions/{note_id}"
+        const val NOTE_VERSION_APPROVE = "/api/note-versions/{note_id}/approve"
+        const val CHECKS = "/api/checks"
+        const val MACHINE_OVERRIDES = "/api/machines/{machine_id}/overrides"
+        const val MACHINE_OVERRIDE = "/api/machines/{machine_id}/overrides/{override_id}"
+        const val MACHINE_VERSIONS = "/api/machines/{machine_id}/versions"
+        const val METRICS_EFFORT = "/api/metrics/effort"
+        const val SIGN_OFFS = "/api/sign-offs"
+        const val CONFUSIONS = "/api/confusions"
+        const val CONFUSION_ACK = "/api/confusions/{confusion_id}/ack"
+        const val BOARD = "/api/board"
+        const val SHIFT_ASSIGNMENTS = "/api/shift-assignments"
+        const val GLOSSARY = "/api/glossary"
+        const val GLOSSARY_TERM = "/api/glossary/{term_id}"
+        const val POSTERS = "/api/posters"
+        const val NOTICES = "/api/notices"
+        const val NOTICE = "/api/notices/{notice_id}"
+        const val NOTICE_EVENT = "/api/notices/{notice_id}/events/{event_id}"
+        const val NOTICE_PUBLISH = "/api/notices/{notice_id}/publish"
+        const val NOTICE_REACH = "/api/notices/{notice_id}/reach"
+        const val EVENTS = "/api/events"
+        const val RECEIPTS = "/api/receipts"
+        const val BLOB = "/api/blobs/{blob_id}"
+        const val ASKS = "/api/asks"
+        const val ASK_FORWARD = "/api/asks/{ask_id}/forward"
+        const val SENPAI_PAIRS = "/api/senpai-pairs"
+        const val SENPAI_PAIR = "/api/senpai-pairs/{pair_id}"
+        const val MEETUPS = "/api/meetups"
+        const val SENPAI_PAIRS_ME = "/api/senpai-pairs/me"
+        const val SENPAI = "/api/senpai/{token}"
+        const val SENPAI_ASK_REPLY = "/api/senpai/{token}/asks/{ask_id}/reply"
+        const val SENPAI_MEETUPS = "/api/senpai/{token}/meetups"
+        const val SUPPORT_LOG_CSV = "/api/support-log.csv"
+        const val SKILL_MATRIX = "/api/skill-matrix"
+        const val HEATMAP = "/api/heatmap"
+        const val WORKER_PASSPORT = "/api/workers/{worker_id}/passport"
+        const val THREADS = "/api/threads"
+        const val THREAD_MESSAGES = "/api/threads/{thread_id}/messages"
+        const val MESSAGE_SEND = "/api/messages/{message_id}/send"
+        const val MESSAGE_ANSWERS = "/api/messages/{message_id}/answers"
+        const val FOLLOW_UPS = "/api/follow-ups"
+        const val FOLLOW_UP = "/api/follow-ups/{follow_up_id}"
+        const val MESSAGE_REEXPLAIN = "/api/messages/{message_id}/reexplain"
+        const val MESSAGE_NUDGE = "/api/messages/{message_id}/nudge"
+        const val TASKS = "/api/tasks"
+        const val TASK = "/api/tasks/{task_id}"
+        const val BRIEFINGS_DRAFT = "/api/briefings/draft"
+        const val BRIEFINGS = "/api/briefings"
+        const val BRIEFING_RECEIPTS = "/api/briefings/{briefing_id}/receipts"
+        const val NEAR_MISSES = "/api/near-misses"
+        const val NEAR_MISS_ACK = "/api/near-misses/{report_id}/ack"
+        const val NEAR_MISS_PHOTO = "/api/near-misses/{report_id}/photo"
+        const val INTERVIEWS_DUE = "/api/interviews/due"
+        const val WORKER_INTERVIEWS = "/api/workers/{worker_id}/interviews"
+        const val TODAY_WORD = "/api/today-word"
+        const val APP_CONFIG = "/api/app/config"
+        const val DEVICES_ME = "/api/devices/me"
+        const val KNOWLEDGE_ASKS = "/api/knowledge/asks"
+    }
+}

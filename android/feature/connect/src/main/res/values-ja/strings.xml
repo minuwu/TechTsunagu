@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="connect_loading">読み込み中...</string>
+    <string name="connect_cancel">キャンセル</string>
+    <string name="connect_save">保存</string>
+    <string name="connect_create">作成</string>
+    <string name="connect_delete">削除</string>
+    <string name="connect_rename">名前を変える</string>
+    <string name="connect_block">ブロック</string>
+    <string name="connect_send">送信</string>
+    <string name="connect_check">確認</string>
+    <string name="connect_icon_info">情報</string>
+    <string name="connect_icon_warning">警告</string>
+
+    <!-- Connect screen -->
+    <string name="connect_screen_title">つながる</string>
+    <string name="connect_my_qr_title">マイQR</string>
+    <string name="connect_my_qr_desc">マイQRコード。相手が読み取ると、あなたとつながれます。</string>
+    <string name="connect_my_qr_note">相手がこのQRを読み取ると、チャットでつながれます。相手に見えるのは、名前と言語だけです。仕事以外でも使えます。</string>
+    <string name="connect_scan">QRをスキャン</string>
+    <string name="connect_share">QRを共有</string>
+    <string name="connect_rotate">QRを作り直す</string>
+    <string name="connect_rotated">新しいQRができました。古いQRは使えなくなりました。</string>
+    <string name="connect_contacts_title">連絡先</string>
+    <string name="connect_contacts_empty">まだ連絡先がありません。相手のQRを読み取ってつながりましょう。</string>
+    <string name="connect_talks_title">会話ノート</string>
+    <string name="connect_talks_empty">まだ会話ノートがありません。話す相手ごとに作りましょう。</string>
+    <string name="connect_new_talk">新しい会話</string>
+    <string name="connect_name_label">名前（相手の名前など）</string>
+    <string name="connect_err_name_required">1文字以上40文字以内で名前を入れてください。</string>
+    <string name="connect_privacy_notice_title">録音する前に</string>
+    <string name="connect_privacy_notice_message">相手に、録音してよいか聞きましょう。名前などの個人情報は話さないようにしましょう。施設のルールに従ってください。</string>
+    <string name="connect_privacy_notice_dismiss">わかりました</string>
+
+    <!-- Scan screen -->
+    <string name="connect_scan_screen_title">QRをスキャン</string>
+    <string name="connect_scan_hint">相手のQRのコードを入力するか、下の人をタップしてスキャンを試してください。</string>
+    <string name="connect_scan_code_label">コード</string>
+    <string name="connect_scan_read">コードを読み取る</string>
+    <string name="connect_scan_samples">スキャンを試す（デモ）</string>
+    <string name="connect_scan_confirm_title">%1$sさんとつながりますか？</string>
+    <string name="connect_scan_confirm_lang">言語: %1$s</string>
+    <string name="connect_scan_confirm_note">つながると、メッセージを送りあえます。上司（職長）には見えません。</string>
+    <string name="connect_scan_connect">つながる</string>
+
+    <!-- Contact Thread -->
+    <string name="connect_pchat_screen_title">チャット</string>
+    <string name="connect_chat_empty">まだメッセージがありません。あいさつを送りましょう。</string>
+    <string name="connect_message_hint">メッセージ</string>
+    <string name="connect_they_see">相手に表示: %1$s</string>
+    <string name="connect_original">原文: %1$s</string>
+    <string name="connect_no_translation">（翻訳はまだありません）</string>
+    <string name="connect_block_title">ブロックしますか？</string>
+    <string name="connect_block_body">%1$s · このチャットは消えます。相手には知らされません。</string>
+
+    <!-- Talk Thread -->
+    <string name="connect_talk_empty">「聞く」を押して、相手の近くでスマホを持ちます。</string>
+    <string name="connect_listen">聞く</string>
+    <string name="connect_listening">聞いています…</string>
+    <string name="connect_said">聞きとったこと · %1$s</string>
+    <string name="connect_play_again">もう一度聞く</string>
+    <string name="connect_your_words">何と言っていましたか？ あなたのことばで書いてください</string>
+    <string name="connect_example">たとえば…</string>
+    <string name="connect_show_meaning">意味を見る</string>
+    <string name="connect_your_understanding">あなたの理解</string>
+    <string name="connect_grade_green">その通りです。</string>
+    <string name="connect_grade_orange">おしい。</string>
+    <string name="connect_grade_red">ちがいます。</string>
+    <string name="connect_grade_skipped">先に意味を見ました。</string>
+    <string name="connect_meaning">意味</string>
+    <string name="connect_staff_flag">痛みや食欲がないときは、職員（看護師）に伝えましょう。施設のルールに従ってください。</string>
+    <string name="connect_choose_reply">返事を選ぶ</string>
+    <string name="connect_show_screen">相手に画面を見せてください</string>
+    <string name="connect_read_aloud">読み上げる</string>
+    <string name="connect_yes">はい</string>
+    <string name="connect_no">いいえ</string>
+    <string name="connect_confirmed_yes">相手が「はい」と言いました。通じました。</string>
+    <string name="connect_confirmed_no">伝わりませんでした。</string>
+    <string name="connect_try_another">別の返事にする</string>
+    <string name="connect_delete_title">この会話を削除しますか？</string>
+    <string name="connect_delete_body">%1$s · メッセージもすべて消えます。</string>
+
+    <!-- Errors: what happened, why, what to do -->
+    <string name="connect_err_offline">インターネットにつながっていないため、できませんでした。接続を確認して、もう一度お試しください。</string>
+    <string name="connect_err_timeout">サーバーの返事が遅れています。少し待ってから、もう一度お試しください。</string>
+    <string name="connect_err_server">サーバーに問題があり、処理できませんでした。しばらくしてからもう一度お試しください。</string>
+    <string name="connect_err_not_found">見つかりませんでした。QRまたはコードを確認して、もう一度お試しください。</string>
+    <string name="connect_err_blocked">この人はブロック中です。</string>
+    <string name="connect_err_bad_code">Wakatta?のQRコードではありません。コードを確認して、もう一度お試しください。</string>
+    <string name="connect_err_no_speech">このスマホでは読み上げができません。代わりに、相手に画面を見せてください。</string>
+    <string name="connect_err_unknown">問題が起きました。もう一度お試しください。何度も起きるときは親方に伝えてください。</string>
+</resources>

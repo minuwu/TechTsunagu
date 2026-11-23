@@ -1,0 +1,10 @@
+// Used by build-release.sh: Gradle builds the release APK unsigned and the script signs it with apksigner,
+// so the result does not depend on the signing block in build-logic.
+allprojects { p ->
+    p.afterEvaluate {
+        def android = p.extensions.findByName('android')
+        if (android != null && p.plugins.hasPlugin('com.android.application')) {
+            android.buildTypes.getByName('release').signingConfig = null
+        }
+    }
+}

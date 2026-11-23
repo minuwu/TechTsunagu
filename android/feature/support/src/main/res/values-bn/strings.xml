@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="support_loading">লোড হচ্ছে...</string>
+    <string name="support_empty">কোনো রেকর্ড পাওয়া যায়নি</string>
+    <string name="support_retry">পুনরায় চেষ্টা করুন</string>
+
+    <!-- Support Log screen -->
+    <string name="support_log_screen_title">সহায়তা রেকর্ড</string>
+    <string name="support_log_export_csv">CSV রপ্তানি / শেয়ার</string>
+    <string name="support_log_exporting">রপ্তানি হচ্ছে...</string>
+    <string name="support_log_export_success">সহায়তা রেকর্ড CSV-তে রপ্তানি হয়েছে</string>
+    <string name="support_log_filter_worker">কর্মী</string>
+    <string name="support_log_filter_month">মাস</string>
+    <string name="support_log_filter_all_workers">সকল কর্মী</string>
+    <string name="support_log_filter_all_months">সর্বমোট সময়</string>
+    <string name="support_log_section_interviews">পর্যায়বৃত্ত সাক্ষাৎকার (প্রতি ৩ মাসে অন্তত একবার)</string>
+    <string name="support_log_section_meetups">সিনিয়রের সাথে সাক্ষাৎ (%1$d টি)</string>
+    <string name="support_log_section_notices">নোটিশ নিশ্চিতকরণ (%1$d/%2$d)</string>
+    <string name="support_log_empty_interviews">এই সময়ে কোনো সাক্ষাৎকার নেই</string>
+    <string name="support_log_empty_meetups">এই সময়ে কোনো সাক্ষাৎ নেই</string>
+    <string name="support_log_empty_notices">এই সময়ে কোনো নোটিশ নেই</string>
+    <string name="support_log_last_interview">পূর্ববর্তী: %1$s</string>
+    <string name="support_log_due_interview">মেয়াদ: %1$s</string>
+    <string name="support_log_none">নেই</string>
+    <string name="support_log_status_ok">বৈধ</string>
+    <string name="support_log_status_soon">আসন্ন</string>
+    <string name="support_log_status_overdue">মেয়াদোত্তীর্ণ</string>
+    <string name="support_log_status_wait">উত্তর দেওয়া হয়নি</string>
+    <string name="support_log_desc_reporting">নিবন্ধিত সহায়তা সংস্থায় রিপোর্ট করার জন্য</string>
+
+    <!-- Periodic Interview screen -->
+    <string name="support_interview_screen_title">পর্যায়বৃত্ত সাক্ষাৎকার পত্র</string>
+    <string name="support_interview_select_worker">কর্মী</string>
+    <string name="support_interview_next_due">পরবর্তী মেয়াদ %1$s</string>
+    <string name="support_interview_initial_due">মেয়াদ: প্রথম সাক্ষাৎকার থেকে ৩ মাস</string>
+    <string name="support_interview_last_date">পূর্ববর্তী %1$s</string>
+    <string name="support_interview_frequency">প্রতি ৩ মাসে অন্তত একবার</string>
+    <string name="support_interview_facts_title">পূর্ববর্তী (%1$s) থেকে রেকর্ড</string>
+    <string name="support_interview_fact_meetups">সিনিয়রের সাথে সাক্ষাৎ</string>
+    <string name="support_interview_fact_notices">নোটিশ নিশ্চিতকরণ</string>
+    <string name="support_interview_fact_bad_notices">যাচাই প্রয়োজন এমন নোটিশ</string>
+    <string name="support_interview_fact_terms">রেকর্ডকৃত বিভ্রান্তিকর শব্দ</string>
+    <string name="support_interview_fact_asks">সিনিয়রকে পাঠানো প্রশ্ন</string>
+    <string name="support_interview_questions_title">সাক্ষাৎকারে জিজ্ঞাসা করার বিষয়সমূহ</string>
+    <string name="support_interview_form_title">সাক্ষাৎকার রেকর্ড</string>
+    <string name="support_interview_method">পদ্ধতি</string>
+    <string name="support_interview_method_face">সরাসরি</string>
+    <string name="support_interview_method_online">অনলাইন</string>
+    <string name="support_interview_consent_label">কর্মীর সম্মতি নেওয়া হয়েছে (চাকরি সমাপ্তির পর অন্তত ১ বছর রেকর্ডিং সংরক্ষণ আবশ্যক)</string>
+    <string name="support_interview_date">তারিখ</string>
+    <string name="support_interview_notes">বিবরণ ও ব্যবস্থা</string>
+    <string name="support_interview_notes_placeholder">আলোচিত বিষয় এবং গৃহীত ব্যবস্থা</string>
+    <string name="support_interview_submit">সাক্ষাৎকার রেকর্ড করুন</string>
+    <string name="support_interview_past_title">পূর্ববর্তী সাক্ষাৎকারসমূহ</string>
+    <string name="support_interview_disclaimer">এটি ৫-৫ নম্বর রেফারেন্স ফরমের খসড়া। আনুষ্ঠানিক ফরম নয়। প্রতি ৩ মাসে সুপারভাইজারের সাথে সাক্ষাৎকার (ফরম ৫-৬) বাধ্যতামূলক।</string>
+    <string name="support_interview_err_note_required">সাক্ষাৎকারের বিবরণ লিখুন</string>
+    <string name="support_interview_err_future_date">ভবিষ্যতের তারিখ রেকর্ড করা যাবে না</string>
+    <string name="support_interview_err_consent_required">অনলাইন সাক্ষাৎকারের জন্য কর্মীর সম্মতি আবশ্যক</string>
+    <string name="support_interview_success">সাক্ষাৎকার সফলভাবে রেকর্ড করা হয়েছে</string>
+
+    <!-- Errors and labels -->
+    <string name="support_err_offline">ইন্টারনেট সংযোগ নেই, তাই তথ্য লোড করা যায়নি। সংযোগ দেখে পুনরায় চেষ্টা করুন বোতাম চাপুন।</string>
+    <string name="support_err_timeout">সার্ভার উত্তর দিতে দেরি করছে। একটু অপেক্ষা করে পুনরায় চেষ্টা করুন বোতাম চাপুন।</string>
+    <string name="support_err_server">সার্ভারে সমস্যা হয়েছে, কাজটি শেষ করা যায়নি। পরে আবার চেষ্টা করুন।</string>
+    <string name="support_err_not_found">এই কর্মীকে পাওয়া যায়নি। আগের পাতায় ফিরে অন্য কর্মী বেছে নিন।</string>
+    <string name="support_err_unknown">কিছু একটা ভুল হয়েছে। পুনরায় চেষ্টা করুন বোতাম চাপুন। বারবার হলে আপনার ফোরম্যানকে জানান।</string>
+    <string name="support_due_never">এখনো হয়নি</string>
+    <string name="support_due_overdue">%1$d দিন দেরি হয়েছে</string>
+    <string name="support_due_left">আর %1$d দিন বাকি</string>
+    <string name="support_log_summary">%1$s: পর্যায়বৃত্ত সাক্ষাৎকার %2$d টি · সিনিয়রের সাথে সাক্ষাৎ %3$d টি · নোটিশ নিশ্চিতকরণ %4$d/%5$d</string>
+    <string name="support_log_target_all">সব কর্মী</string>
+    <string name="support_log_target">%1$s · %2$s</string>
+    <string name="support_meetup_coffee">কফি সাক্ষাৎ</string>
+    <string name="support_meetup_drill">নিরাপত্তা মহড়া</string>
+    <string name="support_meetup_festival">উৎসব</string>
+    <string name="support_meetup_other">সাক্ষাৎ</string>
+    <string name="support_icon_warning">সতর্কতা</string>
+</resources>

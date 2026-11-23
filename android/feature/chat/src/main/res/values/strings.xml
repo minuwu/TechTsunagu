@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="chat_chats_screen_title">Chats</string>
+    <string name="chat_screen_title">Chat</string>
+    <string name="chat_screen_id">Screen: %1$s</string>
+    <string name="chat_loading">Loading...</string>
+    <string name="chat_empty">No messages</string>
+    <string name="chat_retry">Retry</string>
+    <string name="chat_error">Error: %1$s</string>
+
+    <string name="chat_error_offline">No connection. Your message is still here: try again.</string>
+    <string name="chat_error_session">You are signed out or not allowed to do this.</string>
+    <string name="chat_error_generic">Something went wrong. Please try again.</string>
+
+    <string name="chat_filter_all">All</string>
+    <string name="chat_filter_unread">Unread</string>
+    <string name="chat_empty_threads">No chats yet</string>
+    <string name="chat_members_count">%1$d members</string>
+    <string name="chat_you_prefix">You: </string>
+    <string name="chat_role_foreman">Foreman</string>
+    <string name="chat_role_worker">Worker</string>
+    <string name="chat_switch_role">Switch role</string>
+
+    <string name="chat_show_original">Show original (Japanese)</string>
+    <string name="chat_hide_original">Hide original</string>
+    <string name="chat_voice_message">Voice message</string>
+    <string name="chat_read_aloud">Read aloud</string>
+
+    <string name="chat_auto_send_countdown">%1$d s to send · Tap to send now</string>
+    <string name="chat_cancel">Cancel</string>
+    <string name="chat_editing">Editing message</string>
+    <string name="chat_listening">Listening… speak now</string>
+    <string name="chat_input_placeholder">Type a message…</string>
+    <string name="chat_send">Send</string>
+    <string name="chat_mic">Voice input</string>
+
+    <string name="chat_wk_title">Wakatta? Check</string>
+    <string name="chat_wk_step_1">Transcribed</string>
+    <string name="chat_wk_step_2">Translated</string>
+    <string name="chat_wk_step_3">Check questions made</string>
+    <string name="chat_wk_step_4">Tasks extracted</string>
+    <string name="chat_wk_step_5">Sent to workers</string>
+    <string name="chat_wk_step_6">Answers in</string>
+
+    <string name="chat_wk_progress_title">Progress (6/6 done)</string>
+    <string name="chat_wk_worker_status">Worker understanding</string>
+
+    <string name="chat_status_green">Understood</string>
+    <string name="chat_status_orange">Needs review</string>
+    <string name="chat_status_red">Confused</string>
+    <string name="chat_status_wait">Waiting</string>
+
+    <string name="chat_nudge">Nudge</string>
+    <string name="chat_nudged">Nudged</string>
+    <string name="chat_nudged_notice">Foreman is waiting for your answer</string>
+    <string name="chat_reexplain">Re-explain</string>
+
+    <string name="chat_questions_title">Wakatta? %1$d quick questions</string>
+    <string name="chat_question_progress">Question %1$d of %2$d</string>
+    <string name="chat_option_not_sure">Not sure</string>
+    <string name="chat_result_green">Understood! All answers correct</string>
+    <string name="chat_result_orange">Some answers need review</string>
+    <string name="chat_result_red">Not understood. Foreman will explain again</string>
+    <string name="chat_added_to_board">Added to your Task Board</string>
+    <string name="chat_ask_again">Ask Foreman to explain again</string>
+
+    <string name="chat_glossary_title">Fixed shop term</string>
+    <string name="chat_glossary_subtitle">AI does not alter this translation</string>
+    <string name="chat_close">Close</string>
+
+    <string name="chat_reexplain_title">Re-explanation for %1$s</string>
+    <string name="chat_reexplain_confused_term">Confused term: %1$s</string>
+    <string name="chat_reexplain_easy_ja">Easy Japanese</string>
+    <string name="chat_reexplain_worker_lang">Explanation in worker\'s language</string>
+    <string name="chat_reexplain_new_question">New confirmation question (1 question)</string>
+    <string name="chat_reexplain_approve_send">Approve and send to %1$s</string>
+</resources>

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notices_life_screen_title">くらし・地域</string>
+    <string name="notices_notice_screen_title">お知らせ詳細</string>
+    <string name="notices_new_screen_title">お知らせ作成</string>
+    <string name="notices_screen_id">画面ID: %1$s</string>
+    <string name="notices_loading">読み込み中...</string>
+    <string name="notices_empty">お知らせはありません</string>
+    <string name="notices_retry">再試行</string>
+    <string name="notices_error">エラー: %1$s</string>
+    <string name="notices_back">戻る</string>
+    <string name="notices_close">閉じる</string>
+
+    <string name="notices_upcoming_events">今週・これからの予定</string>
+    <string name="notices_no_events">予定はありません</string>
+    <string name="notices_list_title">地域のお知らせ</string>
+    <string name="notices_published_title">配信済みのお知らせ</string>
+    <string name="notices_pending_badge">未回答 %1$d件</string>
+
+    <string name="notices_ask_card_title">くらしの質問をする</string>
+    <string name="notices_ask_card_desc">ゴミ出し、防災訓練、お祭り。困ったら先輩が答えます。</string>
+
+    <string name="notices_senpai_title">私の先輩</string>
+    <string name="notices_next_meet">次回: %1$s %2$s</string>
+    <string name="notices_senpai_support_title">先輩・支援記録</string>
+    <string name="notices_senpai_pairs">先輩ペア</string>
+    <string name="notices_senpai_pairs_desc">%1$d組 · 面談 %2$d件</string>
+    <string name="notices_forwarded_asks">転送された質問</string>
+    <string name="notices_forwarded_asks_desc">返信待ち %1$d件</string>
+    <string name="notices_support_log">支援記録</string>
+    <string name="notices_support_log_desc">定期面談とお知らせ確認の記録</string>
+
+    <string name="notices_today_word_label">今日のひとこと · %1$sさんの言葉（%2$s）</string>
+    <string name="notices_today_word_hint">今日、声をかけてみましょう</string>
+
+    <string name="notices_what_to_do">やること</string>
+    <string name="notices_dates">日程</string>
+    <string name="notices_original">元のお知らせ</string>
+    <string name="notices_check">確認チェック</string>
+    <string name="notices_check_results">チェック結果</string>
+
+    <string name="notices_reminder_on">リマインダー設定中</string>
+    <string name="notices_add_reminder">リマインダー追加</string>
+    <string name="notices_not_sure">わからない</string>
+    <string name="notices_answered_not_sure">わからない、と回答</string>
+    <string name="notices_waiting_answer">回答待ち</string>
+    <string name="notices_correct_answer">正解: %1$s</string>
+    <string name="notices_answer_prefix">回答: %1$s</string>
+
+    <string name="notices_status_green_msg">わかりました！正解です。</string>
+    <string name="notices_status_orange_msg">教えてくれてありがとう。職長がもう一度説明します。</string>
+    <string name="notices_status_red_msg">おしい！正解は「%1$s」です。</string>
+    <string name="notices_ask_question_btn">質問する</string>
+
+    <string name="notices_read_aloud">読み上げ</string>
+    <string name="notices_stop_read_aloud">停止</string>
+    <string name="notices_photo_flyer">チラシの写真</string>
+    <string name="notices_audio_recording">音声お知らせ (%1$s)</string>
+
+    <string name="notices_create_notice">お知らせを作成</string>
+    <string name="notices_create_notice_hidden">お知らせの投稿は自治会・管理者のみ可能です。</string>
+    <string name="notices_source_flyer">チラシ写真</string>
+    <string name="notices_source_text">テキスト</string>
+    <string name="notices_source_voice">音声</string>
+
+    <string name="notices_sample_flyers">見本のチラシを選ぶ</string>
+    <string name="notices_enter_text">お知らせの文章</string>
+    <string name="notices_enter_text_placeholder">例: 12月13日（日）朝8時から東公園で大掃除をします。</string>
+    <string name="notices_insert_sample">例文を入れる</string>
+    <string name="notices_process_ai">AIで読み取る</string>
+    <string name="notices_tap_to_talk">タップして話す</string>
+    <string name="notices_listening">聞いています…</string>
+    <string name="notices_processing_ocr">OCR: チラシの文字を読み取り中…</string>
+    <string name="notices_processing_ai">AI: やさしい日本語と英語にしています…</string>
+
+    <string name="notices_field_title">タイトル</string>
+    <string name="notices_field_steps">やさしい手順（日本語 / English）</string>
+    <string name="notices_found_events">見つかった予定（チェックして確認）</string>
+    <string name="notices_no_events_found">予定は見つかりませんでした</string>
+    <string name="notices_check_question_preview">チェック質問（1問）</string>
+    <string name="notices_publish_btn">配信する</string>
+    <string name="notices_publish_success">お知らせを配信しました</string>
+    <string name="notices_publish_events_unconfirmed">配信する前にすべての日程を確認してください</string>
+    <string name="notices_audience_info">配信先: 作業者 %1$d名（%2$s）</string>
+</resources>

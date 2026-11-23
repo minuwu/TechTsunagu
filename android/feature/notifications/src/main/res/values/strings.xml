@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notifications_screen_title">Notifications</string>
+    <string name="notifications_loading">Loading...</string>
+    <string name="notifications_empty">No notifications</string>
+    <string name="notifications_retry">Retry</string>
+    <string name="notifications_error">Could not load notifications.</string>
+    <string name="notifications_permission_title">Get Check reminders and messages?</string>
+    <string name="notifications_permission_message">Wakatta? can tell you when a Check is waiting or a message arrives. Messages show only who sent them, never what they say. You can change this any time in Settings.</string>
+    <string name="notifications_turn_on">Turn on</string>
+    <string name="notifications_not_now">Not now</string>
+    <string name="notifications_off">Notifications are off. Messages and Checks appear when you open the app.</string>
+    <string name="notifications_open_settings">Open settings</string>
+    <string name="notifications_channel_messages">Messages</string>
+    <string name="notifications_channel_contacts">Contact messages</string>
+    <string name="notifications_channel_safety">Safety and Checks</string>
+    <string name="notifications_channel_life">Life and notices</string>
+    <string name="notifications_channel_updates">Updates</string>
+</resources>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="core_design_retry">পুনরায় চেষ্টা করুন</string>
+    <string name="core_design_loading">লোড হচ্ছে…</string>
+    <string name="core_design_back">পিছনে</string>
+    <string name="core_design_status_green">বুঝেছি</string>
+    <string name="core_design_status_orange">যাচাই প্রয়োজন</string>
+    <string name="core_design_status_red">বুঝিনি</string>
+    <string name="core_design_status_wait">উত্তরের অপেক্ষায়</string>
+</resources>

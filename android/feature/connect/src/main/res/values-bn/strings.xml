@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="connect_loading">লোড হচ্ছে...</string>
+    <string name="connect_cancel">বাতিল</string>
+    <string name="connect_save">সংরক্ষণ</string>
+    <string name="connect_create">তৈরি করুন</string>
+    <string name="connect_delete">মুছুন</string>
+    <string name="connect_rename">নাম বদলান</string>
+    <string name="connect_block">ব্লক করুন</string>
+    <string name="connect_send">পাঠান</string>
+    <string name="connect_check">যাচাই করুন</string>
+    <string name="connect_icon_info">তথ্য</string>
+    <string name="connect_icon_warning">সতর্কতা</string>
+
+    <!-- Connect screen -->
+    <string name="connect_screen_title">সংযোগ</string>
+    <string name="connect_my_qr_title">আমার QR</string>
+    <string name="connect_my_qr_desc">আমার QR কোড। অন্য কেউ স্ক্যান করলে আপনার সঙ্গে যুক্ত হতে পারবে।</string>
+    <string name="connect_my_qr_note">কেউ এই QR স্ক্যান করলে আপনারা চ্যাট করতে পারবেন। তারা শুধু আপনার নাম আর ভাষা দেখবে। কাজের বাইরেও ব্যবহার করা যায়।</string>
+    <string name="connect_scan">QR স্ক্যান করুন</string>
+    <string name="connect_share">আমার QR শেয়ার করুন</string>
+    <string name="connect_rotate">নতুন QR বানান</string>
+    <string name="connect_rotated">নতুন QR তৈরি হয়েছে। পুরোনো QR আর কাজ করবে না।</string>
+    <string name="connect_contacts_title">পরিচিতজন</string>
+    <string name="connect_contacts_empty">এখনো কোনো পরিচিতজন নেই। কারও QR স্ক্যান করে যুক্ত হন।</string>
+    <string name="connect_talks_title">কথোপকথনের খাতা</string>
+    <string name="connect_talks_empty">এখনো কোনো খাতা নেই। যার সঙ্গে কথা বলেন, তার জন্য একটি বানান।</string>
+    <string name="connect_new_talk">নতুন কথোপকথন</string>
+    <string name="connect_name_label">নাম (যেমন যার সঙ্গে কথা বলছেন)</string>
+    <string name="connect_err_name_required">১ থেকে ৪০ অক্ষরের মধ্যে একটি নাম লিখুন।</string>
+    <string name="connect_privacy_notice_title">রেকর্ড করার আগে</string>
+    <string name="connect_privacy_notice_message">রেকর্ড করা ঠিক আছে কি না, ব্যক্তিটিকে জিজ্ঞাসা করুন। নাম বা ব্যক্তিগত তথ্য বলা এড়িয়ে চলুন। আপনার কর্মস্থলের নিয়ম মেনে চলুন।</string>
+    <string name="connect_privacy_notice_dismiss">বুঝেছি</string>
+
+    <!-- Scan screen -->
+    <string name="connect_scan_screen_title">QR স্ক্যান করুন</string>
+    <string name="connect_scan_hint">অন্য ব্যক্তির QR-এর কোড লিখুন, অথবা স্ক্যান পরীক্ষা করতে নিচের কারও নামে চাপ দিন।</string>
+    <string name="connect_scan_code_label">কোড</string>
+    <string name="connect_scan_read">কোড পড়ুন</string>
+    <string name="connect_scan_samples">স্ক্যান পরীক্ষা করুন (ডেমো)</string>
+    <string name="connect_scan_confirm_title">%1$s-এর সঙ্গে যুক্ত হবেন?</string>
+    <string name="connect_scan_confirm_lang">ভাষা: %1$s</string>
+    <string name="connect_scan_confirm_note">আপনারা একে অপরকে বার্তা পাঠাতে পারবেন। আপনার ফোরম্যান এই চ্যাট দেখতে পাবেন না।</string>
+    <string name="connect_scan_connect">যুক্ত হন</string>
+
+    <!-- Contact Thread -->
+    <string name="connect_pchat_screen_title">চ্যাট</string>
+    <string name="connect_chat_empty">এখনো কোনো বার্তা নেই। একটি সালাম বা শুভেচ্ছা পাঠান।</string>
+    <string name="connect_message_hint">বার্তা</string>
+    <string name="connect_they_see">তারা দেখবে: %1$s</string>
+    <string name="connect_original">মূল বার্তা: %1$s</string>
+    <string name="connect_no_translation">(এখনো অনুবাদ নেই)</string>
+    <string name="connect_block_title">এই ব্যক্তিকে ব্লক করবেন?</string>
+    <string name="connect_block_body">%1$s · এই চ্যাট মুছে যাবে। তাকে কিছু জানানো হবে না।</string>
+
+    <!-- Talk Thread -->
+    <string name="connect_talk_empty">শুনুন বোতাম চাপুন এবং ব্যক্তির কাছে ফোন ধরুন।</string>
+    <string name="connect_listen">শুনুন</string>
+    <string name="connect_listening">শুনছি…</string>
+    <string name="connect_said">তারা যা বলেছেন · %1$s</string>
+    <string name="connect_play_again">আবার শুনুন</string>
+    <string name="connect_your_words">তারা কী বললেন? নিজের ভাষায় লিখুন</string>
+    <string name="connect_example">যেমন…</string>
+    <string name="connect_show_meaning">অর্থ দেখুন</string>
+    <string name="connect_your_understanding">আপনার বোঝা</string>
+    <string name="connect_grade_green">হ্যাঁ, আপনি ঠিক বুঝেছেন।</string>
+    <string name="connect_grade_orange">প্রায় কাছাকাছি।</string>
+    <string name="connect_grade_red">ঠিক হয়নি।</string>
+    <string name="connect_grade_skipped">আপনি আগে অর্থ দেখেছেন।</string>
+    <string name="connect_meaning">অর্থ</string>
+    <string name="connect_staff_flag">ব্যথা বা খাওয়ার রুচি না থাকলে কর্মী বা নার্সকে জানান। আপনার প্রতিষ্ঠানের নিয়ম মেনে চলুন।</string>
+    <string name="connect_choose_reply">উত্তর বেছে নিন</string>
+    <string name="connect_show_screen">তাকে এই স্ক্রিন দেখান</string>
+    <string name="connect_read_aloud">জোরে পড়ুন</string>
+    <string name="connect_yes">はい</string>
+    <string name="connect_no">いいえ</string>
+    <string name="connect_confirmed_yes">তারা হ্যাঁ বলেছেন। কথা পৌঁছেছে।</string>
+    <string name="connect_confirmed_no">তারা বুঝতে পারেননি।</string>
+    <string name="connect_try_another">অন্য উত্তর দিন</string>
+    <string name="connect_delete_title">এই কথোপকথন মুছবেন?</string>
+    <string name="connect_delete_body">%1$s · এর সব বার্তাও মুছে যাবে।</string>
+
+    <!-- Errors: what happened, why, what to do -->
+    <string name="connect_err_offline">ইন্টারনেট সংযোগ নেই, তাই কাজটি হয়নি। সংযোগ দেখে আবার চেষ্টা করুন।</string>
+    <string name="connect_err_timeout">সার্ভার উত্তর দিতে দেরি করছে। একটু অপেক্ষা করে আবার চেষ্টা করুন।</string>
+    <string name="connect_err_server">সার্ভারে সমস্যা হয়েছে, কাজটি শেষ করা যায়নি। পরে আবার চেষ্টা করুন।</string>
+    <string name="connect_err_not_found">খুঁজে পাওয়া যায়নি। QR বা কোড দেখে আবার চেষ্টা করুন।</string>
+    <string name="connect_err_blocked">আপনি এই ব্যক্তিকে ব্লক করেছেন।</string>
+    <string name="connect_err_bad_code">এটি Wakatta?-এর QR কোড নয়। কোড দেখে আবার চেষ্টা করুন।</string>
+    <string name="connect_err_no_speech">এই ফোনে জোরে পড়া যাচ্ছে না। বদলে ব্যক্তিটিকে স্ক্রিন দেখান।</string>
+    <string name="connect_err_unknown">কিছু একটা ভুল হয়েছে। আবার চেষ্টা করুন। বারবার হলে আপনার ফোরম্যানকে জানান।</string>
+</resources>

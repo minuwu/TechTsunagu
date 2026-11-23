@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Bottom navigation tabs -->
+    <string name="app_tab_home">ホーム</string>
+    <string name="app_tab_chats">チャット</string>
+    <string name="app_tab_board">ボード</string>
+    <string name="app_tab_machines">機械</string>
+    <string name="app_tab_me">自分</string>
+
+    <!-- Demo and Auth strings -->
+    <string name="app_demo_worker">作業員 (ラヒム)</string>
+    <string name="app_demo_foreman">職長 (田中)</string>
+    <string name="app_demo_signin_prompt">デモ クイックログイン:</string>
+    <string name="app_demo_signout">ログアウト</string>
+</resources>
