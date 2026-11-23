@@ -41,6 +41,9 @@ def main() -> None:
             conn.execute(sql.SQL("CREATE DATABASE {} OWNER {}").format(_ident(DB), _ident(OWNER)))
 
     with psycopg.connect(make_conninfo(admin_url, dbname=DB), autocommit=True) as conn:
+        # Azure's managed Postgres does not hand `public` to the database owner (stock PG 16 does), so the owner could
+        # not create tables: give it the schema first, as the README's manual setup does.
+        conn.execute(sql.SQL("ALTER SCHEMA public OWNER TO {}").format(_ident(OWNER)))
         conn.execute(sql.SQL("SET ROLE {}").format(_ident(OWNER)))
         conn.execute("REVOKE ALL ON SCHEMA public FROM PUBLIC")
         conn.execute(sql.SQL("GRANT USAGE ON SCHEMA public TO {}").format(_ident(APP)))
