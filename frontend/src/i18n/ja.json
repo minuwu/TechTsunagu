@@ -431,5 +431,13 @@
   "map_pilot": "実証の場：佐世保市",
   "map_photo_alt": "長崎市の眼鏡橋。中島川の水面に二つの石のアーチが映り、手前に飛び石が並んでいます。",
   "map_photo_caption": "眼鏡橋（長崎市）",
-  "map_photo_credit": "写真：Yoshi Canopus（CC0）"
+  "map_photo_credit": "写真：Yoshi Canopus（CC0）",
+  "map_globe_label": "地球儀から日本の地図へ。都道府県をクリックすると、その名所が出ます",
+  "map_zoom_in": "拡大",
+  "map_zoom_out": "縮小",
+  "map_choose": "都道府県を選ぶ",
+  "map_hint": "Ctrl（⌘）＋スクロールで拡大・縮小、ドラッグで移動",
+  "map_famous": "名所",
+  "map_credit": "写真：{artist}（{license}）",
+  "map_source": "出典"
 }

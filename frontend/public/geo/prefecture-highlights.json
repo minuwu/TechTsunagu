@@ -1,0 +1,425 @@
+[
+ {
+  "id": "JP-01",
+  "ja": "札幌時計台",
+  "en": "Sapporo Clock Tower",
+  "image": "/media/prefectures/jp-01.webp",
+  "license": "CC0",
+  "artist": "Ninosan",
+  "page": "https://commons.wikimedia.org/wiki/File:Sapporo_Clock_Tower_130.JPG"
+ },
+ {
+  "id": "JP-02",
+  "ja": "ねぶた祭",
+  "en": "Nebuta Festival",
+  "image": "/media/prefectures/jp-02.webp",
+  "license": "CC0",
+  "artist": "Hiart",
+  "page": "https://commons.wikimedia.org/wiki/File:2025_Aomori_Nebuta_Festival_float_6.jpg"
+ },
+ {
+  "id": "JP-03",
+  "ja": "中尊寺",
+  "en": "Chūson-ji",
+  "image": "/media/prefectures/jp-03.webp",
+  "license": "CC0",
+  "artist": "Drivephotographer",
+  "page": "https://commons.wikimedia.org/wiki/File:Chusonji_approach.jpg"
+ },
+ {
+  "id": "JP-04",
+  "ja": "松島",
+  "en": "Matsushima",
+  "image": "/media/prefectures/jp-04.webp",
+  "license": "CC0",
+  "artist": "lumoplank",
+  "page": "https://commons.wikimedia.org/wiki/File:Matsushima_Bay_-_Matsushima6224.jpg"
+ },
+ {
+  "id": "JP-05",
+  "ja": "角館の武家屋敷通り",
+  "en": "Kakunodate samurai district",
+  "image": "/media/prefectures/jp-05.webp",
+  "license": "CC0",
+  "artist": "sayo ts",
+  "page": "https://commons.wikimedia.org/wiki/File:%E7%A7%8B%E7%94%B0%E7%9C%8C_%E8%A7%92%E9%A4%A8%E7%94%BA_(26752244677).jpg"
+ },
+ {
+  "id": "JP-06",
+  "ja": "山寺",
+  "en": "Yamadera",
+  "image": "/media/prefectures/jp-06.webp",
+  "license": "CC0",
+  "artist": "lumoplank",
+  "page": "https://commons.wikimedia.org/wiki/File:Yamadera,_Part_I_-_Yamadera7478.jpg"
+ },
+ {
+  "id": "JP-07",
+  "ja": "会津の桜",
+  "en": "Aizu cherry blossoms",
+  "image": "/media/prefectures/jp-07.webp",
+  "license": "CC0",
+  "artist": "lando",
+  "page": "https://commons.wikimedia.org/wiki/File:Voja%C4%9Do_al_Aizu_02.jpg"
+ },
+ {
+  "id": "JP-08",
+  "ja": "偕楽園",
+  "en": "Kairaku-en",
+  "image": "/media/prefectures/jp-08.webp",
+  "license": "CC0",
+  "artist": "七巫こ",
+  "page": "https://commons.wikimedia.org/wiki/File:Kairakuen_lake_senba_2021.jpg"
+ },
+ {
+  "id": "JP-09",
+  "ja": "日光東照宮",
+  "en": "Nikkō Tōshō-gū",
+  "image": "/media/prefectures/jp-09.webp",
+  "license": "CC0",
+  "artist": "lumoplank",
+  "page": "https://commons.wikimedia.org/wiki/File:Toshogu_Shrine,_Nikko_-_ToshoguShrine7869.jpg"
+ },
+ {
+  "id": "JP-10",
+  "ja": "草津温泉",
+  "en": "Kusatsu Onsen",
+  "image": "/media/prefectures/jp-10.webp",
+  "license": "CC0",
+  "artist": "Aspere",
+  "page": "https://commons.wikimedia.org/wiki/File:251129_Yubatake,_Kusatsu_07.jpg"
+ },
+ {
+  "id": "JP-11",
+  "ja": "川越城本丸御殿",
+  "en": "Kawagoe Castle Palace",
+  "image": "/media/prefectures/jp-11.webp",
+  "license": "CC0",
+  "artist": "MaedaAkihiko",
+  "page": "https://commons.wikimedia.org/wiki/File:Kawagoe-Castle_Honmaru-Goten.jpg"
+ },
+ {
+  "id": "JP-12",
+  "ja": "成田山新勝寺",
+  "en": "Naritasan Shinshō-ji",
+  "image": "/media/prefectures/jp-12.webp",
+  "license": "CC0",
+  "artist": "Joel Bradshaw",
+  "page": "https://commons.wikimedia.org/wiki/File:Naritasan-Shinshoji-Somon.jpg"
+ },
+ {
+  "id": "JP-13",
+  "ja": "浅草寺",
+  "en": "Sensō-ji",
+  "image": "/media/prefectures/jp-13.webp",
+  "license": "CC0",
+  "artist": "Akonnchiroll",
+  "page": "https://commons.wikimedia.org/wiki/File:Sensoji_2023.jpg"
+ },
+ {
+  "id": "JP-14",
+  "ja": "鎌倉大仏",
+  "en": "Great Buddha of Kamakura",
+  "image": "/media/prefectures/jp-14.webp",
+  "license": "CC0",
+  "artist": "Quercus acuta",
+  "page": "https://commons.wikimedia.org/wiki/File:Kamakura_Daibutsu_-_01.jpg"
+ },
+ {
+  "id": "JP-15",
+  "ja": "佐渡島の金山",
+  "en": "Sado Gold Mine",
+  "image": "/media/prefectures/jp-15.webp",
+  "license": "CC0",
+  "artist": "番記者",
+  "page": "https://commons.wikimedia.org/wiki/File:Congratulation_World_Heritage_board_in_Sado_Gold_Mines.jpg"
+ },
+ {
+  "id": "JP-16",
+  "ja": "黒部ダム",
+  "en": "Kurobe Dam",
+  "image": "/media/prefectures/jp-16.webp",
+  "license": "Public domain",
+  "artist": "河川一等兵",
+  "page": "https://commons.wikimedia.org/wiki/File:Kurobe-556-r1.JPG"
+ },
+ {
+  "id": "JP-17",
+  "ja": "兼六園",
+  "en": "Kenroku-en",
+  "image": "/media/prefectures/jp-17.webp",
+  "license": "CC0",
+  "artist": "Balon Greyjoy",
+  "page": "https://commons.wikimedia.org/wiki/File:20190705_Kenroku-en-7.jpg"
+ },
+ {
+  "id": "JP-18",
+  "ja": "東尋坊",
+  "en": "Tōjinbō",
+  "image": "/media/prefectures/jp-18.webp",
+  "license": "CC0",
+  "artist": "Brakeet",
+  "page": "https://commons.wikimedia.org/wiki/File:Tojinbo_2010_08.jpg"
+ },
+ {
+  "id": "JP-19",
+  "ja": "富士山",
+  "en": "Mount Fuji",
+  "image": "/media/prefectures/jp-19.webp",
+  "license": "CC0",
+  "artist": "Romain Guy from San Francisco, USA",
+  "page": "https://commons.wikimedia.org/wiki/File:Mount_Fuji_at_sunset,_March_2025.jpg"
+ },
+ {
+  "id": "JP-20",
+  "ja": "松本城",
+  "en": "Matsumoto Castle",
+  "image": "/media/prefectures/jp-20.webp",
+  "license": "CC0",
+  "artist": "Syced",
+  "page": "https://commons.wikimedia.org/wiki/File:Matsumoto_castle,_stitched.jpg"
+ },
+ {
+  "id": "JP-21",
+  "ja": "白川郷",
+  "en": "Shirakawa-gō",
+  "image": "/media/prefectures/jp-21.webp",
+  "license": "CC0",
+  "artist": "lumoplank",
+  "page": "https://commons.wikimedia.org/wiki/File:Shirakawa-go_-_Shirakawa161.jpg"
+ },
+ {
+  "id": "JP-22",
+  "ja": "三保の松原",
+  "en": "Miho no Matsubara",
+  "image": "/media/prefectures/jp-22.webp",
+  "license": "Public domain",
+  "artist": "Utagawa Hiroshige",
+  "page": "https://commons.wikimedia.org/wiki/File:Ejiri_Reisho_Tokaido.jpg"
+ },
+ {
+  "id": "JP-23",
+  "ja": "名古屋城",
+  "en": "Nagoya Castle",
+  "image": "/media/prefectures/jp-23.webp",
+  "license": "Public domain",
+  "artist": "Gryffindor",
+  "page": "https://commons.wikimedia.org/wiki/File:Nagoya_Castle_Feb_2011_15.jpg"
+ },
+ {
+  "id": "JP-24",
+  "ja": "伊勢神宮",
+  "en": "Ise Grand Shrine",
+  "image": "/media/prefectures/jp-24.webp",
+  "license": "CC0",
+  "artist": "Brakeet",
+  "page": "https://commons.wikimedia.org/wiki/File:Naiku_Ise_Shrine_29.jpg"
+ },
+ {
+  "id": "JP-25",
+  "ja": "琵琶湖",
+  "en": "Lake Biwa",
+  "image": "/media/prefectures/jp-25.webp",
+  "license": "Public domain",
+  "artist": "unknown",
+  "page": "https://commons.wikimedia.org/wiki/File:Biwa_Lake,_From_Ishiyama_-_DPLA_-_bbff82d20339e667efc99cb3ba6a3a9f.jpg"
+ },
+ {
+  "id": "JP-26",
+  "ja": "伏見稲荷大社",
+  "en": "Fushimi Inari-taisha",
+  "image": "/media/prefectures/jp-26.webp",
+  "license": "CC0",
+  "artist": "Balon Greyjoy",
+  "page": "https://commons.wikimedia.org/wiki/File:20181110_Fushimi_Inari_shrine_6.jpg"
+ },
+ {
+  "id": "JP-27",
+  "ja": "大阪城",
+  "en": "Osaka Castle",
+  "image": "/media/prefectures/jp-27.webp",
+  "license": "CC0",
+  "artist": "Syced",
+  "page": "https://commons.wikimedia.org/wiki/File:Osaka_castle_7.jpg"
+ },
+ {
+  "id": "JP-28",
+  "ja": "姫路城",
+  "en": "Himeji Castle",
+  "image": "/media/prefectures/jp-28.webp",
+  "license": "Public domain",
+  "artist": "Gorgo",
+  "page": "https://commons.wikimedia.org/wiki/File:Himeji_Castle_0804_1.jpg"
+ },
+ {
+  "id": "JP-29",
+  "ja": "東大寺大仏殿",
+  "en": "Tōdai-ji Great Buddha Hall",
+  "image": "/media/prefectures/jp-29.webp",
+  "license": "CC0",
+  "artist": "Balon Greyjoy",
+  "page": "https://commons.wikimedia.org/wiki/File:20190121_T%C5%8Ddai-ji_Great_Buddha_Hall-1.jpg"
+ },
+ {
+  "id": "JP-30",
+  "ja": "高野山",
+  "en": "Mount Kōya",
+  "image": "/media/prefectures/jp-30.webp",
+  "license": "CC0",
+  "artist": "Saigen Jiro",
+  "page": "https://commons.wikimedia.org/wiki/File:Koyasan,_Daimon.jpg"
+ },
+ {
+  "id": "JP-31",
+  "ja": "鳥取砂丘",
+  "en": "Tottori Sand Dunes",
+  "image": "/media/prefectures/jp-31.webp",
+  "license": "CC0",
+  "artist": "Drivephotographer",
+  "page": "https://commons.wikimedia.org/wiki/File:Tottori_Sand_Dunes.jpg"
+ },
+ {
+  "id": "JP-32",
+  "ja": "出雲大社",
+  "en": "Izumo-taisha",
+  "image": "/media/prefectures/jp-32.webp",
+  "license": "CC0",
+  "artist": "Saigen Jiro",
+  "page": "https://commons.wikimedia.org/wiki/File:Haiden_of_Izumo-taisha-1.JPG"
+ },
+ {
+  "id": "JP-33",
+  "ja": "後楽園",
+  "en": "Kōraku-en",
+  "image": "/media/prefectures/jp-33.webp",
+  "license": "Public domain",
+  "artist": "osakaosaka",
+  "page": "https://commons.wikimedia.org/wiki/File:Korakuen_Okayama_2009-1-11.jpg"
+ },
+ {
+  "id": "JP-34",
+  "ja": "厳島神社",
+  "en": "Itsukushima Shrine",
+  "image": "/media/prefectures/jp-34.webp",
+  "license": "CC0",
+  "artist": "Balon Greyjoy",
+  "page": "https://commons.wikimedia.org/wiki/File:20181111_Itsukushima_Shrine_torii-2.jpg"
+ },
+ {
+  "id": "JP-35",
+  "ja": "錦帯橋",
+  "en": "Kintai Bridge",
+  "image": "/media/prefectures/jp-35.webp",
+  "license": "Public domain",
+  "artist": "Kiensvay",
+  "page": "https://commons.wikimedia.org/wiki/File:Kintai_bridge_2.jpg"
+ },
+ {
+  "id": "JP-36",
+  "ja": "鳴門の渦潮",
+  "en": "Naruto whirlpools",
+  "image": "/media/prefectures/jp-36.webp",
+  "license": "Public domain",
+  "artist": "Utagawa Hiroshige",
+  "page": "https://commons.wikimedia.org/wiki/File:Utagawa_Hiroshige_(1857)_Awa_Naruto_no_fuukei.jpg"
+ },
+ {
+  "id": "JP-37",
+  "ja": "栗林公園",
+  "en": "Ritsurin Garden",
+  "image": "/media/prefectures/jp-37.webp",
+  "license": "CC0",
+  "artist": "Photos of Japan",
+  "page": "https://commons.wikimedia.org/wiki/File:Ritsurin_pano_956.jpg"
+ },
+ {
+  "id": "JP-38",
+  "ja": "道後温泉",
+  "en": "Dōgo Onsen",
+  "image": "/media/prefectures/jp-38.webp",
+  "license": "CC0",
+  "artist": "Brakeet",
+  "page": "https://commons.wikimedia.org/wiki/File:Dogo_Onsen_01.jpg"
+ },
+ {
+  "id": "JP-39",
+  "ja": "桂浜の坂本龍馬像",
+  "en": "Ryōma statue, Katsurahama",
+  "image": "/media/prefectures/jp-39.webp",
+  "license": "Public domain",
+  "artist": "京浜にけ",
+  "page": "https://commons.wikimedia.org/wiki/File:Kochi_Katsurahama_Sakamoto_Ryoma_Statue_2.jpg"
+ },
+ {
+  "id": "JP-40",
+  "ja": "太宰府天満宮",
+  "en": "Dazaifu Tenman-gū",
+  "image": "/media/prefectures/jp-40.webp",
+  "license": "CC0",
+  "artist": "Drivephotographer",
+  "page": "https://commons.wikimedia.org/wiki/File:Dazaifu_Tenmangu.jpg"
+ },
+ {
+  "id": "JP-41",
+  "ja": "吉野ヶ里遺跡",
+  "en": "Yoshinogari",
+  "image": "/media/prefectures/jp-41.webp",
+  "license": "CC0",
+  "artist": "Saigen Jiro",
+  "page": "https://commons.wikimedia.org/wiki/File:Yoshinogari-iseki_zenkei.JPG"
+ },
+ {
+  "id": "JP-42",
+  "ja": "眼鏡橋",
+  "en": "Megane Bridge",
+  "image": "/media/megane-bridge-nagasaki-960.webp",
+  "license": "CC0",
+  "artist": "Yoshi Canopus",
+  "page": "https://commons.wikimedia.org/wiki/File:Megane_Bridge_of_Nagasaki_with_Stepping_Stones.jpg"
+ },
+ {
+  "id": "JP-43",
+  "ja": "熊本城",
+  "en": "Kumamoto Castle",
+  "image": "/media/prefectures/jp-43.webp",
+  "license": "CC0",
+  "artist": "先従隗始",
+  "page": "https://commons.wikimedia.org/wiki/File:Kumamoto_Castle_20230227_16.jpg"
+ },
+ {
+  "id": "JP-44",
+  "ja": "別府温泉",
+  "en": "Beppu Onsen",
+  "image": "/media/prefectures/jp-44.webp",
+  "license": "CC0",
+  "artist": "Bpcon98",
+  "page": "https://commons.wikimedia.org/wiki/File:Umi_Jigoku_(Sea_Hell)_in_Beppu.jpg"
+ },
+ {
+  "id": "JP-45",
+  "ja": "高千穂峡",
+  "en": "Takachiho Gorge",
+  "image": "/media/prefectures/jp-45.webp",
+  "license": "Public domain",
+  "artist": "Max Smith",
+  "page": "https://commons.wikimedia.org/wiki/File:Takachiho_Gorge_by_boat.jpg"
+ },
+ {
+  "id": "JP-46",
+  "ja": "桜島",
+  "en": "Sakurajima",
+  "image": "/media/prefectures/jp-46.webp",
+  "license": "CC0",
+  "artist": "Drivephotographer",
+  "page": "https://commons.wikimedia.org/wiki/File:Sakurajima-2.jpg"
+ },
+ {
+  "id": "JP-47",
+  "ja": "首里城",
+  "en": "Shuri Castle",
+  "image": "/media/prefectures/jp-47.webp",
+  "license": "Public domain",
+  "artist": "Abasaa",
+  "page": "https://commons.wikimedia.org/wiki/File:Ryutan_and_Shuri_Castle_01.JPG"
+ }
+]
