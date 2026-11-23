@@ -531,7 +531,7 @@ Roles: F Foreman · W Worker · P Poster · D Panel device · S Senpai link · p
 | POST | `/demo/reset` | F, only when `DEMO_MODE=true` | re-runs the seed for the caller's shop only; audited |
 
 ### 9.4 Contract flow ([ADR 0006](adr/0006-code-first-openapi.md))
-FastAPI generates `docs/openapi.yaml` (`uv run python -m app.openapi > ../docs/openapi.yaml`). WS0 lands every route above as a typed stub, so the frontend can generate types on day one. The stub has its real request and response models and returns a 501 `NOT_IMPLEMENTED` envelope. CI regenerates the file and fails on a diff.
+FastAPI generates `docs/openapi.yaml` (`uv run python -m app.openapi > ../docs/openapi.yaml`) and the endpoint index of `docs/API_SPEC.md` (`uv run python -m app.openapi index`); a test fails when either is stale. WS0 lands every route above as a typed stub, so the frontend can generate types on day one. The stub has its real request and response models and returns a 501 `NOT_IMPLEMENTED` envelope. CI regenerates the file and fails on a diff.
 
 ---
 
@@ -581,7 +581,7 @@ The models and every budget live in one table, [`app/ai/chains.py`](../backend/a
 - Free-tier numbers are Galib's, read from AI Studio on 2026-11-22; recheck on the day.
 
 ### 10.4 Fallback ladder (G-32)
-1. Cache hit (`ai_cache`), looked up under **every model of the chain, best first**, so a filmed 3.8 Flash take is reused even when 3.8 Flash is out of quota. Key = `sha256(scope + pipeline + prompt version + model + input bytes + glossary hash)`, so a Glossary edit (or a new prompt version) misses the cache.
+1. Cache hit (`ai_cache`), looked up under **every model of the chain, best first**, so a filmed 3.8 Flash take is reused even when 3.8 Flash is out of quota. Key = `sha256(scope + pipeline + prompt version + model + input bytes + glossary hash)`, so a Glossary edit (or a new prompt version) misses the cache. Personal requests (scope `user:<id>`: Contact and Talk Threads) are never cached, so deleting them leaves no copy (ADR 0014).
 2. Live call to each model of the chain in order (§10.3), validated; a model that is out of budget, busy or failing is skipped.
 3. One retry with the validation error, on the model that answered (only while within its budget); if that also fails, the next model.
 4. Seeded result for the demo Machines and the demo flyer (put in `ai_cache` by `seed.py` from `tests/fixtures/ai/`).
