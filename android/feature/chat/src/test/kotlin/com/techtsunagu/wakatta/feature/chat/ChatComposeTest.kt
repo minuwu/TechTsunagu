@@ -321,7 +321,7 @@ class ChatComposeTest {
         val events = mutableListOf<ChatEvent>()
         showDraft(draft(needsEdit = true, en = null), events)
 
-        composeTestRule.onNodeWithText("Not translated", substring = true).assertExists()
+        composeTestRule.onNodeWithText("Not translated. Send it in Japanese only, or edit it.").assertExists()
         composeTestRule.onNodeWithText("Send").assertDoesNotExist()
         composeTestRule.onNodeWithText("Send in Japanese only").performClick()
         assertEquals(listOf<ChatEvent>(ChatEvent.SendDraft("d1")), events)
@@ -339,5 +339,30 @@ class ChatComposeTest {
         composeTestRule.onNodeWithText("Save").performClick()
 
         assertEquals(listOf<ChatEvent>(ChatEvent.EditDraft("d1", "5号機の油を点検してください。")), events)
+    }
+
+    // ---------------- Draft label (M4) ----------------
+
+    @Test
+    fun anUnsentDraftIsMarkedAndAnUntranslatedOneToo() {
+        showDraft(draft(needsEdit = true, en = null), mutableListOf())
+
+        composeTestRule.onNodeWithText("Draft, not sent · Not translated").assertExists()
+    }
+
+    @Test
+    fun aGoodDraftIsMarkedNotSentOnly() {
+        showDraft(draft(), mutableListOf())
+
+        composeTestRule.onNodeWithText("Draft, not sent").assertExists()
+        composeTestRule.onNodeWithText("Not translated", substring = true).assertDoesNotExist()
+    }
+
+    @Test
+    fun aSentMessageCarriesNoDraftMark() {
+        showDraft(draft().copy(isDraft = false, stage = 5), mutableListOf())
+
+        composeTestRule.onNodeWithText("Draft, not sent", substring = true).assertDoesNotExist()
+        composeTestRule.onNodeWithText("Check before sending").assertDoesNotExist()
     }
 }

@@ -120,4 +120,6 @@
     <string name="chat_draft_edit">編集</string>
     <string name="chat_draft_save">保存</string>
     <string name="chat_draft_send_japanese_only">日本語のまま送信</string>
+    <string name="chat_draft_not_sent">下書き・未送信</string>
+    <string name="chat_not_translated">未翻訳</string>
 </resources>

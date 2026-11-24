@@ -199,12 +199,27 @@ internal fun ChatMessageBubble(
 
                     Spacer(modifier = Modifier.height(4.dp))
 
-                    Text(
-                        text = message.time,
-                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
-                        color = LocalContentColor.current.copy(alpha = 0.7f),
+                    Row(
                         modifier = Modifier.align(Alignment.End),
-                    )
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        // a draft must never look sent
+                        val marks = listOfNotNull(
+                            stringResource(R.string.chat_draft_not_sent).takeIf { message.isDraft },
+                            stringResource(R.string.chat_not_translated).takeIf { message.needsEdit },
+                        )
+                        if (marks.isNotEmpty()) {
+                            Text(
+                                text = marks.joinToString(" · "),
+                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp, fontWeight = FontWeight.Bold),
+                            )
+                        }
+                        Text(
+                            text = message.time,
+                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
+                            color = LocalContentColor.current.copy(alpha = 0.7f),
+                        )
+                    }
                 }
             }
 
