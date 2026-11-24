@@ -2903,10 +2903,6 @@ export type MachineDetail = {
      * Activeworkerid
      */
     activeWorkerId: string | null;
-    /**
-     * Archived
-     */
-    archived?: boolean;
     current: NoteForWorker | null;
 };
 
@@ -2952,24 +2948,6 @@ export type MachineOut = {
      * Activeworkerid
      */
     activeWorkerId: string | null;
-    /**
-     * Archived
-     */
-    archived?: boolean;
-};
-
-/**
- * MachineRename
- *
- * The code stays: printed QR stickers and Panel links are made from it.
- */
-export type MachineRename = {
-    /**
-     * Name
-     */
-    name: {
-        [key: string]: string;
-    };
 };
 
 /**
@@ -5655,36 +5633,6 @@ export type CreateMachineApiMachinesPostResponses = {
 
 export type CreateMachineApiMachinesPostResponse = CreateMachineApiMachinesPostResponses[keyof CreateMachineApiMachinesPostResponses];
 
-export type ArchiveMachineApiMachinesMachineIdDeleteData = {
-    body?: never;
-    path: {
-        /**
-         * Machine Id
-         */
-        machine_id: string;
-    };
-    query?: never;
-    url: '/api/machines/{machine_id}';
-};
-
-export type ArchiveMachineApiMachinesMachineIdDeleteErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
-};
-
-export type ArchiveMachineApiMachinesMachineIdDeleteError = ArchiveMachineApiMachinesMachineIdDeleteErrors[keyof ArchiveMachineApiMachinesMachineIdDeleteErrors];
-
-export type ArchiveMachineApiMachinesMachineIdDeleteResponses = {
-    /**
-     * Successful Response
-     */
-    200: EnvelopeNoneType;
-};
-
-export type ArchiveMachineApiMachinesMachineIdDeleteResponse = ArchiveMachineApiMachinesMachineIdDeleteResponses[keyof ArchiveMachineApiMachinesMachineIdDeleteResponses];
-
 export type MachineDetailApiMachinesMachineIdGetData = {
     body?: never;
     path: {
@@ -5714,36 +5662,6 @@ export type MachineDetailApiMachinesMachineIdGetResponses = {
 };
 
 export type MachineDetailApiMachinesMachineIdGetResponse = MachineDetailApiMachinesMachineIdGetResponses[keyof MachineDetailApiMachinesMachineIdGetResponses];
-
-export type RenameMachineApiMachinesMachineIdPatchData = {
-    body: MachineRename;
-    path: {
-        /**
-         * Machine Id
-         */
-        machine_id: string;
-    };
-    query?: never;
-    url: '/api/machines/{machine_id}';
-};
-
-export type RenameMachineApiMachinesMachineIdPatchErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
-};
-
-export type RenameMachineApiMachinesMachineIdPatchError = RenameMachineApiMachinesMachineIdPatchErrors[keyof RenameMachineApiMachinesMachineIdPatchErrors];
-
-export type RenameMachineApiMachinesMachineIdPatchResponses = {
-    /**
-     * Successful Response
-     */
-    200: EnvelopeMachineOut;
-};
-
-export type RenameMachineApiMachinesMachineIdPatchResponse = RenameMachineApiMachinesMachineIdPatchResponses[keyof RenameMachineApiMachinesMachineIdPatchResponses];
 
 export type ScanApiMachinesMachineIdScanPostData = {
     body?: never;

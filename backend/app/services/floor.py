@@ -108,7 +108,7 @@ def create_machine(db: Session, who: Principal, body: MachineIn, now: datetime) 
 
 def rename_machine(db: Session, who: Principal, machine_id: int, body: MachineRename, now: datetime) -> MachineOut:
     m = _active(_machine(db, who, machine_id))
-    m.name = {str(k): v for k, v in body.name.items()}
+    m.name = dict(body.name)
     db.commit()
     return machine_out(m, now)
 
