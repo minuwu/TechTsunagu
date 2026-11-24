@@ -4,6 +4,14 @@ Owner: Arjun Saha (`sillyfellow21`) — Role: Frontend design
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-24 (v4: Fuji blue through the UI)
+
+### Done
+- Neutrals take on the photo's blue. Ink moves from near-black `#0a1c26` to Fuji blue `#0f2f47`, with a bluer steel action colour, labels, cards, mist and dividers, and the same shift at night.
+  - Contrast against the worst photo pixel: day ink 7.2, muted 4.8, primary 4.7, label 4.6:1; night ink 9.7, primary 5.5, label 5.4:1.
+- The Wakatta mark in the header is the sky steel instead of an ink square, so it blends into the misty ground.
+- The course and Inspect drawings use the same blue values. Defect red and the JIS pictograms are unchanged.
+
 ## 2026-11-24 (v4 dark mode)
 
 ### Done
