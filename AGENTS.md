@@ -82,7 +82,7 @@ This file is:
 | `XREQ-024` | P2 | Frontend (Minhaz, Android app) | Backend (Anim) | Foreman reads Asks; set Today's Word; Support Log JSON summary; transcript of voice Asks | `[RESOLVED]` | 2026-11-23 23:56 |
 | `XREQ-025` | P1 | Frontend (Minhaz, Android app) | Backend (Anim, Azure) | Host the release APK and run the release routine behind GET /app/config | `[DONE]` | 2026-11-24 12:12 |
 | `XREQ-026` | P2 | Frontend (Minhaz, Android app) | Backend (Anim, Azure) | App Links: a host, assetlinks.json and a web fallback for QR and share links | `[RESOLVED]` | 2026-11-24 11:27 |
-| `XREQ-027` | P0 | Frontend (Minhaz, Android app) | Backend (Anim, Azure) | Deploy the backend and run migrations `8e3b5d0a2f41` and `9a4c6e2b8d13`: Machine rename/archive, Worker's own Task, shop find and chosen codes, My QR short codes | `[PENDING]` | 2026-11-24 18:30 |
+| `XREQ-027` | P0 | Frontend (Minhaz, Android app) | Backend (Anim, Azure) | Deploy the backend and run migrations `8e3b5d0a2f41` and `9a4c6e2b8d13`: Machine rename/archive, Worker's own Task, shop find and chosen codes, My QR short codes | `[RESOLVED]` | 2026-11-24 18:02 |
 *(When adding a request: append a row above AND add a detailed card in 2.2. Never insert in the middle.)*
 
 ### 2.2 Detailed Request Cards
@@ -908,7 +908,7 @@ Machine QR stickers and shared links open the app directly (Android App Links, s
 - **Priority**: `P0 (Blocker)`
 - **From**: `Frontend (Minhaz, Android app)`
 - **To**: `Backend (Anim, Azure)`
-- **Status**: `[PENDING]`
+- **Status**: `[RESOLVED]`
 - **Created**: `2026-11-24 18:30 (UTC+6)`
 - **Target Interface / Endpoint**: `PATCH /api/machines/{id}`, `DELETE /api/machines/{id}`, `POST /api/tasks` (Worker), `POST /api/auth/find`, My QR short codes
 
@@ -923,9 +923,9 @@ What the code does (written by Minhaz with tests, outside the usual Backend owne
 - `POST /api/tasks` now accepts a Worker; a Worker's Task is always assigned to that Worker alone (other `assigneeIds` are ignored).
 
 **Fulfillment & Proof (filled by recipient on completion):**
-- **Branch / Commit**:
-- **Status / Notes**:
-- **Verification Proof**: local before handoff: full backend suite passed (new tests `test_a_foreman_renames_and_archives_a_machine_and_history_keeps_it`, `test_a_worker_adds_a_task_that_is_only_theirs`, route-guard cases for PATCH/DELETE); ruff clean; `docs/openapi.yaml` regenerated.
+- **Branch / Commit**: `main` `4bed1c4` (Galib's pyright fix on `rename_machine` let CI pass, and the deploy followed)
+- **Status / Notes**: 2026-11-24 18:02 Anim: **deployed and migrated.** The live image is `4bed1c4`; it contains `8e3b5d0a2f41` and `9a4c6e2b8d13`, and the container runs `alembic upgrade head` before it serves, so Supabase is at head `9a4c6e2b8d13`. Also released APK **1.0.2** (Minhaz's `803087f`, SHA-256 checked first): `GET /api/app/config` offers it, `minVersion` still 1.0.0. Code review of the routes below: in progress (results added here).
+- **Verification Proof**: live `GET /api/health/ready` 200, `PATCH /api/machines/1` without a token 401 (the route exists), smoke 13/13. Before handoff (Minhaz): full backend suite passed (new tests `test_a_foreman_renames_and_archives_a_machine_and_history_keeps_it`, `test_a_worker_adds_a_task_that_is_only_theirs`, route-guard cases for PATCH/DELETE); ruff clean; `docs/openapi.yaml` regenerated.
 
 ### 2.3 Blank XREQ Template (copy & paste)
 
