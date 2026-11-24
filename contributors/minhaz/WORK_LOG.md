@@ -210,3 +210,10 @@ Minhaz mapped the prototype (`prototypes/wakatta/`) and the frontend against `ma
 
 ### Related issues / commits / PRs
 - `afa8480` docs: add Wakatta? plan, glossary, ADRs and idea research
+
+## 2026-11-24 (send bar and Wakatta fold on device)
+
+- Ported the prototype send bar: hint row, live transcript, wave, red pulse, mic and send cross-fade, countdown ring, green check.
+- Ported the prototype Wakatta fold: status dots and per-status summary, step progress, step grid, numbered question cards, worker rows with marks, read state, status pill and re-explain or nudge.
+- Fixed two send bar bugs found on the emulator: the hidden send circle swallowed mic taps, and the keyboard covered the bar (added `imePadding`).
+- Committed the signed 1.0.0 release APK to `android/release/` and moved compileSdk to 37.1.
