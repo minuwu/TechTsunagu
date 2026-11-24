@@ -193,6 +193,7 @@ export function ForemanLibraryScreen() {
             >
               <p className="mb-2 text-sm text-muted-foreground">
                 {v.recordedBy}
+                {v.approvedBy && ` · ${m.approved_by({ name: v.approvedBy })}`}
                 {' · '}
                 {fmtDate(v.approvedAt ?? v.createdAt, lang)}
               </p>

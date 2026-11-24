@@ -68,6 +68,9 @@ export interface NoteVersion {
   questions: CheckQuestion[]
   createdAt: string
   approvedAt: string | null
+  /** The AI could not draft it (busy or down): the steps are empty or the raw transcript (XREQ-004) */
+  needsEdit?: boolean
+  approvedBy?: string | null
 }
 
 /** Where a chatbot answer came from (POST /api/knowledge/asks, XREQ-016). */

@@ -16,6 +16,7 @@ import {
 } from '@/domain/wakatta'
 import { useAction } from '@/lib/action'
 import { downloadText } from '@/lib/files'
+import { useDictation } from '@/lib/dictation'
 import { useRecorder } from '@/lib/recorder'
 import { useListQuery, useList } from '@/services/queries/wakatta'
 import {
@@ -105,6 +106,11 @@ export function useRecordNote() {
   const [text, setText] = useState('')
   const [step, setStep] = useState<RecordStep>('record')
   const [draft, setDraft] = useState<NoteVersion | null>(null)
+  // After a draft the AI could not make, or offline, the record step offers the browser's dictation
+  const [offerDictation, setOfferDictation] = useState(false)
+  const dictation = useDictation((heard) =>
+    setText((t) => (t ? `${t}${heard}` : heard)),
+  )
   const create = useAction((input: { audio: Blob | null; text: string }) =>
     createNoteDraft(machineId, input),
   )
@@ -124,6 +130,20 @@ export function useRecordNote() {
     draft,
     glossary,
     canProcess: !!(recorder.audio || text.trim()),
+    dictation,
+    showDictation:
+      dictation.supported &&
+      (offerDictation ||
+        (typeof navigator !== 'undefined' && !navigator.onLine)),
+    /** "Dictate instead": back to the record step with what the AI heard, the browser listening */
+    dictateInstead: () => {
+      recorder.reset()
+      setText(draft?.transcriptJa ?? '')
+      setDraft(null)
+      setOfferDictation(true)
+      setStep('record')
+      dictation.start()
+    },
     process: async () => {
       setStep('processing')
       try {
@@ -135,6 +155,7 @@ export function useRecordNote() {
         )
         setStep('review')
       } catch {
+        if (!navigator.onLine) setOfferDictation(true)
         setStep('record')
       }
     },

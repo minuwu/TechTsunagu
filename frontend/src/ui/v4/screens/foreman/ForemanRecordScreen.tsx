@@ -35,6 +35,28 @@ export function ForemanRecordScreen() {
                 onChange={(e) => r.setText(e.target.value)}
               />
             </label>
+            {r.showDictation && (
+              <div className="space-y-1">
+                <Button
+                  variant="outline"
+                  onClick={
+                    r.dictation.listening ? r.dictation.stop : r.dictation.start
+                  }
+                >
+                  {r.dictation.listening
+                    ? m.dictate_stop()
+                    : m.dictate_instead()}
+                </Button>
+                {r.dictation.listening && (
+                  <p
+                    aria-live="polite"
+                    className="text-sm text-muted-foreground"
+                  >
+                    {m.dictate_listening()}
+                  </p>
+                )}
+              </div>
+            )}
             <div className="flex flex-wrap gap-2">
               <Button disabled={!r.canProcess} onClick={() => void r.process()}>
                 {m.make_draft()}
@@ -72,10 +94,23 @@ export function ForemanRecordScreen() {
         </Card>
       ) : r.draft ? (
         <div className="space-y-4">
+          {r.draft.needsEdit && (
+            <Card tone="warning" id="degraded" title={m.degraded_title()}>
+              <p className="mb-3">{m.degraded_body()}</p>
+              {r.dictation.supported && (
+                <Button variant="outline" onClick={r.dictateInstead}>
+                  {m.dictate_instead()}
+                </Button>
+              )}
+            </Card>
+          )}
           <Card id="steps" title={m.review_steps({ v: r.draft.versionNo })}>
             <p className="mb-3 text-sm text-muted-foreground">
               {m.review_steps_body()}
             </p>
+            {!r.draft.needsEdit && (
+              <p className="mb-3 text-sm font-bold">{m.provenance_ai()}</p>
+            )}
             <ol className="space-y-4">
               {r.draft.steps.map((s, i) => (
                 <li key={i} className="space-y-1 inset-card p-3">
