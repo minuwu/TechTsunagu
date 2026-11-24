@@ -151,7 +151,8 @@ function DemoSwitcher() {
   return (
     <aside
       aria-label={m.demo_state()}
-      className="fixed bottom-20 left-3 z-40 flex items-center border border-foreground bg-background text-sm md:bottom-4"
+      // Phones: above the "Ask Wakatta" row (5rem + safe area), which would otherwise cover Loading / Empty / Error
+      className="fixed bottom-[calc(9rem+env(safe-area-inset-bottom))] left-3 z-40 flex items-center border border-foreground bg-background text-sm md:bottom-4"
     >
       <span className="px-3 text-xs font-bold tracking-wider uppercase">
         {m.demo_state()}
