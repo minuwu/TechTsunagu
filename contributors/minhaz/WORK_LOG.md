@@ -49,6 +49,11 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 - **Still yours:** send Anim the SHA-256 fingerprints of the debug and release keys (`keytool -list -v -keystore …`); `assetlinks.json` is `[]` until then, so links do not verify yet. The Machine scanner (`QrPayload.parse`) still accepts any host and requires `?s=`; the contract wants it on `UriDeepLinkMatcher` too (2.10 check 8).
 - `?s={shopCode}` on the web QR stickers waits on XREQ-001: the web app gets `shopCode` only from real sign-in. When you do XREQ-001, tell me and I add it, or add it in the same change. We also need to agree which host stickers print: the web `VITE_PUBLIC_URL` opens the web Machine page, the API host opens the app (or its "open in the app" page).
 
+## 2026-11-24 (web: "Play the Story", Nekko in the header)
+
+- The demo tab is now **Play the Story** (ja: ストーリー体験), replacing "Nekko's Shift".
+- v4 header: the blue square beside WAKATTA? is now the Nekko app icon (`/brand/identity/logo-icon.svg`). The splash and state plates keep the Megane-bridge mark.
+
 ## 2026-11-24 (web: nav trimmed, the story demo is "Nekko's Shift")
 
 - v4 nav: Board (`/foreman`) and Town (`/community`) are out of the header and tab bar; the routes still work. Three tabs: Home, Course, Nekko's Shift (ja: ネッコの現場).

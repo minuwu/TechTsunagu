@@ -9,7 +9,7 @@ test('the nav opens the live demo with both phones in a 16:9 stage', async ({
   await page.goto('/')
   await page
     .getByRole('navigation', { name: 'Main menu' })
-    .getByRole('link', { name: "Nekko's Shift" })
+    .getByRole('link', { name: 'Play the Story' })
     .click()
   await expect(page).toHaveURL(/\/demo$/)
   await expect(

@@ -509,7 +509,7 @@
   "accounts_failed": "Could not save. Check the name and PIN (4–6 digits).",
   "role_worker": "Worker",
   "role_foreman": "Foreman",
-  "tab_demo": "Nekko's Shift",
+  "tab_demo": "Play the Story",
   "demo_h": "One instruction, two phones",
   "demo_lead": "Tanaka-san, the Foreman, writes in Japanese on the left. Rahim, the Worker, reads in English on the right. Send a message from one phone and watch it reach the other, translated, with its Check Questions.",
   "demo_frame_title": "Wakatta? demo: Foreman and Worker phones",
