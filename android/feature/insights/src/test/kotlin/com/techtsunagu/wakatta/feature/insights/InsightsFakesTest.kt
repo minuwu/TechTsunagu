@@ -77,4 +77,14 @@ class InsightsFakesTest {
         val result = FakeLearningRepository(0, followUps).getHistory("nobody")
         assertEquals(AppError.NotFound, result.errorOrNull())
     }
+
+    @Test
+    fun aClarifiedFollowUpShowsAsClarifiedInTheDemo() = runTest {
+        val before = followUps.getFollowUps().value().items.first { it.id == "f_m1" }
+        assertEquals(FollowUpStatus.OPEN, before.status)
+
+        assertTrue(followUps.clarify("f_m1", "図で説明").isSuccess)
+
+        assertEquals(FollowUpStatus.CLARIFIED, followUps.getFollowUps().value().items.first { it.id == "f_m1" }.status)
+    }
 }

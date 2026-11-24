@@ -7,6 +7,9 @@ import com.techtsunagu.wakatta.core.model.AppResult
 import com.techtsunagu.wakatta.core.model.OutboxSender
 import com.techtsunagu.wakatta.core.model.SessionStore
 import javax.inject.Inject
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeoutOrNull
 
 internal enum class OutboxStep { REMOVE, RETRY, WAIT, FAIL }
 
@@ -28,7 +31,7 @@ class OutboxDrain @Inject constructor(
 ) {
     /** True when something must be tried again soon. */
     suspend fun run(): Boolean {
-        val me = session.session.value?.user?.id ?: return false
+        val me = signedInUserId() ?: return false
         var again = false
         for (item in store.getPending(limit = Int.MAX_VALUE)) {
             val (name, userId) = item.kind.split(':', limit = 2).let { it[0] to it.getOrNull(1) }
@@ -42,5 +45,17 @@ class OutboxDrain @Inject constructor(
             }
         }
         return again
+    }
+
+    /**
+     * A cold start from WorkManager runs before the encrypted session has loaded, and `null` then means "not loaded
+     * yet", not "signed out". Wait a little for it; a signed-out phone gets nothing after the wait.
+     */
+    private suspend fun signedInUserId(): String? =
+        session.session.value?.user?.id
+            ?: withTimeoutOrNull(SESSION_LOAD_WAIT_MS) { session.session.filterNotNull().first() }?.user?.id
+
+    private companion object {
+        const val SESSION_LOAD_WAIT_MS = 5_000L
     }
 }

@@ -266,6 +266,34 @@ class RealInsightsRepositoriesTest {
     }
 
     @Test
+    fun followUps_clarifySendsThePatchWithTheNote() = runBlocking {
+        ok("""{"id":"fu1","messageId":"m1","userId":"w1","displayName":"W","termJa":"金型","status":"clarified",
+            "note":"図で説明","createdAt":"2026-11-24T11:00:00Z","resolvedAt":"2026-11-24T12:00:00Z"}""")
+        val repo = RealFollowUpRepository({ api }, now = { fixedNow })
+
+        val result = repo.clarify("fu1", "図で説明")
+
+        assertTrue(result.isSuccess)
+        val request = server.takeRequest()
+        assertEquals("PATCH", request.method)
+        assertEquals("/api/follow-ups/fu1", request.url.encodedPath)
+        assertEquals("""{"status":"clarified","note":"図で説明"}""", request.body?.utf8())
+    }
+
+    @Test
+    fun followUps_clarifyingAnUnderstoodOneIsAConflict() = runBlocking {
+        server.enqueue(
+            MockResponse.Builder().code(409)
+                .body("""{"success":false,"data":null,"error":{"code":"CONFLICT","message":"no"}}""").build(),
+        )
+        val repo = RealFollowUpRepository({ api }, now = { fixedNow })
+
+        val result = repo.clarify("fu1", "")
+
+        assertEquals(AppError.Conflict("CONFLICT"), (result as AppResult.Failure).error)
+    }
+
+    @Test
     fun followUps_serverErrorReturnsFailure() = runBlocking {
         server.enqueue(MockResponse.Builder().code(500).build())
         val repo = RealFollowUpRepository({ api }, now = { fixedNow })
