@@ -341,3 +341,12 @@ Minhaz mapped the prototype (`prototypes/wakatta/`) and the frontend against `ma
 - Demo flyer: the recyclables Event (Wednesdays) is gone; 佐世保市 sets those days per area. Recyclables are now a step: see-through bag, out by 8:00, check the area calendar.
 - The mock now refuses publish with 409 `EVENTS_NOT_CONFIRMED`, the same as the backend.
 - **Galib:** the same flyer fix is still needed in the seeded AI cache fixture (XREQ-002 item 12).
+
+## 2026-11-24 20:40: web runs on the real API (XREQ-001, XREQ-002 resolved)
+
+- With `VITE_USE_MOCK=false` the web signs in for real: shop or district code, your name, your PIN; a first PIN must be changed. The mock demo is unchanged.
+- Every list and write goes through the live API with the Bearer token, `Idempotency-Key` and `{items, nextCursor}` paging. Photos and voice go as files.
+- Machine Panel, Senpai link, Poster reach and the Support Log CSV now come from their backend routes. QR stickers carry the shop code.
+- Foreman: new accounts card under the Skill Matrix (create Worker or Foreman, reset PIN, deactivate).
+- Left: the Panel uses a Foreman sign-in, not the device token; glossary `bn` is sent as English; the SWA origin still needs adding to the API CORS list.
+- **Anim:** make glossary `bn` optional; add the SWA origin to CORS (`backend/deploy/set-cors.ps1`) when the web goes live.

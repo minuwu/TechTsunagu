@@ -179,6 +179,8 @@ export interface NoticeEvent {
   startsAt: string // ISO with +09:00
   rrule: string | null // only FREQ=WEEKLY;BYDAY=… is supported
   confirmed: boolean
+  /** Real API: the next dates the backend expanded, with COUNT and UNTIL applied (XREQ-002 item 2) */
+  nextDates?: string[]
 }
 
 export interface Notice {

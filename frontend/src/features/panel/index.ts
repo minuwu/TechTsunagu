@@ -4,10 +4,23 @@ import {
   latestSignOff,
   skillStatus,
   tokyoDate,
+  type SkillStatus,
 } from '@/domain/wakatta'
+import { useQuery } from '@tanstack/react-query'
+import { USE_MOCK } from '@/services/api'
 import { useListQuery } from '@/services/queries/wakatta'
+import { machinePanel } from '@/services/wakatta'
 
 export type PanelState = 'idle' | 'locked' | 'ready'
+
+// Backend reasons (app/domain/skills.py panel_state) as the Skill Statuses the screens label
+const LIVE_REASON: Record<string, SkillStatus> = {
+  no_note: 'none',
+  no_sign_off: 'none',
+  expired: 'expired',
+  expiring: 'expiring',
+  override: 'valid',
+}
 
 /** Machine Panel: simulated interlock beside the Machine (ADR 0003). Polls every 2 s. */
 export function usePanel() {
@@ -24,6 +37,36 @@ export function usePanel() {
     .filter((a) => a.machineId === machineId && a.date === today)
     .map((a) => workers.data?.find((w) => w.id === a.workerId)?.name)
     .filter(Boolean) as string[]
+
+  // Real API: the backend decides (it also knows Foreman overrides); polls like the lists
+  const live = useQuery({
+    queryKey: ['wakatta', 'panel', machineId],
+    queryFn: () => machinePanel(machineId),
+    enabled: !USE_MOCK && !!machineId,
+    refetchInterval: 2000,
+  })
+  if (!USE_MOCK) {
+    const p = live.data
+    return {
+      loading: machines.isPending || live.isPending,
+      unknown: machines.isError || live.isError,
+      notFound: machines.isSuccess && !machine,
+      machine,
+      worker: p?.worker
+        ? {
+            id: p.worker.id,
+            name: p.worker.displayName,
+            language: 'ja' as const,
+          }
+        : undefined,
+      // An override lets the Machine run, like a valid Sign-off
+      state: (p?.state === 'override'
+        ? 'ready'
+        : (p?.state ?? 'idle')) as PanelState,
+      reason: p?.reason ? (LIVE_REASON[p.reason] ?? null) : null,
+      assigned,
+    }
+  }
 
   const status =
     machine && worker

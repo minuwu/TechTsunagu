@@ -1,10 +1,22 @@
 import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { useParams } from '@tanstack/react-router'
-import { nextOccurrences } from '@/domain/calendar'
-import { tokyoDate, type MeetupKind, type Tri } from '@/domain/wakatta'
+import { upcomingDates } from '@/domain/calendar'
+import {
+  tokyoDate,
+  type Lang,
+  type MeetupKind,
+  type Tri,
+} from '@/domain/wakatta'
 import { useAction } from '@/lib/action'
 import { useListQuery, useList } from '@/services/queries/wakatta'
-import { SENPAI_REPLIES, logMeetup, senpaiReply } from '@/services/wakatta'
+import { USE_MOCK } from '@/services/api'
+import {
+  SENPAI_REPLIES,
+  logMeetup,
+  senpaiReply,
+  senpaiView,
+} from '@/services/wakatta'
 
 /** Senpai's private link: their Worker, forwarded Asks, shared Events, Meet-ups. */
 export function useSenpai() {
@@ -24,6 +36,80 @@ export function useSenpai() {
   const [note, setNote] = useState('')
   const log = useAction(logMeetup)
   const now = new Date()
+  // Real API: one call by token (the pair list never carries tokens)
+  const live = useQuery({
+    queryKey: ['wakatta', 'senpai', token],
+    queryFn: () => senpaiView(token),
+    enabled: !USE_MOCK,
+    retry: false,
+    refetchInterval: 5000,
+  })
+
+  const form = {
+    drafts,
+    setDraft: (askId: string, v: string) =>
+      setDrafts((d) => ({ ...d, [askId]: v })),
+    sendQuick: (askId: string, r: Tri) => reply.mutate({ askId, reply: r }),
+    sendFree: (askId: string) => {
+      const ja = drafts[askId]?.trim()
+      if (ja) reply.mutate({ askId, reply: { ja, en: ja } })
+    },
+    quickReplies: SENPAI_REPLIES,
+    kind,
+    setKind,
+    note,
+    setNote,
+    logging: log.isPending,
+  }
+
+  if (!USE_MOCK) {
+    const v = live.data
+    return {
+      ...form,
+      loading: live.isPending,
+      notFound: live.isError,
+      pair: v && {
+        id: '',
+        workerId: '',
+        senpaiName: v.senpaiName,
+        kind: 'coworker' as const,
+        token,
+      },
+      worker: v && {
+        id: '',
+        name: v.worker.displayName,
+        language: v.worker.language as Lang,
+      },
+      asks: (v?.asks ?? []).map((a) => ({
+        id: a.id,
+        workerId: '',
+        text: a.textJa ?? a.text, // the Senpai reads Japanese
+        covered: false,
+        answer: null,
+        sourceNoticeIds: [],
+        forwarded: true,
+        senpaiReply: a.replyJa ? { ja: a.replyJa, en: a.replyJa } : null,
+        createdAt: a.createdAt,
+      })),
+      events: (v?.events ?? []).map((e) => ({
+        key: `${e.eventId}-${e.at}`,
+        title: e.title,
+        at: new Date(e.at),
+      })),
+      meetups: v?.meetups ?? [],
+      logMeetup: async () => {
+        await log.mutateAsync({
+          pairId: '',
+          kind,
+          date: tokyoDate(now),
+          note: note.trim(),
+          loggedBy: 'senpai',
+          token,
+        })
+        setNote('')
+      },
+    }
+  }
 
   return {
     loading: pairs.isPending,
@@ -47,7 +133,7 @@ export function useSenpai() {
         n.events
           .filter((e) => e.confirmed)
           .flatMap((e) =>
-            nextOccurrences(e, now, 1).map((at) => ({
+            upcomingDates(e, now, 1).map((at) => ({
               key: e.id,
               title: e.title,
               at,

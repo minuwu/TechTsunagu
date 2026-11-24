@@ -15,9 +15,10 @@ import {
   type SkillStatus,
 } from '@/domain/wakatta'
 import { useAction } from '@/lib/action'
-import { downloadText } from '@/lib/files'
+import { downloadBlob, downloadText } from '@/lib/files'
 import { useDictation } from '@/lib/dictation'
 import { useRecorder } from '@/lib/recorder'
+import { USE_MOCK, getSession } from '@/services/api'
 import { useListQuery, useList } from '@/services/queries/wakatta'
 import {
   ackConfusion,
@@ -30,6 +31,11 @@ import {
   editDraftStep,
   publishBriefing,
   setAssignment,
+  createAccount,
+  listAccounts,
+  supportLogCsv,
+  updateAccount,
+  type Account,
 } from '@/services/wakatta'
 
 const now = () => new Date()
@@ -460,7 +466,9 @@ export function useQrStickers() {
     queryFn: async () =>
       Promise.all(
         machines.map(async (m) => {
-          const url = `${base}/m/${m.id}`
+          // Real API: the shop code lets a phone with no session show this shop's names (?s=)
+          const shop = USE_MOCK ? null : getSession()?.user.shopCode
+          const url = `${base}/m/${m.id}${shop ? `?s=${encodeURIComponent(shop)}` : ''}`
           return {
             machine: m,
             url,
@@ -503,7 +511,16 @@ export function useSenpaiAdmin() {
     },
     adding: add.isPending,
     /** Support Log CSV with a UTF-8 BOM so Excel shows Japanese correctly. */
-    downloadSupportLog: (labels: Record<MeetupKind | 'notice', string>) => {
+    downloadSupportLog: async (
+      labels: Record<MeetupKind | 'notice', string>,
+    ) => {
+      if (!USE_MOCK) {
+        // The backend file: grouped by official support item, cells safe from Excel formulas
+        const to = tokyoDate(now())
+        const from = `${Number(to.slice(0, 4)) - 1}${to.slice(4)}`
+        downloadBlob(`support-log-${to}.csv`, await supportLogCsv(from, to))
+        return
+      }
       const esc = (s: string) => `"${s.replace(/"/g, '""')}"`
       const rows = [
         ['worker', 'date', 'kind', 'detail', 'source'],
@@ -536,5 +553,84 @@ export function useSenpaiAdmin() {
         'text/csv;charset=utf-8',
       )
     },
+  }
+}
+
+// Backend app/schemas/common.py Lang: a Worker's own language can be one the UI does not speak
+const ACCOUNT_LANGS = ['bn', 'vi', 'id', 'ne', 'my', 'tl', 'zh', 'en', 'ja']
+type AccountKind = 'worker' | 'foreman'
+
+/** Real API: create Workers and Foremen, reset a PIN (they choose a new one at sign-in), deactivate. */
+export function useAccountsAdmin() {
+  const list = useQuery({
+    queryKey: ['wakatta', 'accounts'],
+    queryFn: async () => {
+      const [workers, foremen] = await Promise.all([
+        listAccounts('worker'),
+        listAccounts('foreman'),
+      ])
+      return [
+        ...workers.map((a) => ({ ...a, kind: 'worker' as const })),
+        ...foremen.map((a) => ({ ...a, kind: 'foreman' as const })),
+      ]
+    },
+    enabled: !USE_MOCK,
+  })
+  const empty = {
+    kind: 'worker' as AccountKind,
+    displayName: '',
+    language: 'bn',
+    pin: '',
+  }
+  const [form, setForm] = useState(empty)
+  const [resetPins, setResetPins] = useState<Record<string, string>>({})
+  const create = useAction((f: typeof empty) =>
+    createAccount(f.kind, {
+      displayName: f.displayName,
+      language: f.language,
+      pin: f.pin,
+    }),
+  )
+  const update = useAction(
+    (a: {
+      kind: AccountKind
+      id: string
+      patch: { pin?: string; active?: boolean }
+    }) => updateAccount(a.kind, a.id, a.patch),
+  )
+  const digits = (v: string) => v.replace(/\D/g, '').slice(0, 6)
+  return {
+    enabled: !USE_MOCK,
+    accounts: list.data ?? [],
+    languages: ACCOUNT_LANGS,
+    form,
+    setKind: (kind: AccountKind) => setForm((f) => ({ ...f, kind })),
+    setName: (displayName: string) => setForm((f) => ({ ...f, displayName })),
+    setLanguage: (language: string) => setForm((f) => ({ ...f, language })),
+    setPin: (pin: string) => setForm((f) => ({ ...f, pin: digits(pin) })),
+    canCreate: !!form.displayName.trim() && form.pin.length >= 4,
+    create: async () => {
+      await create.mutateAsync({
+        ...form,
+        displayName: form.displayName.trim(),
+      })
+      setForm(empty)
+    },
+    creating: create.isPending,
+    failed: create.isError || update.isError,
+    resetPin: (id: string) => resetPins[id] ?? '',
+    setResetPin: (id: string, v: string) =>
+      setResetPins((r) => ({ ...r, [id]: digits(v) })),
+    saveResetPin: async (a: Account & { kind: AccountKind }) => {
+      await update.mutateAsync({
+        kind: a.kind,
+        id: a.id,
+        patch: { pin: resetPins[a.id] ?? '' },
+      })
+      setResetPins((r) => ({ ...r, [a.id]: '' }))
+    },
+    setActive: (a: Account & { kind: AccountKind }, active: boolean) =>
+      update.mutate({ kind: a.kind, id: a.id, patch: { active } }),
+    saving: update.isPending,
   }
 }

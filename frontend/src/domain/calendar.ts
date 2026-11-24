@@ -44,6 +44,19 @@ export function nextOccurrences(
   return out
 }
 
+/** Next dates: the backend's own expansion when it sent one (COUNT and UNTIL applied), else ours. */
+export function upcomingDates(
+  event: NoticeEvent,
+  from: Date,
+  count: number,
+): Date[] {
+  if (!event.nextDates) return nextOccurrences(event, from, count)
+  return event.nextDates
+    .map((d) => new Date(d))
+    .filter((d) => d >= from)
+    .slice(0, count)
+}
+
 const icsDate = (iso: string) => {
   // Local Japan time, written with TZID so every calendar app shows 8:00 as 8:00
   const local = new Date(Date.parse(iso) + JST_MS).toISOString()
