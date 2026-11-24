@@ -38,6 +38,22 @@ class ThreadOut(CamelModel):
     muted: bool = False
     pinned: bool = False
     archived: bool = False
+    # What to show the caller: the other person's name for a direct Thread, else titleJa.
+    display_title: str = ""
+
+
+class PersonOut(CamelModel):
+    user_id: str
+    display_name: str
+
+
+class UnansweredCheck(CamelModel):
+    """GET /messages/unanswered: a sent message whose Check the caller has not answered yet."""
+
+    message_id: str
+    thread_id: str
+    sent_at: AwareDatetime
+    deadline: AwareDatetime | None
 
 
 class TaskDraft(CamelModel):
@@ -67,6 +83,8 @@ class _MessageOut(CamelModel):
     sent_at: AwareDatetime | None
     event: SystemEvent | None = None
     """Set on `system` messages only."""
+    from_display_name: str | None = None
+    """The sender's name, in the poll (Workers cannot read GET /workers)."""
 
 
 class WorkerResult(CamelModel):
@@ -193,6 +211,10 @@ class TaskOut(CamelModel):
     due_at: AwareDatetime | None
     machine_id: str | None
     from_message_id: str | None
+    from_thread_id: str | None = None
+    """The Thread of `fromMessageId`, so the app can open the source message."""
+    assignees: list[PersonOut] = []
+    """`assigneeIds` with names, in the same order."""
     version: int
     updated_at: AwareDatetime
 
