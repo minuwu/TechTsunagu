@@ -108,6 +108,7 @@ class PanelWorker(CamelModel):
 
 
 class PanelOverrideOut(CamelModel):
+    id: str
     by: str
     until: datetime
     reason: str

@@ -3732,6 +3732,10 @@ export type PanelOut = {
  */
 export type PanelOverrideOut = {
     /**
+     * Id
+     */
+    id: string;
+    /**
      * By
      */
     by: string;

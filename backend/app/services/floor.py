@@ -145,7 +145,9 @@ def panel(db: Session, who: Principal, machine_id: int, now: datetime) -> PanelO
         worker=PanelWorker(id=str(worker_id), display_name=names.get(worker_id, "")),
         reason=reason,
         version_no=version_no,
-        override=PanelOverrideOut(by=names.get(ov.created_by, ""), until=ov.ends_at, reason=ov.reason) if ov else None,
+        override=PanelOverrideOut(id=str(ov.id), by=names.get(ov.created_by, ""), until=ov.ends_at, reason=ov.reason)
+        if ov
+        else None,
     )
 
 

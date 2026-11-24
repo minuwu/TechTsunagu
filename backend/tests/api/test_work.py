@@ -341,6 +341,7 @@ def test_a_foreman_override_unlocks_the_panel_until_ended(
     panel = _panel(client, shop)
     assert panel["state"] == "override"
     assert panel["override"]["reason"] == "trainer stands beside him"  # type: ignore[index]
+    assert panel["override"]["id"] == ov["id"]  # type: ignore[index]
 
     ended = client.delete(f"/api/machines/{shop.machine.id}/overrides/{ov['id']}", headers=_auth(shop.foreman))
     assert ended.status_code == 200

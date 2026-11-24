@@ -13490,6 +13490,10 @@
       },
       "PanelOverrideOut": {
         "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
           "by": {
             "type": "string",
             "title": "By"
@@ -13507,6 +13511,7 @@
         "additionalProperties": false,
         "type": "object",
         "required": [
+          "id",
           "by",
           "until",
           "reason"
