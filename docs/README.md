@@ -23,7 +23,7 @@ This directory contains the system architecture, frontend and backend specificat
 
 ## Subdirectories
 
-- **[adr/](adr/)**: Architectural Decision Records (ADR 0001 through ADR 0010).
+- **[adr/](adr/)**: Architectural Decision Records (ADR 0001 through ADR 0017).
 - **[diagrams/](diagrams/)**: Architecture and data flow diagrams.
 - **[research/](research/)**: Domain research (analog pain points in Japanese manufacturing and shipbuilding, foreigner support regulations).
 - **[superpowers/](superpowers/)**: Engineering process artifacts and plans.
