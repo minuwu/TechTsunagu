@@ -4,6 +4,10 @@ Owner: Asif (`MdAsif-Hossain`) — Role: Backend (lead) / Services / Database
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-24 23:45 — README links to the new web app
+
+- `README.md`: both web app links now open https://wakatta.web.app (checked: 200, its bundle calls the live API). The proposal still has the Azure link.
+
 ## 2026-11-24 23:30 — CORS opened for the hosted web sites (Minhaz was blocked)
 
 ### Changed
