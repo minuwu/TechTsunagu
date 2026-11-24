@@ -117,6 +117,28 @@ class NearMissViewModelTest {
     }
 
     @Test
+    fun changingTheMachineKeepsTheTextAndPhoto() = runTest { // R6
+        val viewModel = NearMissNewViewModel(
+            nearMissRepository = nearMissRepository,
+            machineRepository = machineRepository,
+            photoCapture = photoCapture,
+            outboxWriter = outboxWriter,
+            sessionStore = sessionStore,
+        )
+        viewModel.onEvent(NearMissNewEvent.SelectMachine("mc1"))
+        viewModel.onEvent(NearMissNewEvent.UpdateText("Oil spilled"))
+        viewModel.onEvent(NearMissNewEvent.AddPhoto(url = "https://example.com/photo.jpg"))
+
+        viewModel.onEvent(NearMissNewEvent.SelectMachine("mc2"))
+
+        val state = viewModel.state.value
+        assertEquals("mc2", state.machineId)
+        assertEquals("Oil spilled", state.text)
+        assertTrue(state.hasPhoto)
+        assertEquals("https://example.com/photo.jpg", state.photoUrl)
+    }
+
+    @Test
     fun newViewModelPhotoAnnotation() = runTest {
         val viewModel = NearMissNewViewModel(
             nearMissRepository = nearMissRepository,
