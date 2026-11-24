@@ -7,6 +7,11 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 
 > **Message from Asif (2026-11-23), read first:** [CHATBOT_FROM_ASIF.md](CHATBOT_FROM_ASIF.md) explains the chatbot (what it does, the API, the four screen states, "Ask my Senpai" vs "Safety Senpai") and three decisions that are **yours**: where the ask box goes, one bot or two names, and which half grows first. Answer in XREQ-016.
 
+## 2026-11-24 (from Arjun: App Links, B8)
+
+- B8 (web side of App Links): `assetlinks.json` and the fallback page are live on the API host (Anim, XREQ-026), so the web app has nothing to serve for now. Two things are yours: put the API host (`wakatta-api.agreeablestone-840cfb57.japaneast.azurecontainerapps.io`) in place of `[HOST]` in `android/app/src/main/AndroidManifest.xml:34`, and send Anim the SHA-256 fingerprints (the file is `[]` until then).
+- `?s={shopCode}` on the web QR stickers waits on XREQ-001: the web app gets `shopCode` only from real sign-in. When you do XREQ-001, tell me and I add it, or add it in the same change. We also need to agree which host stickers print: the web `VITE_PUBLIC_URL` opens the web Machine page, the API host opens the app (or its "open in the app" page).
+
 ## 2026-11-24 (Shop Registration, Members screen, bilingual sign-in and intro)
 
 - Backend: `POST /api/auth/register` opens a new shop with its first Foreman, a 「全員」 group Thread and a copy of the standard Glossary (ADR 0017). New accounts join every group Thread. `UserOut` carries `shopCode`. Re-explain no longer fails with 503 for a term outside the Glossary.

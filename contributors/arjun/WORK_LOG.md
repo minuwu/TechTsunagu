@@ -4,6 +4,14 @@ Owner: Arjun Saha (`sillyfellow21`) — Role: Frontend design
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-24 (Android App Links, web side: B8 checked)
+
+### Done
+- Checked my Android item, B8 in [MOBILE_PLATFORM_CONTRACT.md](../../docs/MOBILE_PLATFORM_CONTRACT.md) §5 (with Minhaz): `assetlinks.json` and the "open in the app" page are already live on the API host (Anim, XREQ-026, `backend/app/routers/links.py`), the App Links host until the web app is hosted. Nothing to build on the web for those. Status written into the B8 row.
+
+### Blocked
+- `?s={shopCode}` on Machine QR stickers (XREQ-001 item 10): the web app has no shop code until real sign-in (XREQ-001, Minhaz); mock Machine ids (`m-press`) are not numeric, so the app rejects them anyway; stickers print `VITE_PUBLIC_URL`, not the App Links host. Build it with XREQ-001: take `shopCode` from the login response, and decide with Minhaz which host stickers print. The web `/m/$machineId` route already accepts `?s=`.
+
 ## 2026-11-24 (v4: Journey to Nagasaki, and the v3 work ported to v4)
 
 ### Done
