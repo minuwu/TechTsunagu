@@ -138,6 +138,7 @@ class ChatComposeTest {
                 isVoice = true,
                 hasCheck = true,
                 workerStatuses = mapOf("u_rahim" to WakattaStatus.GREEN),
+                stage = 5,
             ),
         )
 
@@ -156,7 +157,7 @@ class ChatComposeTest {
         composeTestRule.onNodeWithText("Line 2 · プレス班").assertIsDisplayed()
         composeTestRule.onNodeWithText("3号機の油圧オイルを点検してください。").assertIsDisplayed()
         composeTestRule.onNodeWithText("Foreman").assertIsDisplayed()
-        composeTestRule.onNodeWithText("1/1 understood").assertIsDisplayed()
+        composeTestRule.onNodeWithText("1 Understood").assertIsDisplayed()
     }
 
     @Test
