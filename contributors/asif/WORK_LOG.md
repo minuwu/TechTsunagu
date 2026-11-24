@@ -4,6 +4,17 @@ Owner: Asif (`MdAsif-Hossain`) — Role: Backend (lead) / Services / Database
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-24 21:25 — Submission README and repo cleanup
+
+### Done
+- **README.md rewritten** for the judges: the story, the numbers with sources, the loop, why people need it, how to try it, the stack, the team. A Japanese 概要 sits at the top; the demo video has a marked spot ("coming soon").
+- **Screenshots** `docs/media/01–04*.png`, taken from Minhaz's interactive two-phone story (`prototypes/wakatta/index.html`); the README links that demo.
+- **Removed** only files nothing points to: the stray `photo-*.avif`, `research_notes/` and `reports/` (the shelved Nagasaki tourism idea), `HACKATHON_PRESETUP.md` (template playbook), `contributors/asif/MATTE_EVALUATION_AND_PLAN.md` (shelved idea). Everyone's WORK_LOG stays. Plans cited by code or CI stay.
+- Proposal and README now point at APK 1.0.3 (`53ae1e1`).
+
+### For the team
+- Paste the demo video link into README.md (the "Demo video" line) and `submission/TechTsunagu_Proposal.md` §8 when it is up.
+
 ## 2026-11-24 20:45 — Anim's Azure steps done; every part checked together
 
 ### Done on Azure (with my OK)
