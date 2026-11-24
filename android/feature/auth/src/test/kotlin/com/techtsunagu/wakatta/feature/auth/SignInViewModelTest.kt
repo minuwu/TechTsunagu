@@ -161,10 +161,12 @@ class SignInViewModelTest {
 
         viewModel.onEvent(SignInEvent.SubmitRegister)
         assertEquals("NEWSHOP1", viewModel.state.value.newShopCode)
+        assertEquals(0, repository.finished) // M11: no session yet, so the code screen stays
 
         viewModel.effects.test {
             viewModel.onEvent(SignInEvent.FinishRegister)
             assertEquals(SignInEffect.NavigateToHome, awaitItem())
+            assertEquals(1, repository.finished)
         }
     }
 }
