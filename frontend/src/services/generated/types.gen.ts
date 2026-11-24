@@ -86,6 +86,14 @@ export type AnswerResult = {
      * Followupids
      */
     followUpIds: Array<string>;
+    /**
+     * Answers
+     */
+    answers?: Array<number>;
+    /**
+     * Answerkey
+     */
+    answerKey?: Array<number>;
 };
 
 /**
@@ -2940,6 +2948,10 @@ export type MessageForSender = {
      * Taskdrafts
      */
     taskDrafts?: Array<TaskDraft>;
+    /**
+     * Results
+     */
+    results?: Array<WorkerResult>;
 };
 
 /**
@@ -3012,6 +3024,18 @@ export type MessageForWorker = {
      * Nudged
      */
     nudged: boolean;
+    /**
+     * Myanswers
+     */
+    myAnswers?: Array<number> | null;
+    /**
+     * Answerkey
+     */
+    answerKey?: Array<number> | null;
+    /**
+     * Asked
+     */
+    asked?: boolean;
 };
 
 /**
@@ -4677,6 +4701,34 @@ export type WorkerCounts = {
      * Red
      */
     red: number;
+};
+
+/**
+ * WorkerResult
+ *
+ * One Worker's state on a sent message, for the Foreman's Wakatta card.
+ */
+export type WorkerResult = {
+    /**
+     * Userid
+     */
+    userId: string;
+    /**
+     * Status
+     */
+    status: 'green' | 'orange' | 'red' | null;
+    /**
+     * Answers
+     */
+    answers: Array<number> | null;
+    /**
+     * Read
+     */
+    read: boolean;
+    /**
+     * Nudged
+     */
+    nudged: boolean;
 };
 
 /**
