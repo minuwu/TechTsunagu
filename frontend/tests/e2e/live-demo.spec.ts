@@ -40,6 +40,19 @@ test('the nav opens the live demo with both phones in a 16:9 stage', async ({
 test.describe('phone', () => {
   test.use({ viewport: { width: 375, height: 667 } })
 
+  // The prototype's ?app= switch once went straight into location.replace: a javascript: URL ran on our origin
+  test('the prototype ignores a script URL in ?app=', async ({ page }) => {
+    let ran = false
+    page.on('dialog', async (d) => {
+      ran = true
+      await d.dismiss()
+    })
+    await page.goto('/prototype/index.html?app=javascript:alert(1)//')
+    // app.html then adds its own #screen
+    await expect(page).toHaveURL(/\/prototype\/app\.html\?role=foreman(#.*)?$/)
+    expect(ran).toBe(false)
+  })
+
   test('asks for a wider screen instead of loading the phones', async ({
     page,
   }) => {

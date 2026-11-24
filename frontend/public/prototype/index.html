@@ -22,8 +22,9 @@
   <div class="side"><div><b>Rahim Uddin</b> <span>· Worker · English</span></div><div class="phone"><iframe id="worker" src="" title="Worker phone"></iframe></div></div>
 </div>
 <script>
-  // ?app=parts/preview-X.html loads a preview build instead of app.html
-  const APP = new URLSearchParams(location.search).get('app') || 'app.html';
+  // Hosted copy: always app.html. The original's ?app= preview switch is left out, because a javascript: URL
+  // passed there would run on this origin (the preview builds are not copied anyway).
+  const APP = 'app.html';
   foreman.src = APP + '?role=foreman&embed=1#chats';
   worker.src = APP + '?role=worker&embed=1#chats';
   // Narrow screens: open one role full screen instead of two phones.
