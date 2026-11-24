@@ -423,14 +423,6 @@ input[type='file']::file-selector-button:hover {
 
 /* Live demo (screens/demo): a 16:9 stage that fits the window height, never under 57rem wide, because the
    prototype drops to one phone at 900px and below */
-.demo-stage {
-  aspect-ratio: 16 / 9;
-  /* 20rem: the header, the page title block and the gaps above the stage */
-  width: max(57rem, min(100%, calc((100dvh - 20rem) * 16 / 9)));
-  margin-inline: auto;
-  border: 1px solid var(--rule);
-}
-
 /* Hero Fuji (components/HeroFuji.tsx): three silhouettes behind the Landing hero, back to front, in the
    photo's colours at 8 / 10 / 15%. The box stays in the CTA corner: under the grey lead text a dark layer
    would drop it below 4.5:1 where the hero sits over the lake. Phones: under 7rem, the CTA row plus the

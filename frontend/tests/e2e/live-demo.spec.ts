@@ -1,8 +1,8 @@
 import { expect, test } from '@playwright/test'
 import AxeBuilder from '@axe-core/playwright'
 
-// The two-phone prototype (public/prototype) opens from the nav inside a 16:9 stage
-test('the nav opens the live demo with both phones in a 16:9 stage', async ({
+// The story prototype (public/prototype) opens from the nav and fills the window under the header
+test('the nav opens the story demo filling the window under the header', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 900 })
@@ -17,12 +17,17 @@ test('the nav opens the live demo with both phones in a 16:9 stage', async ({
       level: 1,
       name: 'One instruction, two phones',
     }),
-  ).toBeVisible()
+  ).toBeAttached()
 
   const stage = page.getByTitle('Wakatta? demo: Foreman and Worker phones')
   await expect(stage).toBeVisible()
-  const box = await stage.boundingBox()
-  expect(box ? box.width / box.height : 0).toBeCloseTo(16 / 9, 1)
+  // 80px: the header
+  expect(await stage.boundingBox()).toEqual({
+    x: 0,
+    y: 80,
+    width: 1440,
+    height: 820,
+  })
   // Both phones load: the prototype falls back to one phone below 900px, so this proves the stage is wide enough
   const proto = page.frameLocator('iframe[title^="Wakatta? demo"]')
   await expect(proto.locator('iframe#foreman')).toBeVisible()

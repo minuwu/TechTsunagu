@@ -49,6 +49,11 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 - **Still yours:** send Anim the SHA-256 fingerprints of the debug and release keys (`keytool -list -v -keystore …`); `assetlinks.json` is `[]` until then, so links do not verify yet. The Machine scanner (`QrPayload.parse`) still accepts any host and requires `?s=`; the contract wants it on `UriDeepLinkMatcher` too (2.10 check 8).
 - `?s={shopCode}` on the web QR stickers waits on XREQ-001: the web app gets `shopCode` only from real sign-in. When you do XREQ-001, tell me and I add it, or add it in the same change. We also need to agree which host stickers print: the web `VITE_PUBLIC_URL` opens the web Machine page, the API host opens the app (or its "open in the app" page).
 
+## 2026-11-24 (web: Play the Story fills the window)
+
+- `/demo` (lg and up): the title block, lead and "Open full screen" link are gone; the story demo fills the window under the header. The h1 stays for screen readers. Phones still get the "wider screen" note.
+- `.demo-stage` (16:9 box) removed from `ui/v4/tokens.css`; the e2e test checks the frame covers everything below the 80px header.
+
 ## 2026-11-24 (web: "Play the Story", Nekko in the header)
 
 - The demo tab is now **Play the Story** (ja: ストーリー体験), replacing "Nekko's Shift".
