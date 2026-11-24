@@ -2,6 +2,7 @@ package com.techtsunagu.wakatta.feature.machines
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -44,11 +45,14 @@ internal fun ForemanMachinesList(
     machines: List<MachineItemUiState>,
     onMachineClick: (String) -> Unit,
     modifier: Modifier = Modifier,
+    onRename: (MachineItemUiState) -> Unit = {},
+    onArchive: (MachineItemUiState) -> Unit = {},
 ) {
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
             .padding(horizontal = 16.dp, vertical = 8.dp),
+        contentPadding = PaddingValues(bottom = 88.dp), // room above the Add machine button
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         items(
@@ -96,6 +100,7 @@ internal fun ForemanMachinesList(
                                 color = StatusColors.Orange
                             )
                         }
+                        MachineMenu(onRename = { onRename(machine) }, onArchive = { onArchive(machine) })
                     }
 
                     Spacer(modifier = Modifier.height(12.dp))

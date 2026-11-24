@@ -871,6 +871,8 @@ def create_task(db: Session, who: Principal, body: TaskCreate, key: uuid.UUID | 
             raise ApiError(409, "IDEMPOTENCY_KEY_REUSED", "This Idempotency-Key was already used for another record")
         return _task_out(db, shop_id, done)  # a retry returns the first
     people, machine = [int(a) for a in body.assignee_ids], int(body.machine_id) if body.machine_id else None
+    if who.role == "worker":
+        people = [user_id]  # a Worker adds only their own Task
     _check_people(db, shop_id, people, machine)
     row = Task(
         shop_id=shop_id,

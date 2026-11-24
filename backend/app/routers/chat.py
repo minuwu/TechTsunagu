@@ -213,8 +213,8 @@ def list_tasks(
     return conditional_json(request, Envelope(data=tasks))
 
 
-@router.post("/tasks", status_code=201, summary="Add a Task by hand")
-def create_task(who: Foreman, body: TaskCreate, db: DbSession, key: OptionalKey = None) -> Envelope[TaskOut]:
+@router.post("/tasks", status_code=201, summary="Add a Task by hand (a Worker's own Task is always theirs alone)")
+def create_task(who: ShopMember, body: TaskCreate, db: DbSession, key: OptionalKey = None) -> Envelope[TaskOut]:
     return Envelope(data=chat.create_task(db, who, body, key))
 
 

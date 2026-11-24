@@ -30,6 +30,7 @@ from app.schemas.work import (
     MachineDetail,
     MachineIn,
     MachineOut,
+    MachineRename,
     NoteForWorker,
     PanelOut,
     PanelOverrideOut,
@@ -64,6 +65,12 @@ def _machine(db: Session, who: Principal, machine_id: int) -> Machine:
     return m
 
 
+def _active(m: Machine) -> Machine:
+    if m.archived_at is not None:
+        raise ApiError(409, "MACHINE_ARCHIVED", "This machine is archived")
+    return m
+
+
 def _present(m: Machine, now: datetime) -> int | None:
     fresh = m.present_at is not None and now - m.present_at < PRESENCE
     return m.present_worker_id if fresh else None
@@ -77,6 +84,7 @@ def machine_out(m: Machine, now: datetime) -> MachineOut:
         name=m.name,
         current_version_id=str(m.current_version_id) if m.current_version_id else None,
         active_worker_id=str(present) if present else None,
+        archived=m.archived_at is not None,
     )
 
 
@@ -98,6 +106,22 @@ def create_machine(db: Session, who: Principal, body: MachineIn, now: datetime) 
     return machine_out(m, now)
 
 
+def rename_machine(db: Session, who: Principal, machine_id: int, body: MachineRename, now: datetime) -> MachineOut:
+    m = _active(_machine(db, who, machine_id))
+    m.name = dict(body.name)
+    db.commit()
+    return machine_out(m, now)
+
+
+def archive_machine(db: Session, who: Principal, machine_id: int, now: datetime) -> None:
+    """Soft delete; archiving twice is a no-op. The Panel and scans stop, history keeps the name."""
+    m = _machine(db, who, machine_id)
+    if m.archived_at is None:
+        m.archived_at, m.present_worker_id, m.present_at = now, None, None
+        accounts.audit(db, "machine_archived", who.user_id, m.shop_id, subject_id=m.id)
+        db.commit()
+
+
 def machine_detail(db: Session, who: Principal, machine_id: int, now: datetime) -> MachineDetail:
     m = _machine(db, who, machine_id)
     current = None
@@ -117,7 +141,7 @@ def machine_detail(db: Session, who: Principal, machine_id: int, now: datetime) 
 
 
 def scan(db: Session, who: Principal, machine_id: int, now: datetime) -> None:
-    m = _machine(db, who, machine_id)
+    m = _active(_machine(db, who, machine_id))
     m.present_worker_id, m.present_at = who.user_id, now
     db.commit()
 
@@ -152,7 +176,7 @@ def panel(db: Session, who: Principal, machine_id: int, now: datetime) -> PanelO
 
 
 def issue_panel_token(db: Session, who: Principal, machine_id: int, now: datetime) -> PanelToken:
-    m = _machine(db, who, machine_id)
+    m = _active(_machine(db, who, machine_id))
     token, digest = new_token()
     expires_at = now + SESSION_TTL["panel"]
     db.add(SessionRow(token_hash=digest, kind="panel", machine_id=m.id, shop_id=m.shop_id, expires_at=expires_at))
@@ -325,6 +349,7 @@ def set_assignment(db: Session, who: Principal, body: AssignmentIn, now: datetim
     m = repo.machine(db, shop_id, int(body.machine_id))
     if m is None:
         raise ApiError(404, "NOT_FOUND", "Machine not found")
+    _active(m)
     day = body.date or _today(now, _shop_tz(db, shop_id))
     if body.worker_id is None:
         repo.clear_assignment(db, shop_id, m.id, day, body.shift)

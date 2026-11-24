@@ -99,6 +99,15 @@ interface MachineRepository {
     suspend fun getMachines(): AppResult<List<Machine>>
     suspend fun getMachine(id: String): AppResult<MachineDetail>
     suspend fun scan(machineId: String): AppResult<Unit>
+
+    // Foreman only. Defaults keep read-only test fakes small.
+    suspend fun addMachine(code: String, name: Tri): AppResult<Machine> = AppResult.Failure(AppError.Forbidden)
+
+    /** The code stays: printed QR stickers are made from it. */
+    suspend fun renameMachine(id: String, name: Tri): AppResult<Machine> = AppResult.Failure(AppError.Forbidden)
+
+    /** Soft delete: off the lists, still named in history. */
+    suspend fun archiveMachine(id: String): AppResult<Unit> = AppResult.Failure(AppError.Forbidden)
 }
 
 interface SignOffRepository {

@@ -1,13 +1,16 @@
 package com.techtsunagu.wakatta.feature.chat
 
-import androidx.annotation.StringRes
+import android.content.Context
 import com.techtsunagu.wakatta.core.model.AppError
 
 /** Text for an error the ViewModel reported; the ViewModel itself never builds user-visible text. */
-@StringRes
-internal fun AppError.chatMessageRes(): Int = when (this) {
-    AppError.Offline, AppError.Timeout -> R.string.chat_error_offline
-    AppError.SessionExpired, AppError.Forbidden -> R.string.chat_error_session
-    is AppError.Conflict -> R.string.chat_error_already_sent
-    else -> R.string.chat_error_generic
+internal fun AppError.chatMessage(context: Context): String = when (this) {
+    AppError.Offline -> context.getString(R.string.chat_error_offline)
+    AppError.Timeout -> context.getString(R.string.chat_error_timeout)
+    is AppError.RateLimited -> retryAfter?.let { context.getString(R.string.chat_error_rate_limited_in, it) }
+        ?: context.getString(R.string.chat_error_rate_limited)
+    AppError.Busy -> context.getString(R.string.chat_error_ai_busy)
+    AppError.SessionExpired, AppError.Forbidden -> context.getString(R.string.chat_error_session)
+    is AppError.Conflict -> context.getString(R.string.chat_error_already_sent)
+    else -> context.getString(R.string.chat_error_generic)
 }

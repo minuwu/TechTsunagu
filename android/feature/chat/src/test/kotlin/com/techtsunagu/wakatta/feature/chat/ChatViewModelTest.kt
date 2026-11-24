@@ -614,4 +614,37 @@ class ChatViewModelTest {
         assertEquals(1, ChatViewModel::class.java.constructors.size)
         assertEquals(1, ChatsViewModel::class.java.constructors.size)
     }
+
+    @Test
+    fun sendingWhileDictatingSendsOnce_evenWhenALateFinalArrives() = runTest {
+        val vm = viewModel()
+        vm.init()
+        vm.onEvent(ChatEvent.StartRecording)
+        testDispatcher.scheduler.advanceUntilIdle()
+        fakeDictation.events.send(DictationEvent.Partial("金型交換"))
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        vm.onEvent(ChatEvent.SendNow)
+        testDispatcher.scheduler.advanceUntilIdle()
+        fakeDictation.events.send(DictationEvent.Final("金型交換の件です"))
+        testDispatcher.scheduler.advanceTimeBy(10_000)
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals(1, repository.sendTexts.size)
+        assertEquals("", vm.state.value.inputText)
+    }
+
+    @Test
+    fun cancelWhileRecordingStopsListening() = runTest {
+        val vm = viewModel()
+        vm.init()
+        vm.onEvent(ChatEvent.StartRecording)
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        vm.onEvent(ChatEvent.CancelCountdown)
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals(1, fakeDictation.stopCount)
+        assertEquals(ComposerStatus.IDLE, vm.state.value.composerStatus)
+    }
 }

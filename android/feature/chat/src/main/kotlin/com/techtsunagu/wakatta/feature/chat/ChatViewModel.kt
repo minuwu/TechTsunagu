@@ -485,10 +485,20 @@ class ChatViewModel @Inject constructor(
         updateState { it.copy(composerStatus = ComposerStatus.RECORDING, isListening = true, hasPendingAudio = false) }
     }
 
-    private fun cancelCountdown() {
-        cancelCountdownTimer()
+    /** Stops listening and recording without keeping the result. */
+    private fun endDictation() {
         dictationJob?.cancel()
         dictationJob = null
+        if (state.value.isListening && !serverRecording) dictation.stop()
+        if (serverRecording) {
+            serverRecording = false
+            recorder.cancel()
+        }
+    }
+
+    private fun cancelCountdown() {
+        cancelCountdownTimer()
+        endDictation()
         if (state.value.composerStatus == ComposerStatus.COUNTDOWN) {
             updateState { it.copy(composerStatus = ComposerStatus.EDITING) }
         } else {
@@ -518,6 +528,7 @@ class ChatViewModel @Inject constructor(
 
     private fun doSend() {
         cancelCountdownTimer()
+        endDictation() // a late result must not refill the box and send a second time (R2)
         val current = state.value
         val textToSend = current.inputText.trim()
         if (textToSend.isEmpty()) return

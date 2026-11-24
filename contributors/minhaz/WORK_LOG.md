@@ -284,3 +284,11 @@ Minhaz mapped the prototype (`prototypes/wakatta/`) and the frontend against `ma
 - Fixed the lock-out: the app remembers the last shop code and role; the owner can choose a memorable shop code (6 to 12 letters or digits, 409 SHOP_CODE_TAKEN); new `POST /api/auth/find` signs in with shop name + name + PIN.
 - Register-done screen: copy and share the shop code.
 - Migration 8e3b5d0a2f41 widens `shops.code` to 6 to 12 characters. Needs a backend deploy for find and chosen codes.
+
+## 2026-11-24 18:30: blank sign-in, Machine add/rename/archive, Worker tasks, optimistic send
+
+- Sign-in opens blank; the last shop is a one-tap "Use last shop" button (still never locked out). PIN field has a show/hide eye. Demo accounts fold behind "Try a demo".
+- Wakatta? pill: step 5 never spins. Clock while sending, one tick once the server has it, two ticks and "Sent · n/m read" from the existing Read state.
+- Machines tab (Foreman): "Add machine" button (code + ja/en name), menu per card to rename or archive.
+- Backend (by me, with tests): `PATCH /api/machines/{id}` rename, `DELETE /api/machines/{id}` archive (soft delete, migration `9a4c6e2b8d13`), Worker may `POST /api/tasks` for themself only. Task Board FAB now shows for Workers too (no assignee picker).
+- **Anim:** deploy and run the migrations, XREQ-027. Until then rename, archive and the Worker FAB fail against the live API.

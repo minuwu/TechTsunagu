@@ -23,12 +23,19 @@ class MachineIn(CamelModel):
     name: Translated
 
 
+class MachineRename(CamelModel):
+    """The code stays: printed QR stickers and Panel links are made from it."""
+
+    name: Translated
+
+
 class MachineOut(CamelModel):
     id: str
     code: str
     name: dict[str, str]
     current_version_id: str | None
     active_worker_id: str | None
+    archived: bool = False
 
 
 class NoteForWorker(CamelModel):

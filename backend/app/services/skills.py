@@ -44,7 +44,7 @@ def matrix(db: Session, who: Principal, now: datetime) -> SkillMatrix:
 
 def heatmap(db: Session, who: Principal) -> Heatmap:
     shop_id = shop_of(who)
-    machines, counts = work_repo.all_machines(db, shop_id), repo.confusion_counts(db, shop_id)
+    machines, counts = work_repo.all_machines(db, shop_id, with_archived=True), repo.confusion_counts(db, shop_id)
     rows: list[HeatRow] = []
     for t in work_repo.glossary(db, shop_id):
         cells = [HeatCell(machine_id=str(m.id), count=counts.get((t.id, m.id), 0)) for m in machines]

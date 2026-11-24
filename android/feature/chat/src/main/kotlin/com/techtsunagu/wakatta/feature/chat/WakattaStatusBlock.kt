@@ -31,6 +31,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.DoneAll
 import androidx.compose.material.icons.filled.NotificationsNone
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Visibility
@@ -115,15 +116,26 @@ internal fun ForemanWakattaPill(
                         modifier = Modifier.weight(1f),
                     )
                 } else {
-                    // sent and waiting for answers is not loading: 5 of 6 done, a clock instead of a spinner
+                    // Sending is optimistic, like a chat app: a clock while the send is in flight, one tick once the
+                    // server has it, two ticks once every Worker has read it. Only the AI steps get a spinner.
                     val sent = stage >= LAST_STAGE - 1
-                    if (sent) {
-                        Icon(Icons.Default.Schedule, null, Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                    } else {
-                        CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.5.dp)
+                    val sending = stage == LAST_STAGE - 2
+                    val readCount = statuses.keys.count { it in message.workerRead }
+                    val allRead = statuses.isNotEmpty() && readCount == statuses.size
+                    when {
+                        sent -> Icon(
+                            if (allRead) Icons.Default.DoneAll else Icons.Default.Check, null, Modifier.size(18.dp),
+                            tint = if (allRead) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        sending -> Icon(Icons.Default.Schedule, null, Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        else -> CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.5.dp)
                     }
                     Text(
-                        if (sent) stringResource(ING[LAST_STAGE]) + " · 5/6" else stringResource(ING[stage + 1]) + "… ${stage + 2}/6",
+                        when {
+                            sent -> stringResource(R.string.chat_wk_sent_read, readCount, statuses.size)
+                            sending -> stringResource(ING[LAST_STAGE - 1])
+                            else -> stringResource(ING[stage + 1]) + "… ${stage + 2}/6"
+                        },
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
@@ -167,7 +179,8 @@ internal fun ForemanWakattaPill(
                             val i = row * 2 + col
                             val dn = if (i == LAST_STAGE) done && allIn else i <= stage
                             val active = !dn && (i == stage + 1 || (i == LAST_STAGE && done))
-                            Step(stringResource(label), dn, active && i < LAST_STAGE, Modifier.weight(1f))
+                            // step 5 (sending) never spins: the pill shows its clock or ticks instead
+                            Step(stringResource(label), dn, active && i < LAST_STAGE - 1, Modifier.weight(1f))
                         }
                     }
                 }
@@ -179,7 +192,7 @@ internal fun ForemanWakattaPill(
 
                 Heading(stringResource(R.string.chat_wk_answers))
                 statuses.forEach { (workerId, status) ->
-                    WorkerRow(message, workerId, status, done, onEvent)
+                    WorkerRow(message, workerId, status, sent = stage >= LAST_STAGE - 1, onEvent) // Nudge once sent (M5)
                 }
             }
         }
@@ -305,7 +318,7 @@ private fun WorkerRow(
     message: ChatMessageUiModel,
     workerId: String,
     status: WakattaStatus,
-    done: Boolean,
+    sent: Boolean,
     onEvent: (ChatEvent) -> Unit,
 ) {
     val name = message.workerNames[workerId] ?: workerId
@@ -351,7 +364,7 @@ private fun WorkerRow(
             Icons.Default.Refresh,
             stringResource(R.string.chat_reexplain),
         ) { onEvent(ChatEvent.OpenReexplain(message.id, workerId)) }
-        waiting && done && nudged -> Row(
+        waiting && sent && nudged -> Row(
             Modifier.padding(start = 42.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -359,7 +372,7 @@ private fun WorkerRow(
             Spacer(Modifier.width(4.dp))
             Text(stringResource(R.string.chat_nudged), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        waiting && done -> ActionChip(Icons.Default.NotificationsNone, stringResource(R.string.chat_nudge)) {
+        waiting && sent -> ActionChip(Icons.Default.NotificationsNone, stringResource(R.string.chat_nudge)) {
             onEvent(ChatEvent.NudgeWorker(message.id, workerId))
         }
     }

@@ -32,7 +32,7 @@ internal fun mapError(
     status == 423 -> AppError.PinLocked((details?.get("until") as? JsonPrimitive)?.contentOrNull.orEmpty())
     status == 426 -> AppError.UpgradeRequired
     status == 429 -> AppError.RateLimited(retryAfter?.trim()?.toLongOrNull())
-    status == 503 && code == "BUSY" -> AppError.Busy
+    status == 503 && (code == "BUSY" || code == "AI_UNAVAILABLE") -> AppError.Busy
     status >= 500 -> AppError.Server
     else -> AppError.Unknown(message ?: code)
 }

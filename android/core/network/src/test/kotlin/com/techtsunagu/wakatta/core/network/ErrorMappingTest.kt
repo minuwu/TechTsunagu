@@ -65,6 +65,8 @@ class ErrorMappingTest {
 
     @Test fun busy() = assertEquals(AppError.Busy, errorFor(503, "BUSY", "{}", "Retry-After" to "2"))
 
+    @Test fun aiUnavailableIsBusy() = assertEquals(AppError.Busy, errorFor(503, "AI_UNAVAILABLE"))
+
     @Test fun notReadyIsServer() = assertEquals(AppError.Server, errorFor(503, "NOT_READY"))
 
     @Test fun internalErrorIsServer() = assertEquals(AppError.Server, errorFor(500, "INTERNAL_ERROR"))

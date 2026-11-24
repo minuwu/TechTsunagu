@@ -84,6 +84,9 @@
     <string name="auth_si_demo_en" translatable="false" formatted="false">Try a demo</string>
     <string name="auth_si_demo_hint_ja" translatable="false" formatted="false">タップすると入力されます</string>
     <string name="auth_si_demo_hint_en" translatable="false" formatted="false">Tap to fill the form</string>
+    <string name="auth_si_last_shop" translatable="false">前回のお店 %1$s を使う · Use last shop %1$s</string>
+    <string name="auth_si_pin_show" translatable="false">PINを表示 · Show PIN</string>
+    <string name="auth_si_pin_hide" translatable="false">PINを隠す · Hide PIN</string>
     <string name="auth_si_worker_ja" translatable="false" formatted="false">作業員</string>
     <string name="auth_si_worker_en" translatable="false" formatted="false">Worker</string>
     <string name="auth_si_foreman_ja" translatable="false" formatted="false">職長</string>
