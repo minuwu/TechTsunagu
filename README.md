@@ -129,8 +129,8 @@ Details: [backend/README.md](backend/README.md) · [frontend/README.md](frontend
 | Member | Role | GitHub |
 | :--- | :--- | :--- |
 | Mohammad Minhazul Abedin | Architecture, Android app | [@minuwu](https://github.com/minuwu) |
-| Md. Asif Hossain | Backend, database | [@MdAsif-Hossain](https://github.com/MdAsif-Hossain) |
-| Md Zahidul Hoque Anim | Backend services, cloud deploy | [@anim710](https://github.com/anim710) |
+| Md. Asif Hossain | Backend, cloud deploy | [@MdAsif-Hossain](https://github.com/MdAsif-Hossain) |
+| Md Zahidul Hoque Anim | Backend services, database  | [@anim710](https://github.com/anim710) |
 | Wakib Jahan Galib | AI, prompts, evaluation | [@Ga-lib](https://github.com/Ga-lib) |
 | Arjun Saha | Web app, design and brand | [@sillyfellow21](https://github.com/sillyfellow21) |
 
