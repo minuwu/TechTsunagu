@@ -12,7 +12,7 @@ from app.repositories import accounts
 from app.repositories import work as repo
 from app.schemas.work import EffortOut, NoteVersionOut, OverrideIn, OverrideOut, SignOffOut
 from app.services.auth import Principal
-from app.services.notes import note_out, shop_of
+from app.services.notes import active_machine, note_out, shop_of
 
 REMIND_WINDOW = timedelta(minutes=10)
 
@@ -42,8 +42,10 @@ def start_override(
         if done.created_by != who.user_id or done.machine_id != machine_id:
             raise ApiError(409, "IDEMPOTENCY_KEY_REUSED", "This Idempotency-Key was already used for another record")
         return _override_out(db, done)  # a retry returns the first
-    if repo.machine(db, shop_id, machine_id) is None:
+    found = repo.machine(db, shop_id, machine_id)
+    if found is None:
         raise _not_found()
+    active_machine(found)
     worker_id = int(body.worker_id) if body.worker_id else None
     if worker_id is not None and repo.worker(db, shop_id, worker_id) is None:
         raise _not_found()
@@ -67,8 +69,10 @@ def start_override(
 def remind(db: Session, who: Principal, machine_id: int, worker_id: int, now: datetime) -> None:
     """The Foreman asks a Worker to take the Machine's Check; the router sends the push. Once per 10 minutes."""
     shop_id = shop_of(who)
-    if repo.machine(db, shop_id, machine_id) is None or repo.worker(db, shop_id, worker_id) is None:
+    found = repo.machine(db, shop_id, machine_id)
+    if found is None or repo.worker(db, shop_id, worker_id) is None:
         raise _not_found()
+    active_machine(found)
     if accounts.count_attempt(db, f"remind:{machine_id}:{worker_id}", now, REMIND_WINDOW) > 1:
         db.commit()
         raise ApiError(429, "RATE_LIMITED", "Already reminded; wait a few minutes", headers={"Retry-After": "600"})
