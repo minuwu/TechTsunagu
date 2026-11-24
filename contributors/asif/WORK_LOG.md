@@ -15,7 +15,8 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 - **Home marks every Thread as read** (it polls messages); `GET /messages/unanswered` fixes it.
 
 ### Next
-- Minhaz: timeout, voice stop button, scroll to newest, sender names, draft state. Anim: demo reset. Galib: `draft_message` prompt (rewrites the text, invents a Machine).
+- Minhaz: interface and Firebase. Arjun: app logic. Galib: AI. Anim: demo data and CI. Asif: backend gaps and the final test.
+- Work split for the five of us: [ANDROID_FIX_PLAN.md](../ANDROID_FIX_PLAN.md).
 - Test data left in `ISAHAYA2`: Thread "Android audit" and one Briefing draft; the demo reset removes it.
 
 ## 2026-11-24 — Backend evaluation: every finding fixed
