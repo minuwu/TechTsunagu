@@ -64,15 +64,15 @@ This file is:
 
 | `XREQ-008` | P0 | Frontend (Minhaz, Android app) | Backend (Asif) | Hosted API: public base URL, test shop and accounts, health check, Bearer scheme in `openapi.yaml` | `[DONE]` | 2026-11-23 08:25 |
 | `XREQ-009` | P1 | Frontend (Minhaz, Android app) | Backend (Asif) | App platform routes: `GET /app/config` (version gate), device registration, notification list, photo limits | `[PENDING]` | 2026-11-23 08:25 |
-| `XREQ-010` | P1 | Frontend (Minhaz, Android app) | Backend (Anim, Asif) | Personal side: Contacts, My QR, Talk Threads, group controls, Periodic Interviews, Today's Word, Near-miss | `[PENDING]` | 2026-11-23 08:25 |
-| `XREQ-011` | P2 | Frontend (Minhaz, Android app) | Backend (Anim), AI (Galib) | Gaps in live routes: Worker reads, ETag and Idempotency-Key, get-one Notice, Glossary PATCH, analytics, per-shop AI languages, XREQ status upkeep | `[PENDING]` | 2026-11-23 08:25 |
+| `XREQ-010` | P1 | Frontend (Minhaz, Android app) | Backend (Anim, Asif) | Personal side: Contacts, My QR, Talk Threads, group controls, Periodic Interviews, Today's Word, Near-miss | `[DONE]` | 2026-11-24 11:20 |
+| `XREQ-011` | P2 | Frontend (Minhaz, Android app) | Backend (Anim), AI (Galib) | Gaps in live routes: Worker reads, ETag and Idempotency-Key, get-one Notice, Glossary PATCH, analytics, per-shop AI languages, XREQ status upkeep | `[DONE]` | 2026-11-24 11:20 |
 | `XREQ-012` | P1 | Backend (Anim, database) | Backend (Asif, deploy) | Point the Azure API at the Supabase database (`backend/deploy/SUPABASE.md`), reseed, smoke, then delete Azure PostgreSQL | `[DONE]` | 2026-11-23 17:30 |
 
 | `XREQ-013` | P1 | Frontend (Arjun) | Backend (Asif, deploy) | Host the frontend demo on Azure Static Web Apps (static build, `npm run build:static`) and reply with the live URL | `[PENDING]` | 2026-11-23 18:30 |
 | `XREQ-014` | P1 | Backend (Anim) | Frontend (Minhaz, Android + Firebase) | Firebase for push: project, Android app, FCM token upload to `PUT /api/devices/me`, service-account key to Anim privately | `[PENDING]` | 2026-11-23 19:30 |
 | `XREQ-015` | P0 | Backend (Anim) | Backend (Asif, Azure owner) | Give Anim's Azure account Contributor on the Wakatta resource group (Asif is off the project; Anim runs deploy now) | `[RESOLVED]` | 2026-11-23 19:30 |
 | `XREQ-016` | P0 | AI (Galib) | Frontend (Minhaz, Arjun; Android: Minhaz) | Chatbot screen on the Worker home and the Machine screen: `POST /api/knowledge/asks` (cited answer + self-check; emergency card; not covered → forward to Senpai) | `[IN_PROGRESS]` (web done; Android open) | 2026-11-23 23:00 |
-| `XREQ-017` | P1 | Frontend (Minhaz, Android app) | Backend (Anim), AI (Galib) | Contacts, My QR, Contact Threads (routes now live; Talk Threads and group controls moved to XREQ-018 and 019); notification list stays push-only | `[PENDING]` | 2026-11-23 19:50 |
+| `XREQ-017` | P1 | Frontend (Minhaz, Android app) | Backend (Anim), AI (Galib) | Contacts, My QR, Contact Threads (routes now live; Talk Threads and group controls moved to XREQ-018 and 019); notification list stays push-only | `[DONE]` | 2026-11-24 11:20 |
 | `XREQ-018` | P1 | Frontend (Minhaz, Android app) | Backend (Anim), AI (Galib) | Talk Threads: threads and entries routes plus the two AI pipelines | `[RESOLVED]` | 2026-11-23 23:56 |
 | `XREQ-019` | P2 | Frontend (Minhaz, Android app) | Backend (Anim) | Group controls on work Threads: create, members, roles, mute/pin/archive, leave, announce-only | `[DONE]` | 2026-11-24 11:06 |
 | `XREQ-020` | P1 | Frontend (Minhaz, Android app) | Backend (Anim) | Worker can read own Follow-ups and Learning History; analytics trend and per-Worker counts | `[DONE]` | 2026-11-24 00:10 |
@@ -440,7 +440,7 @@ Exact bodies, errors and the reasoning are in [MOBILE_PLATFORM_CONTRACT.md](docs
 - **Priority**: `P1 (High)`
 - **From**: `Frontend (Minhaz, Android app)`
 - **To**: `Backend (Anim, Asif)`
-- **Status**: `[PENDING]`
+- **Status**: `[DONE]`
 - **Created**: `2026-11-23 08:25 (UTC+6)`
 - **Target Interface / Endpoint**: `/api/contacts`, `/api/me/qr`, `/api/talk-threads`, `/api/threads/{id}/members`, `/api/interviews`, `/api/today-word`, `/api/near-misses`
 
@@ -469,15 +469,15 @@ Errors: 404 for a revoked or unknown token, 409 for an existing Contact, 403 for
 
 **Fulfillment & Proof (filled by recipient on completion):**
 - **Branch / Commit**: 
-- **Status / Notes**:  2026-11-23 Anim, scope agreed with the team: items 4, 5, 7 now; items 1-3 (Contacts, My QR, Talk Threads, group controls) are "planned" in the proposal. Live: `GET /api/interviews/due`, `GET|POST /api/workers/{id}/interviews` (`heldOn`, `method` face|online, `onlineConsentAt` required for online, `noteJa` ≤ 1000, optional `Idempotency-Key`, no future date; Support Log item 10), `GET /api/today-word`, `GET /api/senpai-pairs/me`. Item 6 (Near-miss) was already live.
-- **Verification Proof**: 
+- **Status / Notes**:  2026-11-23 Anim, scope agreed with the team: items 4, 5, 7 now; items 1-3 (Contacts, My QR, Talk Threads, group controls) are "planned" in the proposal. Live: `GET /api/interviews/due`, `GET|POST /api/workers/{id}/interviews` (`heldOn`, `method` face|online, `onlineConsentAt` required for online, `noteJa` ≤ 1000, optional `Idempotency-Key`, no future date; Support Log item 10), `GET /api/today-word`, `GET /api/senpai-pairs/me`. Item 6 (Near-miss) was already live. 2026-11-24 Anim: **closed**. Items 1–2 are live under XREQ-017, item 3 (Talk Threads) under XREQ-018 (Galib), group controls under XREQ-019; item 6's Worker list and detail under XREQ-023 (Minhaz).
+- **Verification Proof**: see XREQ-017, 018, 019, 023 and `tests/api/test_interviews_platform.py`.
 
 #### `[XREQ-011]` Gaps in live routes: Worker reads, ETag and Idempotency-Key, get-one Notice, Glossary PATCH, analytics, AI languages
 
 - **Priority**: `P2 (Normal)`
 - **From**: `Frontend (Minhaz, Android app)`
 - **To**: `Backend (Anim), AI (Galib)`
-- **Status**: `[PENDING]`
+- **Status**: `[DONE]`
 - **Created**: `2026-11-23 08:25 (UTC+6)`
 - **Target Interface / Endpoint**: see the list; ids refer to section 8 of [MOBILE_API_CONTRACT.md](docs/MOBILE_API_CONTRACT.md)
 
@@ -503,8 +503,8 @@ GET /api/tasks?machineId={id}
 
 **Fulfillment & Proof (filled by recipient on completion):**
 - **Branch / Commit**: 
-- **Status / Notes**: 2026-11-23 Galib, item 5: per-shop AI languages done (`0fe468f`): every AI pipeline writes ja plus `shops.languages`, the model gets a schema with only those languages, and `language_problems` makes the retry fill a missing one. Notices stay on bn/en (a district has no shop languages yet). The voice-Ask transcript (`question_text`) was done by Arjun (`eadef5f`). Items 1–4, 6–7 are Anim's. 2026-11-23 Anim: item 2 `Idempotency-Key` (optional) on `POST /meetups`, `/tasks`, `/workers/{id}/interviews` (migration `99f33c3ca2c7`); `/receipts` is idempotent by design; `/briefings` is Galib's. Item 3 decided: **Posters only** post Notices. Item 4 done: `PATCH /api/glossary/{id}` (ja, reading, `translations` per language) and `translations` on `GlossaryOut`. Open: item 1 (own Follow-ups, Learning History, analytics).
-- **Verification Proof**: 
+- **Status / Notes**: 2026-11-23 Galib, item 5: per-shop AI languages done (`0fe468f`): every AI pipeline writes ja plus `shops.languages`, the model gets a schema with only those languages, and `language_problems` makes the retry fill a missing one. Notices stay on bn/en (a district has no shop languages yet). The voice-Ask transcript (`question_text`) was done by Arjun (`eadef5f`). Items 1–4, 6–7 are Anim's. 2026-11-23 Anim: item 2 `Idempotency-Key` (optional) on `POST /meetups`, `/tasks`, `/workers/{id}/interviews` (migration `99f33c3ca2c7`); `/receipts` is idempotent by design; `/briefings` is Galib's. Item 3 decided: **Posters only** post Notices. Item 4 done: `PATCH /api/glossary/{id}` (ja, reading, `translations` per language) and `translations` on `GlossaryOut`. Open: item 1 (own Follow-ups, Learning History, analytics). 2026-11-24 Anim: **closed**. Item 1 is XREQ-020 (done), the Machine filter on `GET /tasks` and the `ask` kind are in XREQ-021 and XREQ-022 (done); item 6: XREQ-003 and XREQ-005 read `[DONE]`, XREQ-006 stays `[IN_PROGRESS]` for Galib's item 5 (Chat eval), which is his to close.
+- **Verification Proof**: see XREQ-020, 021, 022 and the Fulfillment blocks above.
 
 #### `[XREQ-012]` Point the Azure API at the Supabase database
 - **Priority**: `P1 (High)`
@@ -680,7 +680,7 @@ Errors: `403` (not a Worker), `413` / `415` (recording too long or wrong format)
 - **Priority**: `P1 (High)`
 - **From**: `Frontend (Minhaz, Android app)`
 - **To**: `Backend (Anim)`, `AI (Galib)` for items 3 and 4
-- **Status**: `[PENDING]`
+- **Status**: `[DONE]`
 - **Created**: `2026-11-23 19:50 (UTC+6)`
 - **Target Interface / Endpoint**: `/api/me/qr`, `/api/contacts`, `/api/blocks`, `/api/talk-threads`, `/api/threads` (group controls)
 
@@ -739,8 +739,8 @@ Push (XREQ-014): a new Contact message sends one generic push "New message from 
 
 **Fulfillment & Proof (filled by recipient on completion):**
 - **Branch / Commit**: 
-- **Status / Notes**: 2026-11-23 Minhaz: items 3 (Talk Threads) and 4 (group controls) are re-filed as XREQ-018 and XREQ-019 so they can be answered alone; items 1 and 2 (My QR, Contacts, Contact messages, blocks) are in `docs/openapi.yaml`: the Android app will wire them and reply here. 2026-11-23 Anim: **items 1 and 2 live** (migration `21d9f849b5c9`, tables `qr_tokens`, `contacts`, `blocks`, `contact_messages`; no shop scope, no Foreman/Poster/Support Log route reads them). Paths as proposed: `POST /api/me/qr`, `GET /api/contacts/resolve?token=`, `POST|GET /api/contacts`, `PUT /api/contacts/{id}`, `POST /api/blocks`, `DELETE /api/blocks/{contactId}`, `GET|POST /api/contacts/{id}/messages`. **One change:** `POST /me/qr` returns `token` only when it is created or rotated (only its SHA-256 is stored); otherwise `token: null` with `createdAt`: keep the token on the phone, call with `rotate: true` after a reinstall. `POST /contacts` connects both sides; contact `hidden` is in the item and hides it from the list. Messages: `{id, fromMe, textSrc, srcLang, text, createdAt}`, `text` in the reader's language (the original when the model is down); optional `Idempotency-Key`; 20 resolves and 30 sends per minute. A blocked sender gets 201 and nothing is delivered; the blocker's list and thread hide that Contact until unblocked. Push: after XREQ-014. Items 3 (Talk Threads, needs Galib's `explain_utterance` / `grade_understanding`) and 4 (group controls) are next.
-- **Verification Proof**: 
+- **Status / Notes**: 2026-11-23 Minhaz: items 3 (Talk Threads) and 4 (group controls) are re-filed as XREQ-018 and XREQ-019 so they can be answered alone; items 1 and 2 (My QR, Contacts, Contact messages, blocks) are in `docs/openapi.yaml`: the Android app will wire them and reply here. 2026-11-23 Anim: **items 1 and 2 live** (migration `21d9f849b5c9`, tables `qr_tokens`, `contacts`, `blocks`, `contact_messages`; no shop scope, no Foreman/Poster/Support Log route reads them). Paths as proposed: `POST /api/me/qr`, `GET /api/contacts/resolve?token=`, `POST|GET /api/contacts`, `PUT /api/contacts/{id}`, `POST /api/blocks`, `DELETE /api/blocks/{contactId}`, `GET|POST /api/contacts/{id}/messages`. **One change:** `POST /me/qr` returns `token` only when it is created or rotated (only its SHA-256 is stored); otherwise `token: null` with `createdAt`: keep the token on the phone, call with `rotate: true` after a reinstall. `POST /contacts` connects both sides; contact `hidden` is in the item and hides it from the list. Messages: `{id, fromMe, textSrc, srcLang, text, createdAt}`, `text` in the reader's language (the original when the model is down); optional `Idempotency-Key`; 20 resolves and 30 sends per minute. A blocked sender gets 201 and nothing is delivered; the blocker's list and thread hide that Contact until unblocked. Push: after XREQ-014. Items 3 (Talk Threads, needs Galib's `explain_utterance` / `grade_understanding`) and 4 (group controls) are next. 2026-11-24 Anim: **closed**. Items 3 and 4 are done under XREQ-018 (Galib) and XREQ-019. Contact Threads still do not push (MOBILE_PLATFORM_CONTRACT §1.4: personal threads are not in v1 push); say if you want a generic "New message" on a channel `contacts`.
+- **Verification Proof**: `tests/api/test_contacts.py`.
 
 #### `[XREQ-018]` Talk Threads: threads, entries and the two AI pipelines
 
