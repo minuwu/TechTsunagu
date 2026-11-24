@@ -1,5 +1,6 @@
 package com.techtsunagu.wakatta.feature.connect.data
 
+import com.techtsunagu.wakatta.core.media.QrPng
 import android.content.Context
 import com.techtsunagu.wakatta.core.model.AppError
 import com.techtsunagu.wakatta.core.model.AppResult
@@ -141,8 +142,7 @@ internal class RealConnectRepository(
         }
         return try {
             val dir = context?.cacheDir ?: File(System.getProperty("java.io.tmpdir") ?: ".")
-            val file = File(dir, "wakatta-my-qr.txt")
-            file.writeText("wk:$token")
+            val file = QrPng.write("wk:$token", File(dir, "wakatta-my-qr.png"))
             AppResult.Success(file)
         } catch (e: Exception) {
             AppResult.Failure(AppError.Unknown(e.message))
