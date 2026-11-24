@@ -333,6 +333,12 @@ export function useBriefingAdmin() {
   const recorder = useRecorder(60)
   const [step, setStep] = useState<BriefingStep>('record')
   const [draft, setDraft] = useState<Briefing | null>(null)
+  // "Dictate instead" (XREQ-004): after a draft the AI could not make, or offline
+  const [text, setText] = useState('')
+  const [offerDictation, setOfferDictation] = useState(false)
+  const dictation = useDictation((heard) =>
+    setText((t) => (t ? `${t}${heard}` : heard)),
+  )
   const create = useAction(createBriefingDraft)
   const publish = useAction(publishBriefing)
   const latest = briefings[0]
@@ -340,10 +346,33 @@ export function useBriefingAdmin() {
     recorder,
     step,
     draft,
+    text,
+    setText,
+    dictation,
+    showDictation:
+      dictation.supported &&
+      (offerDictation ||
+        (typeof navigator !== 'undefined' && !navigator.onLine)),
+    canProcess: !!(recorder.audio || text.trim()),
     process: async (useSample: boolean) => {
       setStep('processing')
-      setDraft(await create.mutateAsync(useSample ? null : recorder.audio))
-      setStep('review')
+      const typed = text.trim()
+      const input = useSample ? null : typed ? { text: typed } : recorder.audio
+      try {
+        setDraft(await create.mutateAsync(input))
+        setStep('review')
+      } catch {
+        if (!navigator.onLine) setOfferDictation(true)
+        setStep('record')
+      }
+    },
+    dictateInstead: () => {
+      recorder.reset()
+      setText(draft?.text.ja ?? '')
+      setDraft(null)
+      setOfferDictation(true)
+      setStep('record')
+      dictation.start()
     },
     publish: async () => {
       if (!draft) return
@@ -353,6 +382,7 @@ export function useBriefingAdmin() {
     publishing: publish.isPending,
     again: () => {
       recorder.reset()
+      setText('')
       setDraft(null)
       setStep('record')
     },

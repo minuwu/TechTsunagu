@@ -260,11 +260,15 @@ export async function addGlossaryTerm(term: Omit<GlossaryTerm, 'id'>) {
   })
 }
 
+/** A recording, or the text the browser's dictation heard (XREQ-004 "Dictate instead"). */
 export async function createBriefingDraft(
-  audio: Blob | null,
+  input: Blob | { text: string } | null,
 ): Promise<Briefing> {
   if (!USE_MOCK)
-    return request<Briefing>('/api/briefings/draft', multipart({ audio }))
+    return request<Briefing>(
+      '/api/briefings/draft',
+      multipart(input instanceof Blob || !input ? { audio: input } : input),
+    )
   await wait(2000)
   return ai.briefingDraft(nowIso())
 }
