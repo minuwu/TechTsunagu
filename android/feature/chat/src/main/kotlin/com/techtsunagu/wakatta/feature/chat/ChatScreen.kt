@@ -1,5 +1,8 @@
 package com.techtsunagu.wakatta.feature.chat
 
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.isImeVisible
+import androidx.compose.foundation.layout.WindowInsets
 import android.Manifest
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -20,7 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
@@ -171,7 +174,18 @@ fun ChatContent(
                         val info = listState.layoutInfo
                         if (!placed || last == null || info.totalItemsCount == 0) return@LaunchedEffect
                         val nearBottom = (info.visibleItemsInfo.lastOrNull()?.index ?: 0) >= info.totalItemsCount - 3
-                        if (last.isMine || nearBottom) listState.animateScrollToItem(info.totalItemsCount - 1)
+                        if (last.isMine || nearBottom) {
+                            listState.animateScrollToItem(info.totalItemsCount - 1)
+                            listState.scrollBy(100_000f) // the bottom of a tall bubble, not its top
+                        }
+                    }
+                    // the keyboard opening keeps the newest message in view (Messenger), it never covers it
+                    val imeOpen = WindowInsets.isImeVisible
+                    LaunchedEffect(imeOpen) {
+                        if (imeOpen && placed && listState.layoutInfo.totalItemsCount > 0) {
+                            listState.scrollToItem(listState.layoutInfo.totalItemsCount - 1)
+                            listState.scrollBy(100_000f)
+                        }
                     }
                     LazyColumn(
                         state = listState,
@@ -179,19 +193,24 @@ fun ChatContent(
                             .fillMaxSize()
                             .weight(1f),
                         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
-                        items(
+                        itemsIndexed(
                             items = state.messages,
-                            key = { it.id },
-                            contentType = { it.kind.name },
-                        ) { message ->
+                            key = { _, it -> it.id },
+                            contentType = { _, it -> it.kind.name },
+                        ) { i, message ->
+                            // a run of messages by one person shows the name and avatar once (Messenger-style)
+                            val startsRun = message.id == state.firstUnreadId ||
+                                state.messages.getOrNull(i - 1)?.fromUserId != message.fromUserId
                             if (message.id == state.firstUnreadId) UnreadDivider(state.unreadAtOpen)
                             ChatMessageBubble(
                                 message = message,
                                 isForeman = state.currentRole == Role.FOREMAN,
                                 glossaryTerms = state.glossaryTerms,
                                 onEvent = onEvent,
+                                showSender = startsRun,
+                                modifier = if (startsRun && i > 0) Modifier.padding(top = 12.dp) else Modifier,
                             )
                         }
                     }

@@ -235,3 +235,5 @@ Minhaz mapped the prototype (`prototypes/wakatta/`) and the frontend against `ma
 - `safeApiCall` turns any unexpected exception into `AppError.Unknown`.
 - Added the 7 path constants teammates' new routes were missing (`OpenApiContractTest` was red).
 - Voice layer 3: offline or server down keeps the recording, says so, and retries with backoff (about 10 min); the text joins the composer when it lands. Fixed backend CI (API_SPEC endpoint index lacked `/api/transcriptions`), which had blocked the deploy.
+- Chat readability pass on the Redmi: sender name and a per-person avatar colour (the poll's `fromDisplayName`, which the app ignored), the original in the sender's language (`language`), glossary words inline (one Text with link spans), runs by one sender grouped, own bubbles filled primary on the right and wrapped to content (prototype), no "Show translation" on your own words, and the keyboard keeps the newest message in view.
+- Backend CI now runs on `docs/API_SPEC.md` changes; `/api/transcriptions` is live.
