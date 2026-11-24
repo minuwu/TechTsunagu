@@ -12,6 +12,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.ai.fake import FakeAiClient
+from app.models.chat import Thread, ThreadMember
 from app.models.scopes import Shop, User
 from app.models.work import Confusion, GlossaryTerm
 from tests import factories as f
@@ -203,6 +204,40 @@ def test_a_missed_question_without_a_term_can_be_explained_again(
     )
     assert res.status_code == 200, res.text
     assert res.json()["data"]["text"]["ja"] == "8時です"
+
+
+def test_the_follow_up_on_a_private_reexplanation_stays_with_its_sender(
+    client: TestClient, db: Session, line: Line, fake_ai: FakeAiClient
+) -> None:
+    """A Follow-up can quote the question, so it is as visible as its message (poll: Re-explanation, history start)."""
+    sent = _sent(client, line, fake_ai)
+    thread = db.get_one(Thread, line.thread_id)
+    other = f.user(db, db.get_one(Shop, thread.shop_id), role="foreman", pin="739215", must_change=False)
+    member = ThreadMember(thread_id=thread.id, user_id=other.id, shop_id=thread.shop_id)
+    db.add(member)
+    db.flush()
+    second = _login(client, other.id, "739215")
+    options = [_tri("8時"), _tri("9時"), _tri("10時")]
+    question = {"id": "q1", "termId": None, "prompt": _tri("秘密の質問?"), "options": options, "correctIndex": 0}
+    body = {"userId": str(line.rahim_id), "termJa": "何時?", "text": _tri("8時です"), "question": question}
+    re = client.post(f"/api/messages/{sent['id']}/reexplain", headers=line.foreman, json=body).json()["data"]
+    [fid] = client.post(f"/api/messages/{re['id']}/answers", headers=line.rahim, json={"answers": [1]}).json()["data"][
+        "followUpIds"
+    ]
+
+    def seen(who: dict[str, str]) -> list[str]:
+        return [x["termJa"] for x in client.get("/api/follow-ups", headers=who).json()["data"]["items"]]
+
+    assert seen(line.foreman) == ["秘密の質問?"] and seen(second) == []
+    move = {"status": "clarified"}
+    assert client.patch(f"/api/follow-ups/{fid}", headers=second, json=move).status_code == 404
+    assert client.patch(f"/api/follow-ups/{fid}", headers=line.foreman, json=move).status_code == 200
+
+    client.post(f"/api/messages/{sent['id']}/answers", headers=line.sadia, json={"answers": [1, 0]})
+    assert seen(second) == ["金型"]
+    member.history_from = datetime.now(UTC) + timedelta(hours=1)  # added after the message
+    db.flush()
+    assert seen(second) == []
 
 
 def test_two_misses_on_one_term_make_one_follow_up(client: TestClient, line: Line, fake_ai: FakeAiClient) -> None:

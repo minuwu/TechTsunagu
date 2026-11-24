@@ -655,10 +655,9 @@ def update_follow_up(
 ) -> FollowUpOut:
     shop_id, user_id = _me(who)
     f = repo.follow_up(db, shop_id, follow_up_id, for_update=True)
-    m = repo.message(db, shop_id, f.message_id) if f is not None else None
-    if f is None or m is None:
+    if f is None:
         raise _not_found()
-    _thread(db, who, m.thread_id)  # 403 for a Foreman who is not in that Thread
+    _sent_message(db, who, f.message_id)  # 403 outside that Thread, 404 for a message this Foreman cannot read
     if not can_move(f.status, body.status):  # pyright: ignore[reportArgumentType]  # CHECK constraint
         raise ApiError(409, "CONFLICT", f"A Follow-up that is {f.status} cannot become {body.status}")
     f.status, f.note, f.resolved_by, f.resolved_at = body.status, body.note, user_id, now

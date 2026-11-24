@@ -87,8 +87,8 @@ def test_the_seeded_wrong_answer_has_its_follow_up(client: TestClient, refs: Ref
 
 
 def test_the_foreman_reads_the_trend_per_worker_and_top_terms(client: TestClient, db: Session, refs: Refs) -> None:
-    _follow_up(db, refs, "w-sadia", "金型", "open", None)
-    _follow_up(db, refs, "w-rahim", "金型", "open", None)
+    _follow_up(db, refs, "w-sadia", "バリ", "open", None)
+    _follow_up(db, refs, "w-rahim", "バリ", "open", None)
     _follow_up(db, refs, "w-rahim", "段取り", "open", None)
     foreman = _login(client, refs["f-yamaguchi"], "246810")
 
@@ -100,7 +100,8 @@ def test_the_foreman_reads_the_trend_per_worker_and_top_terms(client: TestClient
     workers = {w["displayName"]: w for w in data["perWorker"]}
     assert workers["Tanvir Hasan"]["green"] == 1 and workers["Sadia Akter"]["red"] == 1
     assert (workers["Rahim Uddin"]["green"], workers["Rahim Uddin"]["red"]) == (0, 0)
-    assert data["topTerms"][0] == {"termJa": "金型", "count": 2}
+    # Glossary Terms only: the seeded Follow-up quotes a question of a Thread this Foreman may not be in.
+    assert data["topTerms"] == [{"termJa": "バリ", "count": 2}, {"termJa": "段取り", "count": 1}]
 
 
 def test_analytics_is_for_the_foreman_and_stays_in_the_shop(client: TestClient, refs: Refs) -> None:
