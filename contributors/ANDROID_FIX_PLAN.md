@@ -106,7 +106,7 @@ One task, one commit, one push. Do not start the next task before the push is th
 
 - [ ] **N1 (P0, live) Reset the demo data.** The live shops and Rahim still have Bengali, so his English message is stored as `bn` and shows back to him in Japanese; `SASEBO01` has 12 unsent drafts. Run `backend/deploy/reset-demo.ps1` (**it wipes the test data: ask the team first**), once now and once more after the last backend deploy. Then `set-ai-key.ps1 -Chain demo` and the warmup.
   *Done when:* Rahim's language is `en`, no message has `bn`, smoke is green.
-- [ ] **N2 (P1, live; after S3) Opening Home marks every chat as read.** `getPendingChecks` polls all messages (`HomeBoardSource.kt:190`). Use `GET /messages/unanswered`.
+- [ ] **N2 (P1, live; after S3) Opening Home marks every chat as read.** `getPendingChecks` polls all messages (`HomeBoardSource.kt:190`). Use `GET /messages/unanswered`. *S3 is on `main`: ready to start.*
 - [x] **N3 (P1) Android tests in CI. PR.** Nothing runs them today. A workflow on `android/**`: unit tests, `checkModuleGraph`, `:app:assembleDebug`. *Anim, `172c890`: `.github/workflows/android-ci.yml`, merged to `main` on Anim's call (no PR approval yet; please review it). Its first run on GitHub is the proof.*
 - [x] **N4 (P2, code) The outbox may send nothing when the app is closed.** `OutboxDrain.kt:31` reads the session before it is loaded and reports success. Wait for the session to load. *Anim, `74bb8e3`: waits up to 5 s for the session; the new test fails on the old code.*
 - [x] **N5 (P2, code) Follow-up "clarified" data call:** `PATCH /follow-ups/{id}` in `feature/insights/data`. Unblocks M10. *Anim, `74bb8e3`: `FollowUpRepository.clarify(id, note)` (409 → `AppError.Conflict`); the demo Fake keeps it for the run. Minhaz: `domain/InsightsRepositories.kt` gained that one method.*
@@ -115,10 +115,10 @@ One task, one commit, one push. Do not start the next task before the push is th
 
 **Files:** `backend/app/services/chat.py`, `backend/app/repositories/chat.py`, `backend/app/schemas/chat.py`, `backend/app/routers/chat.py`, `android/core/media/**`, and the ViewModel part of `TalkScreen.kt`.
 
-- [ ] **S1 (P0, live) Re-explain fails after a wrong answer.** A missed question without a Glossary Term makes no Follow-up (`answer()` in `services/chat.py`), and the app needs one. Make the Follow-up with the question's Japanese prompt, cut to 100 characters (`term_ja` limit); no Confusion, it needs a Term. Test that `/reexplain/draft` then works.
-- [ ] **S2 (P1, code) Past 100 messages the newest never show.** `messages_after` returns the oldest 100. Without a cursor, return the newest 100 in order.
-- [ ] **S3 (P1) `GET /messages/unanswered` with the text and the Thread title. PR.** Additive fields only; unblocks N2.
-- [ ] **S4 (P2, code) Device voice.** `DeviceDictation.kt:101` prefers offline recognition, so a phone without the Japanese pack may fail: prefer offline only without a network. Show network errors as network errors. Talk: keep the spoken words when saving fails, so they can be sent again.
+- [x] **S1 (P0, live) Re-explain fails after a wrong answer.** A missed question without a Glossary Term makes no Follow-up (`answer()` in `services/chat.py`), and the app needs one. Make the Follow-up with the question's Japanese prompt, cut to 100 characters (`term_ja` limit); no Confusion, it needs a Term. Test that `/reexplain/draft` then works.
+- [x] **S2 (P1, code) Past 100 messages the newest never show.** `messages_after` returns the oldest 100. Without a cursor, return the newest 100 in order.
+- [x] **S3 (P1) `GET /messages/unanswered` with the text and the Thread title. PR.** Additive fields only; unblocks N2. *Asif, `2f16153`, on `main`.*
+- [x] **S4 (P2, code) Device voice.** `DeviceDictation.kt:101` prefers offline recognition, so a phone without the Japanese pack may fail: prefer offline only without a network. Show network errors as network errors. Talk: keep the spoken words when saving fails, so they can be sent again. *Asif, `eae8254`: tests green.*
 - [ ] **S5 (P2, last) Final test on the 1.0.2 APK**, two phones, Foreman and Worker: sign in, typed message, voice message, answer wrong, re-explain, nudge, Near-miss offline, Briefing, Talk, chatbot, language switch, push. Write pass or fail for each in `contributors/asif/WORK_LOG.md`.
 
 ---

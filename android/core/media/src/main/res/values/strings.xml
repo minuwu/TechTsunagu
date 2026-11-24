@@ -8,5 +8,6 @@
     <string name="media_voice_missing">This phone has no voice for this language.</string>
     <string name="media_dictation_unavailable">Voice input does not work now. Please type.</string>
     <string name="media_dictation_no_speech">No speech was heard. Please try again.</string>
+    <string name="media_dictation_network">No connection for voice input. Check it and try again, or type.</string>
     <string name="media_mic_denied">The microphone is not allowed. Allow it in the phone settings, or type.</string>
 </resources>

@@ -11,7 +11,7 @@ from app.models.chat import FollowUp, Message, MessageAnswer, MessageCheck, Task
 from app.models.scopes import AuditEvent, User
 from app.models.work import Machine
 
-MAX_MESSAGES = 100  # one poll returns at most this many messages after the cursor
+MAX_MESSAGES = 100  # one poll returns at most this many: after the cursor, or the newest without one
 
 
 def thread(db: Session, shop_id: int, thread_id: int) -> Thread | None:
@@ -173,8 +173,9 @@ def message_by_key(db: Session, shop_id: int, user_id: int, key: uuid.UUID) -> M
 def messages_after(
     db: Session, shop_id: int, thread_id: int, viewer_id: int, after_id: int | None, since: datetime | None = None
 ) -> list[Message]:
-    """Sent messages the viewer may see (a Re-explanation only to its Worker and sender), plus the viewer's drafts;
-    `since` = the viewer's history start (a member added later sees messages from the join on)."""
+    """Sent messages the viewer may see (a Re-explanation only to its Worker and sender), plus the viewer's drafts,
+    oldest first: the next page after the cursor, or the newest page without one. `since` = the viewer's history
+    start (a member added later sees messages from the join on)."""
     for_everyone = (Message.kind != "reexplain") | (Message.to_user_id == viewer_id)
     visible = (Message.sent_at.is_not(None) & for_everyone) | (Message.from_user_id == viewer_id)
     stmt = select(Message).where(Message.shop_id == shop_id, Message.thread_id == thread_id, visible)
@@ -183,6 +184,8 @@ def messages_after(
     if since is not None:
         # sent_at, not created_at: created_at is the transaction's start and can precede the join it records.
         stmt = stmt.where((Message.sent_at >= since) | (Message.from_user_id == viewer_id))
+    if after_id is None:
+        return list(db.scalars(stmt.order_by(Message.id.desc()).limit(MAX_MESSAGES)))[::-1]
     return list(db.scalars(stmt.order_by(Message.id).limit(MAX_MESSAGES)))
 
 
@@ -286,7 +289,7 @@ def follow_up(db: Session, shop_id: int, follow_up_id: int, *, for_update: bool 
 def follow_ups_page(
     db: Session, shop_id: int, viewer_id: int, status: str | None, after_id: int | None, limit: int
 ) -> list[tuple[FollowUp, str]]:
-    """Follow-ups from Threads the viewer is in."""
+    """Follow-ups on messages the viewer may read: a Follow-up can quote the question (as in `messages_after`)."""
     stmt = (
         select(FollowUp, User.display_name)
         .join(User, (User.id == FollowUp.user_id) & (User.shop_id == FollowUp.shop_id))
@@ -297,7 +300,13 @@ def follow_ups_page(
             & (ThreadMember.shop_id == Message.shop_id)
             & (ThreadMember.user_id == viewer_id),
         )
-        .where(FollowUp.shop_id == shop_id)
+        .where(
+            FollowUp.shop_id == shop_id,
+            (Message.kind != "reexplain") | (Message.to_user_id == viewer_id) | (Message.from_user_id == viewer_id),
+            ThreadMember.history_from.is_(None)
+            | (Message.sent_at >= ThreadMember.history_from)
+            | (Message.from_user_id == viewer_id),
+        )
     )
     if status is not None:
         stmt = stmt.where(FollowUp.status == status)
@@ -349,14 +358,15 @@ def message_threads(db: Session, shop_id: int, message_ids: list[int]) -> dict[i
     return {i: t for i, t in db.execute(stmt)}
 
 
-def unanswered(db: Session, shop_id: int, user_id: int, limit: int) -> list[tuple[Message, MessageCheck]]:
+def unanswered(db: Session, shop_id: int, user_id: int, limit: int) -> list[tuple[Message, MessageCheck, Thread]]:
     """Sent messages with a Check in the user's Threads (from their history start) that they have not answered."""
     answered = select(MessageAnswer.id).where(
         MessageAnswer.shop_id == shop_id, MessageAnswer.message_id == Message.id, MessageAnswer.user_id == user_id
     )
     stmt = (
-        select(Message, MessageCheck)
+        select(Message, MessageCheck, Thread)
         .join(MessageCheck, (MessageCheck.message_id == Message.id) & (MessageCheck.shop_id == Message.shop_id))
+        .join(Thread, (Thread.id == Message.thread_id) & (Thread.shop_id == Message.shop_id))
         .join(
             ThreadMember,
             (ThreadMember.thread_id == Message.thread_id)
@@ -374,7 +384,7 @@ def unanswered(db: Session, shop_id: int, user_id: int, limit: int) -> list[tupl
         .order_by(Message.sent_at.desc())
         .limit(limit)
     )
-    return [(m, c) for m, c in db.execute(stmt)]
+    return [(m, c, t) for m, c, t in db.execute(stmt)]
 
 
 def assignees_of(db: Session, shop_id: int, task_ids: list[int]) -> dict[int, list[int]]:

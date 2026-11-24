@@ -4,6 +4,27 @@ Owner: Arjun Saha (`sillyfellow21`) — Role: Frontend design
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-24 (v4: Fuji blue through the UI)
+
+### Done
+- Neutrals take on the photo's blue. Ink moves from near-black `#0a1c26` to Fuji blue `#0f2f47`, with a bluer steel action colour, labels, cards, mist and dividers, and the same shift at night.
+  - Contrast against the worst photo pixel: day ink 7.2, muted 4.8, primary 4.7, label 4.6:1; night ink 9.7, primary 5.5, label 5.4:1.
+- The Wakatta mark in the header is the sky steel instead of an ink square, so it blends into the misty ground.
+- The course and Inspect drawings use the same blue values. Defect red and the JIS pictograms are unchanged.
+
+## 2026-11-24 (v4 dark mode)
+
+### Done
+- Dark mode for the v4 kit: it follows the device setting (CSS `color-scheme`, so nothing flashes), and the header's sun/moon button pins a choice per device. It uses the `wakatta.theme` key, shared with v3.
+  - Every colour is `light-dark(day, night)`. The night palette comes from the photo's lake: the photo sits under an 84% lake-navy scrim, text is snow, and the action colour is a lightened steel.
+  - Contrast is checked against the brightest photo pixel: 5.5:1 or better for every text token. Status chips are 6.2 to 7.7:1.
+  - The Fuji hero layers and the bridge drawing switch to light lines. The splash goes dark at night. Course drawings keep their light poster panels.
+- Phone header: the extra button fits by tightening gaps, a one-size-smaller wordmark below `sm`, and a group that never shrinks. The full wordmark shows from 360 px; at 320 px it truncates with no sideways scroll.
+- e2e: on a dark device the landing and worker pages render dark and pass axe; the button pins light and keeps it after a reload.
+
+### Known limit
+- A pinned theme that differs from the device setting applies after hydration, so it can flash once on load. A theme cookie read on the server would fix that.
+
 ## 2026-11-24 (UI: overlaps and alignment, v4)
 
 ### Done

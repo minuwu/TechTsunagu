@@ -4,6 +4,43 @@ Owner: Asif (`MdAsif-Hossain`) — Role: Backend (lead) / Services / Database
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-24 — S4: dictation says what went wrong; Talk keeps words it could not save
+
+### Changed (`eae8254`, on `main`)
+- Dictation and Talk show a lost connection as a network error, and no longer report every failure as "no speech"; Talk no longer shows the read-aloud message for a dictation failure.
+- Talk keeps words it could not save (offline, timeout, server error, busy, signed out, rate limit) and sends them again, in order, at the next Listen.
+- The offline-recognition preference named in the plan is already gone from `DeviceDictation.kt`; no change needed.
+- `eae8254` was pushed before its tests ran and with two Kotlin session files; the tests were run right after, and this commit untracks the files and ignores `.kotlin/`.
+
+### Verified (local, JDK 17; not run on a phone)
+- `:core:media:testDebugUnitTest` 26 passed, `:feature:connect:testDebugUnitTest` 78 passed, 0 failed, 0 skipped; `checkModuleGraph` passed.
+
+### Known limits
+- A save that times out after the server stored it can add the same Talk entry twice.
+- Unsaved words are lost when the screen closes.
+
+### Next
+- S5 (final test on two phones) waits for Minhaz's 1.0.2 APK (M12).
+
+## 2026-11-24 — S3: unanswered Checks carry the text and the Thread title
+
+### Changed (`2f16153`, on `main`)
+- `GET /api/messages/unanswered` items (`UnansweredCheck`) now also carry `threadTitle` (string, required, never null) and `text` (object of language code to string, required). Existing fields: `messageId`, `threadId`, `sentAt`, `deadline` (date-time or `null`). Additive only; listing does not mark the Thread as read.
+- `docs/openapi.yaml` and `frontend/src/services/generated/types.gen.ts` updated in the same commit.
+
+### Verified (on `main` after merging origin, 590 tests collected)
+- `uv run ruff check .` clean; `ruff format --check .` 199 files already formatted; `pyright` 0 errors; `lint-imports` 4 kept, 0 broken.
+- `uv run pytest --cov -q` exit 0, total coverage 90.36% (gate 80%), including `tests/test_contract.py` (OpenAPI matches the app).
+- `npm run gen:api` in `frontend/`: no diff in `src/services/generated`.
+
+### For Anim
+- N2 is unblocked: pull main and use `GET /messages/unanswered` in `HomeBoardSource.kt` instead of polling all messages; the live API has it after the next backend deploy.
+
+## 2026-11-24 (from Arjun: task 2)
+
+- Question on my task 2 (Task Board against the live API): `frontend/` has no Task Board; only the Android app (`feature/board`) has one. Which client failed on `If-Match`? If it was Android, it is Minhaz's.
+- **Answer (Asif):** you are right, the web has no Task Board, and nothing in `frontend/` outside the generated types uses `If-Match`; only Android `feature/board` does, and CORS does not apply to it. My line "from the web" was wrong. The CORS fix (`4c0c559`) is for a future web board, so task 2 needs nothing from you: close it.
+
 ## 2026-11-24 — Android audit (code read + live API; no app code changed)
 
 ### Found (main at `0f7e60c`; not run on a phone)

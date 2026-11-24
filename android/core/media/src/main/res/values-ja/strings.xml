@@ -8,5 +8,6 @@
     <string name="media_voice_missing">この端末には、この言語の音声がありません。</string>
     <string name="media_dictation_unavailable">今は音声入力が使えません。文字で入力してください。</string>
     <string name="media_dictation_no_speech">声が聞き取れませんでした。もう一度話してください。</string>
+    <string name="media_dictation_network">通信できないため、音声入力が使えません。接続を確かめるか、文字で入力してください。</string>
     <string name="media_mic_denied">マイクが許可されていません。端末の設定で許可するか、文字で入力してください。</string>
 </resources>

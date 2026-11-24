@@ -3,6 +3,7 @@ package com.techtsunagu.wakatta.feature.connect
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalConfiguration
+import com.techtsunagu.wakatta.core.media.DictationErrorKind
 import com.techtsunagu.wakatta.core.model.AppError
 
 /** Why something failed; UI state keeps this enum and the screen maps it to a plain-language string. */
@@ -18,6 +19,8 @@ internal enum class ConnectError(@StringRes val message: Int) {
     BAD_CODE(R.string.connect_err_bad_code),
     NO_QR_IN_PHOTO(R.string.connect_err_no_qr_in_photo),
     NO_SPEECH(R.string.connect_err_no_speech),
+    DICTATION_NO_SPEECH(R.string.connect_dictation_no_speech),
+    DICTATION_UNAVAILABLE(R.string.connect_dictation_unavailable),
     RATE_LIMITED(R.string.connect_err_rate_limited),
     ALREADY_CONNECTED(R.string.connect_err_already_connected),
     UNKNOWN(R.string.connect_err_unknown),
@@ -33,6 +36,12 @@ internal fun AppError.toConnectError(): ConnectError = when (this) {
     is AppError.RateLimited -> ConnectError.RATE_LIMITED
     is AppError.Conflict -> if (code == "OWN_QR") ConnectError.OWN_QR else ConnectError.ALREADY_CONNECTED
     else -> ConnectError.UNKNOWN
+}
+
+internal fun DictationErrorKind.toConnectError(): ConnectError = when (this) {
+    DictationErrorKind.NETWORK -> ConnectError.OFFLINE
+    DictationErrorKind.NO_SPEECH -> ConnectError.DICTATION_NO_SPEECH
+    else -> ConnectError.DICTATION_UNAVAILABLE
 }
 
 /** Formats an ISO-8601 timestamp as a time (HH:mm) in the local timezone. */

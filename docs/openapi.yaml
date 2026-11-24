@@ -16705,6 +16705,17 @@
             "type": "string",
             "title": "Threadid"
           },
+          "threadTitle": {
+            "type": "string",
+            "title": "Threadtitle"
+          },
+          "text": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Text"
+          },
           "sentAt": {
             "type": "string",
             "format": "date-time",
@@ -16728,11 +16739,13 @@
         "required": [
           "messageId",
           "threadId",
+          "threadTitle",
+          "text",
           "sentAt",
           "deadline"
         ],
         "title": "UnansweredCheck",
-        "description": "GET /messages/unanswered: a sent message whose Check the caller has not answered yet."
+        "description": "GET /messages/unanswered: a sent message whose Check the caller has not answered yet. Listing it does not mark\nthe Thread as read."
       },
       "Understanding": {
         "properties": {

@@ -4,6 +4,10 @@ Owner: Anim (`anim710`) — Role: Backend (WS10 Notices + Events, WS11 Asks + Se
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-24 (from Arjun: XREQ-013)
+
+- Question: what is the hosted address for the static web demo (XREQ-013)? Once it is up, I will give you the final `VITE_PUBLIC_URL` and check every page.
+
 ## 2026-11-24 (from Arjun: small help, nothing to do unless you want)
 
 - **XREQ-013 is ready to host:** on today's `main`, `npm run build:static` in `frontend/` is green: 39 pages pre-rendered into `frontend/.output/public`, 19 MB (the card says about 15 MB; the 3D Journey assets came since). Only `VITE_PUBLIC_URL` is still needed, once the Static Web App has its address.

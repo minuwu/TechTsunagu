@@ -20,7 +20,7 @@ from app.api.errors import ApiError
 from app.api.pagination import Page, PageParams, encode_cursor
 from app.domain.ai_checks import GlossaryTerm as AiTerm
 from app.domain.ai_checks import message_problems, reexplain_problems, translation_problems
-from app.domain.chat import can_move, missed, wakatta_status
+from app.domain.chat import can_move, follow_up_term, missed, wakatta_status
 from app.domain.recurrence import TOKYO
 from app.media import audio_mime
 from app.models.chat import FollowUp, Message, MessageAnswer, Task, Thread
@@ -206,6 +206,17 @@ def _worst_statuses(db: Session, shop_id: int, thread_ids: list[int]) -> dict[in
     return out
 
 
+def _display_titles(
+    db: Session, shop_id: int, user_id: int, threads: Sequence[Thread], members: dict[int, list[int]]
+) -> dict[int, str]:
+    """What to call each Thread for this caller: a direct one by the other person's name."""
+    others = {t.id: next((u for u in members[t.id] if u != user_id), None) for t in threads if t.kind == "direct"}
+    names = work_repo.display_names(db, shop_id, [u for u in others.values() if u is not None])
+    return {
+        t.id: names.get(other, t.title_ja) if (other := others.get(t.id)) is not None else t.title_ja for t in threads
+    }
+
+
 def list_threads(db: Session, who: Principal) -> list[ThreadOut]:
     shop_id, user_id = _me(who)
     rows = repo.threads_of(db, shop_id, user_id)
@@ -213,13 +224,7 @@ def list_threads(db: Session, who: Principal) -> list[ThreadOut]:
     members, mine = repo.member_ids(db, shop_id, ids), repo.my_memberships(db, shop_id, user_id, ids)
     lasts = repo.last_messages(db, shop_id, user_id, ids)
     worst = _worst_statuses(db, shop_id, ids) if who.role == "foreman" else {}
-    others = {t.id: next((u for u in members[t.id] if u != user_id), None) for t, _, _ in rows if t.kind == "direct"}
-    names = work_repo.display_names(db, shop_id, [u for u in others.values() if u is not None])
-
-    def title_for_me(t: Thread) -> str:
-        other = others.get(t.id)
-        return names.get(other, t.title_ja) if other is not None else t.title_ja
-
+    titles = _display_titles(db, shop_id, user_id, [t for t, _, _ in rows], members)
     return [
         ThreadOut.model_validate(
             {
@@ -235,7 +240,7 @@ def list_threads(db: Session, who: Principal) -> list[ThreadOut]:
                 "archived": mine[t.id].archived,
                 "last_message": _last(m) if (m := lasts.get(t.id)) else None,
                 "wk_status": worst.get(t.id),
-                "display_title": title_for_me(t),
+                "display_title": titles[t.id],
             }
         )
         for t, unread, last in rows
@@ -280,9 +285,20 @@ UNANSWERED_LIMIT = 100  # shortcut: no paging; a Worker with more open Checks th
 def unanswered(db: Session, who: Principal) -> list[UnansweredCheck]:
     """The caller's open Checks across their Threads, newest first: one call for the Worker Home."""
     shop_id, user_id = _me(who)
+    rows = repo.unanswered(db, shop_id, user_id, UNANSWERED_LIMIT)
+    threads = list({t.id: t for _, _, t in rows}.values())
+    members = repo.member_ids(db, shop_id, [t.id for t in threads])
+    titles = _display_titles(db, shop_id, user_id, threads, members)
     return [
-        UnansweredCheck(message_id=str(m.id), thread_id=str(m.thread_id), sent_at=m.sent_at, deadline=c.deadline)  # pyright: ignore[reportArgumentType]  # sent_at is set: the query asks for sent ones
-        for m, c in repo.unanswered(db, shop_id, user_id, UNANSWERED_LIMIT)
+        UnansweredCheck(
+            message_id=str(m.id),
+            thread_id=str(t.id),
+            thread_title=titles[t.id],
+            text=_text(m),
+            sent_at=m.sent_at,  # pyright: ignore[reportArgumentType]  # the query asks for sent ones
+            deadline=c.deadline,
+        )
+        for m, c, t in rows
     ]
 
 
@@ -565,9 +581,19 @@ def send(db: Session, who: Principal, message_id: int, body: SendIn, now: dateti
     return _for_sender(m, questions)
 
 
+def _follow_up_on(db: Session, shop_id: int, message_id: int, user_id: int, terms: Sequence[str]) -> list[FollowUp]:
+    """One Follow-up per message, Worker and term (unique in the database): adds the missing ones, returns all."""
+    known = {f.term_ja for f in repo.follow_ups_of(db, shop_id, message_id, user_id)}
+    for term in dict.fromkeys(terms):
+        if term not in known:
+            db.add(FollowUp(shop_id=shop_id, message_id=message_id, user_id=user_id, term_ja=term))
+    db.flush()
+    return repo.follow_ups_of(db, shop_id, message_id, user_id)
+
+
 def answer(db: Session, who: Principal, message_id: int, body: AnswersIn, now: datetime) -> AnswerResult:
-    """Graded on the server → Wakatta Status. A missed question on a Glossary Term makes a Confusion and a Follow-up.
-    Answering twice returns the first result."""
+    """Graded on the server → Wakatta Status. A missed question makes a Follow-up, and a Confusion when it is about a
+    Glossary Term. Answering twice returns the first result."""
     shop_id, user_id = _me(who)
     m = _sent_message(db, who, message_id, for_update=True)
     done = repo.answer_of(db, shop_id, m.id, user_id)
@@ -592,22 +618,19 @@ def answer(db: Session, who: Principal, message_id: int, body: AnswersIn, now: d
         raise ApiError(422, "VALIDATION_ERROR", str(exc), {"fields": [{"loc": ["body", "answers"]}]}) from exc
     db.add(MessageAnswer(shop_id=shop_id, message_id=m.id, user_id=user_id, answers=body.answers, status=status))
     terms = {t.id: t.ja for t in work_repo.glossary(db, shop_id)}
-    follow_ups: list[FollowUp] = []
+    missed_terms: list[str] = []
     for i in wrong:
         q = questions[i]
         term_id = int(q.term_id) if q.term_id else None
-        if term_id is None or term_id not in terms:
-            continue
-        db.add(Confusion(shop_id=shop_id, message_id=m.id, worker_id=user_id, question_id=q.id, term_id=term_id))
-        follow = FollowUp(shop_id=shop_id, message_id=m.id, user_id=user_id, term_ja=terms[term_id])
-        db.add(follow)
-        follow_ups.append(follow)
+        if term_id in terms:
+            db.add(Confusion(shop_id=shop_id, message_id=m.id, worker_id=user_id, question_id=q.id, term_id=term_id))
+        missed_terms.append(follow_up_term(terms.get(term_id) if term_id else None, q.prompt["ja"]))
+    follow_ups = _follow_up_on(db, shop_id, m.id, user_id, missed_terms)
     if m.kind == "reexplain" and status == "green" and m.ref_message_id is not None:
         for f in repo.follow_ups_of(db, shop_id, m.ref_message_id, user_id):
             if f.status != "understood":  # passing the Re-explanation closes the Follow-up; no person did
                 f.status, f.resolved_at = "understood", now
     m.stage = 5
-    db.flush()
     db.commit()
     return AnswerResult.model_validate(
         {
@@ -648,10 +671,9 @@ def update_follow_up(
 ) -> FollowUpOut:
     shop_id, user_id = _me(who)
     f = repo.follow_up(db, shop_id, follow_up_id, for_update=True)
-    m = repo.message(db, shop_id, f.message_id) if f is not None else None
-    if f is None or m is None:
+    if f is None:
         raise _not_found()
-    _thread(db, who, m.thread_id)  # 403 for a Foreman who is not in that Thread
+    _sent_message(db, who, f.message_id)  # 403 outside that Thread, 404 for a message this Foreman cannot read
     if not can_move(f.status, body.status):  # pyright: ignore[reportArgumentType]  # CHECK constraint
         raise ApiError(409, "CONFLICT", f"A Follow-up that is {f.status} cannot become {body.status}")
     f.status, f.note, f.resolved_by, f.resolved_at = body.status, body.note, user_id, now
@@ -782,7 +804,7 @@ ASK_TEXT = {
 
 def ask_foreman(db: Session, who: Principal, message_id: int, body: AskForemanIn, now: datetime) -> MessageForSender:
     """XREQ-022: a Worker taps "ask again" on a term of a sent message. A fixed sentence (no AI) goes to the Thread as
-    an `ask` message, and the Foreman gets a Follow-up on the term unless one is already open."""
+    an `ask` message, and the Foreman gets a Follow-up on the term unless there is one."""
     shop_id, user_id = _me(who)
     m = _sent_message(db, who, message_id)
     language = next((u.language for u in repo.members(db, shop_id, m.thread_id) if u.id == user_id), "en")
@@ -802,9 +824,7 @@ def ask_foreman(db: Session, who: Principal, message_id: int, body: AskForemanIn
         sent_at=now,
     )
     db.add(row)
-    open_terms = {f.term_ja for f in repo.follow_ups_of(db, shop_id, m.id, user_id) if f.status != "understood"}
-    if body.term_ja not in open_terms:
-        db.add(FollowUp(shop_id=shop_id, message_id=m.id, user_id=user_id, term_ja=body.term_ja))
+    _follow_up_on(db, shop_id, m.id, user_id, [body.term_ja])
     db.commit()
     return _for_sender(row, [])
 

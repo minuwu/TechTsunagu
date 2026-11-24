@@ -1,8 +1,12 @@
-/* Kit v4 look: "Poster Modernist" on Fuji at Lake Motosu. Mist ground over the photo, lake-navy type, one
-   steel-blue accent, hairline grid, 0px corners, no shadows, fast linear colour changes. Light only.
-   Palette sampled from art/fuji-motosu.avif: mist = snow and haze, navy = the lake and hills, steel = the
-   upper sky darkened to pass 4.5:1. Every text token was checked against the darkest photo pixel under the
-   scrim in .v4-ground (worst case: label 4.5:1, primary 4.8:1, muted 4.9:1).
+/* Kit v4 look: "Poster Modernist" on Fuji at Lake Motosu. Mist ground over the photo, Fuji-blue type, one
+   steel-blue accent, hairline grid, 0px corners, no shadows, fast linear colour changes.
+   Light and dark: each colour is light-dark(day, night). The page follows the device (color-scheme) until
+   the header button pins one on .v4[data-theme]. Night is the same photo under a lake-navy scrim.
+   Palette sampled from art/fuji-motosu.avif, so the photo's blue runs through the whole UI: ink = the deep
+   blue of the hills, mist = snow and haze, steel = the upper sky darkened to pass 4.5:1; neutrals lean blue.
+   Every text token was checked against the worst photo pixel under the scrim in .v4-ground: day against
+   the darkest (ink 7.2, muted 4.8, primary 4.7, label 4.6:1), night against the brightest (ink 9.7,
+   muted 6.5, primary 5.5, label 5.4:1).
    Same variable names as every kit; utilities that read the values are mapped in theme/base.css (A-06).
    Colour carries meaning (JIS Z 9103): red = Lock / Confusion, green = Ready / valid, amber = expiring,
    steel = action. Safety-sign pictograms keep the JIS/ISO colours. */
@@ -15,49 +19,61 @@
 
 :root,
 .v4 {
-  --background: #e4ecf2; /* mist */
-  --foreground: #0a1c26; /* lake navy */
-  --card: #ecf2f6;
-  --card-foreground: #0a1c26;
-  --primary: #214c69; /* steel sky */
-  --primary-foreground: #f3f7fa; /* snow */
-  --secondary: #0a1c26;
-  --secondary-foreground: #f3f7fa;
-  --muted: #d5e0e8;
-  --muted-foreground: #34495a; /* secondary text */
-  --accent: #c9d7e3; /* haze */
-  --accent-foreground: #0a1c26;
-  --destructive: #a32219; /* brand red #B3261E, darkened to 4.95:1 on its 10% chip (WCAG 1.4.3) */
-  --success: #1a6133; /* brand green #1E6B3A, darkened to 5.0:1 on its 10% chip */
-  --warning: #7a4900; /* brand amber #8A5300, darkened to pass 4.5:1 on its tinted chip */
-  --life: #214c69;
-  --border: #a9bccb; /* hairline dividers */
-  --input: #0a1c26; /* a control edge has to be seen */
-  --ring: #214c69;
+  color-scheme: light dark;
+  --background: light-dark(#e1ebf4, #071622); /* blue mist / deep lake */
+  --foreground: light-dark(#0f2f47, #dde9f4); /* Fuji blue ink / blue snow */
+  --card: light-dark(#e9f1f8, #0d2236);
+  --card-foreground: var(--foreground);
+  /* steel sky; at night the sky lightened to 5.5:1 */
+  --primary: light-dark(#1b4c74, #86b6dc);
+  --primary-foreground: light-dark(#f2f7fc, #04111a);
+  --secondary: var(--foreground);
+  --secondary-foreground: var(--background);
+  --muted: light-dark(#d2e0ec, #12293d);
+  --muted-foreground: light-dark(#2b4a63, #a9c2d8); /* secondary text */
+  --accent: light-dark(#c4d6e6, #18364d); /* haze */
+  --accent-foreground: var(--foreground);
+  /* Status text on its 10% chip: the brand colours, darker by day and lighter at night, 5.5:1 or more on
+     the card in both themes (WCAG 1.4.3) */
+  --destructive: light-dark(#a32219, #ff8e84);
+  --success: light-dark(#1a6133, #7ed3a2);
+  --warning: light-dark(#7a4900, #f0be68);
+  --life: var(--primary);
+  --border: light-dark(#9fb8cf, #284660); /* hairline dividers */
+  --input: light-dark(#0f2f47, #9fb8cf); /* a control edge has to be seen */
+  --ring: var(--primary);
 
-  --rule: #a9bccb;
-  --label: #384f60; /* uppercase labels: 4.5:1 on the darkest scrimmed photo pixel, 7.2:1 on mist */
-  --shell: #e4ecf2;
-  --shell-raised: #d5e0e8;
-  --shell-foreground: #0a1c26;
-  --shell-muted: #34495a;
-  --indigo: #214c69;
-  --glass: #ecf2f6;
-  --glass-edge: #a9bccb;
+  --rule: var(--border);
+  --label: light-dark(#2e4d66, #98b2c9); /* uppercase labels */
+  --shell: var(--background);
+  --shell-raised: var(--muted);
+  --shell-foreground: var(--foreground);
+  --shell-muted: var(--muted-foreground);
+  --indigo: var(--primary);
+  --glass: var(--card);
+  --glass-edge: var(--border);
   --shadow-sm: none;
   --shadow-md: none;
   --shadow-lg: none;
-  --tile: #ecf2f6;
-  --tile-hover: #f6f9fb; /* solid: a see-through hover would show the darker photo and dim the tile */
-  --tile-border: #a9bccb;
-  --tile-border-hover: #0a1c26;
+  --tile: var(--card);
+  /* solid: a see-through hover would show the photo and dim the tile */
+  --tile-hover: light-dark(#f3f8fc, #14304a);
+  --tile-border: var(--border);
+  --tile-border-hover: var(--foreground);
   --aurora-a: transparent;
   --aurora-b: transparent;
   --door-glow: transparent;
 }
+.v4[data-theme='light'] {
+  color-scheme: light;
+}
+.v4[data-theme='dark'] {
+  color-scheme: dark;
+}
 
 /* The whole site sits on the photo. A fixed layer, not background-attachment: fixed, which iOS Safari ignores.
-   The mist scrim is 72% over the light sky and 80% from the ridge line down: the contrast floor in the header. */
+   Day: a mist scrim, 72% over the light sky and 80% from the ridge down (the dark lake is the risk).
+   Night: a lake-navy scrim, 84% throughout (the bright sky is the risk). */
 .v4-ground {
   isolation: isolate;
   background: var(--background);
@@ -70,7 +86,10 @@
   z-index: -1;
   pointer-events: none;
   background:
-    linear-gradient(rgb(228 236 242 / 0.72), rgb(228 236 242 / 0.8) 30%),
+    linear-gradient(
+      light-dark(rgb(225 235 244 / 0.72), rgb(7 22 34 / 0.84)),
+      light-dark(rgb(225 235 244 / 0.8), rgb(7 22 34 / 0.84)) 30%
+    ),
     url('./art/fuji-motosu.avif') center / cover no-repeat;
 }
 
@@ -223,8 +242,9 @@ a {
   z-index: 60;
   display: grid;
   place-items: center;
-  background: var(--primary);
-  color: var(--primary-foreground);
+  /* steel by day; at night the dark card, so a dark page does not open with a bright flash */
+  background: light-dark(var(--primary), var(--card));
+  color: light-dark(var(--primary-foreground), var(--foreground));
   pointer-events: none;
   animation: splash-out 300ms 900ms linear forwards;
 }
@@ -398,9 +418,10 @@ input[type='file']::file-selector-button:hover {
    The section is `relative isolate`, so z-index -1 sits behind the text and above the page photo.
    Motion: fade-in and parallax are GSAP; the float is CSS (transform only, on the compositor). */
 .fuji {
-  --fuji-front: #0a1c26; /* lake navy */
-  --fuji-mid: #214c69; /* steel sky */
-  --fuji-back: #4c7b98; /* upper sky */
+  /* day: lake navy, steel sky, upper sky; night: snow, haze and sky, light shapes on the dark ground */
+  --fuji-front: light-dark(#0f2f47, #dde9f4);
+  --fuji-mid: light-dark(#1b4c74, #a9c2d8);
+  --fuji-back: light-dark(#4c7b98, #86b6dc);
   --fuji-float: -1.5px;
   --fuji-float-time: 3.5s; /* half a wave: alternate makes the full loop 7 s */
   position: absolute;

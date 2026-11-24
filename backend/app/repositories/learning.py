@@ -6,7 +6,7 @@ from sqlalchemy import Date, cast, func, select
 from sqlalchemy.orm import Session
 
 from app.models.chat import FollowUp, MessageAnswer
-from app.models.work import Check
+from app.models.work import Check, GlossaryTerm
 
 
 def own_follow_ups(db: Session, shop_id: int, user_id: int, after_id: int | None, limit: int) -> list[FollowUp]:
@@ -44,10 +44,12 @@ def answer_counts(db: Session, shop_id: int, since: datetime, tz: str) -> list[t
 
 
 def top_terms(db: Session, shop_id: int, since: datetime, limit: int) -> list[tuple[str, int]]:
-    """Terms behind the most Follow-ups since `since`, most first."""
+    """Glossary Terms behind the most Follow-ups since `since`, most first. A Follow-up can also quote a question or a
+    Worker's words from a Thread the Foreman is not in: those are not Terms and stay out."""
     n = func.count()
     stmt = (
         select(FollowUp.term_ja, n)
+        .join(GlossaryTerm, (GlossaryTerm.shop_id == FollowUp.shop_id) & (GlossaryTerm.ja == FollowUp.term_ja))
         .where(FollowUp.shop_id == shop_id, FollowUp.created_at >= since)
         .group_by(FollowUp.term_ja)
         .order_by(n.desc(), FollowUp.term_ja)

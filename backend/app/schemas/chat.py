@@ -61,10 +61,14 @@ class PersonOut(CamelModel):
 
 
 class UnansweredCheck(CamelModel):
-    """GET /messages/unanswered: a sent message whose Check the caller has not answered yet."""
+    """GET /messages/unanswered: a sent message whose Check the caller has not answered yet. Listing it does not mark
+    the Thread as read."""
 
     message_id: str
     thread_id: str
+    thread_title: str
+    """As `displayTitle` of GET /threads."""
+    text: dict[str, str]
     sent_at: AwareDatetime
     deadline: AwareDatetime | None
 

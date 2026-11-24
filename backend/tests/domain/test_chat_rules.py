@@ -2,7 +2,7 @@
 
 import pytest
 
-from app.domain.chat import can_move, missed, wakatta_status
+from app.domain.chat import can_move, follow_up_term, missed, wakatta_status
 
 
 @pytest.mark.parametrize(
@@ -21,6 +21,12 @@ def test_not_sure_counts_as_missed() -> None:
 def test_a_malformed_answer_list_is_an_error(answers: list[int]) -> None:
     with pytest.raises(ValueError, match="one option index"):
         missed([1, 0, 2], answers)
+
+
+def test_a_follow_up_is_about_the_term_or_else_the_question() -> None:
+    assert follow_up_term("金型", "何を交換?") == "金型"
+    assert follow_up_term(None, " 何時? ") == "何時?"
+    assert follow_up_term(None, "あ" * 101) == "あ" * 100
 
 
 def test_follow_ups_only_move_forward() -> None:

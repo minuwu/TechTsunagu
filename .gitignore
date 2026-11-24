@@ -38,6 +38,7 @@ pgdata/
 *.tsbuildinfo
 dist/
 build/
+.kotlin/
 out/
 .next/
 .nuxt/

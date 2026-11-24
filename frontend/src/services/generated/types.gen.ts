@@ -5008,7 +5008,8 @@ export type Transcription = {
 /**
  * UnansweredCheck
  *
- * GET /messages/unanswered: a sent message whose Check the caller has not answered yet.
+ * GET /messages/unanswered: a sent message whose Check the caller has not answered yet. Listing it does not mark
+ * the Thread as read.
  */
 export type UnansweredCheck = {
     /**
@@ -5019,6 +5020,16 @@ export type UnansweredCheck = {
      * Threadid
      */
     threadId: string;
+    /**
+     * Threadtitle
+     */
+    threadTitle: string;
+    /**
+     * Text
+     */
+    text: {
+        [key: string]: string;
+    };
     /**
      * Sentat
      */
