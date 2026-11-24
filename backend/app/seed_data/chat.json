@@ -8,37 +8,37 @@
     {
       "key": "m1", "thread": "t-line2", "from": "f-yamaguchi", "kind": "voice", "language": "ja", "minutesAgo": 90,
       "transcriptJa": "今日は3号機の油の点検を先にしてください。オイルが少ないときは、私に言ってください。",
-      "text": {"ja": "今日は3号機の油の点検を先にしてください。オイルが少ないときは、私に言ってください。", "bn": "আজ প্রথমে ৩ নম্বর মেশিনের তেল পরীক্ষা করুন। তেল কম থাকলে আমাকে বলুন।", "en": "Today, check the oil on Machine 3 first. If the oil is low, tell me."},
+      "text": {"ja": "今日は3号機の油の点検を先にしてください。オイルが少ないときは、私に言ってください。", "en": "Today, check the oil on Machine 3 first. If the oil is low, tell me."},
       "questions": [
         {"id": "q1", "termId": null,
-         "prompt": {"ja": "今日最初に何を点検しますか？", "bn": "আজ প্রথমে কী পরীক্ষা করবেন?", "en": "What do you check first today?"},
+         "prompt": {"ja": "今日最初に何を点検しますか？", "en": "What do you check first today?"},
          "options": [
-           {"ja": "3号機のオイル", "bn": "৩ নম্বর মেশিনের তেল", "en": "Oil on Machine 3"},
-           {"ja": "2号機のエア", "bn": "২ নম্বর মেশিনের বাতাস", "en": "Air on Machine 2"},
-           {"ja": "安全靴", "bn": "সেফটি জুতা", "en": "Safety shoes"}
+           {"ja": "3号機のオイル", "en": "Oil on Machine 3"},
+           {"ja": "2号機のエア", "en": "Air on Machine 2"},
+           {"ja": "安全靴", "en": "Safety shoes"}
          ],
          "correctIndex": 0}
       ],
       "answers": [{"worker": "w-tanvir", "answers": [0]}, {"worker": "w-sadia", "answers": [1]}]
     },
     {"key": "m1a", "thread": "t-line2", "from": "w-sadia", "kind": "ask", "language": "en", "minutesAgo": 86, "ref": "m1",
-     "text": {"ja": "どのオイルをどこで点検しますか？もう一度教えてください。", "bn": "কোন তেল আর কোথায় পরীক্ষা করব? আবার বলবেন?", "en": "Which oil do I check, and where? Please tell me again."}},
+     "text": {"ja": "どのオイルをどこで点検しますか？もう一度教えてください。", "en": "Which oil do I check, and where? Please tell me again."}},
     {"key": "m1b", "thread": "t-line2", "from": "f-yamaguchi", "kind": "text", "language": "ja", "minutesAgo": 84,
-     "text": {"ja": "3号機の油圧オイルです。タンクの横のゲージを見てください。", "bn": "৩ নম্বর মেশিনের হাইড্রলিক তেল। ট্যাংকের পাশের গেজ দেখুন।", "en": "The hydraulic oil on Machine 3. Look at the gauge beside the tank."}},
+     "text": {"ja": "3号機の油圧オイルです。タンクの横のゲージを見てください。", "en": "The hydraulic oil on Machine 3. Look at the gauge beside the tank."}},
     {"key": "m2", "thread": "t-line2", "from": "w-sadia", "kind": "text", "language": "en", "minutesAgo": 77,
-     "text": {"ja": "機械3のオイル、少ないです。", "bn": "৩ নম্বর মেশিনের তেল কম।", "en": "Machine 3 oil is low."}},
+     "text": {"ja": "機械3のオイル、少ないです。", "en": "Machine 3 oil is low."}},
     {"key": "m2a", "thread": "t-line2", "from": "f-yamaguchi", "kind": "text", "language": "ja", "minutesAgo": 75,
-     "text": {"ja": "ありがとう、サディアさん。すぐに補充してください。終わったら教えてね。", "bn": "ধন্যবাদ, সাদিয়া। এখনই তেল ভরুন। শেষ হলে বলবেন।", "en": "Thank you, Sadia. Please refill it right away. Tell me when you are done."}},
+     "text": {"ja": "ありがとう、サディアさん。すぐに補充してください。終わったら教えてね。", "en": "Thank you, Sadia. Please refill it right away. Tell me when you are done."}},
     {"key": "m2b", "thread": "t-line2", "from": "w-sadia", "kind": "text", "language": "en", "minutesAgo": 61,
-     "text": {"ja": "補充しました。ゲージは真ん中です。", "bn": "ভরেছি। গেজ মাঝখানে আছে।", "en": "I refilled it. The gauge is in the middle."}},
+     "text": {"ja": "補充しました。ゲージは真ん中です。", "en": "I refilled it. The gauge is in the middle."}},
     {"key": "m2c", "thread": "t-line2", "from": "f-yamaguchi", "kind": "text", "language": "ja", "minutesAgo": 59,
-     "text": {"ja": "確認しました。ありがとう。", "bn": "দেখেছি। ধন্যবাদ।", "en": "Checked. Thank you."}},
+     "text": {"ja": "確認しました。ありがとう。", "en": "Checked. Thank you."}},
     {"key": "m3", "thread": "t-rahim", "from": "f-yamaguchi", "kind": "text", "language": "ja", "minutesAgo": 1440,
-     "text": {"ja": "明日の点検表、ありがとう。", "bn": "আগামীকালের পরিদর্শন তালিকার জন্য ধন্যবাদ।", "en": "Thanks for tomorrow's inspection sheet."}}
+     "text": {"ja": "明日の点検表、ありがとう。", "en": "Thanks for tomorrow's inspection sheet."}}
   ],
   "tasks": [
-    {"key": "k1", "title": {"ja": "3号機 オイル点検", "bn": "৩ নম্বর মেশিন তেল পরীক্ষা", "en": "Check oil · Machine 3"}, "column": "done", "assignees": ["w-sadia"], "dueTokyo": "09:00", "dueDays": 0, "machine": "m-crane", "from": "m1"},
-    {"key": "k2", "title": {"ja": "溶接機 スパッタ清掃", "bn": "ওয়েল্ডিং মেশিন পরিষ্কার", "en": "Clean spatter · Welder"}, "column": "doing", "assignees": ["w-tanvir"], "dueTokyo": "12:00", "dueDays": 0, "machine": "m-weld", "from": null},
-    {"key": "k3", "title": {"ja": "手袋 Lサイズ 発注", "bn": "গ্লাভস (L সাইজ) অর্ডার", "en": "Order gloves (size L)"}, "column": "todo", "assignees": ["f-yamaguchi"], "dueTokyo": "17:00", "dueDays": 3, "machine": null, "from": null}
+    {"key": "k1", "title": {"ja": "3号機 オイル点検", "en": "Check oil · Machine 3"}, "column": "done", "assignees": ["w-sadia"], "dueTokyo": "09:00", "dueDays": 0, "machine": "m-crane", "from": "m1"},
+    {"key": "k2", "title": {"ja": "溶接機 スパッタ清掃", "en": "Clean spatter · Welder"}, "column": "doing", "assignees": ["w-tanvir"], "dueTokyo": "12:00", "dueDays": 0, "machine": "m-weld", "from": null},
+    {"key": "k3", "title": {"ja": "手袋 Lサイズ 発注", "en": "Order gloves (size L)"}, "column": "todo", "assignees": ["f-yamaguchi"], "dueTokyo": "17:00", "dueDays": 3, "machine": null, "from": null}
   ]
 }

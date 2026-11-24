@@ -16,7 +16,7 @@ SEED: dict[str, Any] = json.loads(
 )
 # Worker keys of the Work seed; the same ids as frontend/src/services/mocks/seed.ts.
 WORKERS = {"w-rahim", "w-sadia", "w-tanvir", "w-tanaka"}
-DEMO_LANGUAGES = {"ja", "bn", "en"}
+DEMO_LANGUAGES = {"ja", "en"}
 FINAL_PRESENTATION = datetime(2026, 11, 26, 10, 0, tzinfo=UTC)
 
 translated = TypeAdapter(Translated)

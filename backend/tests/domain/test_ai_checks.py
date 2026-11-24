@@ -82,7 +82,7 @@ def note(steps: list[AiStep], questions: list[AiQuestion] | None = None) -> Note
 
 def test_glossary_fixture_matches_the_seed() -> None:
     assert len(GLOSSARY) == 15
-    assert all(t.translations["bn"] and t.translations["en"] for t in GLOSSARY)
+    assert all(t.translations["en"] and "bn" not in t.translations for t in GLOSSARY)  # no Bangla (ADR 0016)
 
 
 def test_passing_note_has_no_problems() -> None:
@@ -95,7 +95,6 @@ def test_missing_locked_term_is_reported() -> None:
     steps = [GOOD_STEPS[0], AiStep(text=no_term, icon=None)]
     problems = note_problems(note(steps), GLOSSARY, LANGS)
     assert any("「寸法」" in p and "Japanese" in p for p in problems)
-    assert any("মাপ (সুনপো)" in p for p in problems)
     assert any("dimensions (sunpō)" in p for p in problems)
 
 

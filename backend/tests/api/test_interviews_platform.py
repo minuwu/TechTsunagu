@@ -105,7 +105,7 @@ def test_another_shop_cannot_see_or_record(client: TestClient, db: Session, shop
 def test_todays_word_is_one_word_of_the_workers_language(client: TestClient, shop: Shop) -> None:
     word = client.get("/api/today-word", headers=shop.foreman).json()["data"]
 
-    assert word["language"] == "bn" and word["word"] and word["reading"] and word["meaningJa"]
+    assert word["language"] == "en" and word["word"] and word["reading"] and word["meaningJa"]
     assert word["date"] == str(TODAY)
 
 
