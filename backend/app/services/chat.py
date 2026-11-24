@@ -206,6 +206,17 @@ def _worst_statuses(db: Session, shop_id: int, thread_ids: list[int]) -> dict[in
     return out
 
 
+def _display_titles(
+    db: Session, shop_id: int, user_id: int, threads: Sequence[Thread], members: dict[int, list[int]]
+) -> dict[int, str]:
+    """What to call each Thread for this caller: a direct one by the other person's name."""
+    others = {t.id: next((u for u in members[t.id] if u != user_id), None) for t in threads if t.kind == "direct"}
+    names = work_repo.display_names(db, shop_id, [u for u in others.values() if u is not None])
+    return {
+        t.id: names.get(other, t.title_ja) if (other := others.get(t.id)) is not None else t.title_ja for t in threads
+    }
+
+
 def list_threads(db: Session, who: Principal) -> list[ThreadOut]:
     shop_id, user_id = _me(who)
     rows = repo.threads_of(db, shop_id, user_id)
@@ -213,13 +224,7 @@ def list_threads(db: Session, who: Principal) -> list[ThreadOut]:
     members, mine = repo.member_ids(db, shop_id, ids), repo.my_memberships(db, shop_id, user_id, ids)
     lasts = repo.last_messages(db, shop_id, user_id, ids)
     worst = _worst_statuses(db, shop_id, ids) if who.role == "foreman" else {}
-    others = {t.id: next((u for u in members[t.id] if u != user_id), None) for t, _, _ in rows if t.kind == "direct"}
-    names = work_repo.display_names(db, shop_id, [u for u in others.values() if u is not None])
-
-    def title_for_me(t: Thread) -> str:
-        other = others.get(t.id)
-        return names.get(other, t.title_ja) if other is not None else t.title_ja
-
+    titles = _display_titles(db, shop_id, user_id, [t for t, _, _ in rows], members)
     return [
         ThreadOut.model_validate(
             {
@@ -235,7 +240,7 @@ def list_threads(db: Session, who: Principal) -> list[ThreadOut]:
                 "archived": mine[t.id].archived,
                 "last_message": _last(m) if (m := lasts.get(t.id)) else None,
                 "wk_status": worst.get(t.id),
-                "display_title": title_for_me(t),
+                "display_title": titles[t.id],
             }
         )
         for t, unread, last in rows
@@ -280,9 +285,20 @@ UNANSWERED_LIMIT = 100  # shortcut: no paging; a Worker with more open Checks th
 def unanswered(db: Session, who: Principal) -> list[UnansweredCheck]:
     """The caller's open Checks across their Threads, newest first: one call for the Worker Home."""
     shop_id, user_id = _me(who)
+    rows = repo.unanswered(db, shop_id, user_id, UNANSWERED_LIMIT)
+    threads = list({t.id: t for _, _, t in rows}.values())
+    members = repo.member_ids(db, shop_id, [t.id for t in threads])
+    titles = _display_titles(db, shop_id, user_id, threads, members)
     return [
-        UnansweredCheck(message_id=str(m.id), thread_id=str(m.thread_id), sent_at=m.sent_at, deadline=c.deadline)  # pyright: ignore[reportArgumentType]  # sent_at is set: the query asks for sent ones
-        for m, c in repo.unanswered(db, shop_id, user_id, UNANSWERED_LIMIT)
+        UnansweredCheck(
+            message_id=str(m.id),
+            thread_id=str(t.id),
+            thread_title=titles[t.id],
+            text=_text(m),
+            sent_at=m.sent_at,  # pyright: ignore[reportArgumentType]  # the query asks for sent ones
+            deadline=c.deadline,
+        )
+        for m, c, t in rows
     ]
 
 
