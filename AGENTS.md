@@ -71,7 +71,7 @@ This file is:
 | `XREQ-013` | P1 | Frontend (Arjun) | Backend (Asif, deploy) | Host the frontend demo on Azure Static Web Apps (static build, `npm run build:static`) and reply with the live URL | `[DONE]` | 2026-11-24 17:17 |
 | `XREQ-014` | P1 | Backend (Anim) | Frontend (Minhaz, Android + Firebase) | Firebase for push: project, Android app, FCM token upload to `PUT /api/devices/me`, service-account key to Anim privately | `[PENDING]` | 2026-11-23 19:30 |
 | `XREQ-015` | P0 | Backend (Anim) | Backend (Asif, Azure owner) | Give Anim's Azure account Contributor on the Wakatta resource group (Asif is off the project; Anim runs deploy now) | `[RESOLVED]` | 2026-11-23 19:30 |
-| `XREQ-016` | P0 | AI (Galib) | Frontend (Minhaz, Arjun; Android: Minhaz) | Chatbot screen on the Worker home and the Machine screen: `POST /api/knowledge/asks` (cited answer + self-check; emergency card; not covered → forward to Senpai) | `[IN_PROGRESS]` (web done; Android open) | 2026-11-23 23:00 |
+| `XREQ-016` | P0 | AI (Galib) | Frontend (Minhaz, Arjun; Android: Minhaz) | Chatbot screen on the Worker home and the Machine screen: `POST /api/knowledge/asks` (cited answer + self-check; emergency card; not covered → forward to Senpai) | `[RESOLVED]` | 2026-11-24 19:15 |
 | `XREQ-017` | P1 | Frontend (Minhaz, Android app) | Backend (Anim), AI (Galib) | Contacts, My QR, Contact Threads (routes now live; Talk Threads and group controls moved to XREQ-018 and 019); notification list stays push-only | `[DONE]` | 2026-11-24 11:20 |
 | `XREQ-018` | P1 | Frontend (Minhaz, Android app) | Backend (Anim), AI (Galib) | Talk Threads: threads and entries routes plus the two AI pipelines | `[RESOLVED]` | 2026-11-23 23:56 |
 | `XREQ-019` | P2 | Frontend (Minhaz, Android app) | Backend (Anim) | Group controls on work Threads: create, members, roles, mute/pin/archive, leave, announce-only | `[DONE]` | 2026-11-24 11:06 |
@@ -118,7 +118,7 @@ Errors: `401 UNAUTHORIZED` (wrong PIN), `423 PIN_LOCKED` (`details.until`), `429
 
 **Fulfillment & Proof (filled by recipient on completion):**
 - **Branch / Commit**: 
-- **Status / Notes**: 2026-11-23 Asif: the backend side is live on Azure and verified from outside (CORS from localhost:3000, roster, login, `/auth/me`, authenticated lists). Everything Minhaz needs is in [docs/FRONTEND_API_HANDOVER.md](docs/FRONTEND_API_HANDOVER.md): URL, sign-in flow, headers, list shape, the 5 path changes, demo accounts.
+- **Status / Notes**: 2026-11-23 Asif: the backend side is live on Azure and verified from outside (CORS from localhost:3000, roster, login, `/auth/me`, authenticated lists). Everything Minhaz needs is in [docs/FRONTEND_API_HANDOVER.md](docs/FRONTEND_API_HANDOVER.md): URL, sign-in flow, headers, list shape, the 5 path changes, demo accounts. 2026-11-24 Galib (Minhaz's task 10, checked): **not done on the web.** `frontend/src/services/wakatta.ts` still sends `credentials: 'include'` (no Bearer token) and the web runs with `VITE_USE_MOCK=true`; the hackathon demo uses the mock web and the Android app on the live API. Left for after the hackathon.
 - **Verification Proof**: 
 
 #### `[XREQ-002]` Life contract: Notices, Events, Asks, Senpai, Meet-ups
@@ -163,7 +163,7 @@ Errors: `404 NOT_FOUND` (wrong or revoked Senpai token), `409 NO_ACTIVE_PAIR` (f
 
 **Fulfillment & Proof (filled by recipient on completion):**
 - **Branch / Commit**: 
-- **Status / Notes**: 
+- **Status / Notes**:  2026-11-24 Galib (Minhaz's task 10, checked): **not done on the web.** `frontend/src/services/wakatta.ts` still sends `credentials: 'include'` (no Bearer token) and the web runs with `VITE_USE_MOCK=true`; the hackathon demo uses the mock web and the Android app on the live API. Left for after the hackathon.
 - **Verification Proof**: 
 
 #### `[XREQ-003]` Review the free-AI plan (model chain, budgets, Whisper, settings)
@@ -641,7 +641,7 @@ Anim: az group show -n <rg> → succeeds
 - **Priority**: `P0 (Blocker for the demo feature)`
 - **From**: `AI (Galib)`
 - **To**: `Frontend (Minhaz, Arjun; Android: Minhaz)`
-- **Status**: `[PENDING]`
+- **Status**: `[RESOLVED]`
 - **Created**: `2026-11-23 20:00 (UTC+6)`
 - **Target Interface / Endpoint**: `POST /api/knowledge/asks` (on `main`, in `docs/openapi.yaml`; plan: [RAG_PLAN.md](contributors/galib/RAG_PLAN.md))
 
@@ -676,6 +676,7 @@ Errors: `403` (not a Worker), `413` / `415` (recording too long or wrong format)
 - **Branch / Commit**: `main` (Galib, 2026-11-23, at the user's request so the demo has it tonight): `frontend/src/ui/v4/components/Chatbot.tsx`, `features/chatbot`, `services/wakatta.ts` `askChatbot`, `services/mocks/ai.ts` `answerKnowledge`, `domain/wakatta.ts` `KnowledgeAnswer`, en/ja messages.
 - **Status / Notes**: Web (v4 kit) done: a floating **Ask Wakatta** button bottom right on the Worker Work and Life tabs and on the Machine screen (sends `machineId`), above the phone tab bar. Covered answer with source chips (page, link to the guide) and the attribution line; practice question graded on the phone; red emergency card; not covered → **Ask my Senpai** (`POST /asks` + `/forward`). Mock answers mirror the backend for the filmed questions. Japanese + English only. Minhaz: restyle freely; **Android is still open**. 2026-11-23 Minhaz decisions: (1) placement: a pinned "Ask Wakatta" entry in the chat list (general and life questions, history kept on the phone only) plus the Machine-screen button that sends `machineId`; (2) one "Ask Wakatta" bot everywhere, no Safety Senpai / Life Guide names on screen; (3) after the hackathon, Life Guide gets more sources first.
 - **Status / Notes (Android data layer)**: 2026-11-24 Galib, Android fix plan G4 (`d623e0b`): `feature/asks` has `ChatbotRepository` (Real = `POST /api/knowledge/asks` with `text` or `audio` and `machineId`; Fake = the filmed answers offline) and `ChatbotViewModel` (per turn COVERED / NOT_COVERED / EMERGENCY, `sending`, `error`; "Ask my Senpai" through the Asks route, once). Tests: `ChatbotViewModelTest` (6), `RealChatbotRepositoryTest` (2); `:app:assembleDebug` green. **Left: the Android screen (Minhaz, M7)**, which sends `SetMachine(id)` from the Machine screen.
+- **Status / Notes (Android screen)**: 2026-11-24 Galib, for Minhaz (fix plan M7, `939dc9b`): `ChatbotScreen` on `ChatbotViewModel`: covered answer with source chips (page; opens the guide) and the attribution, the practice question graded on the phone, the red emergency card, "Ask my Senpai" when not covered; typed or dictated. Pinned "Ask Wakatta" on the Worker home; the Machine screen's button sends its id. 4 Compose tests; `:app:assembleDebug` green. Web and Android both done: resolved.
 - **Verification Proof**: `npm run typecheck`, `npm run lint`, `npm test` (98 passed, incl. `services/mocks/chatbot.test.ts`); Playwright screenshots at 390 px and 1280 px: answer + sources + practice question, emergency card, not covered + Ask my Senpai.
 
 #### `[XREQ-017]` Contacts, My QR, Contact Threads, Talk Threads and group controls (the part of XREQ-010 still open)
