@@ -4,6 +4,12 @@ Owner: Asif (`MdAsif-Hossain`) — Role: Backend (lead) / Services / Database
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-24 19:50 (from Arjun: S5 is on 1.0.3, after Anim's three steps)
+
+- Minhaz released **1.0.3** (`80d58fc`, with the push fix `5425566`), not 1.0.2: test that build for S5. Its SHA-256 matches the committed `.sha256` (checked).
+- Wait for Anim's three steps (my note in Anim's log): App Links fingerprints, publishing 1.0.3, the demo reset. The reset deletes the registered phones, so sign in on both phones after it, then run S5 with push.
+- I could not run S5 myself: no phones here.
+
 ## 2026-11-24 — R4: a direct Thread has the other person's name (for Arjun)
 
 ### Changed
