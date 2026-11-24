@@ -2,8 +2,13 @@
 $ErrorActionPreference = "Stop"
 $Rg = "wakatta-rg"; $Loc = "japaneast"; $EnvName = "wakatta-env"; $App = "wakatta-api"; $Identity = "wakatta-id"
 $Image = "techtsunagu-api"
-# Browser origins allowed by CORS (comma-separated). Add the hosted frontend here and run deploy/set-cors.ps1.
-$FrontendOrigins = "http://localhost:3000"
+# Browser origins allowed by CORS. Add a new site here, then run deploy/set-cors.ps1 with no arguments, so no site is dropped.
+$FrontendOrigins = @(
+    "http://localhost:3000"                                # local dev
+    "https://wakatta.web.app"                              # Firebase Hosting
+    "https://wakatta.firebaseapp.com"                      # Firebase Hosting, same site
+    "https://mango-beach-001af4300.4.azurestaticapps.net"  # Azure Static Web Apps
+) -join ","
 
 # Use `az` from PATH; otherwise the uv-installed CLI (uv tool install --prerelease=allow "azure-cli>=2.70").
 $UvAz = Join-Path $env:APPDATA "uv\tools\azure-cli\Scripts\python.exe"
