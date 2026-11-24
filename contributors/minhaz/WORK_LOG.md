@@ -330,3 +330,7 @@ Minhaz mapped the prototype (`prototypes/wakatta/`) and the frontend against `ma
 - `WakattaApp` builds the device registrar at start: every sign-in and cold start sends `PUT /api/devices/me`.
 - Verified on the emulator against the live API: a Worker message in Thread 1 shows 「Rahim Uddinさんからメッセージ」 on the Foreman's phone, without the message text.
 - Notifications must be allowed on the phone (Android 13+ asks); with them off the server skips the phone.
+
+## 2026-11-24: Android release 1.0.3
+
+- Built and signed `android/release/wakatta-1.0.3.apk` (versionCode 4) from current main; `latest.json` points the in-app updater at it. Same signing certificate as 1.0.2 (SHA-256 `64ded8e9…2d979`).
