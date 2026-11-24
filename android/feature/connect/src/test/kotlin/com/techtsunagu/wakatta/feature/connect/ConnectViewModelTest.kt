@@ -56,7 +56,7 @@ class ConnectViewModelTest {
     fun shareHandsTheInviteFileToTheShareSheet() {
         vm.onEvent(ConnectEvent.Share)
         val (file, mime) = share.shared.single()
-        assertEquals("text/plain", mime)
+        assertEquals("image/png", mime)
         file.delete()
     }
 

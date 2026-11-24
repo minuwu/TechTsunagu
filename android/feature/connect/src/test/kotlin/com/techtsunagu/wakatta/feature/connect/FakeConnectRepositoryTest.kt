@@ -156,10 +156,12 @@ class FakeConnectRepositoryTest {
     }
 
     @Test
-    fun inviteFileHoldsTheWkTokenOnly() = runTest {
+    fun inviteFileIsAQrImage() = runTest {
         val file = repo.createInviteFile().value()
-        val text = file.readText()
+        val bytes = file.readBytes()
         file.delete()
-        assertEquals("wk:${repo.getMyQr().value().token}", text)
+        assertEquals("wakatta-my-qr.png", file.name)
+        assertEquals("PNG", String(bytes, 1, 3))
+        assertTrue(bytes.size > 100)
     }
 }

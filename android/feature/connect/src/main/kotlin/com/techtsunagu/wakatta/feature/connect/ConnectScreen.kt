@@ -189,7 +189,7 @@ internal class ConnectViewModel @Inject constructor(
     private fun share() {
         viewModelScope.launch {
             when (val res = contacts.createInviteFile()) {
-                is AppResult.Success -> shareFile.share(res.value, "text/plain")
+                is AppResult.Success -> shareFile.share(res.value, "image/png")
                 is AppResult.Failure -> sendEffect(ConnectEffect.Failed(res.error.toConnectError()))
             }
         }
