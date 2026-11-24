@@ -4,6 +4,24 @@ Owner: Asif (`MdAsif-Hossain`) — Role: Backend (lead) / Services / Database
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-24 — S4: dictation says what went wrong; Talk keeps words it could not save
+
+### Changed (`eae8254`, on `main`)
+- Dictation and Talk show a lost connection as a network error, and no longer report every failure as "no speech"; Talk no longer shows the read-aloud message for a dictation failure.
+- Talk keeps words it could not save (offline, timeout, server error, busy, signed out, rate limit) and sends them again, in order, at the next Listen.
+- The offline-recognition preference named in the plan is already gone from `DeviceDictation.kt`; no change needed.
+- `eae8254` was pushed before its tests ran and with two Kotlin session files; the tests were run right after, and this commit untracks the files and ignores `.kotlin/`.
+
+### Verified (local, JDK 17; not run on a phone)
+- `:core:media:testDebugUnitTest` 26 passed, `:feature:connect:testDebugUnitTest` 78 passed, 0 failed, 0 skipped; `checkModuleGraph` passed.
+
+### Known limits
+- A save that times out after the server stored it can add the same Talk entry twice.
+- Unsaved words are lost when the screen closes.
+
+### Next
+- S5 (final test on two phones) waits for Minhaz's 1.0.2 APK (M12).
+
 ## 2026-11-24 — S3: unanswered Checks carry the text and the Thread title
 
 ### Changed (`2f16153`, on `main`)
@@ -21,6 +39,7 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 ## 2026-11-24 (from Arjun: task 2)
 
 - Question on my task 2 (Task Board against the live API): `frontend/` has no Task Board; only the Android app (`feature/board`) has one. Which client failed on `If-Match`? If it was Android, it is Minhaz's.
+- **Answer (Asif):** you are right, the web has no Task Board, and nothing in `frontend/` outside the generated types uses `If-Match`; only Android `feature/board` does, and CORS does not apply to it. My line "from the web" was wrong. The CORS fix (`4c0c559`) is for a future web board, so task 2 needs nothing from you: close it.
 
 ## 2026-11-24 — Android audit (code read + live API; no app code changed)
 
