@@ -4,6 +4,7 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import delete, func, select
+from sqlalchemy.dialects.postgresql import distinct_on
 from sqlalchemy.orm import Session, aliased
 
 from app.models.chat import FollowUp, Message, MessageAnswer, MessageCheck, Task, TaskAssignee, Thread, ThreadMember
@@ -63,6 +64,45 @@ def threads_of(db: Session, shop_id: int, user_id: int) -> list[tuple[Thread, in
         .order_by(newest.desc().nulls_last(), Thread.id)
     )
     return [(t, n, last) for t, n, last in db.execute(stmt)]
+
+
+def last_messages(db: Session, shop_id: int, viewer_id: int, thread_ids: list[int]) -> dict[int, Message]:
+    """Per Thread, the newest sent message the viewer may see (same rules as messages_after)."""
+    if not thread_ids:
+        return {}
+    stmt = (
+        select(Message)
+        .join(
+            ThreadMember,
+            (ThreadMember.thread_id == Message.thread_id)
+            & (ThreadMember.shop_id == Message.shop_id)
+            & (ThreadMember.user_id == viewer_id),
+        )
+        .where(
+            Message.shop_id == shop_id,
+            Message.thread_id.in_(thread_ids),
+            Message.sent_at.is_not(None),
+            (Message.kind != "reexplain") | (Message.to_user_id == viewer_id) | (Message.from_user_id == viewer_id),
+            ThreadMember.history_from.is_(None) | (Message.sent_at >= ThreadMember.history_from),
+        )
+        .order_by(Message.thread_id, Message.sent_at.desc(), Message.id.desc())
+        .ext(distinct_on(Message.thread_id))
+    )
+    return {m.thread_id: m for m in db.scalars(stmt)}
+
+
+def last_checked(db: Session, shop_id: int, thread_ids: list[int]) -> dict[int, Message]:
+    """Per Thread, the newest sent message that carries a Check."""
+    if not thread_ids:
+        return {}
+    stmt = (
+        select(Message)
+        .join(MessageCheck, (MessageCheck.shop_id == Message.shop_id) & (MessageCheck.message_id == Message.id))
+        .where(Message.shop_id == shop_id, Message.thread_id.in_(thread_ids), Message.sent_at.is_not(None))
+        .order_by(Message.thread_id, Message.sent_at.desc(), Message.id.desc())
+        .ext(distinct_on(Message.thread_id))
+    )
+    return {m.thread_id: m for m in db.scalars(stmt)}
 
 
 def my_memberships(db: Session, shop_id: int, user_id: int, thread_ids: list[int]) -> dict[int, ThreadMember]:

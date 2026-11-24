@@ -139,7 +139,12 @@ data class ThreadSummary(
     val title: Tri,
     val lastMessage: String? = null,
     val unreadCount: Int = 0,
-    val updatedAt: String = ""
+    val updatedAt: String = "",
+    val isVoice: Boolean = false,
+    /** Foreman only: the worst Wakatta Status of the newest checked message. */
+    val worstStatus: WakattaStatus? = null,
+    val lastFromMe: Boolean = false,
+    val membersCount: Int = 0,
 )
 
 @Serializable

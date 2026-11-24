@@ -11995,6 +11995,51 @@
         ],
         "title": "KnowledgeSource"
       },
+      "LastMessage": {
+        "properties": {
+          "fromUserId": {
+            "type": "string",
+            "title": "Fromuserid"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "voice",
+              "text",
+              "ask",
+              "reexplain",
+              "system"
+            ],
+            "title": "Kind"
+          },
+          "text": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Text"
+          },
+          "event": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SystemEvent"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "fromUserId",
+          "kind",
+          "text"
+        ],
+        "title": "LastMessage",
+        "description": "The newest message the caller can see, for the Chats list row."
+      },
       "Learning": {
         "properties": {
           "items": {
@@ -16029,6 +16074,33 @@
             "type": "boolean",
             "title": "Archived",
             "default": false
+          },
+          "lastMessage": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LastMessage"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "wkStatus": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "green",
+                  "orange",
+                  "red",
+                  "wait"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wkstatus"
           }
         },
         "additionalProperties": false,

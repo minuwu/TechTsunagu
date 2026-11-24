@@ -493,3 +493,23 @@ def test_a_workers_message_keeps_the_shop_word_in_japanese(
 
     assert res.status_code == 201, res.text
     assert res.json()["data"]["text"]["ja"] == "金型の交換が終わりました"
+
+
+def test_the_thread_list_shows_the_last_message_and_the_worst_status(
+    client: TestClient, line: Line, fake_ai: FakeAiClient
+) -> None:
+    """Chats rows: a preview of the newest message for everyone; the worst Wakatta Status for the Foreman only."""
+
+    def row(who: dict[str, str]) -> Json:
+        threads: list[Json] = client.get("/api/threads", headers=who).json()["data"]
+        return next(t for t in threads if t["id"] == str(line.thread_id))
+
+    assert row(line.foreman)["lastMessage"] is None and row(line.foreman)["wkStatus"] is None
+    sent = _sent(client, line, fake_ai)
+
+    mine = row(line.foreman)
+    assert mine["lastMessage"]["fromUserId"] == sent["fromUserId"] and mine["lastMessage"]["text"]["ja"]
+    assert mine["wkStatus"] == "wait"
+    client.post(f"/api/messages/{sent['id']}/answers", headers=line.rahim, json={"answers": [1, 0]})
+    assert row(line.foreman)["wkStatus"] == "orange"
+    assert row(line.rahim)["wkStatus"] is None and row(line.rahim)["lastMessage"]["kind"] == sent["kind"]

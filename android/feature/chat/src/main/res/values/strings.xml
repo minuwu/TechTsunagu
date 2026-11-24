@@ -99,4 +99,5 @@
     <string name="chat_wk_ing_6">Waiting for answers</string>
     <string name="chat_wk_answers">Worker answers</string>
     <string name="chat_sending">Sending…</string>
+    <string name="chat_no_messages_yet">No messages yet</string>
 </resources>

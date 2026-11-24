@@ -229,8 +229,9 @@ private fun ThreadListItem(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                 }
+                val you = if (thread.lastFromMe && thread.lastMessage.isNotEmpty()) stringResource(R.string.chat_you_prefix) else ""
                 Text(
-                    text = thread.lastMessage,
+                    text = you + thread.lastMessage.ifEmpty { stringResource(R.string.chat_no_messages_yet) },
                     style = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,

@@ -26,6 +26,16 @@ TaskColumn = Literal["todo", "doing", "done"]
 TermJa = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=100)]
 
 
+class LastMessage(CamelModel):
+    """The newest message the caller can see, for the Chats list row."""
+
+    from_user_id: str
+    kind: MessageKind
+    text: dict[str, str]
+    """ja plus the translations; empty for a voice message still being processed."""
+    event: SystemEvent | None = None
+
+
 class ThreadOut(CamelModel):
     id: str
     title_ja: str
@@ -38,6 +48,9 @@ class ThreadOut(CamelModel):
     muted: bool = False
     pinned: bool = False
     archived: bool = False
+    last_message: LastMessage | None = None
+    wk_status: Literal["green", "orange", "red", "wait"] | None = None
+    """Foreman only: the worst Wakatta Status of the newest sent message with a Check (prototype dot)."""
 
 
 class TaskDraft(CamelModel):

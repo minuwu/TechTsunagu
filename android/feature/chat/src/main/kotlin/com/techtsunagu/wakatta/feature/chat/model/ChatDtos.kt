@@ -17,6 +17,8 @@ data class ThreadDto(
     val lastMessageAt: String? = null,
     val lastMessage: String? = null,
     val worstStatus: WakattaStatus? = null,
+    val lastIsVoice: Boolean = false,
+    val lastFromMe: Boolean = false,
 )
 
 @Serializable

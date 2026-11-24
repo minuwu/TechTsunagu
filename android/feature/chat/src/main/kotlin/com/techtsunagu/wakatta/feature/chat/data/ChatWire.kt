@@ -67,6 +67,10 @@ internal fun WireThread.toDto(me: User? = null): ThreadDto {
         memberIds = memberIds,
         unread = unread,
         lastMessageAt = listStamp(lastMessageAt),
+        lastMessage = lastMessage?.let { pick(it.text, me?.language ?: "ja") },
+        worstStatus = wkStatus?.let { wireEnum(it, WakattaStatus.UNKNOWN) },
+        lastIsVoice = lastMessage?.kind == "voice",
+        lastFromMe = me != null && lastMessage?.fromUserId == me.id,
     )
 }
 
@@ -82,6 +86,10 @@ internal fun ThreadDto.toSummary(me: User? = null): ThreadSummary {
         lastMessage = lastMessage,
         unreadCount = unread,
         updatedAt = lastMessageAt.orEmpty(),
+        isVoice = lastIsVoice,
+        worstStatus = worstStatus,
+        lastFromMe = lastFromMe,
+        membersCount = memberIds.size,
     )
 }
 

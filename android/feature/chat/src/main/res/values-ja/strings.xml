@@ -99,4 +99,5 @@
     <string name="chat_wk_ing_6">回答を待っています</string>
     <string name="chat_wk_answers">作業員の回答</string>
     <string name="chat_sending">送信中…</string>
+    <string name="chat_no_messages_yet">メッセージはまだありません</string>
 </resources>

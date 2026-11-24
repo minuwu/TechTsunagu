@@ -101,6 +101,16 @@ internal data class WireThread(
     val memberIds: List<String> = emptyList(),
     val unread: Int = 0,
     val lastMessageAt: String? = null,
+    val lastMessage: WireLastMessage? = null,
+    val wkStatus: String? = null,
+)
+
+/** The newest message the caller can see, for the Chats row. */
+@Serializable
+internal data class WireLastMessage(
+    val fromUserId: String,
+    val kind: String = "text",
+    val text: Tri = emptyMap(),
 )
 
 /** The Worker's view of a Check Question: this type has no answer-key field (rule R-3). */

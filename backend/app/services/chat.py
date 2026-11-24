@@ -188,11 +188,29 @@ def _sender_view(db: Session, m: Message) -> MessageForSender:
     return _for_sender(m, check.questions if check else [])
 
 
+def _last(m: Message) -> dict[str, object]:
+    return {"from_user_id": str(m.from_user_id), "kind": m.kind, "text": _text(m), "event": m.event}
+
+
+def _worst_statuses(db: Session, shop_id: int, thread_ids: list[int]) -> dict[int, str]:
+    """Per Thread, the worst status of its newest checked message: red, orange, all green, else wait."""
+    out: dict[int, str] = {}
+    # shortcut: one _results call per Thread with a Check (a few per shop); batch it if lists grow large
+    for tid, m in repo.last_checked(db, shop_id, thread_ids).items():
+        statuses = [r["status"] for r in _results(db, shop_id, tid, [m]).get(m.id, [])]
+        out[tid] = next((s for s in ("red", "orange") if s in statuses), None) or (
+            "green" if statuses and all(s == "green" for s in statuses) else "wait"
+        )
+    return out
+
+
 def list_threads(db: Session, who: Principal) -> list[ThreadOut]:
     shop_id, user_id = _me(who)
     rows = repo.threads_of(db, shop_id, user_id)
     ids = [t.id for t, _, _ in rows]
     members, mine = repo.member_ids(db, shop_id, ids), repo.my_memberships(db, shop_id, user_id, ids)
+    lasts = repo.last_messages(db, shop_id, user_id, ids)
+    worst = _worst_statuses(db, shop_id, ids) if who.role == "foreman" else {}
     return [
         ThreadOut.model_validate(
             {
@@ -206,6 +224,8 @@ def list_threads(db: Session, who: Principal) -> list[ThreadOut]:
                 "muted": mine[t.id].muted,
                 "pinned": mine[t.id].pinned,
                 "archived": mine[t.id].archived,
+                "last_message": _last(m) if (m := lasts.get(t.id)) else None,
+                "wk_status": worst.get(t.id),
             }
         )
         for t, unread, last in rows
