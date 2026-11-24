@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { isValidRrule, nextOccurrences } from '@/domain/calendar'
 import type { Notice } from '@/domain/wakatta'
 import { useAction } from '@/lib/action'
+import { useDictation } from '@/lib/dictation'
 import { imageToDataUrl } from '@/lib/files'
 import { useRecorder } from '@/lib/recorder'
 import { useList } from '@/services/queries/wakatta'
@@ -27,6 +28,11 @@ export function useCommunity() {
   const [step, setStep] = useState<PostStep>('source')
   const [draftId, setDraftId] = useState<string | null>(null)
   const recorder = useRecorder(60)
+  // "Dictate instead" (XREQ-004): after a voice draft the AI could not make, or offline
+  const [offerDictation, setOfferDictation] = useState(false)
+  const dictation = useDictation((heard) =>
+    setText((t) => (t ? `${t}${heard}` : heard)),
+  )
   const create = useAction(createNoticeDraft)
   const confirm = useAction((a: { eventId: string; confirmed: boolean }) =>
     confirmEvent(draftId ?? '', a.eventId, a.confirmed),
@@ -58,6 +64,22 @@ export function useCommunity() {
     setPhotoFile: async (file: File | undefined) =>
       setPhoto(file ? await imageToDataUrl(file) : null),
     recorder,
+    dictation,
+    showDictation:
+      kind !== 'photo' &&
+      dictation.supported &&
+      (offerDictation ||
+        (typeof navigator !== 'undefined' && !navigator.onLine)),
+    /** Back to the source step as text, with what the AI heard, the browser listening */
+    dictateInstead: () => {
+      recorder.reset()
+      setKind('text')
+      setText(draft?.sourceJa ?? '')
+      setDraftId(null)
+      setOfferDictation(true)
+      setStep('source')
+      dictation.start()
+    },
     canProcess:
       (kind === 'text' && !!text.trim()) ||
       (kind === 'photo' && !!photo) ||
@@ -65,15 +87,20 @@ export function useCommunity() {
     step,
     process: async () => {
       setStep('processing')
-      const d = await create.mutateAsync({
-        posterId: poster,
-        sourceKind: kind,
-        text: text.trim(),
-        audio: recorder.audio,
-        photo,
-      })
-      setDraftId(d.id)
-      setStep('review')
+      try {
+        const d = await create.mutateAsync({
+          posterId: poster,
+          sourceKind: kind,
+          text: text.trim(),
+          audio: recorder.audio,
+          photo,
+        })
+        setDraftId(d.id)
+        setStep('review')
+      } catch {
+        if (!navigator.onLine) setOfferDictation(true)
+        setStep('source')
+      }
     },
     /** Demo path: the cached garbage-flyer take. */
     useSample: async () => {

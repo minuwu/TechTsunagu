@@ -142,6 +142,8 @@ export interface Briefing {
   text: Tri
   question: CheckQuestion
   createdAt: string
+  /** The AI could not draft it (busy or down): check or rewrite before publishing (XREQ-004) */
+  needsEdit?: boolean
 }
 
 export interface Receipt {
@@ -192,6 +194,8 @@ export interface Notice {
   question: CheckQuestion
   status: 'draft' | 'published'
   createdAt: string
+  /** The AI could not draft it (busy or down): check before publishing (XREQ-004) */
+  needsEdit?: boolean
 }
 
 export type SenpaiKind = 'coworker' | 'jichikai'

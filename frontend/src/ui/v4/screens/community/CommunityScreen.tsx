@@ -87,6 +87,30 @@ export function CommunityScreen() {
                 </label>
               )}
               {c.kind === 'voice' && <RecorderButton recorder={c.recorder} />}
+              {c.showDictation && (
+                <div className="space-y-1">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      c.setKind('text')
+                      if (c.dictation.listening) c.dictation.stop()
+                      else c.dictation.start()
+                    }}
+                  >
+                    {c.dictation.listening
+                      ? m.dictate_stop()
+                      : m.dictate_instead()}
+                  </Button>
+                  {c.dictation.listening && (
+                    <p
+                      aria-live="polite"
+                      className="text-sm text-muted-foreground"
+                    >
+                      {m.dictate_listening()}
+                    </p>
+                  )}
+                </div>
+              )}
               <div className="flex flex-wrap gap-2">
                 <Button
                   disabled={!c.canProcess}
@@ -105,6 +129,19 @@ export function CommunityScreen() {
           )}
           {c.step === 'review' && c.draft && (
             <div className="space-y-4">
+              {c.draft.needsEdit ? (
+                <div className="space-y-2 inset-card p-3" role="status">
+                  <p className="font-bold">{m.degraded_title()}</p>
+                  <p>{m.degraded_body_notice()}</p>
+                  {c.dictation.supported && (
+                    <Button variant="outline" onClick={c.dictateInstead}>
+                      {m.dictate_instead()}
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <p className="text-sm font-bold">{m.provenance_ai_check()}</p>
+              )}
               <div>
                 <p className="text-lg font-bold" lang="ja">
                   {c.draft.title.ja}
