@@ -18,12 +18,14 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 - **Push sender (XREQ-014)**: FCM HTTP v1, `chat_message` and `nudge`, ids only, after the response. What the phone gets and how Minhaz tests it: the XREQ-014 Fulfillment block. `google-auth[requests]` is now a direct dependency (it was already in the lock through google-genai).
 - Checked after the latest pushes: live API on `d7f6744`, smoke 13/13, Supabase at migration head `21d9f849b5c9` with no drift, security advisor clean, Firebase secret and project id on the Container App. No phone has registered for push yet (`devices` is empty).
 - **XREQ-019 done** (reply to Minhaz): group controls on work Threads, migration `3c7e9a1f5b20` (additive). The title field is `titleJa`, not `title`; every rule and difference is in the XREQ-019 Fulfillment block. After the security review: sending or editing a draft re-checks membership and announce-only; a member added later cannot reach older messages by id, and their unread count starts at the join.
-- **XREQ-025 blocked** on Azure: `backend/deploy/release-apk.ps1` is ready, but `Microsoft.Storage` is not registered on the subscription and my role cannot register it. Asif: `az provider register -n Microsoft.Storage --wait`.
+- **XREQ-025 ready**: Asif registered `Microsoft.Storage`; storage `wakattaapk71923` is up and rehearsed (upload, byte-for-byte HTTPS check, no listing). `downloadUrl` = `https://wakattaapk71923.blob.core.windows.net/apk/wakatta-<version>.apk`. Minhaz: send the signed APK; one command releases it.
+- **XREQ-007 seam answered**: one chain for all tasks today, model stored on cached results; Whisper-first not built (card item 4: keep AI_PLAN §2 while the real recordings are open). Fixed: Whisper heard every recording as Japanese (now the speaker's language), `translate` got an empty glossary (now the shop glossary plus a one-retry shop-word check), and a Japanese-speaking Worker's voice message was stored empty.
 - **XREQ-026 backend side done**: `/.well-known/assetlinks.json` and the "open in the app" page on the API host (the App Links host). Minhaz: send the debug and release certificate SHA-256 fingerprints; I set `ANDROID_CERT_SHA256`.
 - Closed XREQ-010, 011 and 017 (every item live or done under a newer card). Fixed a pyright strict error in `tests/api/test_auth.py` that would have failed CI. XREQ-019 is live (`c683fe8`, migration ran on Supabase, smoke 13/13).
 
 ### Next
-- XREQ-025 once the provider is registered; XREQ-026 once the fingerprints arrive.
+- Release the first APK when Minhaz sends it (XREQ-025); set `ANDROID_CERT_SHA256` when the fingerprints arrive (XREQ-026).
+- Decide with Minhaz (Asif's note 9): a daily cap on `POST /auth/register` per IP, or a smaller AI allowance for new accounts.
 - XREQ-013 (host the web demo): needs a new Azure resource (Static Web Apps); ask before creating it.
 
 ## 2026-11-23 (evening)

@@ -100,7 +100,9 @@ def create(
     if language == "ja" and text:
         text_ja: str | None = text
     else:
-        parts = [Part.blob(audio, mime)] if audio and mime else [Part.text(f"<source_text>{text}</source_text>")]
+        parts = (
+            [Part.blob(audio, mime, language)] if audio and mime else [Part.text(f"<source_text>{text}</source_text>")]
+        )
         source_bytes, caller = audio or (text or "").encode(), f"user:{worker_id}"
         # Over the AI limit the report is still taken (untranslated): a safety record is never refused.
         text_ja = to_japanese(ai, parts, language, f"shop:{shop_id}", source_bytes, caller, now)
