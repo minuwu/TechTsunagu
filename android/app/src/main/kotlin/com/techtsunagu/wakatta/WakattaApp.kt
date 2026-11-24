@@ -5,11 +5,16 @@ import android.content.Intent
 import android.os.SystemClock
 import com.techtsunagu.wakatta.core.common.CrashGuard
 import kotlin.system.exitProcess
+import com.techtsunagu.wakatta.feature.notifications.DeviceRegistrar
 import com.techtsunagu.wakatta.feature.notifications.NotificationChannels
 import dagger.hilt.android.HiltAndroidApp
+import javax.inject.Inject
 
 @HiltAndroidApp
 class WakattaApp : Application() {
+    // Built at start so it watches sign-in and registers this phone for push (PUT /api/devices/me).
+    @Inject lateinit var deviceRegistrar: DeviceRegistrar
+
     override fun onCreate() {
         super.onCreate()
         // Android shows a push itself while the app is closed: its channel must already exist.

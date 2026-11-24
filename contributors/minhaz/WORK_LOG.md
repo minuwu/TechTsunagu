@@ -323,3 +323,10 @@ Minhaz mapped the prototype (`prototypes/wakatta/`) and the frontend against `ma
 ## 2026-11-24: hackathon proposal draft
 
 - Added `submission/TechTsunagu_Proposal.md`, the proposal draft for the submission (problem, evidence, solution). Review and edit it there.
+
+## 2026-11-24 19:45: push notifications work end to end (XREQ-014 resolved)
+
+- `:app` now applies the `google-services` plugin when `android/app/google-services.json` exists. Before, Firebase never started, so the phone had no FCM token and never registered.
+- `WakattaApp` builds the device registrar at start: every sign-in and cold start sends `PUT /api/devices/me`.
+- Verified on the emulator against the live API: a Worker message in Thread 1 shows 「Rahim Uddinさんからメッセージ」 on the Foreman's phone, without the message text.
+- Notifications must be allowed on the phone (Android 13+ asks); with them off the server skips the phone.
