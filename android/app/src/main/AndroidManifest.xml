@@ -26,14 +26,23 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- App Links (Disabled until host is configured; do NOT enable without valid host)
+            <!-- App Links: Machine stickers and shared links open the app (MOBILE_PLATFORM_CONTRACT 2.3,
+                 core/deeplink/README.md). The host is the API host (XREQ-026); it must equal the host of
+                 ApiConfig.BASE_URL, which MainActivity matches links against (AppLinkHostTest). /senpai/
+                 stays a web page. Links verify once the signing fingerprints are in assetlinks.json. -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="[HOST]" />
+                <data android:scheme="https" android:host="wakatta-api.agreeablestone-840cfb57.japaneast.azurecontainerapps.io" />
+                <data android:pathPrefix="/m/" />
+                <data android:pathPrefix="/c/" />
+                <data android:pathPrefix="/t/" />
+                <data android:pathPrefix="/n/" />
+                <data android:pathPrefix="/b/" />
+                <data android:pathPrefix="/nm/" />
+                <data android:pathPrefix="/i/" />
             </intent-filter>
-            -->
         </activity>
 
         <!-- Service for backward-compatible per-app language storage on Android 12 and lower -->

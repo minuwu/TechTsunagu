@@ -9,7 +9,9 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 
 ## 2026-11-24 (from Arjun: App Links, B8)
 
-- B8 (web side of App Links): `assetlinks.json` and the fallback page are live on the API host (Anim, XREQ-026), so the web app has nothing to serve for now. Two things are yours: put the API host (`wakatta-api.agreeablestone-840cfb57.japaneast.azurecontainerapps.io`) in place of `[HOST]` in `android/app/src/main/AndroidManifest.xml:34`, and send Anim the SHA-256 fingerprints (the file is `[]` until then).
+- B8 (web side of App Links): `assetlinks.json` and the fallback page are live on the API host (Anim, XREQ-026), so the web app has nothing to serve for now.
+- **Done for you (with your OK):** the App Links filter in `android/app/src/main/AndroidManifest.xml` is enabled on the API host with the `/m/ /c/ /t/ /n/ /b/ /nm/ /i/` prefixes; `MainActivity.openFromAppLink` parses `intent.dataString` with `parseAppLink` against the host of `ApiConfig.BASE_URL` and opens `toDestination()` once signed in (same wait as notifications); new `AppLinkHostTest` keeps the two hosts equal. **Not compiled or run here (no JDK or SDK on my machine): please run `testDebugUnitTest` and `:app:assembleDebug`.**
+- **Still yours:** send Anim the SHA-256 fingerprints of the debug and release keys (`keytool -list -v -keystore …`); `assetlinks.json` is `[]` until then, so links do not verify yet. The Machine scanner (`QrPayload.parse`) still accepts any host and requires `?s=`; the contract wants it on `UriDeepLinkMatcher` too (2.10 check 8).
 - `?s={shopCode}` on the web QR stickers waits on XREQ-001: the web app gets `shopCode` only from real sign-in. When you do XREQ-001, tell me and I add it, or add it in the same change. We also need to agree which host stickers print: the web `VITE_PUBLIC_URL` opens the web Machine page, the API host opens the app (or its "open in the app" page).
 
 ## 2026-11-24 (Shop Registration, Members screen, bilingual sign-in and intro)

@@ -16,6 +16,8 @@ import androidx.core.view.WindowCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation3.runtime.NavKey
+import com.techtsunagu.wakatta.core.deeplink.parseAppLink
+import com.techtsunagu.wakatta.core.deeplink.toDestination
 import com.techtsunagu.wakatta.core.design.theme.WakattaTheme
 import com.techtsunagu.wakatta.core.media.PhotoCaptureBroker
 import com.techtsunagu.wakatta.core.media.PhotoCaptureHost
@@ -25,8 +27,10 @@ import com.techtsunagu.wakatta.core.model.SettingsStore
 import com.techtsunagu.wakatta.core.navigation.ChatKey
 import com.techtsunagu.wakatta.core.navigation.MachineKey
 import com.techtsunagu.wakatta.core.navigation.Navigator
+import com.techtsunagu.wakatta.core.network.ApiConfig
 import com.techtsunagu.wakatta.core.sync.OutboxWorker
 import dagger.hilt.android.AndroidEntryPoint
+import java.net.URI
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -59,7 +63,10 @@ class MainActivity : AppCompatActivity() {
             sessionStore.session.map { it?.user?.id }.distinctUntilChanged().filterNotNull().collect { OutboxWorker.schedule(this@MainActivity) }
         }
 
-        if (savedInstanceState == null) openFromNotification(intent)
+        if (savedInstanceState == null) {
+            openFromNotification(intent)
+            openFromAppLink(intent)
+        }
 
         setContent {
             val darkSetting by settingsStore.isDarkMode.collectAsStateWithLifecycle()
@@ -86,6 +93,18 @@ class MainActivity : AppCompatActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         openFromNotification(intent)
+        openFromAppLink(intent)
+    }
+
+    /** An App Link (a Machine sticker, a shared link) opens its screen once someone is signed in; anything else is ignored. */
+    private fun openFromAppLink(intent: Intent) {
+        val link = intent.dataString?.let { parseAppLink(it, APP_LINK_HOST) } ?: return
+        val destination = link.toDestination()
+        lifecycleScope.launch {
+            sessionStore.session.first { it != null && !it.mustChangePin }
+            navigator.switchTab(destination.tab)
+            navigator.push(destination.target)
+        }
     }
 
     /** A push carries only ids (Android puts them in the extras of the launch intent); they open the Chat or the Machine. */
@@ -100,6 +119,9 @@ class MainActivity : AppCompatActivity() {
     private companion object {
         val LANGUAGES = setOf("ja", "en")
         const val LARGE_TEXT_SCALE = 1.3f
+
+        // The manifest's App Links host; the API host serves assetlinks.json (XREQ-026)
+        val APP_LINK_HOST: String = URI(ApiConfig.BASE_URL).host
     }
 }
 

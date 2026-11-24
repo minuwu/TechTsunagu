@@ -4,6 +4,14 @@ Owner: Arjun Saha (`sillyfellow21`) — Role: Frontend design
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-24 (Android App Links switched on, with Minhaz's OK)
+
+### Done
+- `AndroidManifest.xml`: the App Links filter is enabled on the API host (XREQ-026) with the contract's path prefixes. `MainActivity.openFromAppLink` opens the linked screen after sign-in. `AppLinkHostTest` keeps the manifest host equal to `ApiConfig.BASE_URL`.
+
+### Next
+- Minhaz: compile and run the Android unit tests (no JDK or SDK on my machine), and send the signing fingerprints to Anim.
+
 ## 2026-11-24 (v4 on a photo of Fuji at Lake Motosu, Fuji layers in the hero)
 
 ### Done
