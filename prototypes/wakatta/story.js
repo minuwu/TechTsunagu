@@ -223,7 +223,9 @@ const clean = v => typeof v === 'string' ? v.replace(/[&<>"']/g, c => ESC[c])
   : Array.isArray(v) ? v.map(clean)
   : v && typeof v === 'object' ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, clean(x)])) : v;
 addEventListener('message', e => {
-  if (e.origin !== location.origin || (e.source !== foreman.contentWindow && e.source !== worker.contentWindow)) return;
+  // opened from disk, the frames post with origin "null" while location.origin is "file://"; e.source below still pins the sender
+  const sameOrigin = e.origin === location.origin || (location.protocol === 'file:' && e.origin === 'null');
+  if (!sameOrigin || (e.source !== foreman.contentWindow && e.source !== worker.contentWindow)) return;
   if (!e.data || !e.data.wk) return;
   const t = e.data.t, p = clean(e.data.p);
   observe(t, p);

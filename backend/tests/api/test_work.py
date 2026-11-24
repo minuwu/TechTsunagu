@@ -16,11 +16,11 @@ from app.models.scopes import User
 from app.models.work import Check, GlossaryTerm, Machine
 from tests import factories as f
 
-TRI = {"ja": "電源を切る", "bn": "পাওয়ার বন্ধ করুন", "en": "Turn off the power"}
+TRI = {"ja": "電源を切る", "en": "Turn off the power"}
 
 
 def _option(word: str) -> dict[str, str]:
-    return {"ja": word, "bn": word, "en": word}
+    return {"ja": word, "en": word}
 
 
 def note_answer(transcript: str = "玉掛けの前に電源を切る") -> dict[str, object]:
@@ -30,13 +30,12 @@ def note_answer(transcript: str = "玉掛けの前に電源を切る") -> dict[s
             {
                 "text": {
                     "ja": "玉掛けの前に電源を切る",
-                    "bn": "স্লিং-এর আগে পাওয়ার বন্ধ",
                     "en": "Before slinging, power off",
                 },
                 "icon": "lockout",
             }
         ],
-        "back_translation": {"bn": "玉掛けの前に電源を切る", "en": "玉掛けの前に電源を切る"},
+        "back_translation": {"en": "玉掛けの前に電源を切る"},
         "questions": [
             {
                 "term_ja": "玉掛け",
@@ -81,7 +80,7 @@ def shop(client: TestClient, db: Session) -> Shop:
     foreman = f.user(db, s, role="foreman", name="山口 隆", pin="739215", must_change=False)
     worker = f.user(db, s, name="Rahim", pin="2468", must_change=False)
     machine = f.machine(db, s, code="press-2")
-    term = GlossaryTerm(shop_id=s.id, ja="玉掛け", reading="たまがけ", translations={"bn": "স্লিং", "en": "slinging"})
+    term = GlossaryTerm(shop_id=s.id, ja="玉掛け", reading="たまがけ", translations={"en": "slinging"})
     db.add(term)
     db.flush()
     return Shop(_login(client, foreman.id, "739215"), _login(client, worker.id, "2468"), worker.id, machine, term)
@@ -108,7 +107,7 @@ def _check(client: TestClient, shop: Shop, note_id: object, answers: list[int]) 
     res = client.post(
         "/api/checks",
         headers=_auth(shop.worker, str(uuid.uuid4())),
-        json={"target": {"kind": "note", "id": str(note_id)}, "language": "bn", "answers": answers},
+        json={"target": {"kind": "note", "id": str(note_id)}, "language": "en", "answers": answers},
     )
     assert res.status_code == 200, res.text
     body: dict[str, object] = res.json()["data"]
@@ -187,7 +186,7 @@ def test_a_check_on_a_version_that_is_no_longer_current_is_refused(
     res = client.post(
         "/api/checks",
         headers=_auth(shop.worker, str(uuid.uuid4())),
-        json={"target": {"kind": "note", "id": str(v1["id"])}, "language": "bn", "answers": [0, 0]},
+        json={"target": {"kind": "note", "id": str(v1["id"])}, "language": "en", "answers": [0, 0]},
     )
 
     assert res.status_code == 409
@@ -274,7 +273,7 @@ def test_reusing_a_check_key_for_another_note_is_refused(client: TestClient, fak
     _approve(client, shop, v1["id"])
     draft = _record(client, fake_ai, shop)  # never approved: must not be gradeable through a replayed key
     key = str(uuid.uuid4())
-    body = {"language": "bn", "answers": [0, 0]}
+    body = {"language": "en", "answers": [0, 0]}
 
     first = client.post(
         "/api/checks", headers=_auth(shop.worker, key), json={**body, "target": {"kind": "note", "id": str(v1["id"])}}
@@ -493,7 +492,7 @@ def test_a_check_whose_result_cannot_be_built_saves_nothing(client: TestClient, 
     res = client.post(
         "/api/checks",
         headers=_auth(shop.worker, str(uuid.uuid4())),
-        json={"target": {"kind": "note", "id": str(note.id)}, "language": "bn", "answers": [1]},
+        json={"target": {"kind": "note", "id": str(note.id)}, "language": "en", "answers": [1]},
     )
 
     assert res.status_code == 500

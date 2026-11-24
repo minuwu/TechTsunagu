@@ -16,7 +16,7 @@ PLACEHOLDER = "（ここを入力してください）"
 
 
 def _tri(ja: str, en: str) -> dict[str, str]:
-    return {"ja": ja, "bn": f"{en} (bn)", "en": en}
+    return {"ja": ja, "en": en}
 
 
 DRAFT: Json = {
@@ -158,7 +158,7 @@ def test_receipts_put_every_worker_in_one_group(client: TestClient, shop: Shop, 
     passed, opened = shop.workers[0], shop.workers[1]
     for w in (passed, opened):
         assert client.post("/api/receipts", headers=w, json={"target": target}).status_code == 200
-    check = {"target": target, "language": "bn", "answers": [0]}
+    check = {"target": target, "language": "en", "answers": [0]}
     graded = client.post("/api/checks", headers=passed | _key(), json=check)
     assert graded.json()["data"]["passed"] is True
 
@@ -203,21 +203,20 @@ def test_an_english_only_shop_gets_briefings_without_bengali(
     s.languages = ["en"]  # XREQ-011 item 5: the AI writes ja and the shop's languages only
     db.flush()
     foreman = _login(client, f.user(db, s, role="foreman", pin="739215", must_change=False).id, "739215")
-    no_bn = {k: v for k, v in DRAFT["text"].items() if k != "bn"}
     question = DRAFT["question"] | {
         "prompt": {"ja": "クレーンが使えないのは?", "en": "When is the crane off?"},
         "options": [
             {"ja": a, "en": b} for a, b in (("15時〜16時", "15:00–16:00"), ("9時", "9:00"), ("一日中", "All day"))
         ],
     }
-    fake_ai.queue("build_briefing", DRAFT | {"text": {"ja": no_bn["ja"]}, "question": question})  # en missing
-    fake_ai.queue("build_briefing", DRAFT | {"text": no_bn, "question": question})  # the retry adds it
+    fake_ai.queue("build_briefing", DRAFT | {"text": {"ja": DRAFT["text"]["ja"]}, "question": question})  # en missing
+    fake_ai.queue("build_briefing", DRAFT | {"text": DRAFT["text"], "question": question})  # the retry adds it
 
     res = client.post("/api/briefings/draft", headers=foreman | _key(), data={"text": "15時から点検"})
     draft = res.json()["data"]
 
     assert res.status_code == 201, res.text
     assert draft["needsEdit"] is False
-    assert draft["text"] == no_bn
+    assert draft["text"] == DRAFT["text"]
     assert set(draft["question"]["prompt"]) == {"ja", "en"}
     assert "Write every text in en" in fake_ai.last_prompt_text

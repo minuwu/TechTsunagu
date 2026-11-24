@@ -25,7 +25,7 @@ from app.models.base import Base, CreatedAt, IdPk, Timestamp, TimestampOrNone
 
 SCOPE_CODE = "~ '^[A-Z0-9]{8}$'"
 SHOP_CODE = "~ '^[A-Z0-9]{6,12}$'"  # random 8, or one the owner chose (ADR 0017)
-LANGS = "('ja','bn','en','vi','id','ne','my','tl','zh')"
+LANGS = "('ja','en','vi','id','ne','my','tl','zh')"  # no Bengali (ADR 0016)
 
 
 class District(Base):
@@ -45,8 +45,7 @@ class Shop(Base):
     __table_args__ = (
         CheckConstraint(f"code {SHOP_CODE}", name="code_format"),
         CheckConstraint(
-            "languages <@ ARRAY['bn','en','vi','id','ne','my','tl','zh']::text[] "
-            "AND cardinality(languages) BETWEEN 1 AND 4",
+            "languages <@ ARRAY['en','vi','id','ne','my','tl','zh']::text[] AND cardinality(languages) BETWEEN 1 AND 4",
             name="languages_supported",
         ),
     )
@@ -56,7 +55,7 @@ class Shop(Base):
     name: Mapped[str] = mapped_column(Text)
     timezone: Mapped[str] = mapped_column(Text, server_default="Asia/Tokyo")
     default_district_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("districts.id"), index=True)
-    languages: Mapped[list[str]] = mapped_column(ARRAY(Text), server_default=text("'{bn,en}'"))
+    languages: Mapped[list[str]] = mapped_column(ARRAY(Text), server_default=text("'{en}'"))
     created_at: Mapped[CreatedAt]
 
 

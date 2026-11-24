@@ -14,7 +14,7 @@ QUESTION = "How do I throw away garbage?"
 
 
 def _tri(ja: str, en: str) -> dict[str, str]:
-    return {"ja": ja, "bn": f"{en} (bn)", "en": en}
+    return {"ja": ja, "en": en}
 
 
 ANSWER: dict[str, Any] = {

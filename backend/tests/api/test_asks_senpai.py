@@ -19,7 +19,7 @@ TODAY = datetime.now(UTC).date()
 
 
 def _tri(word: str) -> dict[str, str]:
-    return {"ja": word, "bn": f"{word}-bn", "en": f"{word}-en"}
+    return {"ja": word, "en": f"{word}-en"}
 
 
 @dataclass
@@ -109,7 +109,7 @@ def test_an_ask_is_answered_from_a_posted_notice(client: TestClient, shop: Shop,
     ask = _ask(client, shop)
 
     assert ask["covered"] is True and ask["sourceNoticeIds"] == [str(shop.notice_id)]
-    assert ask["answer"]["bn"] == "朝8時まで-bn"
+    assert ask["answer"]["en"] == "朝8時まで-en"
     assert "燃やすごみは朝8時まで" in fake_ai.last_prompt_text  # the Notice was sent to the model
 
 
@@ -137,7 +137,7 @@ def test_without_the_model_an_ask_is_not_covered(client: TestClient, shop: Shop)
 def test_a_voice_ask_keeps_its_transcript_and_forwards_it(
     client: TestClient, shop: Shop, fake_ai: FakeAiClient
 ) -> None:
-    heard = "আমার ফ্যান নষ্ট হয়ে গেছে।"
+    heard = "My fan is broken."
     fake_ai.queue("answer_ask", {"question_text": heard, "covered": False, "answer": None, "source_notice_ids": []})
     res = client.post(
         "/api/asks",
@@ -166,14 +166,13 @@ def test_the_senpai_answers_a_forwarded_ask(client: TestClient, shop: Shop, fake
     page = client.get(f"/api/senpai/{pair['token']}").json()["data"]
     assert page["senpaiName"] == "田中 健" and [a["textJa"] for a in page["asks"]] == ["粗大ごみはどうしますか?"]
 
-    fake_ai.queue("translate", {"text": "ক্লিন সেন্টারে বুক করুন"})
     fake_ai.queue("translate", {"text": "Book the clean center"})
     url = f"/api/senpai/{pair['token']}/asks/{ask['id']}/reply"
     assert client.post(url, json={"replyJa": "クリーンセンターに予約します"}).status_code == 200
     assert client.post(url, json={"replyJa": "もう一度"}).status_code == 409
 
     [mine] = client.get("/api/asks", headers=shop.worker).json()["data"]["items"]
-    reply = {"ja": "クリーンセンターに予約します", "bn": "ক্লিন সেন্টারে বুক করুন", "en": "Book the clean center"}
+    reply = {"ja": "クリーンセンターに予約します", "en": "Book the clean center"}
     assert mine["senpaiReply"] == reply
 
 

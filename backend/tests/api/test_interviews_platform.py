@@ -155,7 +155,7 @@ def test_retried_meetups_and_tasks_are_stored_once(client: TestClient, shop: Sho
     assert again["id"] == first["id"]
 
     task_key = {"Idempotency-Key": str(uuid.uuid4())}
-    task = {"title": {"ja": "手袋 発注", "bn": "গ্লাভস", "en": "Order gloves"}}
+    task = {"title": {"ja": "手袋 発注", "en": "Order gloves"}}
     t1 = client.post("/api/tasks", headers=shop.foreman | task_key, json=task).json()["data"]
     t2 = client.post("/api/tasks", headers=shop.foreman | task_key, json=task).json()["data"]
     assert t2["id"] == t1["id"]

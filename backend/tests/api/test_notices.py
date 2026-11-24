@@ -19,7 +19,7 @@ Json = dict[str, Any]
 
 
 def _tri(word: str) -> dict[str, str]:
-    return {"ja": word, "bn": f"{word}-bn", "en": f"{word}-en"}
+    return {"ja": word, "en": f"{word}-en"}
 
 
 def notice_answer(starts_at: datetime = SOON, rrule: str | None = None) -> Json:
@@ -111,7 +111,7 @@ def test_a_published_notice_reaches_the_worker_without_the_answer(
     assert "correctIndex" not in item["question"] and item["opened"] is False
     target = {"kind": "notice", "id": item["id"]}
     assert client.post("/api/receipts", headers=town.worker, json={"target": target}).status_code == 200
-    check = {"target": target, "language": "bn", "answers": [0]}
+    check = {"target": target, "language": "en", "answers": [0]}
     res = client.post("/api/checks", headers=town.worker | _key(), json=check)
     assert res.status_code == 200, res.text
     assert res.json()["data"] == {"passed": True, "wrong": [], "signOff": None}
@@ -127,7 +127,7 @@ def test_a_wrong_answer_names_the_question(client: TestClient, town: Town, fake_
     draft = _draft(client, town)
     _publish(client, town, draft)
 
-    check = {"target": {"kind": "notice", "id": draft["id"]}, "language": "bn", "answers": [2]}
+    check = {"target": {"kind": "notice", "id": draft["id"]}, "language": "en", "answers": [2]}
     result = client.post("/api/checks", headers=town.worker | _key(), json=check).json()["data"]
 
     assert result["passed"] is False and [w["id"] for w in result["wrong"]] == ["q1"]

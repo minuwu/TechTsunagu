@@ -129,7 +129,7 @@ describe('calendar', () => {
     expect(ics).toContain('TZOFFSETTO:+0900')
   })
   it('folds long lines at 75 octets without splitting a character', () => {
-    const title = 'বর্জ্য ফেলার দিন — 可燃ごみの日、市の指定袋で朝8時まで'.repeat(
+    const title = 'Ngày đổ rác — 可燃ごみの日、市の指定袋で朝8時まで'.repeat(
       3,
     )
     const folded = foldIcsLine(`SUMMARY:${title}`)

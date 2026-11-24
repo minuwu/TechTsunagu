@@ -58,7 +58,7 @@ def test_a_report_is_translated_and_acknowledged(client: TestClient, floor: Floo
 
     assert res.status_code == 201, res.text
     report = res.json()["data"]
-    assert report["text"] == {"ja": "プレスの安全カバーが外れていました。", "bn": "Press guard was off"}
+    assert report["text"] == {"ja": "プレスの安全カバーが外れていました。", "en": "Press guard was off"}
     [listed] = client.get("/api/near-misses?open=true", headers=floor.foreman).json()["data"]["items"]
     assert listed["id"] == report["id"]
     acked = client.post(f"/api/near-misses/{report['id']}/ack", headers=floor.foreman).json()["data"]
@@ -175,7 +175,7 @@ def test_a_worker_lists_and_opens_only_their_own_reports(
     assert res.status_code == 201, res.text
     mine = res.json()["data"]
     assert mine["severity"] == "high" and mine["photoMark"] == {"x": 0.5, "y": 0.25}
-    assert mine["textJa"] == "油漏れ" and mine["lang"] == "bn" and mine["workerName"] and mine["taskId"] is None
+    assert mine["textJa"] == "油漏れ" and mine["lang"] == "en" and mine["workerName"] and mine["taskId"] is None
 
     assert [r["id"] for r in client.get("/api/near-misses", headers=floor.worker).json()["data"]["items"]] == [
         mine["id"]
@@ -207,7 +207,7 @@ def test_the_foreman_links_one_task_to_a_report(client: TestClient, floor: Floor
     fake_ai.queue("translate", {"text": "油漏れ"})
     form = {"machineId": str(floor.machine_id), "text": "oil leak"}
     report = client.post("/api/near-misses", headers=floor.worker | _key(), data=form).json()["data"]
-    title = {"ja": "点検", "bn": "পরীক্ষা", "en": "Check"}
+    title = {"ja": "点検", "en": "Check"}
     first, second = (
         client.post("/api/tasks", headers=floor.foreman | _key(), json={"title": title}).json()["data"]["id"]
         for _ in range(2)

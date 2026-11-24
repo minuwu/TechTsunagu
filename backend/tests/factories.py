@@ -26,7 +26,7 @@ def district(db: Session) -> District:
 
 def shop(db: Session, home: District | None = None) -> Shop:
     home = home or district(db)
-    row = Shop(code=_code(), name="Test shop", default_district_id=home.id, languages=["bn", "en"])
+    row = Shop(code=_code(), name="Test shop", default_district_id=home.id, languages=["en"])
     db.add(row)
     db.flush()
     return row
@@ -44,7 +44,7 @@ def user(
     row = User(
         role=role,
         display_name=name or f"user-{next(_seq)}",
-        language="bn" if role == "worker" else "ja",
+        language="en" if role == "worker" else "ja",
         shop_id=at.id,
         district_id=at.default_district_id,
         pin_hash=_hashes[pin],
@@ -56,7 +56,7 @@ def user(
 
 
 def machine(db: Session, at: Shop, code: str | None = None) -> Machine:
-    row = Machine(shop_id=at.id, code=code or f"m-{next(_seq)}", name={"ja": "プレス", "bn": "প্রেস", "en": "Press"})
+    row = Machine(shop_id=at.id, code=code or f"m-{next(_seq)}", name={"ja": "プレス", "en": "Press"})
     db.add(row)
     db.flush()
     return row
@@ -70,8 +70,8 @@ def note_draft(db: Session, at: Shop, on: Machine, by: User, version_no: int = 1
         recorded_by=by.id,
         source_kind="text",
         transcript_ja="刃を交換する",
-        steps=[{"text": {"ja": "電源を切る", "bn": "পাওয়ার বন্ধ করুন", "en": "Turn off the power"}, "icon": "lockout"}],
-        back_translation={"bn": "電源を切る", "en": "電源を切る"},
+        steps=[{"text": {"ja": "電源を切る", "en": "Turn off the power"}, "icon": "lockout"}],
+        back_translation={"en": "電源を切る"},
         questions=[],
         ai_outcome="typed",
         idempotency_key=uuid.uuid4(),
@@ -98,7 +98,7 @@ def message(db: Session, at: Shop, on: Thread, by: User, **overrides: object) ->
         from_user_id=by.id,
         kind="text",
         text_ja="明日の朝8時から金型交換をします。",
-        translations={"bn": "আগামীকাল সকাল ৮টা থেকে ডাই পরিবর্তন।", "en": "Die change from 8:00 tomorrow."},
+        translations={"en": "Die change from 8:00 tomorrow."},
         stage=3,
         idempotency_key=uuid.uuid4(),
     )
@@ -110,7 +110,7 @@ def message(db: Session, at: Shop, on: Thread, by: User, **overrides: object) ->
 
 
 def task(db: Session, at: Shop, by: User, **overrides: object) -> Task:
-    row = Task(shop_id=at.id, title={"ja": "金型交換", "bn": "ডাই পরিবর্তন", "en": "Die change"}, created_by=by.id)
+    row = Task(shop_id=at.id, title={"ja": "金型交換", "en": "Die change"}, created_by=by.id)
     for key, value in overrides.items():
         setattr(row, key, value)
     db.add(row)

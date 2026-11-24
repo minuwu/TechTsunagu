@@ -36,7 +36,7 @@ def test_the_matrix_shows_every_worker_on_every_machine(client: TestClient, refs
 
 def test_the_heatmap_counts_confusions_per_term_and_machine(client: TestClient, refs: Refs) -> None:
     worker = _login(client, refs["w-sadia"], "2468")
-    check = {"target": {"kind": "note", "id": str(refs["n-crane-1"])}, "language": "bn", "answers": [0, 0]}
+    check = {"target": {"kind": "note", "id": str(refs["n-crane-1"])}, "language": "en", "answers": [0, 0]}
     res = client.post("/api/checks", headers=worker | {"Idempotency-Key": str(uuid.uuid4())}, json=check)
     assert res.status_code == 200 and res.json()["data"]["passed"] is False
 

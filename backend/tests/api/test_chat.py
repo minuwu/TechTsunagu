@@ -21,7 +21,7 @@ Json = dict[str, Any]
 
 
 def _tri(word: str) -> dict[str, str]:
-    return {"ja": word, "bn": f"{word}-bn", "en": f"{word}-en"}
+    return {"ja": word, "en": f"{word}-en"}
 
 
 def _q(term: str | None, prompt: str, options: list[str]) -> Json:
@@ -56,7 +56,7 @@ def _line(client: TestClient, db: Session) -> Line:
     rahim, sadia = (f.user(db, s, pin="2468", must_change=False) for _ in range(2))
     outsider = f.user(db, s, pin="2468", must_change=False)
     machine = f.machine(db, s, code="press-2")
-    db.add(GlossaryTerm(shop_id=s.id, ja="金型", reading="かながた", translations={"bn": "ডাই", "en": "die"}))
+    db.add(GlossaryTerm(shop_id=s.id, ja="金型", reading="かながた", translations={"en": "die"}))
     t = f.thread(db, s, foreman, [rahim, sadia])
     return Line(
         _login(client, foreman.id, "739215"),
@@ -78,8 +78,8 @@ def line(client: TestClient, db: Session) -> Line:
 def draft_answer(line: Line) -> Json:
     return {
         "transcript_ja": "明日の朝8時から、2号プレスの金型交換をします。",
-        # the glossary lock (message_problems) needs 金型's fixed translations: ডাই, die
-        "text": {"ja": "明日8時に金型交換", "bn": "কাল ৮টায় ডাই বদল", "en": "Die change tomorrow at 8"},
+        # the glossary lock (message_problems) needs 金型's fixed translation: die
+        "text": {"ja": "明日8時に金型交換", "en": "Die change tomorrow at 8"},
         "questions": [
             _q("金型", "何を交換しますか?", ["金型", "電源", "手袋"]),
             _q(None, "何時?", ["8時", "9時", "10時"]),
@@ -166,7 +166,7 @@ def test_a_reexplanation_reaches_one_worker_and_closes_the_follow_up(
 ) -> None:
     sent = _sent(client, line, fake_ai)
     client.post(f"/api/messages/{sent['id']}/answers", headers=line.rahim, json={"answers": [2, 0]})
-    text = {"ja": "金型は型です", "bn": "ডাই হলো ছাঁচ", "en": "The die is the mould"}  # fixed translations kept
+    text = {"ja": "金型は型です", "en": "The die is the mould"}  # fixed translations kept
     fake_ai.queue("reexplain", {"text": text, "question": _q("金型", "金型は?", ["型", "油", "靴"])})
 
     body = {"userId": str(line.rahim_id), "termJa": "金型"}
@@ -320,7 +320,7 @@ def test_a_nudge_shows_and_is_rate_limited(client: TestClient, line: Line, fake_
 
 def test_the_task_board_filters_by_machine(client: TestClient, line: Line, fake_ai: FakeAiClient) -> None:
     _sent(client, line, fake_ai)  # one Task on the line's Machine
-    loose = {"title": {"ja": "床の清掃", "bn": "মেঝে পরিষ্কার", "en": "Clean the floor"}}
+    loose = {"title": {"ja": "床の清掃", "en": "Clean the floor"}}
     assert client.post("/api/tasks", headers=line.foreman, json=loose).status_code == 201  # no Machine
 
     every = client.get("/api/tasks", headers=line.foreman).json()["data"]["items"]
@@ -457,7 +457,7 @@ def test_an_edited_draft_is_translated_again_before_sending(
         f"/api/threads/{line.thread_id}/messages", headers=line.foreman | _key(), data={"text": "金型交換"}
     )
     draft = res.json()["data"]
-    edited = draft_answer(line) | {"text": {"ja": "明日9時に金型交換", "bn": "কাল ৯টায় ডাই বদল", "en": "Die change at 9"}}
+    edited = draft_answer(line) | {"text": {"ja": "明日9時に金型交換", "en": "Die change at 9"}}
     fake_ai.queue("draft_message", edited)
 
     res = client.patch(f"/api/messages/{draft['id']}", headers=line.foreman, json={"textJa": "明日9時に金型交換"})
@@ -517,7 +517,7 @@ def test_the_foreman_reads_and_edits_a_reexplanation_before_it_is_sent(
 ) -> None:
     """XREQ-022: /reexplain/draft stores nothing; /reexplain with the edited text and question sends it as written."""
     sent = _sent(client, line, fake_ai)
-    text = {"ja": "金型は型です", "bn": "ডাই হলো ছাঁচ", "en": "The die is the mould"}
+    text = {"ja": "金型は型です", "en": "The die is the mould"}
     fake_ai.queue("reexplain", {"text": text, "question": _q("金型", "金型は?", ["型", "油", "靴"])})
     ask = {"userId": str(line.rahim_id), "termJa": "金型"}
 
@@ -608,7 +608,7 @@ def test_a_workers_message_keeps_the_shop_word_in_japanese(
     fake_ai.queue("translate", {"text": "金型の交換が終わりました"})
 
     res = client.post(
-        f"/api/threads/{line.thread_id}/messages", headers=line.rahim | _key(), data={"text": "ডাই বদল শেষ"}
+        f"/api/threads/{line.thread_id}/messages", headers=line.rahim | _key(), data={"text": "Die change done"}
     )
 
     assert res.status_code == 201, res.text

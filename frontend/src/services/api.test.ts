@@ -113,7 +113,7 @@ describe('services/api (session)', () => {
       id: '3',
       displayName: 'Rahim',
       role: 'worker' as const,
-      language: 'bn',
+      language: 'en',
       shopId: '1',
       districtId: '1',
     },

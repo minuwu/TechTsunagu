@@ -557,7 +557,7 @@ export function useSenpaiAdmin() {
 }
 
 // Backend app/schemas/common.py Lang: a Worker's own language can be one the UI does not speak
-const ACCOUNT_LANGS = ['bn', 'vi', 'id', 'ne', 'my', 'tl', 'zh', 'en', 'ja']
+const ACCOUNT_LANGS = ['en', 'vi', 'id', 'ne', 'my', 'tl', 'zh', 'ja'] // no Bengali (ADR 0016)
 type AccountKind = 'worker' | 'foreman'
 
 /** Real API: create Workers and Foremen, reset a PIN (they choose a new one at sign-in), deactivate. */
@@ -579,7 +579,7 @@ export function useAccountsAdmin() {
   const empty = {
     kind: 'worker' as AccountKind,
     displayName: '',
-    language: 'bn',
+    language: 'en',
     pin: '',
   }
   const [form, setForm] = useState(empty)

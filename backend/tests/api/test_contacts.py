@@ -16,7 +16,7 @@ from tests import factories as f
 
 @dataclass
 class People:
-    rahim: dict[str, str]  # a Worker in shop 1 (language bn)
+    rahim: dict[str, str]  # a Worker in shop 1 (language vi)
     nguyen: dict[str, str]  # a Worker in another shop (language en)
     foreman: dict[str, str]  # Rahim's Foreman
 
@@ -31,6 +31,7 @@ def _login(client: TestClient, user_id: int, pin: str) -> dict[str, str]:
 def people(client: TestClient, db: Session) -> People:
     home, other = f.shop(db), f.shop(db)
     rahim = f.user(db, home, pin="2468", must_change=False)
+    rahim.language = "vi"  # the two Workers differ in language, so a message needs translating
     nguyen = f.user(db, other, pin="2468", must_change=False)
     nguyen.language = "en"
     db.flush()
@@ -87,7 +88,7 @@ def test_contact_messages_are_translated_for_the_reader(
 ) -> None:
     mine, theirs = _connect(client, people)
     fake_ai.queue("translate", {"text": "Are you coming to the festival?"})
-    body = {"text": "উৎসবে আসবে?", "lang": "bn"}
+    body = {"text": "Bạn có đến lễ hội không?", "lang": "vi"}
 
     sent = client.post(f"/api/contacts/{mine}/messages", headers=people.rahim, json=body)
 
@@ -96,7 +97,7 @@ def test_contact_messages_are_translated_for_the_reader(
     assert listed["unread"] == 1
     first = client.get(f"/api/contacts/{theirs}/messages", headers=people.nguyen)
     [msg] = first.json()["data"]["items"]
-    assert msg["text"] == "Are you coming to the festival?" and msg["textSrc"] == "উৎসবে আসবে?"
+    assert msg["text"] == "Are you coming to the festival?" and msg["textSrc"] == "Bạn có đến lễ hội không?"
     again = client.get(
         f"/api/contacts/{theirs}/messages", headers=people.nguyen | {"If-None-Match": first.headers["ETag"]}
     )
@@ -107,11 +108,11 @@ def test_contact_messages_are_translated_for_the_reader(
 
 def test_without_the_model_the_reader_gets_the_original(client: TestClient, people: People) -> None:
     mine, theirs = _connect(client, people)
-    client.post(f"/api/contacts/{mine}/messages", headers=people.rahim, json={"text": "ধন্যবাদ", "lang": "bn"})
+    client.post(f"/api/contacts/{mine}/messages", headers=people.rahim, json={"text": "Cảm ơn", "lang": "vi"})
 
     [msg] = client.get(f"/api/contacts/{theirs}/messages", headers=people.nguyen).json()["data"]["items"]
 
-    assert msg["text"] == "ধন্যবাদ"
+    assert msg["text"] == "Cảm ơn"
 
 
 def test_a_block_is_silent(client: TestClient, people: People, fake_ai: FakeAiClient) -> None:
@@ -197,7 +198,7 @@ def test_personal_texts_are_never_kept_in_the_ai_cache(
     mine, _ = _connect(client, people)
     fake_ai.queue("translate", {"text": "a private sentence"})
 
-    client.post(f"/api/contacts/{mine}/messages", headers=people.rahim, json={"text": "ব্যক্তিগত", "lang": "bn"})
+    client.post(f"/api/contacts/{mine}/messages", headers=people.rahim, json={"text": "Riêng tư", "lang": "vi"})
 
     assert fake_ai.calls == 1 and db.scalars(select(AiCache)).all() == []
 
