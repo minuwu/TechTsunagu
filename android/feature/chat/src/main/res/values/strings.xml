@@ -17,7 +17,7 @@
     <string name="chat_filter_unread">Unread</string>
     <string name="chat_empty_threads">No chats yet</string>
     <string name="chat_members_count">%1$d members</string>
-    <string name="chat_you_prefix">You: </string>
+    <string name="chat_you_prefix">"You: "</string>
     <string name="chat_role_foreman">Foreman</string>
     <string name="chat_role_worker">Worker</string>
     <string name="chat_switch_role">Switch role</string>

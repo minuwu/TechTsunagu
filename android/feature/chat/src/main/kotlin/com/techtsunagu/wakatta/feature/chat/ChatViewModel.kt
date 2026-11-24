@@ -135,7 +135,11 @@ class ChatViewModel @Inject constructor(
 
     private fun shown(): List<ChatMessageUiModel> {
         pending = pending.filter { p -> server.none { it.id == p.id } }
-        return server + pending
+        // a poll must not close a translation or fold the reader opened
+        val open = state.value.messages.associateBy { it.id }
+        return (server + pending).map { m ->
+            open[m.id]?.let { m.copy(showOriginal = it.showOriginal, isWkFoldExpanded = it.isWkFoldExpanded) } ?: m
+        }
     }
     private var currentUserLang: String = ""
     private val accumulator = DictationAccumulator()
