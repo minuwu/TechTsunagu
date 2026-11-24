@@ -81,7 +81,7 @@ This file is:
 | `XREQ-023` | P2 | Frontend (Minhaz, Android app) | Backend (Anim) | Near-miss: Worker's own list, severity, Foreman translation, photo mark | `[RESOLVED]` | 2026-11-23 23:56 |
 | `XREQ-024` | P2 | Frontend (Minhaz, Android app) | Backend (Anim) | Foreman reads Asks; set Today's Word; Support Log JSON summary; transcript of voice Asks | `[RESOLVED]` | 2026-11-23 23:56 |
 | `XREQ-025` | P1 | Frontend (Minhaz, Android app) | Backend (Anim, Azure) | Host the release APK and run the release routine behind GET /app/config | `[PENDING]` | 2026-11-23 23:56 |
-| `XREQ-026` | P2 | Frontend (Minhaz, Android app) | Backend (Anim, Azure) | App Links: a host, assetlinks.json and a web fallback for QR and share links | `[PENDING]` | 2026-11-23 23:56 |
+| `XREQ-026` | P2 | Frontend (Minhaz, Android app) | Backend (Anim, Azure) | App Links: a host, assetlinks.json and a web fallback for QR and share links | `[RESOLVED]` | 2026-11-24 11:27 |
 *(When adding a request: append a row above AND add a detailed card in 2.2. Never insert in the middle.)*
 
 ### 2.2 Detailed Request Cards
@@ -888,7 +888,7 @@ The app updates itself from `GET /app/config` (`minVersion, latestVersion, downl
 - **Priority**: `P2 (Normal)`
 - **From**: `Frontend (Minhaz, Android app)`
 - **To**: `Backend (Anim, Azure)`
-- **Status**: `[PENDING]`
+- **Status**: `[RESOLVED]`
 - **Created**: `2026-11-23 23:56 (UTC+6)`
 - **Target Interface / Endpoint**: `https://<host>/.well-known/assetlinks.json`, `https://<host>/m/{machineId}?s={shopCode}`
 
@@ -896,9 +896,9 @@ The app updates itself from `GET /app/config` (`minVersion, latestVersion, downl
 Machine QR stickers and shared links open the app directly (Android App Links, see [MOBILE_PLATFORM_CONTRACT.md](docs/MOBILE_PLATFORM_CONTRACT.md) section 2). That needs (1) a stable HTTPS host: tell us which (the API FQDN or a custom domain; the app currently has a placeholder `[HOST]`); (2) `GET https://<host>/.well-known/assetlinks.json` served as `application/json` with package `com.techtsunagu.wakatta` and the SHA-256 certificate fingerprint of the release key (Minhaz sends the fingerprint when the keystore exists; a debug fingerprint can be added for testing); (3) a minimal web fallback for `/m/{machineId}` and `/c/{token}` (a page that says "open in the Wakatta? app" with the download link from XREQ-025) for phones without the app. Paths and shapes are in the platform contract; change a name if your routing needs it.
 
 **Fulfillment & Proof (filled by recipient on completion):**
-- **Branch / Commit**: 
-- **Status / Notes**: 
-- **Verification Proof**: 
+- **Branch / Commit**: `main` (this commit): `backend/app/routers/links.py`
+- **Status / Notes**: 2026-11-24 Anim. **Backend side done; waiting for the fingerprint.** (1) **Host = the API host** `wakatta-api.agreeablestone-840cfb57.japaneast.azurecontainerapps.io` (put it in the manifest for `[HOST]`): it is the only stable HTTPS host today (no hosted web app yet, XREQ-013), serves over HTTPS with no redirect, and keeps its name across deploys (it changes only if the Container App environment is recreated). (2) `GET /.well-known/assetlinks.json` (`application/json`) lists package `com.techtsunagu.wakatta` with every fingerprint in the env `ANDROID_CERT_SHA256` (comma-separated `AB:CD:…`, so release and debug can both be listed; a malformed one stops the API at startup). It returns `[]` until set, so Android simply does not verify yet. **Minhaz:** send the SHA-256 of your debug and release signing certificates (`keytool -list -v -keystore …`, the `SHA256:` line); Anim sets them with `az containerapp update -n wakatta-api -g wakatta-rg --set-env-vars "ANDROID_CERT_SHA256=<release>,<debug>"`. (3) Fallback page on `/m/…`, `/c/…`, `/t/…`, `/n/…`, `/b/…`, `/nm/…`, `/i/…` (any id or query): one static page in ja and en, "open in the Wakatta? app", with the download link once XREQ-025 sets `APP_DOWNLOAD_URL` (no link before that). It never echoes the link or a token. `/m/` shows this page too, not the web Machine page, until the web app is hosted. These routes are outside `/api` and not in `docs/openapi.yaml`.
+- **Verification Proof**: `tests/api/test_links.py` (12: the file with two fingerprints, `[]` when unset, the page on all 7 prefixes with no echo of a token or shop code, no download link before a release, `/api` 404s untouched, a bad fingerprint refused at startup); full suite 439 passed; ruff, pyright strict, lint-imports clean.
 
 ### 2.3 Blank XREQ Template (copy & paste)
 

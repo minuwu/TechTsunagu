@@ -28,6 +28,7 @@ from app.routers import (
     interviews,
     knowledge,
     life,
+    links,
     near_misses,
     skills,
     support,
@@ -58,6 +59,7 @@ ROUTERS = tuple(
         knowledge,
         contacts,
         talk,
+        links,
     )
 )
 
