@@ -12,8 +12,11 @@ internal enum class ConnectError(@StringRes val message: Int) {
     SERVER(R.string.connect_err_server),
     NOT_FOUND(R.string.connect_err_not_found),
     QR_REPLACED(R.string.connect_err_qr_replaced),
+    QR_UNKNOWN(R.string.connect_err_qr_unknown),
+    OWN_QR(R.string.connect_err_own_qr),
     BLOCKED(R.string.connect_err_blocked),
     BAD_CODE(R.string.connect_err_bad_code),
+    NO_QR_IN_PHOTO(R.string.connect_err_no_qr_in_photo),
     NO_SPEECH(R.string.connect_err_no_speech),
     RATE_LIMITED(R.string.connect_err_rate_limited),
     ALREADY_CONNECTED(R.string.connect_err_already_connected),
@@ -28,7 +31,7 @@ internal fun AppError.toConnectError(): ConnectError = when (this) {
     AppError.Gone -> ConnectError.QR_REPLACED
     AppError.Forbidden -> ConnectError.BLOCKED
     is AppError.RateLimited -> ConnectError.RATE_LIMITED
-    is AppError.Conflict -> ConnectError.ALREADY_CONNECTED
+    is AppError.Conflict -> if (code == "OWN_QR") ConnectError.OWN_QR else ConnectError.ALREADY_CONNECTED
     else -> ConnectError.UNKNOWN
 }
 

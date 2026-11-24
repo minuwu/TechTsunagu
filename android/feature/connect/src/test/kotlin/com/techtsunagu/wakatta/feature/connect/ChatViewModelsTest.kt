@@ -63,7 +63,7 @@ class ChatViewModelsTest {
     fun scannerResultResolvesAndUnknownOrBlockedShowErrors() = runTest {
         val token = repo.tokenOf("Siti Rahma")
         val vm = ConnectScanViewModel(repo, StubScanner(flowOf("wk:unknowntoken")))
-        assertEquals(ConnectError.NOT_FOUND, vm.state.value.error)
+        assertEquals(ConnectError.QR_UNKNOWN, vm.state.value.error)
 
         val contact = repo.addContact(token).value()
         repo.block(contact.id)

@@ -314,6 +314,7 @@ class FakeConnectRepository(
     private fun personFor(token: String): AppResult<Person> {
         if (token in blockedTokens) return AppResult.Failure(AppError.Forbidden)
         if (token in retiredTokens) return AppResult.Failure(AppError.Gone)
+        if (token == myToken) return AppResult.Failure(AppError.Conflict("OWN_QR"))
         val person = people.firstOrNull { it.token == token }
         return person?.let { AppResult.Success(it) } ?: AppResult.Failure(AppError.NotFound)
     }

@@ -51,6 +51,10 @@ def _no_owner(db: Session, token: str) -> ApiError:
     return _not_found()
 
 
+def _own_qr() -> ApiError:
+    return ApiError(409, "OWN_QR", "That is your own QR code")
+
+
 def _limit(db: Session, key: str, per_minute: int, now: datetime) -> None:
     if accounts.count_attempt(db, key, now, timedelta(minutes=1)) > per_minute:
         db.commit()
@@ -75,6 +79,8 @@ def resolve(db: Session, who: Principal, token: str, now: datetime) -> ContactPr
     owner = repo.user_by_qr(db, token_digest(token))
     if owner is None:
         raise _no_owner(db, token)
+    if owner.id == me:
+        raise _own_qr()
     return ContactPreview.model_validate({"display_name": owner.display_name, "language": owner.language})
 
 
@@ -100,7 +106,7 @@ def add(db: Session, who: Principal, body: ContactCreate, now: datetime) -> Cont
     if peer is None:
         raise _no_owner(db, body.token)
     if peer.id == me:
-        raise ApiError(403, "FORBIDDEN", "That is your own QR code")
+        raise _own_qr()
     if repo.contact_with(db, me, peer.id) is not None:
         raise ApiError(409, "CONFLICT", "Already a Contact")
     try:

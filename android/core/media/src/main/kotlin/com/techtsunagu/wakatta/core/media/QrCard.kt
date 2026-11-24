@@ -18,7 +18,7 @@ object QrCard {
     private const val QR = 520
     private const val BRAND = 0xFF1E6FB8.toInt()
 
-    fun write(content: String, file: File, name: String?): File {
+    fun write(content: String, file: File, name: String?, code: String? = null): File {
         val m = ZxingQrEncoder().encode(content, 1, 1)
         val bmp = Bitmap.createBitmap(W, H, Bitmap.Config.ARGB_8888)
         val c = Canvas(bmp)
@@ -46,16 +46,25 @@ object QrCard {
         }
         c.drawRoundRect(RectF(left - 8, top - 8, left + QR + 8, top + QR + 8), 24f, 24f, frame)
 
+        code?.let {
+            val mono = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                textAlign = Paint.Align.CENTER
+                typeface = Typeface.MONOSPACE
+                color = 0xFF74777F.toInt()
+                textSize = 20f
+            }
+            c.drawText(it, W / 2f, top + QR + 40f, mono)
+        }
         val who = name?.trim().orEmpty()
         text.color = 0xFF1B1B1F.toInt()
         text.textSize = 34f
-        c.drawText(if (who.isEmpty()) "Scan to chat with me" else "Scan to chat with $who", W / 2f, 730f, text)
+        c.drawText(if (who.isEmpty()) "Scan to chat with me" else "Scan to chat with $who", W / 2f, 750f, text)
         text.typeface = Typeface.DEFAULT
         text.textSize = 30f
         text.color = 0xFF44474E.toInt()
-        c.drawText("読み取ると、翻訳つきチャットでつながります", W / 2f, 784f, text)
-        c.drawText("Point your phone camera here. Each of you", W / 2f, 850f, text)
-        c.drawText("reads the other in your own language.", W / 2f, 892f, text)
+        c.drawText("読み取ると、翻訳つきチャットでつながります", W / 2f, 800f, text)
+        c.drawText("Point your phone camera here. Each of you", W / 2f, 862f, text)
+        c.drawText("reads the other in your own language.", W / 2f, 902f, text)
         text.textSize = 24f
         text.color = 0xFF74777F.toInt()
         c.drawText("Only your name and language are shared.", W / 2f, 980f, text)

@@ -1,5 +1,12 @@
 package com.techtsunagu.wakatta.feature.connect
 
+import com.techtsunagu.wakatta.feature.connect.data.shareText
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.foundation.text.selection.SelectionContainer
+import android.content.ContextWrapper
+import android.app.Activity
 import com.techtsunagu.wakatta.feature.connect.data.inviteLink
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -83,6 +90,7 @@ internal data class ConnectUiState(
     val error: ConnectError? = null,
     val qrSide: Int = 0,
     val qrModules: List<Boolean> = emptyList(),
+    val myCode: String = "",
     val contacts: List<ContactDto> = emptyList(),
     val talks: List<TalkThreadDto> = emptyList(),
     val noticeAcknowledged: Boolean = false,
@@ -155,6 +163,7 @@ internal class ConnectViewModel @Inject constructor(
                     isLoading = false,
                     qrSide = matrix?.width ?: 0,
                     qrModules = matrix?.data?.toList().orEmpty(),
+                    myCode = qr.getOrNull()?.token.orEmpty(),
                     contacts = list.getOrNull().orEmpty(),
                     talks = talks.getOrNull().orEmpty(),
                     noticeAcknowledged = acknowledged,
@@ -179,7 +188,7 @@ internal class ConnectViewModel @Inject constructor(
             when (val res = contacts.rotateMyQr()) {
                 is AppResult.Success -> {
                     val matrix = encode(res.value.token)
-                    updateState { it.copy(qrSide = matrix?.width ?: 0, qrModules = matrix?.data?.toList().orEmpty()) }
+                    updateState { it.copy(qrSide = matrix?.width ?: 0, qrModules = matrix?.data?.toList().orEmpty(), myCode = res.value.token) }
                     sendEffect(ConnectEffect.Rotated)
                 }
                 is AppResult.Failure -> sendEffect(ConnectEffect.Failed(res.error.toConnectError()))
@@ -190,7 +199,10 @@ internal class ConnectViewModel @Inject constructor(
     private fun share() {
         viewModelScope.launch {
             when (val res = contacts.createInviteFile()) {
-                is AppResult.Success -> shareFile.share(res.value, "image/png")
+                is AppResult.Success -> {
+                    val code = state.value.myCode
+                    if (code.isEmpty()) shareFile.share(res.value, "image/png") else shareFile.share(res.value, "image/png", shareText(inviteLink(code)))
+                }
                 is AppResult.Failure -> sendEffect(ConnectEffect.Failed(res.error.toConnectError()))
             }
         }
@@ -348,6 +360,18 @@ private fun MyQrCard(state: ConnectUiState, onEvent: (ConnectEvent) -> Unit, onS
         ) {
             Text(stringResource(R.string.connect_my_qr_title), style = MaterialTheme.typography.titleMedium)
             QrCode(state.qrSide, state.qrModules)
+            if (state.myCode.isNotEmpty()) {
+                // the code under the QR: someone who cannot scan pastes or types it on Scan a QR
+                SelectionContainer {
+                    Text(
+                        state.myCode,
+                        style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                    )
+                }
+            }
+            FullBrightness()
             Text(
                 text = stringResource(R.string.connect_my_qr_note),
                 style = MaterialTheme.typography.bodyMedium,
@@ -470,4 +494,18 @@ internal fun TalkNameField(value: String, invalid: Boolean, onChange: (String) -
         singleLine = true,
         modifier = Modifier.fillMaxWidth(),
     )
+}
+
+/** Full screen brightness while My QR shows: a dim screen is the usual reason another phone cannot read it. */
+@Composable
+private fun FullBrightness() {
+    val context = LocalContext.current
+    DisposableEffect(context) {
+        var c = context
+        while (c is ContextWrapper && c !is Activity) c = c.baseContext
+        val window = (c as? Activity)?.window
+        val before = window?.attributes?.screenBrightness
+        window?.attributes = window?.attributes?.apply { screenBrightness = 1f }
+        onDispose { if (before != null) window.attributes = window.attributes.apply { screenBrightness = before } }
+    }
 }

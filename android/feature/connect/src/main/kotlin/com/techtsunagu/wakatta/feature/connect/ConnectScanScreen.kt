@@ -1,5 +1,13 @@
 package com.techtsunagu.wakatta.feature.connect
 
+import com.techtsunagu.wakatta.core.media.readQrFromImage
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material.icons.filled.Image
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -44,6 +52,7 @@ import com.techtsunagu.wakatta.core.design.component.WakattaChip
 import com.techtsunagu.wakatta.core.design.component.WakattaTopBar
 import com.techtsunagu.wakatta.core.media.QrCamera
 import com.techtsunagu.wakatta.core.media.QrPayload
+import com.techtsunagu.wakatta.core.model.AppError
 import com.techtsunagu.wakatta.core.model.AppResult
 import com.techtsunagu.wakatta.core.model.QrScanner
 import com.techtsunagu.wakatta.feature.connect.domain.ContactRepository
@@ -67,6 +76,7 @@ internal sealed interface ConnectScanEvent {
     data object ReadCode : ConnectScanEvent
     data class PickSample(val token: String) : ConnectScanEvent
     data class OpenLink(val token: String) : ConnectScanEvent
+    data class Scanned(val raw: String?) : ConnectScanEvent
     data object Confirm : ConnectScanEvent
     data object Cancel : ConnectScanEvent
 }
@@ -96,6 +106,7 @@ internal class ConnectScanViewModel @Inject constructor(
             ConnectScanEvent.ReadCode -> resolveRaw(state.value.code)
             is ConnectScanEvent.PickSample -> resolveToken(event.token)
             is ConnectScanEvent.OpenLink -> resolveToken(event.token)
+            is ConnectScanEvent.Scanned -> event.raw?.let(::resolveRaw) ?: updateState { it.copy(error = ConnectError.NO_QR_IN_PHOTO) }
             ConnectScanEvent.Confirm -> confirm()
             ConnectScanEvent.Cancel -> updateState { it.copy(pending = null) }
         }
@@ -114,7 +125,7 @@ internal class ConnectScanViewModel @Inject constructor(
         viewModelScope.launch {
             when (val res = contacts.resolve(token)) {
                 is AppResult.Success -> updateState { it.copy(isBusy = false, pending = res.value) }
-                is AppResult.Failure -> updateState { it.copy(isBusy = false, error = res.error.toConnectError()) }
+                is AppResult.Failure -> updateState { it.copy(isBusy = false, error = res.error.toScanError()) }
             }
         }
     }
@@ -129,7 +140,7 @@ internal class ConnectScanViewModel @Inject constructor(
                     sendEffect(ConnectScanEffect.Opened(res.value.id))
                 }
                 is AppResult.Failure -> updateState {
-                    it.copy(isBusy = false, pending = null, error = res.error.toConnectError())
+                    it.copy(isBusy = false, pending = null, error = res.error.toScanError())
                 }
             }
         }
@@ -189,10 +200,25 @@ private fun ScanBody(state: ConnectScanUiState, onEvent: (ConnectScanEvent) -> U
         QrCamera(
             Modifier
                 .fillMaxWidth()
-                .height(260.dp)
+                .aspectRatio(1f)
                 .clip(MaterialTheme.shapes.large)
                 .background(MaterialTheme.colorScheme.surfaceVariant),
         )
+        val context = LocalContext.current
+        val scope = rememberCoroutineScope()
+        // a QR card that arrived in a chat cannot be pointed at with the same phone: read it from the picture
+        val pickPhoto = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+            if (uri != null) scope.launch { onEvent(ConnectScanEvent.Scanned(readQrFromImage(context, uri))) }
+        }
+        OutlinedButton(
+            onClick = { pickPhoto.launch(arrayOf("image/*")) },
+            enabled = !state.isBusy,
+            modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp),
+        ) {
+            Icon(Icons.Default.Image, contentDescription = null)
+            Spacer(Modifier.width(8.dp))
+            Text(stringResource(R.string.connect_scan_photo))
+        }
         OutlinedTextField(
             value = state.code,
             onValueChange = { onEvent(ConnectScanEvent.SetCode(it)) },
@@ -267,3 +293,6 @@ private fun ConfirmDialog(person: ContactResolveDto, busy: Boolean, onEvent: (Co
         dismissButton = { TextButton(onClick = { onEvent(ConnectScanEvent.Cancel) }) { Text(stringResource(R.string.connect_cancel)) } },
     )
 }
+
+/** On a scan, "not found" means no one has this QR: say that, not a generic "could not find it". */
+private fun AppError.toScanError(): ConnectError = if (this == AppError.NotFound) ConnectError.QR_UNKNOWN else toConnectError()

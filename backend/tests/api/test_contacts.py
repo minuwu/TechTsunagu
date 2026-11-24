@@ -75,8 +75,10 @@ def test_scanning_connects_both_sides_across_shops(client: TestClient, people: P
 
     again = client.post("/api/contacts", headers=people.rahim, json={"token": token})
     own = client.post("/api/contacts", headers=people.nguyen, json={"token": token})
+    peek = client.get(f"/api/contacts/resolve?token={token}", headers=people.nguyen)
 
-    assert mine and theirs and again.status_code == 409 and own.status_code == 403
+    assert mine and theirs and again.status_code == 409
+    assert own.status_code == peek.status_code == 409 and own.json()["error"]["code"] == "OWN_QR"
 
 
 def test_contact_messages_are_translated_for_the_reader(

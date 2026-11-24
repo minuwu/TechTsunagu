@@ -261,3 +261,12 @@ Minhaz mapped the prototype (`prototypes/wakatta/`) and the frontend against `ma
 - Chat dictation uses `continuous()` with one silent round: a pause restarts the recognizer and the send countdown starts only when a whole listen hears nothing (also asks the recognizer for a 3 s end-of-speech silence). Chat VM tests' fake recognizer now ends a round on Final or Error.
 - Worker check result banner shows only the verdict (Understood / Partly understood / Not understood); the "all answers correct" clause and "k of n correct" line are gone; missed questions still listed.
 - One-time prompt after sign-in to download the Japanese and English offline speech packs (`SpeechPackPrompt`): Android 13+ checks the on-device recognizer and triggers the download of missing packs; older phones open Google's Offline Speech Recognition screen. Checked on the Redmi (API 29).
+
+## 2026-11-24 — QR scan fixes, exact scan errors
+
+- Camera analyses at 1280x720 (was 640x480), so a link QR shown on another phone reads.
+- Scan a QR from a photo or file (system document picker, ML Kit on the image).
+- My QR shows its code under the QR and on the share card; the screen goes full brightness while it shows.
+- Share sends the link as text with the image, so chat apps make it tappable.
+- Scan errors say what is wrong: not a Wakatta? QR, QR replaced by a new one, no one has this QR, your own QR, no QR in the photo.
+- Backend: your own QR is 409 `OWN_QR` on resolve and add (was a 403 the app showed as "blocked").
