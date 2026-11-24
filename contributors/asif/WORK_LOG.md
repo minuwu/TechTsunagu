@@ -4,6 +4,19 @@ Owner: Asif (`MdAsif-Hossain`) — Role: Backend (lead) / Services / Database
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-24 20:45 — Anim's Azure steps done; every part checked together
+
+### Done on Azure (with my OK)
+- **App Links (XREQ-026):** `ANDROID_CERT_SHA256` set; the live `assetlinks.json` lists the release key (same as the 1.0.3 APK's signing certificate, checked with `apksigner`) and Minhaz's debug key.
+- **1.0.3 published:** `release-apk.ps1`; `GET /api/app/config` offers 1.0.3 with SHA-256 `8f2e2ab5…e81a`.
+
+### Checked on `main` (`18d5a17`)
+- Backend: ruff, pyright 0, lint-imports 4 kept, OpenAPI in sync with the routes. Frontend: generated types in sync, typecheck, lint, 116 tests. Android: `testDebugUnitTest checkModuleGraph :app:assembleDebug` green. Live API ready, 133 operations, same as the spec.
+- The hosted web demo runs on in-browser demo data by design (`build:static`), so it does not call the API and needs no CORS.
+
+### Left
+- N1 demo reset (waiting for the team), then S5 on 1.0.3.
+
 ## 2026-11-24 — Anim's open items, taken over by Asif
 
 - PATCH draft keeps a good draft (BACKEND_WORK row 2) and Task drafts on a retried POST (row 3) were already done (`de6b82a`); the three tests pass. Table updated.
