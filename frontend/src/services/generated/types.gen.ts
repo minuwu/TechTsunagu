@@ -8358,6 +8358,36 @@ export type UnblockApiBlocksContactIdDeleteResponses = {
 
 export type UnblockApiBlocksContactIdDeleteResponse = UnblockApiBlocksContactIdDeleteResponses[keyof UnblockApiBlocksContactIdDeleteResponses];
 
+export type DeleteThreadApiContactsContactIdMessagesDeleteData = {
+    body?: never;
+    path: {
+        /**
+         * Contact Id
+         */
+        contact_id: string;
+    };
+    query?: never;
+    url: '/api/contacts/{contact_id}/messages';
+};
+
+export type DeleteThreadApiContactsContactIdMessagesDeleteErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteThreadApiContactsContactIdMessagesDeleteError = DeleteThreadApiContactsContactIdMessagesDeleteErrors[keyof DeleteThreadApiContactsContactIdMessagesDeleteErrors];
+
+export type DeleteThreadApiContactsContactIdMessagesDeleteResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeNoneType;
+};
+
+export type DeleteThreadApiContactsContactIdMessagesDeleteResponse = DeleteThreadApiContactsContactIdMessagesDeleteResponses[keyof DeleteThreadApiContactsContactIdMessagesDeleteResponses];
+
 export type ReadMessagesApiContactsContactIdMessagesGetData = {
     body?: never;
     path: {
@@ -8428,6 +8458,40 @@ export type SendMessageApiContactsContactIdMessagesPostResponses = {
 };
 
 export type SendMessageApiContactsContactIdMessagesPostResponse = SendMessageApiContactsContactIdMessagesPostResponses[keyof SendMessageApiContactsContactIdMessagesPostResponses];
+
+export type DeleteMessageApiContactsContactIdMessagesMessageIdDeleteData = {
+    body?: never;
+    path: {
+        /**
+         * Contact Id
+         */
+        contact_id: string;
+        /**
+         * Message Id
+         */
+        message_id: string;
+    };
+    query?: never;
+    url: '/api/contacts/{contact_id}/messages/{message_id}';
+};
+
+export type DeleteMessageApiContactsContactIdMessagesMessageIdDeleteErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteMessageApiContactsContactIdMessagesMessageIdDeleteError = DeleteMessageApiContactsContactIdMessagesMessageIdDeleteErrors[keyof DeleteMessageApiContactsContactIdMessagesMessageIdDeleteErrors];
+
+export type DeleteMessageApiContactsContactIdMessagesMessageIdDeleteResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeNoneType;
+};
+
+export type DeleteMessageApiContactsContactIdMessagesMessageIdDeleteResponse = DeleteMessageApiContactsContactIdMessagesMessageIdDeleteResponses[keyof DeleteMessageApiContactsContactIdMessagesMessageIdDeleteResponses];
 
 export type ListThreadsApiTalkThreadsGetData = {
     body?: never;
