@@ -4,6 +4,19 @@ Owner: Asif (`MdAsif-Hossain`) — Role: Backend (lead) / Services / Database
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-24 21:30 — No Bangla anywhere in the live demo; demo reset done (N1)
+
+### Changed
+- `daae1f8`: every Bangla entry removed from `backend/app/seed_data/*.json` (only those lines; checked against the parsed JSON). Four tests that expected Bangla in the seed updated. Full suite green (90.46%), ruff, format, pyright clean; deployed by CI.
+- **Demo reset (N1), confirmed by Minhaz:** `reset-demo.ps1`, `AI_CHAIN=demo` (keys were already on Azure), warmup until every take was warm, then one last reset to clear the warmup's drafts (the AI cache stays).
+
+### Verified on the live API
+- Rahim, Sadia, Tanvir `en`, 田中 `ja`. Threads, messages, Glossary, Machines, Tasks, Today's Word: 0 Bengali characters, 0 unsent drafts. Warmup: all 7 takes warm, 0.3 s each. Smoke 13/13 (CORS with the allowed origin).
+
+### Left
+- S5 on 1.0.3 (both phones sign in again: the reset removed every session and registered phone).
+- Bangla still in code, not in data: the API keeps an optional-looking `bn` Glossary field (required today; Android and the web send it), Android Fake repositories (offline mode only), one prompt example. Removing those is an app change; see the final report.
+
 ## 2026-11-24 21:25 — Submission README and repo cleanup
 
 ### Done
