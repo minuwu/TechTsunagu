@@ -84,6 +84,55 @@ test.describe('phone', () => {
     )
     expect(overflow).toBeLessThanOrEqual(0)
   })
+
+  // The fixed bars (tab bar, "Ask Wakatta", the presenter's demo bar) once covered the end of the page
+  test('the last control on the page is not covered by a fixed bar', async ({
+    page,
+  }) => {
+    await page.goto('/me/w-rahim')
+    const send = page.getByRole('button', { name: 'Send report' })
+    await send.waitFor()
+    await page.evaluate(() =>
+      window.scrollTo(0, document.documentElement.scrollHeight),
+    )
+    await expect
+      .poll(() =>
+        page.evaluate(
+          () =>
+            window.scrollY + window.innerHeight >=
+            document.documentElement.scrollHeight - 1,
+        ),
+      )
+      .toBe(true)
+    await expect(send).toBeInViewport()
+    // Geometry, not a hit test: the empty form's button is disabled and lets the pointer through.
+    // Polled, because the brand splash covers the whole page for its first moment by design.
+    await expect
+      .poll(() =>
+        send.evaluate((button) => {
+          const r = button.getBoundingClientRect()
+          return [...document.querySelectorAll('body *')].some((el) => {
+            const s = getComputedStyle(el)
+            // the finished splash stays as a transparent, click-through layer under reduced motion
+            if (s.position !== 'fixed' || s.visibility === 'hidden')
+              return false
+            if (Number(s.opacity) < 0.01) return false
+            const f = el.getBoundingClientRect()
+            return (
+              f.width > 0 &&
+              f.left < r.right &&
+              f.right > r.left &&
+              f.top < r.bottom &&
+              f.bottom > r.top
+            )
+          })
+        }),
+      )
+      .toBe(false)
+    await expect(
+      page.getByRole('complementary', { name: 'Demo state' }),
+    ).toBeHidden()
+  })
 })
 
 test.describe('unknown URL in a Japanese browser', () => {

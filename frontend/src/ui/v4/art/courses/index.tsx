@@ -60,9 +60,9 @@ export function CourseArt({
       className={className}
       preserveAspectRatio="xMidYMid slice"
     >
-      <rect width="400" height="300" fill="#E3E2DE" />
-      <rect x="40" y="40" width="160" height="220" fill="#1351AA" />
-      <rect x="200" y="140" width="160" height="120" fill="#141414" />
+      <rect width="400" height="300" fill="#E4ECF2" />
+      <rect x="40" y="40" width="160" height="220" fill="#214C69" />
+      <rect x="200" y="140" width="160" height="120" fill="#0A1C26" />
     </svg>
   )
 }

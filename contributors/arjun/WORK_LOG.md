@@ -4,6 +4,18 @@ Owner: Arjun Saha (`sillyfellow21`) — Role: Frontend design
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-24 (UI: overlaps and alignment, v4)
+
+### Done
+- `4823748` Overlap and alignment fixes, found with a sweep of 18 routes at 375, 768, 1024 and 1440 px plus scrolled screenshots:
+  - Phones: the presenter's demo bar no longer floats over the screens (it shows from 48rem; phones use `?demo=`), and pages pad past the tab bar and Ask Wakatta.
+  - Tablet: the hero headline no longer splits "Understoo|d" at 768 px.
+  - Desktop: the Nagasaki card shows its fact; it was hidden in a fixed-height scroll box.
+  - Foreman tabs line up with the page edge, and the Reset demo row wraps.
+  - New e2e test: on a phone, no fixed bar covers the last control. It fails on the old layout and passes on the new one.
+- `53c59db` The course and Inspect drawings use the Fuji palette. Defect red and the JIS pictograms are unchanged.
+- Checks: e2e on a v4 production build passes 15 + 1, the new test passes 3 of 3 runs, lint, typecheck and the impeccable detector are clean.
+
 ## 2026-11-24 (small fixes)
 
 ### Done

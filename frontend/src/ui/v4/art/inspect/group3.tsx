@@ -8,7 +8,7 @@ export const GROUP3: Record<string, InspectArt> = {
         <path
           d="M40 18 V12 H60 V18"
           fill="none"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="3"
         />
         <rect
@@ -16,8 +16,8 @@ export const GROUP3: Record<string, InspectArt> = {
           y="10"
           width="12"
           height="4"
-          fill="#1351AA"
-          stroke="#141414"
+          fill="#214C69"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
         <line
@@ -25,7 +25,7 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="18"
           x2="84"
           y2="18"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="2.5"
         />
       </>
@@ -37,8 +37,8 @@ export const GROUP3: Record<string, InspectArt> = {
           y="20"
           width="68"
           height="52"
-          fill="#141414"
-          stroke="#141414"
+          fill="#0A1C26"
+          stroke="#0A1C26"
           strokeWidth="2.5"
         />
         <rect
@@ -46,8 +46,8 @@ export const GROUP3: Record<string, InspectArt> = {
           y="24"
           width="60"
           height="44"
-          fill="#1351AA"
-          stroke="#141414"
+          fill="#214C69"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
         <rect
@@ -55,8 +55,8 @@ export const GROUP3: Record<string, InspectArt> = {
           y="24"
           width="60"
           height="7"
-          fill="#E3E2DE"
-          stroke="#141414"
+          fill="#E4ECF2"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
         <rect
@@ -64,8 +64,8 @@ export const GROUP3: Record<string, InspectArt> = {
           y="33"
           width="24"
           height="24"
-          fill="#E3E2DE"
-          stroke="#141414"
+          fill="#E4ECF2"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
         <circle
@@ -73,17 +73,17 @@ export const GROUP3: Record<string, InspectArt> = {
           cy="35"
           r="5"
           fill="none"
-          stroke="#1351AA"
+          stroke="#214C69"
           strokeWidth="2"
         />
-        <circle cx="28" cy="35" r="2" fill="#1351AA" />
-        <line x1="25" y1="45" x2="43" y2="45" stroke="#141414" strokeWidth="2" />
+        <circle cx="28" cy="35" r="2" fill="#214C69" />
+        <line x1="25" y1="45" x2="43" y2="45" stroke="#0A1C26" strokeWidth="2" />
         <line
           x1="25"
           y1="51"
           x2="41"
           y2="51"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
         <rect
@@ -91,28 +91,28 @@ export const GROUP3: Record<string, InspectArt> = {
           y="33"
           width="28"
           height="32"
-          fill="#E3E2DE"
-          stroke="#141414"
+          fill="#E4ECF2"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
-        <line x1="53" y1="42" x2="75" y2="42" stroke="#141414" strokeWidth="2" />
-        <line x1="53" y1="50" x2="75" y2="50" stroke="#141414" strokeWidth="2" />
+        <line x1="53" y1="42" x2="75" y2="42" stroke="#0A1C26" strokeWidth="2" />
+        <line x1="53" y1="50" x2="75" y2="50" stroke="#0A1C26" strokeWidth="2" />
         <rect
           x="53"
           y="58"
           width="22"
           height="5"
-          fill="#1351AA"
-          stroke="#141414"
+          fill="#214C69"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
-        <polygon points="70,63 74,65 70,67" fill="#E3E2DE" />
+        <polygon points="70,63 74,65 70,67" fill="#E4ECF2" />
         <line
           x1="24"
           y1="72"
           x2="18"
           y2="88"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="3"
         />
         <line
@@ -120,7 +120,7 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="72"
           x2="82"
           y2="88"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="3"
         />
         <line
@@ -128,7 +128,7 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="84"
           x2="82"
           y2="84"
-          stroke="#C7C7C7"
+          stroke="#A9BCCB"
           strokeWidth="2"
         />
       </>
@@ -145,17 +145,17 @@ export const GROUP3: Record<string, InspectArt> = {
           y="12"
           width="28"
           height="10"
-          fill="#C7C7C7"
-          stroke="#141414"
+          fill="#A9BCCB"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
         <path
           d="M44 12 V8 H56 V12"
           fill="none"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="2.5"
         />
-        <circle cx="50" cy="17" r="2.5" fill="#141414" />
+        <circle cx="50" cy="17" r="2.5" fill="#0A1C26" />
       </>
     ),
     body: (
@@ -165,8 +165,8 @@ export const GROUP3: Record<string, InspectArt> = {
           y="16"
           width="64"
           height="74"
-          fill="#1351AA"
-          stroke="#141414"
+          fill="#214C69"
+          stroke="#0A1C26"
           strokeWidth="2.5"
         />
         <rect
@@ -174,17 +174,17 @@ export const GROUP3: Record<string, InspectArt> = {
           y="20"
           width="56"
           height="66"
-          fill="#E3E2DE"
-          stroke="#141414"
+          fill="#E4ECF2"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
-        <rect x="26" y="24" width="48" height="6" fill="#141414" />
+        <rect x="26" y="24" width="48" height="6" fill="#0A1C26" />
         <line
           x1="26"
           y1="35"
           x2="74"
           y2="35"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
         <line
@@ -192,7 +192,7 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="35"
           x2="42"
           y2="60"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
         <rect
@@ -200,8 +200,8 @@ export const GROUP3: Record<string, InspectArt> = {
           y="38"
           width="13"
           height="8"
-          fill="#C7C7C7"
-          stroke="#141414"
+          fill="#A9BCCB"
+          stroke="#0A1C26"
           strokeWidth="1"
         />
         <line
@@ -209,7 +209,7 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="48"
           x2="74"
           y2="48"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
         <line
@@ -217,7 +217,7 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="60"
           x2="74"
           y2="60"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
         <rect
@@ -225,8 +225,8 @@ export const GROUP3: Record<string, InspectArt> = {
           y="64"
           width="48"
           height="18"
-          fill="#C7C7C7"
-          stroke="#141414"
+          fill="#A9BCCB"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
         <line
@@ -234,7 +234,7 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="70"
           x2="48"
           y2="70"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
         <line
@@ -242,7 +242,7 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="76"
           x2="48"
           y2="76"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
         <rect
@@ -250,8 +250,8 @@ export const GROUP3: Record<string, InspectArt> = {
           y="66"
           width="12"
           height="12"
-          fill="#E3E2DE"
-          stroke="#141414"
+          fill="#E4ECF2"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
       </>
@@ -321,8 +321,8 @@ export const GROUP3: Record<string, InspectArt> = {
           y="16"
           width="14"
           height="6"
-          fill="#141414"
-          stroke="#141414"
+          fill="#0A1C26"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
         <rect
@@ -330,29 +330,29 @@ export const GROUP3: Record<string, InspectArt> = {
           y="12"
           width="6"
           height="4"
-          fill="#C7C7C7"
-          stroke="#141414"
+          fill="#A9BCCB"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
-        <path d="M32 19 L44 26" stroke="#141414" strokeWidth="3" />
+        <path d="M32 19 L44 26" stroke="#0A1C26" strokeWidth="3" />
       </>
     ),
     body: (
       <>
         <polygon
           points="40,24 60,20 66,36 44,40"
-          fill="#C7C7C7"
-          stroke="#141414"
+          fill="#A9BCCB"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
-        <circle cx="52" cy="30" r="4" fill="#141414" />
+        <circle cx="52" cy="30" r="4" fill="#0A1C26" />
         <ellipse
           cx="56"
           cy="32"
           rx="22"
           ry="11"
-          fill="#141414"
-          stroke="#141414"
+          fill="#0A1C26"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
         <ellipse
@@ -360,28 +360,28 @@ export const GROUP3: Record<string, InspectArt> = {
           cy="32"
           rx="16"
           ry="8"
-          fill="#E3E2DE"
-          stroke="#141414"
+          fill="#E4ECF2"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
         <circle
           cx="56"
           cy="32"
           r="5"
-          fill="#C7C7C7"
-          stroke="#141414"
+          fill="#A9BCCB"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
         <path
           d="M42 22 C32 20 22 24 22 32 C22 36 26 40 38 42"
           fill="none"
-          stroke="#1351AA"
+          stroke="#214C69"
           strokeWidth="5"
         />
         <path
           d="M42 22 C32 20 22 24 22 32 C22 36 26 40 38 42"
           fill="none"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
         <rect
@@ -389,28 +389,28 @@ export const GROUP3: Record<string, InspectArt> = {
           y="26"
           width="6"
           height="5"
-          fill="#E3E2DE"
-          stroke="#141414"
+          fill="#E4ECF2"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
         <polygon
           points="44,40 66,36 58,66 38,62"
-          fill="#1351AA"
-          stroke="#141414"
+          fill="#214C69"
+          stroke="#0A1C26"
           strokeWidth="2.5"
         />
-        <rect x="42" y="48" width="18" height="4" fill="#141414" />
-        <rect x="40" y="56" width="18" height="3" fill="#C7C7C7" />
+        <rect x="42" y="48" width="18" height="4" fill="#0A1C26" />
+        <rect x="40" y="56" width="18" height="3" fill="#A9BCCB" />
         <polygon
           points="38,62 58,66 54,72 40,70"
-          fill="#141414"
-          stroke="#141414"
+          fill="#0A1C26"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
         <path
           d="M46 72 Q43 76 45 78 T52 86"
           fill="none"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="3.5"
         />
       </>
@@ -443,7 +443,7 @@ export const GROUP3: Record<string, InspectArt> = {
         <polygon
           points="74,34 77,33 76,37"
           fill="#B3261E"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="1"
         />
         <circle
@@ -451,7 +451,7 @@ export const GROUP3: Record<string, InspectArt> = {
           cy="78"
           r="4"
           fill="#B3261E"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
         <line
@@ -472,8 +472,8 @@ export const GROUP3: Record<string, InspectArt> = {
       <>
         <path
           d="M38 20 C38 13 46 12 52 14 C56 16 57 20 57 21 H38 Z"
-          fill="#1351AA"
-          stroke="#141414"
+          fill="#214C69"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
         <rect
@@ -481,16 +481,16 @@ export const GROUP3: Record<string, InspectArt> = {
           y="20"
           width="23"
           height="3"
-          fill="#E3E2DE"
-          stroke="#141414"
+          fill="#E4ECF2"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
         <circle
           cx="48"
           cy="25"
           r="4.5"
-          fill="#E3E2DE"
-          stroke="#141414"
+          fill="#E4ECF2"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
       </>
@@ -499,8 +499,8 @@ export const GROUP3: Record<string, InspectArt> = {
       <>
         <polygon
           points="42,28 50,30 44,54 34,50"
-          fill="#141414"
-          stroke="#141414"
+          fill="#0A1C26"
+          stroke="#0A1C26"
           strokeWidth="2.5"
         />
         <line
@@ -508,7 +508,7 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="25"
           x2="35"
           y2="50"
-          stroke="#1351AA"
+          stroke="#214C69"
           strokeWidth="3"
         />
         <line
@@ -516,7 +516,7 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="25"
           x2="35"
           y2="50"
-          stroke="#E3E2DE"
+          stroke="#E4ECF2"
           strokeWidth="1.5"
         />
         <rect
@@ -524,8 +524,8 @@ export const GROUP3: Record<string, InspectArt> = {
           y="42"
           width="20"
           height="18"
-          fill="#1351AA"
-          stroke="#141414"
+          fill="#214C69"
+          stroke="#0A1C26"
           strokeWidth="2.5"
         />
         <line
@@ -533,7 +533,7 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="51"
           x2="72"
           y2="51"
-          stroke="#E3E2DE"
+          stroke="#E4ECF2"
           strokeWidth="1.5"
         />
         <rect
@@ -541,42 +541,42 @@ export const GROUP3: Record<string, InspectArt> = {
           y="47"
           width="8"
           height="6"
-          fill="#C7C7C7"
-          stroke="#141414"
+          fill="#A9BCCB"
+          stroke="#0A1C26"
           strokeWidth="1"
         />
         <path
           d="M47 34 L56 46 L62 52"
           fill="none"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="3.5"
         />
         <circle
           cx="62"
           cy="52"
           r="3"
-          fill="#C7C7C7"
-          stroke="#141414"
+          fill="#A9BCCB"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
         <polygon
           points="34,50 40,54 44,76 36,78"
-          fill="#141414"
-          stroke="#141414"
+          fill="#0A1C26"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
         <circle
           cx="40"
           cy="78"
           r="4.5"
-          fill="#C7C7C7"
-          stroke="#141414"
+          fill="#A9BCCB"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
         <polygon
           points="37,78 43,78 40,88 32,88"
-          fill="#141414"
-          stroke="#141414"
+          fill="#0A1C26"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
         <rect
@@ -584,8 +584,8 @@ export const GROUP3: Record<string, InspectArt> = {
           y="86"
           width="16"
           height="5"
-          fill="#141414"
-          stroke="#141414"
+          fill="#0A1C26"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
         <line
@@ -593,7 +593,7 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="91"
           x2="78"
           y2="91"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
       </>
@@ -608,7 +608,7 @@ export const GROUP3: Record<string, InspectArt> = {
         <path
           d="M26 40 V18 H38 V40"
           fill="none"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="3.5"
         />
         <rect
@@ -616,16 +616,16 @@ export const GROUP3: Record<string, InspectArt> = {
           y="15"
           width="8"
           height="5"
-          fill="#1351AA"
-          stroke="#141414"
+          fill="#214C69"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
         <circle
           cx="30"
           cy="25"
           r="3.5"
-          fill="#C7C7C7"
-          stroke="#141414"
+          fill="#A9BCCB"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
       </>
@@ -637,8 +637,8 @@ export const GROUP3: Record<string, InspectArt> = {
           y="40"
           width="8"
           height="15"
-          fill="#141414"
-          stroke="#141414"
+          fill="#0A1C26"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
         <rect
@@ -646,19 +646,19 @@ export const GROUP3: Record<string, InspectArt> = {
           y="52"
           width="66"
           height="8"
-          fill="#1351AA"
-          stroke="#141414"
+          fill="#214C69"
+          stroke="#0A1C26"
           strokeWidth="2.5"
         />
-        <rect x="24" y="54" width="62" height="3" fill="#E3E2DE" />
-        <rect x="22" y="60" width="66" height="3" fill="#141414" />
+        <rect x="24" y="54" width="62" height="3" fill="#E4ECF2" />
+        <rect x="22" y="60" width="66" height="3" fill="#0A1C26" />
         <rect
           x="71"
           y="52"
           width="8"
           height="6"
-          fill="#C7C7C7"
-          stroke="#141414"
+          fill="#A9BCCB"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
         <line
@@ -666,41 +666,41 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="58"
           x2="75"
           y2="68"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="2.5"
         />
-        <rect x="31" y="63" width="8" height="8" fill="#141414" />
-        <rect x="71" y="63" width="8" height="8" fill="#141414" />
+        <rect x="31" y="63" width="8" height="8" fill="#0A1C26" />
+        <rect x="71" y="63" width="8" height="8" fill="#0A1C26" />
         <circle
           cx="35"
           cy="80"
           r="8"
-          fill="#E3E2DE"
-          stroke="#141414"
+          fill="#E4ECF2"
+          stroke="#0A1C26"
           strokeWidth="2.5"
         />
         <circle
           cx="35"
           cy="80"
           r="4"
-          fill="#C7C7C7"
-          stroke="#141414"
+          fill="#A9BCCB"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
         <circle
           cx="75"
           cy="80"
           r="8"
-          fill="#E3E2DE"
-          stroke="#141414"
+          fill="#E4ECF2"
+          stroke="#0A1C26"
           strokeWidth="2.5"
         />
         <circle
           cx="75"
           cy="80"
           r="4"
-          fill="#C7C7C7"
-          stroke="#141414"
+          fill="#A9BCCB"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
       </>
@@ -769,7 +769,7 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="18"
           x2="84"
           y2="18"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="3"
         />
         <rect
@@ -777,13 +777,13 @@ export const GROUP3: Record<string, InspectArt> = {
           y="10"
           width="18"
           height="8"
-          fill="#E3E2DE"
-          stroke="#141414"
+          fill="#E4ECF2"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
-        <rect x="42" y="13" width="6" height="2" fill="#1351AA" />
-        <rect x="18" y="15" width="8" height="3" fill="#141414" />
-        <rect x="74" y="15" width="8" height="3" fill="#141414" />
+        <rect x="42" y="13" width="6" height="2" fill="#214C69" />
+        <rect x="18" y="15" width="8" height="3" fill="#0A1C26" />
+        <rect x="74" y="15" width="8" height="3" fill="#0A1C26" />
       </>
     ),
     body: (
@@ -793,8 +793,8 @@ export const GROUP3: Record<string, InspectArt> = {
           y="18"
           width="6"
           height="66"
-          fill="#141414"
-          stroke="#141414"
+          fill="#0A1C26"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
         <rect
@@ -802,8 +802,8 @@ export const GROUP3: Record<string, InspectArt> = {
           y="18"
           width="6"
           height="66"
-          fill="#141414"
-          stroke="#141414"
+          fill="#0A1C26"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
         <rect
@@ -811,8 +811,8 @@ export const GROUP3: Record<string, InspectArt> = {
           y="44"
           width="64"
           height="4"
-          fill="#C7C7C7"
-          stroke="#141414"
+          fill="#A9BCCB"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
         <rect
@@ -820,8 +820,8 @@ export const GROUP3: Record<string, InspectArt> = {
           y="26"
           width="28"
           height="18"
-          fill="#1351AA"
-          stroke="#141414"
+          fill="#214C69"
+          stroke="#0A1C26"
           strokeWidth="2.5"
         />
         <line
@@ -829,7 +829,7 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="35"
           x2="64"
           y2="35"
-          stroke="#E3E2DE"
+          stroke="#E4ECF2"
           strokeWidth="2"
         />
         <line
@@ -837,7 +837,7 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="26"
           x2="50"
           y2="44"
-          stroke="#E3E2DE"
+          stroke="#E4ECF2"
           strokeWidth="2"
         />
         <rect
@@ -845,8 +845,8 @@ export const GROUP3: Record<string, InspectArt> = {
           y="32"
           width="12"
           height="6"
-          fill="#E3E2DE"
-          stroke="#141414"
+          fill="#E4ECF2"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
         <rect
@@ -854,8 +854,8 @@ export const GROUP3: Record<string, InspectArt> = {
           y="64"
           width="64"
           height="4"
-          fill="#C7C7C7"
-          stroke="#141414"
+          fill="#A9BCCB"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
         <rect
@@ -863,8 +863,8 @@ export const GROUP3: Record<string, InspectArt> = {
           y="52"
           width="16"
           height="12"
-          fill="#E3E2DE"
-          stroke="#141414"
+          fill="#E4ECF2"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
         <rect
@@ -872,8 +872,8 @@ export const GROUP3: Record<string, InspectArt> = {
           y="54"
           width="14"
           height="10"
-          fill="#E3E2DE"
-          stroke="#141414"
+          fill="#E4ECF2"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
         <line
@@ -881,7 +881,7 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="74"
           x2="90"
           y2="74"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="3"
         />
         <rect
@@ -889,8 +889,8 @@ export const GROUP3: Record<string, InspectArt> = {
           y="76"
           width="56"
           height="10"
-          fill="#E3E2DE"
-          stroke="#141414"
+          fill="#E4ECF2"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
         <line
@@ -898,7 +898,7 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="76"
           x2="38"
           y2="86"
-          stroke="#1351AA"
+          stroke="#214C69"
           strokeWidth="2"
         />
         <line
@@ -906,7 +906,7 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="76"
           x2="50"
           y2="86"
-          stroke="#1351AA"
+          stroke="#214C69"
           strokeWidth="2"
         />
         <line
@@ -914,7 +914,7 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="76"
           x2="62"
           y2="86"
-          stroke="#1351AA"
+          stroke="#214C69"
           strokeWidth="2"
         />
       </>
@@ -928,8 +928,8 @@ export const GROUP3: Record<string, InspectArt> = {
       <>
         <path
           d="M18 36 V24 H42 V36 Z"
-          fill="#1351AA"
-          stroke="#141414"
+          fill="#214C69"
+          stroke="#0A1C26"
           strokeWidth="2.5"
         />
         <line
@@ -937,7 +937,7 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="28"
           x2="38"
           y2="28"
-          stroke="#E3E2DE"
+          stroke="#E4ECF2"
           strokeWidth="1.5"
         />
         <line
@@ -945,15 +945,15 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="32"
           x2="38"
           y2="32"
-          stroke="#E3E2DE"
+          stroke="#E4ECF2"
           strokeWidth="1.5"
         />
         <circle
           cx="30"
           cy="35"
           r="3"
-          fill="#C7C7C7"
-          stroke="#141414"
+          fill="#A9BCCB"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
       </>
@@ -964,18 +964,18 @@ export const GROUP3: Record<string, InspectArt> = {
           cx="30"
           cy="40"
           r="10"
-          fill="#E3E2DE"
-          stroke="#141414"
+          fill="#E4ECF2"
+          stroke="#0A1C26"
           strokeWidth="2.5"
         />
-        <circle cx="30" cy="40" r="4" fill="#141414" />
+        <circle cx="30" cy="40" r="4" fill="#0A1C26" />
         <rect
           x="28"
           y="38"
           width="56"
           height="8"
-          fill="#C7C7C7"
-          stroke="#141414"
+          fill="#A9BCCB"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
         <line
@@ -983,7 +983,7 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="36"
           x2="84"
           y2="36"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="3"
         />
         <line
@@ -991,7 +991,7 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="48"
           x2="84"
           y2="48"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="3"
         />
         <line
@@ -999,7 +999,7 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="48"
           x2="30"
           y2="82"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="3"
         />
         <line
@@ -1007,7 +1007,7 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="48"
           x2="80"
           y2="82"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="3"
         />
         <line
@@ -1015,7 +1015,7 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="82"
           x2="84"
           y2="82"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
         <rect
@@ -1023,8 +1023,8 @@ export const GROUP3: Record<string, InspectArt> = {
           y="58"
           width="8"
           height="10"
-          fill="#1351AA"
-          stroke="#141414"
+          fill="#214C69"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
         <line
@@ -1032,7 +1032,7 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="65"
           x2="74"
           y2="65"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
       </>
@@ -1091,8 +1091,8 @@ export const GROUP3: Record<string, InspectArt> = {
           y="38"
           width="22"
           height="14"
-          fill="#E3E2DE"
-          stroke="#141414"
+          fill="#E4ECF2"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
         <line
@@ -1100,18 +1100,18 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="42"
           x2="82"
           y2="42"
-          stroke="#C7C7C7"
+          stroke="#A9BCCB"
           strokeWidth="1.5"
         />
         <circle
           cx="75"
           cy="45"
           r="3"
-          fill="#1351AA"
-          stroke="#141414"
+          fill="#214C69"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
-        <path d="M64 42 L56 36" stroke="#141414" strokeWidth="2.5" />
+        <path d="M64 42 L56 36" stroke="#0A1C26" strokeWidth="2.5" />
       </>
     ),
     body: (
@@ -1121,17 +1121,17 @@ export const GROUP3: Record<string, InspectArt> = {
           y="34"
           width="24"
           height="26"
-          fill="#1351AA"
-          stroke="#141414"
+          fill="#214C69"
+          stroke="#0A1C26"
           strokeWidth="2.5"
         />
-        <rect x="42" y="38" width="16" height="6" fill="#141414" />
+        <rect x="42" y="38" width="16" height="6" fill="#0A1C26" />
         <circle
           cx="50"
           cy="52"
           r="3"
-          fill="#E3E2DE"
-          stroke="#141414"
+          fill="#E4ECF2"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
         <rect
@@ -1139,8 +1139,8 @@ export const GROUP3: Record<string, InspectArt> = {
           y="24"
           width="18"
           height="42"
-          fill="#141414"
-          stroke="#141414"
+          fill="#0A1C26"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
         <rect
@@ -1148,8 +1148,8 @@ export const GROUP3: Record<string, InspectArt> = {
           y="28"
           width="12"
           height="34"
-          fill="#C7C7C7"
-          stroke="#141414"
+          fill="#A9BCCB"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
         <rect
@@ -1157,8 +1157,8 @@ export const GROUP3: Record<string, InspectArt> = {
           y="28"
           width="10"
           height="5"
-          fill="#E3E2DE"
-          stroke="#141414"
+          fill="#E4ECF2"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
         <line
@@ -1166,7 +1166,7 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="33"
           x2="22"
           y2="44"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="2.5"
         />
         <rect
@@ -1174,8 +1174,8 @@ export const GROUP3: Record<string, InspectArt> = {
           y="24"
           width="18"
           height="42"
-          fill="#141414"
-          stroke="#141414"
+          fill="#0A1C26"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
         <rect
@@ -1183,14 +1183,14 @@ export const GROUP3: Record<string, InspectArt> = {
           y="28"
           width="12"
           height="34"
-          fill="#C7C7C7"
-          stroke="#141414"
+          fill="#A9BCCB"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
         <polygon
           points="40,60 60,60 66,74 34,74"
-          fill="#C7C7C7"
-          stroke="#141414"
+          fill="#A9BCCB"
+          stroke="#0A1C26"
           strokeWidth="2.5"
         />
         <rect
@@ -1198,24 +1198,24 @@ export const GROUP3: Record<string, InspectArt> = {
           y="74"
           width="44"
           height="12"
-          fill="#141414"
-          stroke="#141414"
+          fill="#0A1C26"
+          stroke="#0A1C26"
           strokeWidth="2.5"
         />
         <circle
           cx="34"
           cy="80"
           r="3"
-          fill="#E3E2DE"
-          stroke="#141414"
+          fill="#E4ECF2"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
         <circle
           cx="66"
           cy="80"
           r="3"
-          fill="#E3E2DE"
-          stroke="#141414"
+          fill="#E4ECF2"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
         <rect
@@ -1223,8 +1223,8 @@ export const GROUP3: Record<string, InspectArt> = {
           y="77"
           width="12"
           height="6"
-          fill="#1351AA"
-          stroke="#E3E2DE"
+          fill="#214C69"
+          stroke="#E4ECF2"
           strokeWidth="1"
         />
       </>
@@ -1238,8 +1238,8 @@ export const GROUP3: Record<string, InspectArt> = {
       <>
         <path
           d="M22 36 C22 28 48 28 48 36 Z"
-          fill="#1351AA"
-          stroke="#141414"
+          fill="#214C69"
+          stroke="#0A1C26"
           strokeWidth="2.5"
         />
         <rect
@@ -1247,16 +1247,16 @@ export const GROUP3: Record<string, InspectArt> = {
           y="36"
           width="10"
           height="8"
-          fill="#E3E2DE"
-          stroke="#141414"
+          fill="#E4ECF2"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
         <circle
           cx="35"
           cy="34"
           r="3"
-          fill="#E3E2DE"
-          stroke="#141414"
+          fill="#E4ECF2"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
       </>
@@ -1268,8 +1268,8 @@ export const GROUP3: Record<string, InspectArt> = {
           y="18"
           width="64"
           height="68"
-          fill="#E3E2DE"
-          stroke="#141414"
+          fill="#E4ECF2"
+          stroke="#0A1C26"
           strokeWidth="3"
         />
         <rect
@@ -1277,42 +1277,42 @@ export const GROUP3: Record<string, InspectArt> = {
           y="22"
           width="56"
           height="60"
-          fill="#C7C7C7"
-          stroke="#141414"
+          fill="#A9BCCB"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
         <circle
           cx="35"
           cy="40"
           r="14"
-          fill="#141414"
-          stroke="#141414"
+          fill="#0A1C26"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
         <circle
           cx="35"
           cy="40"
           r="11"
-          fill="#E3E2DE"
-          stroke="#141414"
+          fill="#E4ECF2"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
         <circle
           cx="65"
           cy="32"
           r="5"
-          fill="#1351AA"
-          stroke="#141414"
+          fill="#214C69"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
-        <circle cx="65" cy="44" r="5" fill="#141414" stroke="#141414" strokeWidth="2" />
+        <circle cx="65" cy="44" r="5" fill="#0A1C26" stroke="#0A1C26" strokeWidth="2" />
         <rect
           x="56"
           y="56"
           width="18"
           height="18"
-          fill="#141414"
-          stroke="#141414"
+          fill="#0A1C26"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
         <rect
@@ -1320,19 +1320,19 @@ export const GROUP3: Record<string, InspectArt> = {
           y="60"
           width="10"
           height="10"
-          fill="#E3E2DE"
-          stroke="#141414"
+          fill="#E4ECF2"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
         <circle
           cx="65"
           cy="65"
           r="3"
-          fill="#1351AA"
-          stroke="#141414"
+          fill="#214C69"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
-        <rect x="22" y="76" width="56" height="6" fill="#141414" />
+        <rect x="22" y="76" width="56" height="6" fill="#0A1C26" />
       </>
     ),
     bad: (
@@ -1340,7 +1340,7 @@ export const GROUP3: Record<string, InspectArt> = {
         <polygon
           points="26,32 44,32 42,48 24,48"
           fill="#B3261E"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
         <line
@@ -1348,7 +1348,7 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="32"
           x2="42"
           y2="48"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
         <line
@@ -1356,7 +1356,7 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="32"
           x2="24"
           y2="48"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
         <circle
@@ -1399,22 +1399,22 @@ export const GROUP3: Record<string, InspectArt> = {
       <>
         <path
           d="M20 44 C20 22 34 16 50 16 C66 16 80 22 80 44 Z"
-          fill="#1351AA"
-          stroke="#141414"
+          fill="#214C69"
+          stroke="#0A1C26"
           strokeWidth="3"
         />
         <path
           d="M46 16 V32 H54 V16"
-          fill="#E3E2DE"
-          stroke="#141414"
+          fill="#E4ECF2"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
         <circle
           cx="50"
           cy="25"
           r="3.5"
-          fill="#1351AA"
-          stroke="#E3E2DE"
+          fill="#214C69"
+          stroke="#E4ECF2"
           strokeWidth="1.5"
         />
       </>
@@ -1423,8 +1423,8 @@ export const GROUP3: Record<string, InspectArt> = {
       <>
         <path
           d="M16 44 H84 C86 44 86 50 82 50 H18 C14 50 14 44 16 44 Z"
-          fill="#E3E2DE"
-          stroke="#141414"
+          fill="#E4ECF2"
+          stroke="#0A1C26"
           strokeWidth="2.5"
         />
         <rect
@@ -1432,8 +1432,8 @@ export const GROUP3: Record<string, InspectArt> = {
           y="46"
           width="22"
           height="10"
-          fill="#C7C7C7"
-          stroke="#141414"
+          fill="#A9BCCB"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
         <line
@@ -1441,26 +1441,26 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="51"
           x2="74"
           y2="51"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
-        <circle cx="65" cy="50" r="3" fill="#141414" />
+        <circle cx="65" cy="50" r="3" fill="#0A1C26" />
         <path
           d="M26 50 C26 58 40 62 50 62 C60 62 74 58 74 50"
           fill="none"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
         <path
           d="M28 50 L35 75 L46 50"
           fill="none"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="3"
         />
         <path
           d="M72 50 L38 75"
           fill="none"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="2.5"
         />
         <rect
@@ -1468,11 +1468,11 @@ export const GROUP3: Record<string, InspectArt> = {
           y="71"
           width="8"
           height="8"
-          fill="#1351AA"
-          stroke="#141414"
+          fill="#214C69"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
-        <rect x="33" y="73" width="4" height="4" fill="#E3E2DE" />
+        <rect x="33" y="73" width="4" height="4" fill="#E4ECF2" />
       </>
     ),
     bad: <></>,
@@ -1484,8 +1484,8 @@ export const GROUP3: Record<string, InspectArt> = {
       <>
         <polygon
           points="46,22 72,22 68,42 44,42"
-          fill="#1351AA"
-          stroke="#141414"
+          fill="#214C69"
+          stroke="#0A1C26"
           strokeWidth="2.5"
         />
         <rect
@@ -1493,16 +1493,16 @@ export const GROUP3: Record<string, InspectArt> = {
           y="26"
           width="18"
           height="4"
-          fill="#E3E2DE"
-          stroke="#141414"
+          fill="#E4ECF2"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
         <circle
           cx="56"
           cy="36"
           r="3"
-          fill="#C7C7C7"
-          stroke="#141414"
+          fill="#A9BCCB"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
       </>
@@ -1511,39 +1511,39 @@ export const GROUP3: Record<string, InspectArt> = {
       <>
         <path
           d="M44 42 L24 44 C20 48 20 58 24 64 H82 C86 54 84 42 68 42 Z"
-          fill="#E3E2DE"
-          stroke="#141414"
+          fill="#E4ECF2"
+          stroke="#0A1C26"
           strokeWidth="2.5"
         />
         <path
           d="M22 52 C22 42 30 38 38 42 L36 64 H24 Z"
-          fill="#C7C7C7"
-          stroke="#141414"
+          fill="#A9BCCB"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
-        <circle cx="30" cy="40" r="3.5" fill="#141414" />
+        <circle cx="30" cy="40" r="3.5" fill="#0A1C26" />
         <rect
           x="20"
           y="64"
           width="66"
           height="10"
-          fill="#141414"
-          stroke="#141414"
+          fill="#0A1C26"
+          stroke="#0A1C26"
           strokeWidth="2.5"
         />
-        <rect x="24" y="74" width="6" height="4" fill="#141414" />
-        <rect x="34" y="74" width="6" height="4" fill="#141414" />
+        <rect x="24" y="74" width="6" height="4" fill="#0A1C26" />
+        <rect x="34" y="74" width="6" height="4" fill="#0A1C26" />
         <rect
           x="64"
           y="66"
           width="18"
           height="8"
-          fill="#1351AA"
-          stroke="#141414"
+          fill="#214C69"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
-        <rect x="66" y="74" width="6" height="4" fill="#141414" />
-        <rect x="76" y="74" width="6" height="4" fill="#141414" />
+        <rect x="66" y="74" width="6" height="4" fill="#0A1C26" />
+        <rect x="76" y="74" width="6" height="4" fill="#0A1C26" />
       </>
     ),
     bad: (
@@ -1551,7 +1551,7 @@ export const GROUP3: Record<string, InspectArt> = {
         <polygon
           points="25,36 35,36 37,44 27,44"
           fill="#B3261E"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
         <line
@@ -1559,7 +1559,7 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="36"
           x2="37"
           y2="44"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
         <line
@@ -1567,7 +1567,7 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="36"
           x2="27"
           y2="44"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
         <rect
@@ -1576,7 +1576,7 @@ export const GROUP3: Record<string, InspectArt> = {
           width="14"
           height="6"
           fill="#B3261E"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
         <circle
@@ -1600,18 +1600,18 @@ export const GROUP3: Record<string, InspectArt> = {
           y="24"
           width="16"
           height="22"
-          fill="#1351AA"
-          stroke="#141414"
+          fill="#214C69"
+          stroke="#0A1C26"
           strokeWidth="2.5"
         />
-        <rect x="30" y="28" width="8" height="14" fill="#141414" />
+        <rect x="30" y="28" width="8" height="14" fill="#0A1C26" />
         <rect
           x="18"
           y="28"
           width="8"
           height="3"
-          fill="#C7C7C7"
-          stroke="#141414"
+          fill="#A9BCCB"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
         <rect
@@ -1619,31 +1619,31 @@ export const GROUP3: Record<string, InspectArt> = {
           y="34"
           width="8"
           height="3"
-          fill="#C7C7C7"
-          stroke="#141414"
+          fill="#A9BCCB"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
-        <circle cx="25" cy="35" r="2.5" fill="#141414" />
+        <circle cx="25" cy="35" r="2.5" fill="#0A1C26" />
       </>
     ),
     body: (
       <>
         <polygon
           points="42,31 42,39 48,37 48,33"
-          fill="#141414"
-          stroke="#141414"
+          fill="#0A1C26"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
         <path
           d="M48 35 C64 35 78 45 78 58 C78 72 65 80 50 80 C36 80 30 70 34 60 C38 52 50 52 64 56 C74 60 76 72 70 80"
           fill="none"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="6"
         />
         <path
           d="M48 35 C64 35 78 45 78 58 C78 72 65 80 50 80 C36 80 30 70 34 60 C38 52 50 52 64 56 C74 60 76 72 70 80"
           fill="none"
-          stroke="#E3E2DE"
+          stroke="#E4ECF2"
           strokeWidth="3"
         />
         <line
@@ -1651,7 +1651,7 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="62"
           x2="68"
           y2="68"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="6"
         />
         <line
@@ -1659,7 +1659,7 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="62"
           x2="68"
           y2="68"
-          stroke="#C7C7C7"
+          stroke="#A9BCCB"
           strokeWidth="3"
         />
         <rect
@@ -1667,8 +1667,8 @@ export const GROUP3: Record<string, InspectArt> = {
           y="74"
           width="12"
           height="10"
-          fill="#1351AA"
-          stroke="#141414"
+          fill="#214C69"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
       </>
@@ -1695,14 +1695,14 @@ export const GROUP3: Record<string, InspectArt> = {
           cx="25"
           cy="35"
           r="4"
-          fill="#141414"
+          fill="#0A1C26"
           stroke="#B3261E"
           strokeWidth="1.5"
         />
         <polygon
           points="56,61 64,61 65,69 55,69"
           fill="#B3261E"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
         <line
@@ -1710,7 +1710,7 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="65"
           x2="63"
           y2="65"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="2.5"
         />
         <line
@@ -1739,22 +1739,22 @@ export const GROUP3: Record<string, InspectArt> = {
       <>
         <path
           d="M22 36 C22 18 36 14 50 14 C64 14 78 18 78 36 Z"
-          fill="#1351AA"
-          stroke="#141414"
+          fill="#214C69"
+          stroke="#0A1C26"
           strokeWidth="3"
         />
         <path
           d="M46 14 V28 H54 V14"
-          fill="#E3E2DE"
-          stroke="#141414"
+          fill="#E4ECF2"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
         <circle
           cx="50"
           cy="25"
           r="3.5"
-          fill="#1351AA"
-          stroke="#E3E2DE"
+          fill="#214C69"
+          stroke="#E4ECF2"
           strokeWidth="1.5"
         />
       </>
@@ -1763,8 +1763,8 @@ export const GROUP3: Record<string, InspectArt> = {
       <>
         <path
           d="M18 36 H82 C85 36 85 44 80 44 H20 C15 44 15 36 18 36 Z"
-          fill="#E3E2DE"
-          stroke="#141414"
+          fill="#E4ECF2"
+          stroke="#0A1C26"
           strokeWidth="2.5"
         />
         <rect
@@ -1772,8 +1772,8 @@ export const GROUP3: Record<string, InspectArt> = {
           y="46"
           width="36"
           height="14"
-          fill="#C7C7C7"
-          stroke="#141414"
+          fill="#A9BCCB"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
         <rect
@@ -1781,19 +1781,19 @@ export const GROUP3: Record<string, InspectArt> = {
           y="50"
           width="24"
           height="6"
-          fill="#E3E2DE"
-          stroke="#141414"
+          fill="#E4ECF2"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
-        <circle cx="50" cy="55" r="3" fill="#141414" />
+        <circle cx="50" cy="55" r="3" fill="#0A1C26" />
         <path
           d="M30 44 L46 76"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="2.5"
         />
         <path
           d="M70 44 L54 76"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="2.5"
         />
         <rect
@@ -1801,11 +1801,11 @@ export const GROUP3: Record<string, InspectArt> = {
           y="76"
           width="12"
           height="8"
-          fill="#1351AA"
-          stroke="#141414"
+          fill="#214C69"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
-        <rect x="48" y="78" width="4" height="4" fill="#E3E2DE" />
+        <rect x="48" y="78" width="4" height="4" fill="#E4ECF2" />
       </>
     ),
     bad: (
@@ -1827,7 +1827,7 @@ export const GROUP3: Record<string, InspectArt> = {
         <polygon
           points="45,51 55,51 54,59 46,59"
           fill="#B3261E"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
         <line
@@ -1835,7 +1835,7 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="51"
           x2="55"
           y2="59"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
         <line
@@ -1843,7 +1843,7 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="51"
           x2="45"
           y2="59"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
         <line
@@ -1872,29 +1872,29 @@ export const GROUP3: Record<string, InspectArt> = {
       <>
         <path
           d="M34 16 L48 28 M66 16 L52 28"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="5"
         />
         <path
           d="M34 16 L48 28 M66 16 L52 28"
-          stroke="#1351AA"
+          stroke="#214C69"
           strokeWidth="2.5"
         />
         <path
           d="M42 26 H58 C62 26 64 34 58 38 H42 C36 34 38 26 42 26 Z"
-          fill="#C7C7C7"
-          stroke="#141414"
+          fill="#A9BCCB"
+          stroke="#0A1C26"
           strokeWidth="2.5"
         />
-        <circle cx="50" cy="30" r="3.5" fill="#141414" />
+        <circle cx="50" cy="30" r="3.5" fill="#0A1C26" />
       </>
     ),
     body: (
       <>
         <polygon
           points="42,32 58,32 54,46 46,46"
-          fill="#141414"
-          stroke="#141414"
+          fill="#0A1C26"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
         <line
@@ -1902,7 +1902,7 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="46"
           x2="30"
           y2="70"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="5"
         />
         <line
@@ -1910,7 +1910,7 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="46"
           x2="30"
           y2="70"
-          stroke="#1351AA"
+          stroke="#214C69"
           strokeWidth="2.5"
         />
         <line
@@ -1918,7 +1918,7 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="46"
           x2="70"
           y2="70"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="5"
         />
         <line
@@ -1926,7 +1926,7 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="46"
           x2="70"
           y2="70"
-          stroke="#1351AA"
+          stroke="#214C69"
           strokeWidth="2.5"
         />
         <line
@@ -1934,7 +1934,7 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="70"
           x2="70"
           y2="70"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="4"
         />
         <rect
@@ -1942,8 +1942,8 @@ export const GROUP3: Record<string, InspectArt> = {
           y="65"
           width="10"
           height="10"
-          fill="#E3E2DE"
-          stroke="#141414"
+          fill="#E4ECF2"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
         <line
@@ -1951,7 +1951,7 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="66"
           x2="34"
           y2="74"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
         <line
@@ -1959,20 +1959,20 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="66"
           x2="26"
           y2="74"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
-        <circle cx="30" cy="70" r="2.5" fill="#1351AA" />
+        <circle cx="30" cy="70" r="2.5" fill="#214C69" />
         <path
           d="M26 74 C26 84 40 86 42 76"
           fill="none"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="3"
         />
         <path
           d="M58 76 C60 86 74 84 74 74"
           fill="none"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="3"
         />
         <rect
@@ -1980,8 +1980,8 @@ export const GROUP3: Record<string, InspectArt> = {
           y="42"
           width="14"
           height="16"
-          fill="#E3E2DE"
-          stroke="#141414"
+          fill="#E4ECF2"
+          stroke="#0A1C26"
           strokeWidth="2.5"
         />
         <rect
@@ -1989,11 +1989,11 @@ export const GROUP3: Record<string, InspectArt> = {
           y="45"
           width="8"
           height="10"
-          fill="#1351AA"
-          stroke="#141414"
+          fill="#214C69"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
-        <circle cx="75" cy="50" r="2.5" fill="#E3E2DE" />
+        <circle cx="75" cy="50" r="2.5" fill="#E4ECF2" />
       </>
     ),
     bad: <></>,
@@ -2005,8 +2005,8 @@ export const GROUP3: Record<string, InspectArt> = {
       <>
         <polygon
           points="26,22 52,22 56,42 30,42"
-          fill="#1351AA"
-          stroke="#141414"
+          fill="#214C69"
+          stroke="#0A1C26"
           strokeWidth="2.5"
         />
         <rect
@@ -2014,16 +2014,16 @@ export const GROUP3: Record<string, InspectArt> = {
           y="26"
           width="16"
           height="4"
-          fill="#E3E2DE"
-          stroke="#141414"
+          fill="#E4ECF2"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
         <circle
           cx="42"
           cy="34"
           r="3"
-          fill="#C7C7C7"
-          stroke="#141414"
+          fill="#A9BCCB"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
       </>
@@ -2032,39 +2032,39 @@ export const GROUP3: Record<string, InspectArt> = {
       <>
         <path
           d="M30 42 H56 C70 42 78 46 82 52 C82 58 78 64 76 64 H18 C16 56 20 44 30 42 Z"
-          fill="#E3E2DE"
-          stroke="#141414"
+          fill="#E4ECF2"
+          stroke="#0A1C26"
           strokeWidth="2.5"
         />
         <path
           d="M64 42 C72 38 80 42 80 52 L76 64 H62 Z"
-          fill="#C7C7C7"
-          stroke="#141414"
+          fill="#A9BCCB"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
-        <circle cx="75" cy="40" r="3" fill="#141414" />
+        <circle cx="75" cy="40" r="3" fill="#0A1C26" />
         <rect
           x="16"
           y="64"
           width="66"
           height="10"
-          fill="#141414"
-          stroke="#141414"
+          fill="#0A1C26"
+          stroke="#0A1C26"
           strokeWidth="2.5"
         />
-        <rect x="20" y="74" width="6" height="4" fill="#141414" />
-        <rect x="30" y="74" width="6" height="4" fill="#141414" />
+        <rect x="20" y="74" width="6" height="4" fill="#0A1C26" />
+        <rect x="30" y="74" width="6" height="4" fill="#0A1C26" />
         <rect
           x="42"
           y="74"
           width="8"
           height="4"
-          fill="#C7C7C7"
-          stroke="#141414"
+          fill="#A9BCCB"
+          stroke="#0A1C26"
           strokeWidth="1"
         />
-        <rect x="58" y="74" width="6" height="4" fill="#141414" />
-        <rect x="70" y="74" width="6" height="4" fill="#141414" />
+        <rect x="58" y="74" width="6" height="4" fill="#0A1C26" />
+        <rect x="70" y="74" width="6" height="4" fill="#0A1C26" />
       </>
     ),
     bad: (
@@ -2072,7 +2072,7 @@ export const GROUP3: Record<string, InspectArt> = {
         <polygon
           points="69,36 79,36 81,44 71,44"
           fill="#B3261E"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="1.5"
         />
         <line
@@ -2080,7 +2080,7 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="36"
           x2="81"
           y2="44"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
         <line
@@ -2088,7 +2088,7 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="36"
           x2="71"
           y2="44"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
         <line
@@ -2096,7 +2096,7 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="68"
           x2="45"
           y2="82"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="3"
         />
         <line
@@ -2104,7 +2104,7 @@ export const GROUP3: Record<string, InspectArt> = {
           y1="68"
           x2="48"
           y2="68"
-          stroke="#141414"
+          stroke="#0A1C26"
           strokeWidth="2"
         />
         <circle

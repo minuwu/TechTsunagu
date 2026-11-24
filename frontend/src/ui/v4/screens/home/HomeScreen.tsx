@@ -197,7 +197,8 @@ export function HomeScreen() {
           </div>
 
           <div className="card-surface mt-8 flex flex-wrap items-center gap-x-4 gap-y-3 px-5 py-4">
-            <div className="min-w-0 flex-1">
+            {/* a 15rem basis wraps the button below on phones instead of squeezing the text */}
+            <div className="min-w-0 flex-[1_1_15rem]">
               <h2 className="font-bold">{m.hub_reset()}</h2>
               <p className="text-sm text-muted-foreground">
                 {m.hub_reset_body()}

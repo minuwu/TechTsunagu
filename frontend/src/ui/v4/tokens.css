@@ -122,6 +122,12 @@ a {
 .poster-h1 {
   font-size: clamp(2.75rem, 12.5vw, 9rem);
 }
+/* From 48rem the poster sits in 9 of 12 columns: at 12.5vw "Understood" no longer fit and split mid-word */
+@media (min-width: 48rem) {
+  .poster-h1 {
+    font-size: clamp(2.75rem, 11.5vw, 9rem);
+  }
+}
 .poster-h2 {
   font-size: clamp(2.25rem, 8vw, 5.5rem);
 }
@@ -556,7 +562,6 @@ input[type='file']::file-selector-button:hover {
   --j-muted: #a7b2c5; /* 8.6:1 on --j-bg */
   --j-land: #16233a;
   --j-pref: #1f3050;
-  --j-pref-hover: #2c4675;
   --j-edge: #7f93b5;
   --j-accent: #d9573b; /* shu (vermilion): marks only, never small text */
   --j-serif:
@@ -631,14 +636,12 @@ input[type='file']::file-selector-button:hover {
   .journey-body {
     grid-template-columns: minmax(0, 1fr) 26rem;
   }
+  /* The map stretches to the Nagasaki card beside it, so the whole card shows (no inner scroll box) */
   .journey-stage {
-    height: clamp(34rem, 82svh, 52rem);
+    height: auto;
+    min-height: clamp(34rem, 82svh, 52rem);
     border-bottom: 0;
     border-right: 1px solid var(--j-line);
-  }
-  .journey .jp {
-    max-height: clamp(34rem, 82svh, 52rem);
-    overflow-y: auto;
   }
 }
 .journey-earth,
