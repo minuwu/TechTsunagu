@@ -44,6 +44,13 @@ def _not_found() -> ApiError:
     return ApiError(404, "NOT_FOUND", "Not found")
 
 
+def _no_owner(db: Session, token: str) -> ApiError:
+    """A token that leads to no one: 410 when its owner replaced it (the scanner asks for the new QR), else 404."""
+    if repo.is_retired_qr(db, token_digest(token)):
+        return ApiError(410, "QR_REPLACED", "This QR code was replaced by a new one")
+    return _not_found()
+
+
 def _limit(db: Session, key: str, per_minute: int, now: datetime) -> None:
     if accounts.count_attempt(db, key, now, timedelta(minutes=1)) > per_minute:
         db.commit()
@@ -67,7 +74,7 @@ def resolve(db: Session, who: Principal, token: str, now: datetime) -> ContactPr
     _limit(db, f"qr-resolve:{me}", RESOLVES_PER_MINUTE, now)
     owner = repo.user_by_qr(db, token_digest(token))
     if owner is None:
-        raise _not_found()
+        raise _no_owner(db, token)
     return ContactPreview.model_validate({"display_name": owner.display_name, "language": owner.language})
 
 
@@ -91,7 +98,7 @@ def add(db: Session, who: Principal, body: ContactCreate, now: datetime) -> Cont
     _limit(db, f"qr-resolve:{me}", RESOLVES_PER_MINUTE, now)
     peer = repo.user_by_qr(db, token_digest(body.token))
     if peer is None:
-        raise _not_found()
+        raise _no_owner(db, body.token)
     if peer.id == me:
         raise ApiError(403, "FORBIDDEN", "That is your own QR code")
     if repo.contact_with(db, me, peer.id) is not None:

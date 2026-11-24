@@ -19,7 +19,7 @@
     <string name="connect_my_qr_note">相手がこのQRを読み取ると、チャットでつながれます。相手に見えるのは、名前と言語だけです。仕事以外でも使えます。</string>
     <string name="connect_scan">QRをスキャン</string>
     <string name="connect_share">QRを共有</string>
-    <string name="connect_rotate">QRを作り直す</string>
+    <string name="connect_rotate">新しいQR</string>
     <string name="connect_rotated">新しいQRができました。古いQRは使えなくなりました。</string>
     <string name="connect_contacts_title">連絡先</string>
     <string name="connect_contacts_empty">まだ連絡先がありません。相手のQRを読み取ってつながりましょう。</string>
@@ -90,6 +90,7 @@
     <string name="connect_err_timeout">サーバーの返事が遅れています。少し待ってから、もう一度お試しください。</string>
     <string name="connect_err_server">サーバーに問題があり、処理できませんでした。しばらくしてからもう一度お試しください。</string>
     <string name="connect_err_not_found">見つかりませんでした。QRまたはコードを確認して、もう一度お試しください。</string>
+    <string name="connect_err_qr_replaced">このQRは新しいものに変わりました。相手に新しいQRを見せてもらうか、送ってもらってください。</string>
     <string name="connect_err_blocked">この人はブロック中です。</string>
     <string name="connect_err_bad_code">Wakatta?のQRコードではありません。コードを確認して、もう一度お試しください。</string>
     <string name="connect_err_no_speech">このスマホでは読み上げができません。代わりに、相手に画面を見せてください。</string>

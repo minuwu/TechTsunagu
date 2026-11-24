@@ -1,5 +1,6 @@
 package com.techtsunagu.wakatta.feature.connect
 
+import com.techtsunagu.wakatta.feature.connect.data.inviteLink
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -171,7 +172,7 @@ internal class ConnectViewModel @Inject constructor(
     }
 
     // zxing returns the module grid (with its quiet zone) when asked for a 1x1 size.
-    private fun encode(token: String): QrMatrix? = qrEncoder.encode("wk:$token", 1, 1) as? QrMatrix
+    private fun encode(token: String): QrMatrix? = qrEncoder.encode(inviteLink(token), 1, 1) as? QrMatrix
 
     private fun rotate() {
         viewModelScope.launch {

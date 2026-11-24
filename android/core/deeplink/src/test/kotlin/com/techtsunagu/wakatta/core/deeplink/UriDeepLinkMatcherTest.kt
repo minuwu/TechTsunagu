@@ -33,6 +33,7 @@ class UriDeepLinkMatcherTest {
             "https://wakatta.example/m/12" to AppLink.Machine("12", null),
             "https://wakatta.example/m/123456789012345678" to AppLink.Machine("123456789012345678", null),
             "https://wakatta.example/c/$token" to AppLink.Contact(token),
+            "https://wakatta.example/c/$token${token.take(21)}" to AppLink.Contact("$token${token.take(21)}"), // 43, the server's
             "https://wakatta.example/t/7" to AppLink.Thread("7", null),
             "https://wakatta.example/t/7?m=99" to AppLink.Thread("7", "99"),
             "https://wakatta.example/n/5" to AppLink.Notice("5", null),

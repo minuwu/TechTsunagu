@@ -19,7 +19,7 @@
     <string name="connect_my_qr_note">When someone scans this, you can chat. They see only your name and language. It works outside work too.</string>
     <string name="connect_scan">Scan a QR</string>
     <string name="connect_share">Share my QR</string>
-    <string name="connect_rotate">Make a new QR</string>
+    <string name="connect_rotate">New QR</string>
     <string name="connect_rotated">New QR ready. The old QR does not work any more.</string>
     <string name="connect_contacts_title">Contacts</string>
     <string name="connect_contacts_empty">No contacts yet. Scan someone\'s QR to connect.</string>
@@ -90,6 +90,7 @@
     <string name="connect_err_timeout">The server took too long to answer. Wait a moment and try again.</string>
     <string name="connect_err_server">The server has a problem and could not finish. Try again later.</string>
     <string name="connect_err_not_found">We could not find it. Check the QR or the code and try again.</string>
+    <string name="connect_err_qr_replaced">This QR was replaced by a new one. Ask them to show or send their new QR.</string>
     <string name="connect_err_blocked">You blocked this person.</string>
     <string name="connect_err_bad_code">This is not a Wakatta? QR code. Check the code and try again.</string>
     <string name="connect_err_no_speech">Read-aloud is not available on this phone. Show the screen to the person instead.</string>

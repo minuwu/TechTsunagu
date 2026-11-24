@@ -11,6 +11,7 @@ internal enum class ConnectError(@StringRes val message: Int) {
     TIMEOUT(R.string.connect_err_timeout),
     SERVER(R.string.connect_err_server),
     NOT_FOUND(R.string.connect_err_not_found),
+    QR_REPLACED(R.string.connect_err_qr_replaced),
     BLOCKED(R.string.connect_err_blocked),
     BAD_CODE(R.string.connect_err_bad_code),
     NO_SPEECH(R.string.connect_err_no_speech),
@@ -24,6 +25,7 @@ internal fun AppError.toConnectError(): ConnectError = when (this) {
     AppError.Timeout -> ConnectError.TIMEOUT
     AppError.Server -> ConnectError.SERVER
     AppError.NotFound -> ConnectError.NOT_FOUND
+    AppError.Gone -> ConnectError.QR_REPLACED
     AppError.Forbidden -> ConnectError.BLOCKED
     is AppError.RateLimited -> ConnectError.RATE_LIMITED
     is AppError.Conflict -> ConnectError.ALREADY_CONNECTED

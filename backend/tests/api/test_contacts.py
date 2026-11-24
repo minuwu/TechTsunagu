@@ -62,7 +62,11 @@ def test_the_qr_token_is_shown_once_and_rotating_kills_the_old_one(client: TestC
     new = _qr(client, people.nguyen, rotate=True)
 
     assert new is not None and new != first
-    assert client.get(f"/api/contacts/resolve?token={first}", headers=people.rahim).status_code == 404
+    old = client.get(f"/api/contacts/resolve?token={first}", headers=people.rahim)
+    assert old.status_code == 410 and old.json()["error"]["code"] == "QR_REPLACED"  # not "not found"
+    added = client.post("/api/contacts", headers=people.rahim, json={"token": first})
+    assert added.status_code == 410
+    assert client.get("/api/contacts/resolve?token=not-a-real-token", headers=people.rahim).status_code == 404
 
 
 def test_scanning_connects_both_sides_across_shops(client: TestClient, people: People) -> None:

@@ -36,6 +36,12 @@ sealed interface QrPayload {
                 if (host.isEmpty() || host.contains(' ')) return null
 
                 val remainder = withoutScheme.substring(slashIndex)
+                // My QR as an App Link: https://[HOST]/c/{token}
+                if (remainder.startsWith("/c/")) {
+                    val token = remainder.substring(3)
+                    val ok = token.isNotEmpty() && token.all { (it.isLetterOrDigit() && it.code < 128) || it == '-' || it == '_' }
+                    return if (ok) MyQr(token) else null
+                }
                 val questionIndex = remainder.indexOf('?')
                 if (questionIndex <= 0) return null
 

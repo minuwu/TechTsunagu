@@ -24,6 +24,7 @@ internal fun mapError(
     status == 403 -> if (code == "PIN_CHANGE_REQUIRED") AppError.PinChangeRequired else AppError.Forbidden
     status == 404 -> AppError.NotFound
     status == 409 -> AppError.Conflict(code ?: "CONFLICT")
+    status == 410 -> AppError.Gone
     status == 412 -> AppError.PreconditionFailed
     status == 413 -> AppError.PayloadTooLarge
     status == 415 -> AppError.UnsupportedMedia

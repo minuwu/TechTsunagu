@@ -47,7 +47,7 @@ class UriDeepLinkMatcher(allowedHosts: Set<String>) {
         val id = segments[1]
 
         if (first == "c") {
-            val ok = id.length == TOKEN_LENGTH && id.all { isBase64Url(it) }
+            val ok = id.length in TOKEN_LENGTHS && id.all { isBase64Url(it) }
             return if (ok) matched(AppLink.Contact(id)) else reject(DeepLinkRejection.MALFORMED_ID)
         }
         if (!isNumericId(id)) return reject(DeepLinkRejection.MALFORMED_ID)
@@ -97,7 +97,8 @@ class UriDeepLinkMatcher(allowedHosts: Set<String>) {
         const val MAX_LENGTH = 2048
         private const val HTTPS_PREFIX = "https://"
         private const val SUPPORTED_PUSH_VERSION = "1"
-        private const val TOKEN_LENGTH = 22
+        // token_urlsafe(16) and token_urlsafe(32): the server's My QR token is the 43-character one
+        private val TOKEN_LENGTHS = setOf(22, 43)
         private const val SHOP_CODE_LENGTH = 8
         private const val MAX_ID_DIGITS = 18
         private val ID_PATHS = setOf("m", "c", "t", "n", "b", "nm")

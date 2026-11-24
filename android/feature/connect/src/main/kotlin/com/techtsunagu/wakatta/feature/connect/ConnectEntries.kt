@@ -25,13 +25,14 @@ class ConnectEntries @Inject constructor() : FeatureEntries {
         // Screen id: connect
         entry<ConnectKey> {
             ConnectScreen(
-                onScanClick = { navigator.push(ConnectScanKey) },
+                onScanClick = { navigator.push(ConnectScanKey()) },
                 onOpenThread = { navigator.push(PChatKey(it)) },
             )
         }
         // Screen id: connect-scan; the scan screen is replaced by the chat it opens
-        entry<ConnectScanKey> {
+        entry<ConnectScanKey> { key ->
             ConnectScanScreen(
+                linkToken = key.token,
                 onBackClick = { navigator.pop() },
                 onOpenThread = { navigator.replaceTop(PChatKey(it)) },
             )

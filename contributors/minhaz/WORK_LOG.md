@@ -247,3 +247,11 @@ Minhaz mapped the prototype (`prototypes/wakatta/`) and the frontend against `ma
 - Share on My QR sends a PNG of the QR (QrPng, plain-JVM writer) instead of a wk: text file, so chat apps show a scannable image.
 - Chat device pass: a poll no longer closes an open translation or fold; Chats list shows 13:38 instead of a raw ISO time for contact/talk threads; "You: " keeps its space (Android trims unquoted trailing spaces). Checked on the Redmi: send, keyboard, glossary dialog, back, no crashes.
 - Foreman avatar in chat gets a thin primary ring (1.5dp, 60% alpha, 2.5dp gap); the poll now carries `fromRole` (backend + openapi).
+
+## 2026-11-24 14:15: My QR opens the app; captioned share card; replaced QR said plainly
+
+- My QR (on screen and shared) is the App Link `https://<API host>/c/{token}`. The scanner and deep-link matcher accept it (the matcher now takes the server's 43-char token). The link opens Me > Connect > Scan with the token, which resolves at once. Checked on the phone with `am start -d`.
+- The shared PNG is a card: Wakatta? title, the QR, "Scan to chat with <name>", a Japanese line, what scanning does, what is shared.
+- Rotating My QR keeps the old hash in `retired_qr_tokens`; resolve/add on it answer 410 `QR_REPLACED`, and the app says the QR was replaced and to ask for the new one (`AppError.Gone`).
+- "Make a new QR" button is now "New QR" / 「新しいQR」 (fits one line).
+- Fingerprints for `ANDROID_CERT_SHA256` written in AGENTS.md XREQ-026 for Anim (no az CLI here).

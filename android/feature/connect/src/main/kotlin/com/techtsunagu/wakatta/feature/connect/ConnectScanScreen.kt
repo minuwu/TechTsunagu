@@ -66,6 +66,7 @@ internal sealed interface ConnectScanEvent {
     data class SetCode(val code: String) : ConnectScanEvent
     data object ReadCode : ConnectScanEvent
     data class PickSample(val token: String) : ConnectScanEvent
+    data class OpenLink(val token: String) : ConnectScanEvent
     data object Confirm : ConnectScanEvent
     data object Cancel : ConnectScanEvent
 }
@@ -94,12 +95,13 @@ internal class ConnectScanViewModel @Inject constructor(
             is ConnectScanEvent.SetCode -> updateState { it.copy(code = event.code, error = null) }
             ConnectScanEvent.ReadCode -> resolveRaw(state.value.code)
             is ConnectScanEvent.PickSample -> resolveToken(event.token)
+            is ConnectScanEvent.OpenLink -> resolveToken(event.token)
             ConnectScanEvent.Confirm -> confirm()
             ConnectScanEvent.Cancel -> updateState { it.copy(pending = null) }
         }
     }
 
-    /** Accepts `wk:<token>` from a scan, or a bare token typed by hand. */
+    /** Accepts the My QR link, `wk:<token>` from an older QR, or a bare token typed by hand. */
     private fun resolveRaw(raw: String) {
         val payload = QrPayload.parse(raw) ?: QrPayload.parse("wk:${raw.trim()}")
         val token = (payload as? QrPayload.MyQr)?.token
@@ -138,9 +140,11 @@ internal class ConnectScanViewModel @Inject constructor(
 internal fun ConnectScanScreen(
     onBackClick: () -> Unit = {},
     onOpenThread: (String) -> Unit = {},
+    linkToken: String? = null,
     viewModel: ConnectScanViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    LaunchedEffect(linkToken) { linkToken?.let { viewModel.onEvent(ConnectScanEvent.OpenLink(it)) } }
     LaunchedEffect(viewModel) {
         viewModel.effects.collectLatest { effect ->
             when (effect) {
