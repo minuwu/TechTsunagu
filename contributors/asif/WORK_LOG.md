@@ -4,6 +4,24 @@ Owner: Asif (`MdAsif-Hossain`) — Role: Backend (lead) / Services / Database
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-24 — Backend evaluation: every finding fixed
+
+### Completed (all on `main`, `b155816`; 542 tests, 90% coverage)
+- **CORS** allows `If-Match` (`4c0c559`); a test checks every header the contract declares.
+- **Per-user AI allowance** (`6aecc80`): 10 a minute, 100 a day (500 paid), 429 with `Retry-After`; messages and Near-miss Reports are never refused.
+- **CI** (`774c4f9`): gitleaks over the whole history on every PR and push (no real secret found), 80% coverage floor.
+- **Route guard** (`2b7f1c7`): all 128 operations checked for 401, other roles, first PIN, another shop and a colleague; a new route fails CI until it is covered.
+- **`python -m app.cli reset-pin`** (`454a652`), the documented last resort.
+- **Message and thread deletion** (`3820598`, ADR 0014), migration `5b1e0c7d92aa`; personal texts are never cached.
+- **Talk Threads**: Galib shipped XREQ-018 first, so I dropped mine.
+- **`docs/API_SPEC.md`** filled in; its endpoint index is generated and checked (`a430bbc`).
+- Notes for the team: `FROM_ASIF_2026-11-24.md` in the anim, galib, minhaz and arjun folders.
+
+### Next
+- Me: `az provider register -n Microsoft.Storage --wait` (XREQ-025, Anim is blocked on it).
+- Team: the AI allowance can be avoided by opening many shops (`POST /auth/register`); options in the notes.
+- Minhaz: `MOBILE_API_CONTRACT.md` still says 76 operations; the exact list is in his note. Arjun or Minhaz: `npm run gen:api`.
+
 ## 2026-11-23 — HANDOVER: backend, Azure and database (Asif is off the project)
 
 Read this section top to bottom; it is meant to be enough without asking me. **Anim owns deploy and operations from
