@@ -66,6 +66,7 @@ export function Chatbot({
           </header>
 
           <div
+            data-lenis-prevent
             className="flex-1 space-y-4 overflow-y-auto p-4"
             aria-live="polite"
           >

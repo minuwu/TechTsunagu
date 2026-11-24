@@ -27,43 +27,45 @@ export function ForemanAssignScreen() {
       sub={m.assign_sub({ date: fmtDate(a.today, lang) })}
     >
       <div className="space-y-4">
-        {a.machines.map((mc) => (
-          <Card key={mc.id} id={`as-${mc.id}`} title={pick(mc.name, lang)}>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {SHIFTS.map((s) => {
-                const v = a.value(mc.id, s)
-                const st = a.statusOf(mc.id, v)
-                return (
-                  <label key={s} className="block space-y-1">
-                    <span className="font-bold">{shiftLabel(s)}</span>
-                    <select
-                      className={inputClass}
-                      value={v}
-                      onChange={(e) => a.set(mc.id, s, e.target.value)}
-                    >
-                      <option value="">{m.nobody()}</option>
-                      {a.workers.map((w) => (
-                        <option key={w.id} value={w.id}>
-                          {w.name}
-                        </option>
-                      ))}
-                    </select>
-                    {v && (
-                      <span className="flex items-center gap-2 text-sm">
-                        <StatusChip status={st} />
-                        {(st === 'expired' || st === 'none') && (
-                          <span className="font-bold text-destructive">
-                            {m.will_be_locked()}
-                          </span>
-                        )}
-                      </span>
-                    )}
-                  </label>
-                )
-              })}
-            </div>
-          </Card>
-        ))}
+        <div className="grid gap-4 lg:grid-cols-2">
+          {a.machines.map((mc) => (
+            <Card key={mc.id} id={`as-${mc.id}`} title={pick(mc.name, lang)}>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+                {SHIFTS.map((s) => {
+                  const v = a.value(mc.id, s)
+                  const st = a.statusOf(mc.id, v)
+                  return (
+                    <label key={s} className="block space-y-1">
+                      <span className="font-bold">{shiftLabel(s)}</span>
+                      <select
+                        className={inputClass}
+                        value={v}
+                        onChange={(e) => a.set(mc.id, s, e.target.value)}
+                      >
+                        <option value="">{m.nobody()}</option>
+                        {a.workers.map((w) => (
+                          <option key={w.id} value={w.id}>
+                            {w.name}
+                          </option>
+                        ))}
+                      </select>
+                      {v && (
+                        <span className="flex items-center gap-2 text-sm">
+                          <StatusChip status={st} />
+                          {(st === 'expired' || st === 'none') && (
+                            <span className="font-bold text-destructive">
+                              {m.will_be_locked()}
+                            </span>
+                          )}
+                        </span>
+                      )}
+                    </label>
+                  )
+                })}
+              </div>
+            </Card>
+          ))}
+        </div>
         {a.saved && (
           <p className="font-bold text-success" aria-live="polite">
             {m.saved()}
@@ -234,65 +236,71 @@ export function ForemanGlossaryScreen() {
   ] as const
   return (
     <ForemanPage title={m.glossary_title()} sub={m.glossary_sub()}>
-      <Card id="add" title={m.glossary_add()} className="mb-4">
-        <form
-          className="grid gap-3 sm:grid-cols-4"
-          onSubmit={(e) => {
-            e.preventDefault()
-            void g.add()
-          }}
-        >
-          {fields.map(([k, label]) => (
-            <label key={k} className="block space-y-1">
-              <span>{label}</span>
-              <input
-                className={inputClass}
-                lang={k === 'reading' ? 'ja' : k}
-                value={g.form[k]}
-                onChange={(e) => g.setField(k, e.target.value)}
-              />
-            </label>
-          ))}
-          {g.duplicate && (
-            <p className="text-destructive sm:col-span-4">{m.glossary_dup()}</p>
-          )}
-          <Button
-            type="submit"
-            disabled={!g.canAdd || g.duplicate || g.adding}
-            className="sm:col-span-4 sm:justify-self-start"
-          >
-            {m.add()}
-          </Button>
-        </form>
-      </Card>
-      <div className="overflow-x-auto rounded-lg border border-border bg-card">
-        <table className="w-full text-left">
-          <caption className="sr-only">{m.glossary_title()}</caption>
-          <thead>
-            <tr className="border-b border-border">
+      <div className="grid gap-4 xl:grid-cols-[18rem_minmax(0,1fr)] xl:items-start">
+        <div className="xl:sticky xl:top-24">
+          <Card id="add" title={m.glossary_add()}>
+            <form
+              className="grid gap-3 sm:grid-cols-4 xl:grid-cols-1"
+              onSubmit={(e) => {
+                e.preventDefault()
+                void g.add()
+              }}
+            >
               {fields.map(([k, label]) => (
-                <th key={k} scope="col" className="p-3">
-                  {label}
-                </th>
+                <label key={k} className="block space-y-1">
+                  <span>{label}</span>
+                  <input
+                    className={inputClass}
+                    lang={k === 'reading' ? 'ja' : k}
+                    value={g.form[k]}
+                    onChange={(e) => g.setField(k, e.target.value)}
+                  />
+                </label>
               ))}
-            </tr>
-          </thead>
-          <tbody>
-            {g.glossary.map((t) => (
-              <tr key={t.id} className="border-b border-border last:border-0">
-                <td className="p-3 font-bold" lang="ja">
-                  {t.ja}
-                </td>
-                <td className="p-3" lang="ja">
-                  {t.reading}
-                </td>
-                <td className="p-3" lang="en">
-                  {t.en}
-                </td>
+              {g.duplicate && (
+                <p className="text-destructive sm:col-span-4 xl:col-span-1">
+                  {m.glossary_dup()}
+                </p>
+              )}
+              <Button
+                type="submit"
+                disabled={!g.canAdd || g.duplicate || g.adding}
+                className="sm:col-span-4 sm:justify-self-start xl:col-span-1 xl:justify-self-stretch"
+              >
+                {m.add()}
+              </Button>
+            </form>
+          </Card>
+        </div>
+        <div className="overflow-x-auto rounded-lg border border-border bg-card">
+          <table className="w-full text-left">
+            <caption className="sr-only">{m.glossary_title()}</caption>
+            <thead>
+              <tr className="border-b border-border">
+                {fields.map(([k, label]) => (
+                  <th key={k} scope="col" className="p-3">
+                    {label}
+                  </th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {g.glossary.map((t) => (
+                <tr key={t.id} className="border-b border-border last:border-0">
+                  <td className="p-3 font-bold whitespace-nowrap" lang="ja">
+                    {t.ja}
+                  </td>
+                  <td className="p-3 whitespace-nowrap" lang="ja">
+                    {t.reading}
+                  </td>
+                  <td className="p-3" lang="en">
+                    {t.en}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </ForemanPage>
   )

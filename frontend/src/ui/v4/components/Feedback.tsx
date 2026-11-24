@@ -181,6 +181,7 @@ export function ConfirmDialog({
   return (
     <dialog
       ref={ref}
+      data-lenis-prevent
       className="sheet"
       aria-labelledby="confirm-title"
       onCancel={(e) => {

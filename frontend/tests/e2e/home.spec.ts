@@ -22,6 +22,27 @@ test('home renders in English by default and passes axe', async ({ page }) => {
   expect(violations).toEqual([])
 })
 
+// Demo states (mock data): an empty shop says so instead of loading forever; a failed read shows the
+// caution band with a retry, and that state still passes axe
+test('demo states show the empty message and the connection band', async ({
+  page,
+}) => {
+  await page.goto('/?demo=empty')
+  const demo = page.getByRole('complementary', { name: 'Demo state' })
+  await expect(demo.getByRole('button', { name: 'Empty' })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  )
+  await expect(page.getByText('Nothing here yet.')).toHaveCount(2)
+
+  await demo.getByRole('button', { name: 'Error' }).click()
+  const band = page.getByRole('alert').filter({ hasText: "Can't reach" })
+  await expect(band).toBeVisible()
+  await expect(band.getByRole('button', { name: 'Try again' })).toBeVisible()
+  const { violations } = await new AxeBuilder({ page }).analyze()
+  expect(violations).toEqual([])
+})
+
 test.describe('Japanese browser', () => {
   test.use({ locale: 'ja-JP' })
 

@@ -27,7 +27,7 @@ export function PrefecturePanel({
   const local = (p: { ja: string; en: string }) => (lang === 'ja' ? p.ja : p.en)
 
   return (
-    <aside className="jp" aria-labelledby="jp-name">
+    <aside className="jp" aria-labelledby="jp-name" data-lenis-prevent>
       {/* always mounted, so each choice is announced */}
       <p className="sr-only" aria-live="polite">
         {pref && highlight ? `${local(pref)}: ${local(highlight)}` : ''}

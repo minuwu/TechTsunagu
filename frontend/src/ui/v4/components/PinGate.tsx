@@ -5,27 +5,33 @@ import { Card, inputClass } from './Card'
 import { Button } from './ui/button'
 import { Mark } from './Icon'
 
-/** Foreman and Community Poster screens open with the shop PIN. */
+/** Foreman and Community Poster screens open with the shop PIN.
+ *  `frame` places the lock button and the screen itself (the Foreman console puts the lock in its sidebar). */
 export function PinGate({
   gate: role,
   children,
+  frame,
 }: {
   gate: PinRole
   children: ReactNode
+  frame?: (lock: ReactNode, screen: ReactNode) => ReactNode
 }) {
   const gate = usePinGate(role)
-  if (gate.unlocked)
+  if (gate.unlocked) {
+    const lock = (
+      <Button variant="ghost" size="sm" onClick={gate.lock}>
+        <Mark id="lock" />
+        {m.pin_lock()}
+      </Button>
+    )
+    if (frame) return <>{frame(lock, children)}</>
     return (
       <>
-        <div className="mb-2 flex justify-end">
-          <Button variant="ghost" size="sm" onClick={gate.lock}>
-            <Mark id="lock" />
-            {m.pin_lock()}
-          </Button>
-        </div>
+        <div className="mb-2 flex justify-end">{lock}</div>
         {children}
       </>
     )
+  }
   return (
     <Card className="mx-auto mt-6 max-w-sm">
       <span
