@@ -102,6 +102,7 @@ private fun WireMessage.base(ctx: MessageContext): ChatMessageUiModel {
         threadId = threadId,
         fromUserId = fromUserId,
         fromUserName = fromDisplayName ?: ctx.names[fromUserId].orEmpty(),
+        fromForeman = fromRole == "foreman",
         isMine = fromUserId == ctx.myId,
         kind = kind,
         text = text,

@@ -1,5 +1,6 @@
 package com.techtsunagu.wakatta.feature.chat
 
+import com.techtsunagu.wakatta.feature.chat.data.listStamp
 import androidx.lifecycle.viewModelScope
 import com.techtsunagu.wakatta.core.common.MviViewModel
 import com.techtsunagu.wakatta.core.model.Role
@@ -98,7 +99,7 @@ class ChatsViewModel @Inject constructor(
                 id = summary.id,
                 title = resolvedTitle,
                 lastMessage = summary.lastMessage ?: "",
-                lastMessageAt = summary.updatedAt,
+                lastMessageAt = listStamp(summary.updatedAt).ifEmpty { summary.updatedAt }, // contact and talk threads arrive as raw ISO
                 unreadCount = summary.unreadCount,
                 isVoice = summary.isVoice,
                 worstStatus = summary.worstStatus,

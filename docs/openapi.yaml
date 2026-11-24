@@ -12743,6 +12743,17 @@
             ],
             "title": "Fromdisplayname"
           },
+          "fromRole": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fromrole"
+          },
           "questions": {
             "items": {
               "$ref": "#/components/schemas/CheckQuestion"
@@ -12902,6 +12913,17 @@
               }
             ],
             "title": "Fromdisplayname"
+          },
+          "fromRole": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fromrole"
           },
           "questions": {
             "items": {

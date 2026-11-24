@@ -30,7 +30,9 @@ Two chains, switched by one setting (`AI_CHAIN`, §4):
 | Chain | Models, in order | Used for |
 | :--- | :--- | :--- |
 | `dev` (default with `AI_MODE=gemini`) | 3.5 Flash-Lite → 3.1 Flash-Lite | prompt work, the AI eval, anyone testing real AI |
-| `demo` | 3.8 Flash → 3.6 Flash → 3.5 Flash-Lite → 3.1 Flash-Lite | filmed takes, rehearsal with cache, the live demo |
+| `demo` | 3.5 Flash-Lite → 3.8 Flash → 3.6 Flash → 3.1 Flash-Lite, then Groq `gpt-oss-120b` (Whisper for audio) | filmed takes, rehearsal with cache, the live demo |
+
+*Updated 2026-11-24 (live in `app/ai/chains.py`):* 3.5 Flash-Lite moved first (30/30 in the eval at 1–3 s, while 3.8 Flash answered 503 "high demand" all of 11-23). Shops are Japanese + English only.
 
 Day-to-day development stays on `AI_MODE=fake` (no API calls), as today.
 
@@ -64,7 +66,8 @@ Browser speech recognition is the frontend's fallback (XREQ-004): when the backe
 | Groq Whisper | 1,800 | 15 |
 
 - Budgets stay just under each free limit, as Asif's §10.3 already does for 3.8 Flash. `ai_usage` is already keyed by `(day, model)` with an `exhausted` flag, so **no schema change** is needed for the budgets.
-- Unchanged: `AI_MAX_CONCURRENT=2`, `AI_TIMEOUT_SECONDS=45`, 10 AI requests per minute per user, one API replica.
+- `AI_MAX_CONCURRENT=2`, 10 AI requests a minute and 100 a day per user (Asif's `USER_LIMITS`), one API replica.
+- *Updated 2026-11-24 (Android audit A1):* `AI_TIMEOUT_SECONDS=15` for one model call (was 45) and `AI_CHAIN_SECONDS=25` for the whole chain: no new model starts after 25 s and the request degrades, so the answer always comes before the app's timeout. Drafts had taken 51–61 s.
 - Settings: `AI_MODE=fake|gemini` (unchanged), **`AI_CHAIN=dev|demo`** (replaces `GEMINI_MODEL` and `GEMINI_MODEL_DEV`), `GEMINI_API_KEY`, **`GROQ_API_KEY`** (optional; empty turns step 5 off). The model lists and budgets live in one table in `app/ai/`, so changing a model is one line.
 - Groq needs an HTTP client at runtime. Proposal: `httpx` (the client FastAPI's test client is built on). Asif decides dependencies.
 

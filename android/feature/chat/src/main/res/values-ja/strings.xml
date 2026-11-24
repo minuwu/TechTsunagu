@@ -17,7 +17,7 @@
     <string name="chat_filter_unread">未読</string>
     <string name="chat_empty_threads">チャットはまだありません</string>
     <string name="chat_members_count">%1$d人のメンバー</string>
-    <string name="chat_you_prefix">あなた: </string>
+    <string name="chat_you_prefix">"あなた: "</string>
     <string name="chat_role_foreman">職長</string>
     <string name="chat_role_worker">作業員</string>
     <string name="chat_switch_role">役割切替</string>

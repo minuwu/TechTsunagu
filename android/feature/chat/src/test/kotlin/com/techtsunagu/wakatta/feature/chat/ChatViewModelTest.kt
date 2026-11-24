@@ -236,6 +236,20 @@ class ChatViewModelTest {
     }
 
     @Test
+    fun anOpenTranslation_staysOpen_whenNewMessagesArrive() = runTest {
+        val vm = viewModel()
+        vm.init()
+        vm.onEvent(ChatEvent.ToggleShowOriginal("m1"))
+
+        vm.onEvent(ChatEvent.OnInputTextChanged("new one"))
+        vm.onEvent(ChatEvent.SendNow)
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertTrue(vm.state.value.messages.any { it.originalText == "new one" })
+        assertTrue(vm.state.value.messages.first { it.id == "m1" }.showOriginal)
+    }
+
+    @Test
     fun onInputTextChangedUpdatesComposerState() = runTest {
         val vm = viewModel()
         vm.onEvent(ChatEvent.OnInputTextChanged("Hello team"))
