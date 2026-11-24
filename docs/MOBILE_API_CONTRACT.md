@@ -463,7 +463,7 @@ Response 200: **bare array**, newest activity first: `[{"id":"7","titleJa":"Line
 
 #### E-052 `GET /api/threads/{id}/messages`
 Status: `live` · Roles: F W members only · Poll: **every 2 s with `If-None-Match`, `304` when unchanged** · Screens: `chat` · Bus: `msg:new`, `wk:stage`, `check:answer`, `wk:read`, `wk:reexplain`
-Request: `?after=<message id>` (a string id; omit for the first page). Response 200: `{"items":[<message>...]}` (no `nextCursor`; the client keeps the highest message id it has seen) with `ETag` and `Cache-Control: no-cache`. Reading moves the member's unread marker.
+Request: `?after=<message id>` (a string id; omit it for the newest 100). Response 200: `{"items":[<message>...]}`, at most 100, oldest first (no `nextCursor`; the client keeps the highest message id it has seen) with `ETag` and `Cache-Control: no-cache`. Reading moves the member's unread marker.
 Errors: `403 FORBIDDEN` not in this Thread; `404`.
 
 #### E-053 `POST /api/threads/{id}/messages`

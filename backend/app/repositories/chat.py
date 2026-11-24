@@ -11,7 +11,7 @@ from app.models.chat import FollowUp, Message, MessageAnswer, MessageCheck, Task
 from app.models.scopes import AuditEvent, User
 from app.models.work import Machine
 
-MAX_MESSAGES = 100  # one poll returns at most this many messages after the cursor
+MAX_MESSAGES = 100  # one poll returns at most this many: after the cursor, or the newest without one
 
 
 def thread(db: Session, shop_id: int, thread_id: int) -> Thread | None:
@@ -173,8 +173,9 @@ def message_by_key(db: Session, shop_id: int, user_id: int, key: uuid.UUID) -> M
 def messages_after(
     db: Session, shop_id: int, thread_id: int, viewer_id: int, after_id: int | None, since: datetime | None = None
 ) -> list[Message]:
-    """Sent messages the viewer may see (a Re-explanation only to its Worker and sender), plus the viewer's drafts;
-    `since` = the viewer's history start (a member added later sees messages from the join on)."""
+    """Sent messages the viewer may see (a Re-explanation only to its Worker and sender), plus the viewer's drafts,
+    oldest first: the next page after the cursor, or the newest page without one. `since` = the viewer's history
+    start (a member added later sees messages from the join on)."""
     for_everyone = (Message.kind != "reexplain") | (Message.to_user_id == viewer_id)
     visible = (Message.sent_at.is_not(None) & for_everyone) | (Message.from_user_id == viewer_id)
     stmt = select(Message).where(Message.shop_id == shop_id, Message.thread_id == thread_id, visible)
@@ -183,6 +184,8 @@ def messages_after(
     if since is not None:
         # sent_at, not created_at: created_at is the transaction's start and can precede the join it records.
         stmt = stmt.where((Message.sent_at >= since) | (Message.from_user_id == viewer_id))
+    if after_id is None:
+        return list(db.scalars(stmt.order_by(Message.id.desc()).limit(MAX_MESSAGES)))[::-1]
     return list(db.scalars(stmt.order_by(Message.id).limit(MAX_MESSAGES)))
 
 
