@@ -107,9 +107,9 @@ One task, one commit, one push. Do not start the next task before the push is th
 - [ ] **N1 (P0, live) Reset the demo data.** The live shops and Rahim still have Bengali, so his English message is stored as `bn` and shows back to him in Japanese; `SASEBO01` has 12 unsent drafts. Run `backend/deploy/reset-demo.ps1` (**it wipes the test data: ask the team first**), once now and once more after the last backend deploy. Then `set-ai-key.ps1 -Chain demo` and the warmup.
   *Done when:* Rahim's language is `en`, no message has `bn`, smoke is green.
 - [ ] **N2 (P1, live; after S3) Opening Home marks every chat as read.** `getPendingChecks` polls all messages (`HomeBoardSource.kt:190`). Use `GET /messages/unanswered`.
-- [ ] **N3 (P1) Android tests in CI. PR.** Nothing runs them today. A workflow on `android/**`: unit tests, `checkModuleGraph`, `:app:assembleDebug`.
-- [ ] **N4 (P2, code) The outbox may send nothing when the app is closed.** `OutboxDrain.kt:31` reads the session before it is loaded and reports success. Wait for the session to load.
-- [ ] **N5 (P2, code) Follow-up "clarified" data call:** `PATCH /follow-ups/{id}` in `feature/insights/data`. Unblocks M10.
+- [x] **N3 (P1) Android tests in CI. PR.** Nothing runs them today. A workflow on `android/**`: unit tests, `checkModuleGraph`, `:app:assembleDebug`. *Anim, `172c890`: `.github/workflows/android-ci.yml`, merged to `main` on Anim's call (no PR approval yet; please review it). Its first run on GitHub is the proof.*
+- [x] **N4 (P2, code) The outbox may send nothing when the app is closed.** `OutboxDrain.kt:31` reads the session before it is loaded and reports success. Wait for the session to load. *Anim, `74bb8e3`: waits up to 5 s for the session; the new test fails on the old code.*
+- [x] **N5 (P2, code) Follow-up "clarified" data call:** `PATCH /follow-ups/{id}` in `feature/insights/data`. Unblocks M10. *Anim, `74bb8e3`: `FollowUpRepository.clarify(id, note)` (409 → `AppError.Conflict`); the demo Fake keeps it for the run. Minhaz: `domain/InsightsRepositories.kt` gained that one method.*
 
 ## Asif: backend gaps, device voice, final test
 
