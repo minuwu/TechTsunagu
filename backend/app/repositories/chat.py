@@ -342,6 +342,41 @@ def tasks_page(
     return list(db.scalars(stmt.order_by(Task.id).limit(limit + 1)))
 
 
+def message_threads(db: Session, shop_id: int, message_ids: list[int]) -> dict[int, int]:
+    if not message_ids:
+        return {}
+    stmt = select(Message.id, Message.thread_id).where(Message.shop_id == shop_id, Message.id.in_(message_ids))
+    return {i: t for i, t in db.execute(stmt)}
+
+
+def unanswered(db: Session, shop_id: int, user_id: int, limit: int) -> list[tuple[Message, MessageCheck]]:
+    """Sent messages with a Check in the user's Threads (from their history start) that they have not answered."""
+    answered = select(MessageAnswer.id).where(
+        MessageAnswer.shop_id == shop_id, MessageAnswer.message_id == Message.id, MessageAnswer.user_id == user_id
+    )
+    stmt = (
+        select(Message, MessageCheck)
+        .join(MessageCheck, (MessageCheck.message_id == Message.id) & (MessageCheck.shop_id == Message.shop_id))
+        .join(
+            ThreadMember,
+            (ThreadMember.thread_id == Message.thread_id)
+            & (ThreadMember.shop_id == Message.shop_id)
+            & (ThreadMember.user_id == user_id),
+        )
+        .where(
+            Message.shop_id == shop_id,
+            Message.sent_at.is_not(None),
+            Message.from_user_id != user_id,
+            (Message.kind != "reexplain") | (Message.to_user_id == user_id),
+            ThreadMember.history_from.is_(None) | (Message.sent_at >= ThreadMember.history_from),
+            ~answered.exists(),
+        )
+        .order_by(Message.sent_at.desc())
+        .limit(limit)
+    )
+    return [(m, c) for m, c in db.execute(stmt)]
+
+
 def assignees_of(db: Session, shop_id: int, task_ids: list[int]) -> dict[int, list[int]]:
     out: dict[int, list[int]] = {i: [] for i in task_ids}
     if task_ids:

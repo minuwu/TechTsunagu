@@ -3978,6 +3978,35 @@
         ]
       }
     },
+    "/api/messages/unanswered": {
+      "get": {
+        "tags": [
+          "chat"
+        ],
+        "summary": "Your unanswered Checks across your Threads, newest first (at most 100)",
+        "operationId": "unanswered_api_messages_unanswered_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_list_UnansweredCheck__"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "x-roles": [
+          "worker"
+        ]
+      }
+    },
     "/api/messages/{message_id}/answers": {
       "post": {
         "tags": [
@@ -11149,6 +11178,33 @@
         ],
         "title": "Envelope[list[ThreadOut]]"
       },
+      "Envelope_list_UnansweredCheck__": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/UnansweredCheck"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[list[UnansweredCheck]]"
+      },
       "EventOccurrence": {
         "properties": {
           "eventId": {
@@ -12577,6 +12633,17 @@
               }
             ]
           },
+          "fromDisplayName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fromdisplayname"
+          },
           "questions": {
             "items": {
               "$ref": "#/components/schemas/CheckQuestion"
@@ -12725,6 +12792,17 @@
                 "type": "null"
               }
             ]
+          },
+          "fromDisplayName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fromdisplayname"
           },
           "questions": {
             "items": {
@@ -14469,6 +14547,25 @@
         "title": "Passport",
         "description": "GET /workers/{id}/passport: one Worker's Sign-off status on every Machine of the shop."
       },
+      "PersonOut": {
+        "properties": {
+          "userId": {
+            "type": "string",
+            "title": "Userid"
+          },
+          "displayName": {
+            "type": "string",
+            "title": "Displayname"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "userId",
+          "displayName"
+        ],
+        "title": "PersonOut"
+      },
       "PhotoMark": {
         "properties": {
           "x": {
@@ -15815,6 +15912,25 @@
             ],
             "title": "Frommessageid"
           },
+          "fromThreadId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fromthreadid"
+          },
+          "assignees": {
+            "items": {
+              "$ref": "#/components/schemas/PersonOut"
+            },
+            "type": "array",
+            "title": "Assignees",
+            "default": []
+          },
           "version": {
             "type": "integer",
             "title": "Version"
@@ -16101,6 +16217,11 @@
               }
             ],
             "title": "Wkstatus"
+          },
+          "displayTitle": {
+            "type": "string",
+            "title": "Displaytitle",
+            "default": ""
           }
         },
         "additionalProperties": false,
@@ -16203,6 +16324,45 @@
           "meaningJa"
         ],
         "title": "TodayWord"
+      },
+      "UnansweredCheck": {
+        "properties": {
+          "messageId": {
+            "type": "string",
+            "title": "Messageid"
+          },
+          "threadId": {
+            "type": "string",
+            "title": "Threadid"
+          },
+          "sentAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Sentat"
+          },
+          "deadline": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deadline"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "messageId",
+          "threadId",
+          "sentAt",
+          "deadline"
+        ],
+        "title": "UnansweredCheck",
+        "description": "GET /messages/unanswered: a sent message whose Check the caller has not answered yet."
       },
       "Understanding": {
         "properties": {
