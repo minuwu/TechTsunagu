@@ -515,3 +515,21 @@ def test_a_foreman_renames_and_archives_a_machine_and_history_keeps_it(client: T
     assert detail["archived"] is True and detail["name"]["en"] == "New press"
     scanned = client.post(f"{url}/scan", headers=_auth(shop.worker))
     assert scanned.status_code == 409 and scanned.json()["error"]["code"] == "MACHINE_ARCHIVED"
+
+
+def test_an_archived_machine_stops_its_panel_and_takes_no_writes(client: TestClient, shop: Shop) -> None:
+    """XREQ-027 review #3, #4: the Panel device keeps a 180-day session, and these writes still went through."""
+    url, foreman = f"/api/machines/{shop.machine.id}", _auth(shop.foreman)
+    panel = client.post(f"{url}/panel-token", headers=foreman).json()["data"]["token"]
+    assert client.get(f"{url}/panel", headers={"Authorization": f"Bearer {panel}"}).status_code == 200
+    assert client.delete(url, headers=foreman).status_code == 200
+
+    assert client.get(f"{url}/panel", headers={"Authorization": f"Bearer {panel}"}).status_code == 401  # revoked
+    assert client.get(f"{url}/panel", headers=foreman).status_code == 409
+    worker = {"workerId": str(shop.worker_id)}
+    override = client.post(f"{url}/overrides", headers=foreman, json={**worker, "minutes": 30, "reason": "test"})
+    note = client.post(f"{url}/notes", headers=foreman | {"Idempotency-Key": str(uuid.uuid4())}, data={"text": "x"})
+    remind = client.post(f"{url}/remind", headers=foreman, json=worker)
+    assert [r.status_code for r in (override, note, remind)] == [409, 409, 409]
+    task = {"title": {"ja": "点検", "en": "Check"}, "machineId": str(shop.machine.id)}
+    assert client.post("/api/tasks", headers=foreman, json=task).status_code == 422

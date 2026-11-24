@@ -413,7 +413,11 @@ def active_users(db: Session, shop_id: int, user_ids: list[int]) -> set[int]:
 def machine_ids(db: Session, shop_id: int, ids: list[int]) -> set[int]:
     if not ids:
         return set()
-    return set(db.scalars(select(Machine.id).where(Machine.shop_id == shop_id, Machine.id.in_(ids))))
+    return set(
+        db.scalars(
+            select(Machine.id).where(Machine.shop_id == shop_id, Machine.id.in_(ids), Machine.archived_at.is_(None))
+        )
+    )
 
 
 def task_by_key(db: Session, shop_id: int, key: uuid.UUID) -> Task | None:

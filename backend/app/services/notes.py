@@ -15,7 +15,7 @@ from app.api.errors import ApiError
 from app.domain.ai_checks import GlossaryTerm as AiTerm
 from app.domain.ai_checks import note_problems
 from app.media import audio_mime
-from app.models.work import NoteVersion
+from app.models.work import Machine, NoteVersion
 from app.repositories import accounts
 from app.repositories import work as repo
 from app.schemas.common import CheckQuestion
@@ -36,6 +36,13 @@ def shop_of(who: Principal) -> int:
     if who.shop_id is None:
         raise ApiError(403, "FORBIDDEN", "Not allowed")
     return who.shop_id
+
+
+def active_machine(m: Machine) -> Machine:
+    """Writes and the Panel refuse an archived Machine; reads (detail, history) still see it."""
+    if m.archived_at is not None:
+        raise ApiError(409, "MACHINE_ARCHIVED", "This machine is archived")
+    return m
 
 
 def note_out(db: Session, n: NoteVersion) -> NoteVersionOut:
@@ -78,8 +85,10 @@ def create_draft(
     existing = repo.note_by_key(db, shop_id, key)
     if existing is not None:
         return note_out(db, existing)
-    if repo.machine(db, shop_id, machine_id) is None:
+    found = repo.machine(db, shop_id, machine_id)
+    if found is None:
         raise ApiError(404, "NOT_FOUND", "Machine not found")
+    active_machine(found)
     if not text and not audio:
         raise ApiError(422, "VALIDATION_ERROR", "Send a recording or text", {"fields": [{"loc": ["body", "text"]}]})
     mime = audio_mime(audio) if audio else None
@@ -193,6 +202,7 @@ def approve(db: Session, who: Principal, note_id: int, change_kind: str, now: da
     db.refresh(n)
     if machine is None or n.status != "draft":
         raise ApiError(409, "CONFLICT", "Only a draft can be approved")
+    active_machine(machine)
     steps = [Step.model_validate(s) for s in n.steps]
     if not steps or not 2 <= len(n.questions) <= 3 or any(not s.text.get("ja") for s in steps):
         raise ApiError(409, "NEEDS_EDIT", "Add the steps and 2–3 Check Questions before approving")
