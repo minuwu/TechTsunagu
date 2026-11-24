@@ -36,8 +36,29 @@ Not scored here: how natural the English reads (a person reads `--json` output),
 
 ## Chat messages
 
-What each Chat message case checks: [ai-eval-messages.md](ai-eval-messages.md). The `draft_message` rows appear in
-the table above after the next run.
+What each Chat message case checks: [ai-eval-messages.md](ai-eval-messages.md). Run 2026-11-24 ~17:00 JST with
+`uv run python -m app.ai.eval --pipelines messages` (10 cases, Task extraction scored: people, due time said or not,
+Machine).
+
+| Model | Prompt | Valid answer | First try | Passed |
+| :--- | :--- | ---: | ---: | ---: |
+| gemini-3.5-flash-lite | draft_message v3 | 7/10 | 5/10 | 4/10 |
+| gemini-3.1-flash-lite | draft_message v3 | 6/10 | 5/10 | 2/10 |
+| gemini-3.5-flash-lite | **draft_message v4** | 6/10 | 3/10 | 5/10 |
+| gemini-3.1-flash-lite | **draft_message v4** | **10/10** | 8/10 | **7/10** |
+
+**What v3 got wrong, fixed in v4:** both models put the Machine **code** (`press-brake-2`) in `machine_id`, so a
+message naming a Machine (m01, the die-change take; m09) failed its check twice and had no draft. v4 lists Machines
+as `id | ja | en` only; m01 now gives one Task for Rahim and Sadia, Machine 2, with the due time, and 2 questions.
+Also in v4: a change of plan ("tomorrow is a day off", m10) gets a question.
+
+**Still failing on v4:**
+- 3.5-flash-lite m01, m04, m05, m10: Gemini 503 / 504 (busy), not wrong answers.
+- m03 (an insult meaning "clean up quickly"): both models give 0 questions. The text is right (no new sentence).
+- m08 (3.1): "wear safety glasses before the plasma cutter" became a Task for every Worker although nobody is named.
+- m09 (3.1): "lock out the power" became "turn off the power" in English; the Japanese keeps the meaning.
+
+None of these sends a wrong instruction: the Foreman sees the draft before it goes out (XREQ-022).
 
 ## Chatbot
 
