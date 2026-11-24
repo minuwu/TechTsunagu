@@ -147,4 +147,4 @@ Requests to file when we start: **XREQ-016** (Anim: tables and routes) and **XRE
 2. **Minhaz:** Safety Senpai on the Machine screen, the Worker home, or both?
 3. **Everyone:** Life Guide first (phase 1) or Safety Senpai first? I suggest Life first (lower risk, same screen as Asks).
 
-**Answers (2026-11-23, Asif):** 1. pgvector on Supabase: **OK**, Anim enables it when phase 1 starts. 2 and 3: **Minhaz decides** (placement, one bot or two names, Life Guide or Safety Senpai first); the background he needs is in [contributors/minhaz/CHATBOT_FROM_ASIF.md](../minhaz/CHATBOT_FROM_ASIF.md), and his answers go in XREQ-016.
+**Answers (2026-11-23, Asif):** 1. pgvector on Supabase: **OK**, Anim enables it when phase 1 starts. 2 and 3: **Minhaz decides** (placement, one bot or two names, Life Guide or Safety Senpai first); the background he needs is in contributors/minhaz/CHATBOT_FROM_ASIF.md, and his answers go in XREQ-016.

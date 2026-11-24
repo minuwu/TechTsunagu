@@ -208,7 +208,7 @@ An item counts as "works now" only when all of these are true:
 | :--- | :--- | :--- |
 | ~~Minhaz confirms whether the "Chat" prototype is in scope~~ done: in scope as WS12 (decision #8) | — | — |
 | Arjun's `.claude/settings.json` enables the `unslop@heydamir` plugin for everyone who opens the repo in Claude Code; confirm it is meant to be team-wide | Arjun | Mon 03:00 |
-| Galib's [Rover Villa ideas](../contributors/galib/ROVERVILLA_IDEAS.md) (UX proposal, not agreed) | team | decide after P0 is green; no backend work before then |
+| Galib's Rover Villa ideas (UX proposal, not agreed) | team | decide after P0 is green; no backend work before then |
 | **Demo language:** keep Rahim (Bengali, the team can check every word) and add one Indonesian Worker so the demo shows Nagasaki's largest group? Needs `Tri` → per-shop languages in the frontend (XREQ-001 item 14) and a native check of the Indonesian text. Recommendation: yes, one Indonesian screen in the breadth montage, Bengali stays the main story. | team (Minhaz, Galib) | Mon 03:00 |
 | ~~Support Log mapped to official support records~~ done: architecture §9.3 (items 7, 8, orientation; item 10 not covered) | — | — |
 | ~~Gemini paid prices~~ done: architecture §10.6; Galib replaces the worked example with measured tokens | Galib | Tue 10:00 |

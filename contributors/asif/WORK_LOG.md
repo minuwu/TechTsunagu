@@ -20,6 +20,14 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 ### Left
 - `wakatta.web.app` itself returned 404 (not deployed yet). Sign-in from the hosted site not tried.
 
+## 2026-11-24 23:55 — Old md files removed
+
+### Done
+- Removed 14 finished or superseded notes (the four `FROM_ASIF` notes, old plans and idea notes, early research). Links to them are plain text now; everything stays in git history.
+
+### For the team
+- Need one back? `git revert` this commit, or `git show HEAD~1:<path>`.
+
 ## 2026-11-24 21:30 — No Bangla anywhere in the live demo; demo reset done (N1)
 
 ### Changed
@@ -375,7 +383,7 @@ Minhaz mapped the prototype (`prototypes/wakatta/`) and the frontend against `ma
   - **Support duties:** 10 mandatory items confirmed, each with an on-site record (e.g. consultation log 参考様式5-4号, meeting reports 5-5/5-6号), kept **≥ 1 year after the employment contract ends**. The periodic report moved from quarterly to **yearly** on 2025-04-01 (form 第3-6号, due 1 Apr–31 May) and asks for counts, not details. → Support Log now grouped by item 7 (consultation ← Asks/Senpai), item 8 (exchange ← Meet-ups), orientation (← Notices); item 10 (3-monthly meetings) stated as not covered; retention rule added.
   - **登録支援機関:** 11,876 nationwide, **79 in Nagasaki** (register 2026-11-19). **Average fee ¥28,386 per worker per month** (ISA, 2022 data; ~90% ≤ ¥30,000).
   - **Gemini paid prices:** 3.8 Flash $0.75 in / $3.75 out per 1M tokens (doubles 2027-01-01); 3.5 Flash-Lite $0.30 / $2.50; audio 32 tokens/s. Worked example ≈ $0.008 per note, under $2 per factory per month at 200 AI calls (to be replaced by measured tokens).
-- **Backend kickoff prompt** for coworkers: [BACKEND_KICKOFF_PROMPT.md](BACKEND_KICKOFF_PROMPT.md). Paste it into Claude Code; it reads AGENTS.md (XREQ first), BACKEND_PLAN and the architecture, checks whether WS0 is merged (if not: only pure domain rules + tests, no skeleton), and runs every slice through plan → TDD → Postgres skill → context7 → ruff/pyright/import-linter/pytest → `/ponytail-review` → pull → push → WORK_LOG. Set for Anim (WS10/WS11); change two lines for Galib or Member 5.
+- **Backend kickoff prompt** for coworkers: BACKEND_KICKOFF_PROMPT.md. Paste it into Claude Code; it reads AGENTS.md (XREQ first), BACKEND_PLAN and the architecture, checks whether WS0 is merged (if not: only pure domain rules + tests, no skeleton), and runs every slice through plan → TDD → Postgres skill → context7 → ruff/pyright/import-linter/pytest → `/ponytail-review` → pull → push → WORK_LOG. Set for Anim (WS10/WS11); change two lines for Galib or Member 5.
 - **WS0 step 1 — skeleton** (`33e0cdb`, on `main`): uv project (FastAPI 0.165, Starlette 1.10, pydantic-settings, python-dateutil 4); fail-fast settings; one error envelope (404/405/422 without echoing input/ApiError/500 generic + logged with request id); request id, JSON request logs and security headers as plain ASGI middleware; CORS for the frontend origin only, no credentials; GZip; `GET /api/health`. Test client needs `httpx2` (Starlette 1.10 deprecates `httpx`).
 - **WS0 step 2 — database** (`b371aea`, merged to `main` as `4af31c1`):
   - Local PostgreSQL 16.16 from the official EDB zip in `E:\tools\pgsql` (no Docker, nothing on C); roles `wakatta_owner` (migrations) and `wakatta_app` (DML only, `statement_timeout` 5 s); databases `wakatta` and `wakatta_test`.

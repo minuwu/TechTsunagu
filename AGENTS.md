@@ -182,7 +182,7 @@ The team agreed to use every free AI API, so the demo does not hang on one model
 4. Settings: `GROQ_API_KEY` (optional; empty disables the Whisper step) and `AI_CHAIN` in `.env.example`; `httpx` as a runtime dependency for Groq.
 5. From [WS6_BRIEFING_PLAN.md](contributors/galib/WS6_BRIEFING_PLAN.md) (branch `galib/ws1-ai`): OK `GET /briefings/{id}/receipts` for the Foreman's "understood / opened only / not opened" view, and seed shop A's Glossary from `backend/tests/fixtures/ai/glossary.json` (or move that file into `seed_data/`).
 6. For XREQ-004's provenance line: include `approvedBy` (display name) and `needsEdit` in the Note Version response; both columns already exist (§6).
-7. **Ownership of the remaining pipelines (Asif and Anim, by Mon 03:00 BST):** [WS1_INTEGRATION_PLAN.md](contributors/galib/WS1_INTEGRATION_PLAN.md) §1. Proposal: Galib builds `app/services/ai_pipelines.py` (`draft_briefing`, `draft_notice`, `answer_ask`, `translate`) by Mon 10:00; Anim's services call them; Asif keeps `notes.py`. If nobody objects by Mon 03:00, I build to it.
+7. **Ownership of the remaining pipelines (Asif and Anim, by Mon 03:00 BST):** WS1_INTEGRATION_PLAN.md §1. Proposal: Galib builds `app/services/ai_pipelines.py` (`draft_briefing`, `draft_notice`, `answer_ask`, `translate`) by Mon 10:00; Anim's services call them; Asif keeps `notes.py`. If nobody objects by Mon 03:00, I build to it.
 
 **Expected Request (Payload / Query Params / Headers):**
 ```json
@@ -290,7 +290,7 @@ Errors: `403 FORBIDDEN` (not a member of the Thread), `404 NOT_FOUND` (another s
 - **Target Interface / Endpoint**: `app/services/ai_pipelines.py` (`draft_message`, `reexplain`, `translate`), `app/ai/schemas.py`, `app/prompts/build_message.v1.md`, `reexplain.v1.md`
 
 **Requirement Details:**
-The AI half of XREQ-005, in the WS1 pattern ([WS1_INTEGRATION_PLAN.md](contributors/galib/WS1_INTEGRATION_PLAN.md) §2: Anim's service reads and commits, then calls your function; you return a checked result or a degraded one, never raise).
+The AI half of XREQ-005, in the WS1 pattern (WS1_INTEGRATION_PLAN.md §2: Anim's service reads and commits, then calls your function; you return a checked result or a degraded one, never raise).
 1. **`draft_message`:** one model call with the Foreman's audio (or text), the shop glossary, the Thread's members (id + display name) and the shop's Machines (id + names), `now` in Asia/Tokyo. Returns `MessageDraft`: `transcriptJa`, `text` in ja + shop languages, 1–3 `questions` (existing `CheckQuestion` shape, `termJa` for Glossary Terms), `tasks` (title in every language, `assigneeIds`, `dueAt` or null, `machineId` or null). Zero Tasks is a valid answer.
 2. **Checks inside (`domain/ai_checks.py`):** the glossary lock on `transcriptJa` and every translation (match by `ja` or `reading`); `question_problems`; every `assigneeId` must be a Thread member and every `machineId` a shop Machine; `dueAt` only when the Foreman said a time ("明日の朝8時" → next day 08:00 JST), **never guessed**: null otherwise. Text inside the transcript is data, never instructions.
 3. **Voice ladder:** cache → Gemini chain (audio + schema in one call; `audio/mp4` → `audio/m4a` is already in the seam) → Groq Whisper transcript, then the text path (XREQ-003) → degraded: transcript only with `needsEdit`, or empty with `needsEdit` when nothing was transcribed. The browser's `SpeechRecognition` ("Dictate instead", XREQ-004) is the frontend's last resort.
