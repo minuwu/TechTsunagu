@@ -1,6 +1,7 @@
 """Roster, login, lockout and sessions (architecture §3, §12). Every write commits its own short transaction, so a
 failed PIN is counted even though the request then fails."""
 
+import functools
 import json
 import secrets
 from dataclasses import dataclass
@@ -92,6 +93,11 @@ def login(db: Session, user_id: int, pin: str, ip: str, pepper: str, now: dateti
     user = repo.user_by_id(db, user_id)
     if user is None or not user.active:
         raise _unauthorized()
+    return _sign_in(db, user, pin, pepper, now)
+
+
+def _sign_in(db: Session, user: User, pin: str, pepper: str, now: datetime) -> tuple[str, datetime, User]:
+    """The PIN check with its lockout, after the caller's rate limit."""
     if user.pin_locked_until is not None and user.pin_locked_until > now:
         raise ApiError(423, "PIN_LOCKED", "Too many wrong PINs", {"until": user.pin_locked_until.isoformat()})
 
@@ -117,13 +123,24 @@ def find(
 ) -> tuple[str, datetime, User]:
     """Forgot the shop code: shop name + own name + PIN signs in, and the session carries the code. Nothing is
     returned without the right PIN, so a shop name never reveals its code or its roster."""
+    _rate_limit(db, f"login:{ip}", LOGINS_PER_IP, now)  # before any PIN hash: a limited request costs nothing
     users = repo.users_by_shop_and_name(db, shop_name.strip(), display_name.strip())
-    if not users:
-        _rate_limit(db, f"login:{ip}", LOGINS_PER_IP, now)
+    if len(users) != 1:
+        # Nobody, or namesakes (two shops of one name): never guess between people; they sign in with the shop
+        # code. One dummy check keeps the reply as slow as a real one, so timing does not tell who exists.
+        verify_pin(pepper, _dummy_hash(pepper), pin)
         raise _unauthorized()
-    # shortcut: with namesakes and a wrong PIN, the failure counts against the first; fine while namesakes are rare.
-    match = next((u for u in users if verify_pin(pepper, u.pin_hash, pin)), users[0])
-    return login(db, match.id, pin, ip, pepper, now)
+    try:
+        return _sign_in(db, users[0], pin, pepper, now)
+    except ApiError as e:
+        if e.status == 423:  # a lock would confirm that this shop and person exist; the shop-code route shows it
+            raise _unauthorized() from e
+        raise
+
+
+@functools.cache
+def _dummy_hash(pepper: str) -> str:
+    return hash_pin(pepper, "000000")
 
 
 def _open_session(db: Session, user: User, event: str, now: datetime) -> tuple[str, datetime, User]:

@@ -267,3 +267,27 @@ def test_a_forgotten_shop_code_signs_in_with_shop_name_name_and_pin(client: Test
     assert found.json()["data"]["user"]["shopCode"] == code and found.json()["data"]["token"]
     assert wrong.status_code == nobody.status_code == 401
     assert "shopCode" not in wrong.text and code not in nobody.text
+
+
+def _find(client: TestClient, pin: str, name: str = "Nguyen") -> int:
+    body = {"shopName": "Test shop", "displayName": name, "pin": pin}
+    return client.post("/api/auth/find", json=body).status_code
+
+
+def test_find_never_signs_in_a_namesake(client: TestClient, db: Session) -> None:
+    """Two shops of the same name, each with a Nguyen: the name is ambiguous, so no PIN is tried at all
+    (one wrong PIN used to count only against the first, so the second could be guessed without a lock)."""
+    f.user(db, f.shop(db), name="Nguyen", pin="2468", must_change=False)
+    f.user(db, f.shop(db), name="Nguyen", pin="1357", must_change=False)
+
+    assert _find(client, "1357") == 401
+    assert _find(client, "2468") == 401
+
+
+def test_find_does_not_tell_a_locked_person_from_nobody(client: TestClient, db: Session) -> None:
+    user = f.user(db, f.shop(db), name="Nguyen", pin="2468", must_change=False)
+    user.pin_locked_until = datetime.now(UTC) + timedelta(minutes=10)
+    db.flush()
+
+    assert _find(client, "2468") == 401  # not 423: the reply never confirms that a shop and person exist
+    assert _find(client, "2468", name="Nobody") == 401
