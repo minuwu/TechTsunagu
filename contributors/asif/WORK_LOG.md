@@ -4,6 +4,11 @@ Owner: Asif (`MdAsif-Hossain`) — Role: Backend (lead) / Services / Database
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-24 — Anim's open items, taken over by Asif
+
+- PATCH draft keeps a good draft (BACKEND_WORK row 2) and Task drafts on a retried POST (row 3) were already done (`de6b82a`); the three tests pass. Table updated.
+- My duplicate pyright fix was reverted: Anim's fix on `main` is the same line.
+
 ## 2026-11-24 19:50 (from Arjun: S5 is on 1.0.3, after Anim's three steps)
 
 - Minhaz released **1.0.3** (`80d58fc`, with the push fix `5425566`), not 1.0.2: test that build for S5. Its SHA-256 matches the committed `.sha256` (checked).
