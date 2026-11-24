@@ -16,10 +16,11 @@ GLOSSARY: list[dict[str, Any]] = json.loads((SEED_DATA / "glossary.json").read_t
 NOTES: list[dict[str, Any]] = load("eval/notes.json")["cases"]
 NOTICES: list[dict[str, Any]] = load("eval/notices.json")["cases"]
 ASKS: list[dict[str, Any]] = load("eval/asks.json")["cases"]
+MESSAGES: list[dict[str, Any]] = load("eval/messages.json")["cases"]
 
 
 def test_ids_are_unique() -> None:
-    ids = [c["id"] for c in NOTES + NOTICES + ASKS]
+    ids = [c["id"] for c in NOTES + NOTICES + ASKS + MESSAGES]
     assert len(ids) == len(set(ids))
 
 
@@ -55,3 +56,12 @@ def test_garbage_notice_states_no_collection_day() -> None:
     # Weekdays appear as 月曜 / （月）, and repetition as 毎週 / 第1; plain 日 also means "day" (収集日).
     weekday_marks = ["曜", "毎週", "第", *[f"（{d}）" for d in "月火水木金土日"]]
     assert not any(mark in garbage["source_ja"] for mark in weekday_marks)
+
+
+def test_message_cases_cover_the_audit_and_task_extraction() -> None:
+    """XREQ-006 item 5 and the Android fix plan G2: ten messages, greetings without questions, Tasks scored."""
+    assert len(MESSAGES) == 10
+    assert all(c["questions"] in ("some", "none") for c in MESSAGES)
+    assert sum(c["questions"] == "none" for c in MESSAGES) >= 3
+    assert sum(bool(c.get("tasks")) for c in MESSAGES) >= 3
+    assert any("crane" in c.get("forbid", []) for c in MESSAGES)

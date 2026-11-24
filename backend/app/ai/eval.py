@@ -24,8 +24,15 @@ from app.ai.client import AiClient, AiUnavailable, Part
 from app.ai.gemini import GeminiClient
 from app.ai.groq import GroqClient
 from app.ai.prompts import render
-from app.ai.schemas import AskDraft, IconId, NoteDraft, NoticeDraft
-from app.domain.ai_checks import GlossaryTerm, language_problems, note_problems, question_problems, question_texts
+from app.ai.schemas import AskDraft, IconId, MessageDraft, NoteDraft, NoticeDraft
+from app.domain.ai_checks import (
+    GlossaryTerm,
+    language_problems,
+    message_problems,
+    note_problems,
+    question_problems,
+    question_texts,
+)
 from app.domain.grounding import ground
 from app.domain.recurrence import TOKYO, validate_event
 
@@ -201,6 +208,62 @@ def eval_asks(client: AiClient, model: str) -> list[Row]:
     return rows
 
 
+# The demo shop SASEBO01 as draft_message sees it (app/seed_data/work.json, in seed order).
+MEMBERS = {"3": "Rahim Uddin", "4": "Sadia Akter"}
+
+
+def _shop_machines() -> list[Json]:
+    work: Json = json.loads((BACKEND / "app" / "seed_data" / "work.json").read_text(encoding="utf-8"))
+    return [m for m in work["machines"] if m["shop"] == "s-sasebo"]
+
+
+def _task_problems(want: list[Json], got: MessageDraft) -> list[str]:
+    """Task extraction (XREQ-006 item 5): the same Tasks with the same people, due time said or not, and Machine."""
+    have = sorted((sorted(t.assignee_ids), t.due_at is not None, t.machine_id) for t in got.tasks)
+    need = sorted((sorted(w["assignees"]), w["due"], w["machine"]) for w in want)
+    return [] if have == need else [f"tasks {have} (want {need})"]
+
+
+def eval_messages(client: AiClient, model: str) -> list[Row]:
+    terms = _glossary()
+    glossary = json.dumps([{"ja": t.ja, "reading": t.reading, **t.translations} for t in terms], ensure_ascii=False)
+    machines = _shop_machines()
+    machine_ids = {str(i) for i in range(1, len(machines) + 1)}
+    names = [(m["name"]["ja"], m["name"]["en"]) for m in machines]
+    prompt = render(
+        "draft_message",
+        3,
+        glossary=glossary,
+        languages=", ".join(LANGUAGES),
+        members="\n".join(f"{i} | {n}" for i, n in MEMBERS.items()),
+        machines="\n".join(
+            f"{i} | {m['code']} | {m['name']['ja']} | {m['name']['en']}" for i, m in enumerate(machines, start=1)
+        ),
+        now="2026-11-24T13:00+09:00",
+    )
+    rows: list[Row] = []
+    for case in _load("messages.json")["cases"]:
+        row = Row("draft_message", case["id"], model)
+        said: str = case["input"]
+        parts = [Part.text(f"<foreman_message>{said}</foreman_message>")]
+
+        def check(d: MessageDraft, said: str = said) -> list[str]:
+            return message_problems(d, terms, LANGUAGES, set(MEMBERS), machine_ids, said, names)
+
+        draft = _ask(client, prompt, parts, MessageDraft, check, row)
+        if draft is not None:
+            text = f"{draft.text.ja}\n{draft.text.en or ''}".lower()
+            wrong = [f"lost: {k}" for k in case.get("keep", []) if k.lower() not in text]
+            wrong += [f"added: {f}" for f in case.get("forbid", []) if f.lower() in text]
+            if (case["questions"] == "none") != (not draft.questions):
+                wrong.append(f"{len(draft.questions)} questions (want {case['questions']})")
+            if "tasks" in case:
+                wrong += _task_problems(case["tasks"], draft)
+            row.notes, row.passed, row.answer = wrong, not wrong, json.loads(draft.model_dump_json())
+        rows.append(row)
+    return rows
+
+
 def _pct(n: int, total: int) -> str:
     return f"{n}/{total}" if total else "—"
 
@@ -218,7 +281,7 @@ def report(rows: Sequence[Row], models: Sequence[str], when: str) -> str:
         "| :--- | :--- | ---: | ---: | ---: | ---: |",
     ]
     for model in models:
-        for pipeline in ("build_note", "build_notice", "answer_ask"):
+        for pipeline in ("build_note", "build_notice", "answer_ask", "draft_message"):
             rs = [r for r in rows if r.model == model and r.pipeline == pipeline]
             if not rs:
                 continue
@@ -245,10 +308,10 @@ def report(rows: Sequence[Row], models: Sequence[str], when: str) -> str:
 def main(argv: Sequence[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description="AI eval: every eval case through each model, scored by our checks.")
     parser.add_argument("--models", nargs="+", default=list(DEFAULT_MODELS))
-    parser.add_argument("--pipelines", nargs="+", default=["notes", "notices", "asks"])
+    parser.add_argument("--pipelines", nargs="+", default=["notes", "notices", "asks", "messages"])
     parser.add_argument("--json", type=Path, help="also write every answer to this file")
     args = parser.parse_args(argv)
-    runners = {"notes": eval_notes, "notices": eval_notices, "asks": eval_asks}
+    runners = {"notes": eval_notes, "notices": eval_notices, "asks": eval_asks, "messages": eval_messages}
     rows: list[Row] = []
     for model in args.models:
         client = _client(model)
