@@ -140,7 +140,7 @@ internal fun ChatMessageBubble(
                             )
                             Spacer(modifier = Modifier.weight(1f))
                             IconButton(
-                                onClick = { onEvent(ChatEvent.PlayVoice(message.originalText, "ja")) },
+                                onClick = { onEvent(ChatEvent.PlayVoice(message.originalText, message.originalLang)) },
                                 modifier = Modifier.size(36.dp),
                             ) {
                                 Icon(
@@ -155,12 +155,22 @@ internal fun ChatMessageBubble(
                     // Main text: always the original as spoken; a Worker opens the translation below it
                     val displayText = message.originalText.ifEmpty { message.translatedText }
 
-                    GlossaryHighlightedText(
-                        text = displayText,
-                        terms = glossaryTerms,
-                        onTermClick = { onEvent(ChatEvent.SelectGlossaryTerm(it)) },
-                        linkColor = if (isMine) textColor else MaterialTheme.colorScheme.primary,
-                    )
+                    Row(verticalAlignment = Alignment.Top) {
+                        GlossaryHighlightedText(
+                            text = displayText,
+                            terms = glossaryTerms,
+                            onTermClick = { onEvent(ChatEvent.SelectGlossaryTerm(it)) },
+                            linkColor = if (isMine) textColor else MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.weight(1f, fill = false),
+                        )
+                        // M9: every message can be read aloud, in its own language (voice messages have the bar above)
+                        if (!message.isVoice && displayText.isNotBlank()) {
+                            ReadAloudButton {
+                                val lang = if (message.originalText.isEmpty()) message.translatedLang else message.originalLang
+                                onEvent(ChatEvent.PlayVoice(displayText, lang))
+                            }
+                        }
+                    }
 
                     // Translation toggle for Workers
                     if (!isForeman && !isMine && message.originalText.isNotEmpty() && message.originalText != message.translatedText) {
@@ -187,12 +197,17 @@ internal fun ChatMessageBubble(
                                     .fillMaxWidth()
                                     .padding(top = 4.dp),
                             ) {
-                                Text(
-                                    text = message.translatedText,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    modifier = Modifier.padding(8.dp),
-                                )
+                                Row(verticalAlignment = Alignment.Top) {
+                                    Text(
+                                        text = message.translatedText,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        modifier = Modifier.padding(8.dp).weight(1f, fill = false),
+                                    )
+                                    ReadAloudButton {
+                                        onEvent(ChatEvent.PlayVoice(message.translatedText, message.translatedLang))
+                                    }
+                                }
                             }
                         }
                     }
@@ -271,6 +286,18 @@ internal fun ChatMessageBubble(
     }
 }
 
+
+@Composable
+private fun ReadAloudButton(onClick: () -> Unit) {
+    IconButton(onClick = onClick, modifier = Modifier.size(36.dp)) {
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.VolumeUp,
+            contentDescription = stringResource(R.string.chat_read_aloud),
+            tint = LocalContentColor.current.copy(alpha = 0.8f),
+            modifier = Modifier.size(18.dp),
+        )
+    }
+}
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable

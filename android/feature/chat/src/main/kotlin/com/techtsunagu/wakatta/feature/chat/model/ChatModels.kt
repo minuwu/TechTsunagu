@@ -38,6 +38,9 @@ data class ChatMessageUiModel(
     val text: Tri,
     val originalText: String,
     val translatedText: String,
+    /** The languages of [originalText] and [translatedText], for read-aloud (M9). */
+    val originalLang: String = "ja",
+    val translatedLang: String = "ja",
     val time: String,
     val stage: Int = 5,
     /** The Foreman's own message that has not gone to the Workers yet. */
