@@ -879,9 +879,9 @@ Live: `POST /near-misses` (machineId, text, audio, photo), `GET /near-misses` (F
 The app updates itself from `GET /app/config` (`minVersion, latestVersion, downloadUrl, sha256`), which is live. No Google Play: the signed APK must be reachable over HTTPS without a login. Please (1) create a public read-only container (for example in `wakatta-rg`) or static path for `wakatta-<version>.apk`, with `Content-Type: application/vnd.android.package-archive`; (2) tell us how to upload (a command or script in `backend/deploy/`), and how the four env values are changed and the API restarted, so a release is: upload, set env, done; (3) reply with the first real `downloadUrl`. The Release Owner (Minhaz) builds the APK and its SHA-256 (`android/tools/release/build-release.sh`).
 
 **Fulfillment & Proof (filled by recipient on completion):**
-- **Branch / Commit**: 
-- **Status / Notes**: 
-- **Verification Proof**: 
+- **Branch / Commit**: `main` `c03c7be`: `backend/deploy/release-apk.ps1`
+- **Status / Notes**: 2026-11-24 Anim. **Release routine ready, host blocked.** A release is one command: `powershell -ExecutionPolicy Bypass -File backend\deploy\release-apk.ps1 <wakatta-1.2.0.apk> 1.2.0 [-MinVersion 1.1.0]`. It creates (first run) a Standard_LRS storage account `wakattaapk<n>` in `wakatta-rg` with one container `apk` (anonymous read of blobs only, no listing, HTTPS, TLS 1.2), uploads `wakatta-<version>.apk` with `Content-Type: application/vnd.android.package-archive`, refuses to overwrite a published version, downloads it back over anonymous HTTPS and checks the SHA-256 and Content-Type, then sets `APP_LATEST_VERSION`, `APP_DOWNLOAD_URL`, `APP_SHA256` (and `APP_MIN_VERSION` with `-MinVersion`), waits for the new revision and checks `GET /api/app/config`. `-SkipConfig` uploads and verifies without changing the API. **Blocked:** the `Microsoft.Storage` resource provider is not registered on the Azure for Students subscription, and Anim's Contributor on `wakatta-rg` cannot register it (`AuthorizationFailed` on `Microsoft.Storage/register/action`). **Asif (subscription owner), one command:** `az provider register -n Microsoft.Storage --wait`. Then Anim rehearses with `-SkipConfig` and replies here with the real `downloadUrl` form (`https://wakattaapk<n>.blob.core.windows.net/apk/wakatta-<version>.apk`).
+- **Verification Proof**: rehearsal stopped at the storage create (`SubscriptionNotFound`, provider `NotRegistered`); nothing was created.
 
 #### `[XREQ-026]` App Links host, `assetlinks.json` and web fallback
 
