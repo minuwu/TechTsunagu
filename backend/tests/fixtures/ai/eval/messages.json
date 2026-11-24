@@ -1,0 +1,121 @@
+{
+ "_comment": "draft_message eval (XREQ-006 item 5, Android fix plan G2). Shop SASEBO01: members 3 Rahim Uddin, 4 Sadia Akter; Machines 1 plasma cutter, 2 press brake, 3 overhead crane (slinging), 4 welding booth. keep: every string must appear in text.ja or text.en (case-insensitive); forbid: none may appear. questions: some | none. tasks: the expected Tasks in any order (assignees, due = a time was said, machine id or null); omitted = not scored.",
+ "cases": [
+  {
+   "id": "m01",
+   "input": "明日の朝8時から、2号プレスの金型交換をします。ラヒムさんとサディアさんは7時45分に集合してください。",
+   "questions": "some",
+   "keep": [
+    "8",
+    "45"
+   ],
+   "tasks": [
+    {
+     "assignees": [
+      "3",
+      "4"
+     ],
+     "due": true,
+     "machine": "2"
+    }
+   ]
+  },
+  {
+   "id": "m02",
+   "input": "Check the oil on machine 3",
+   "questions": "some",
+   "keep": [
+    "3"
+   ],
+   "forbid": [
+    "クレーン",
+    "crane",
+    "玉掛け",
+    "slinging"
+   ]
+  },
+  {
+   "id": "m03",
+   "input": "おい、このバカ野郎、早く片付けろ",
+   "questions": "some",
+   "keep": [
+    "片付"
+   ],
+   "forbid": [
+    "work-related",
+    "instructions",
+    "業務に関する"
+   ]
+  },
+  {
+   "id": "m04",
+   "input": "hello",
+   "questions": "none",
+   "tasks": []
+  },
+  {
+   "id": "m05",
+   "input": "みなさん、今日もお疲れさまでした。ありがとう。",
+   "questions": "none",
+   "tasks": []
+  },
+  {
+   "id": "m06",
+   "input": "OK",
+   "questions": "none",
+   "tasks": []
+  },
+  {
+   "id": "m07",
+   "input": "ラヒムさん、今日の15時までに溶接ブースの清掃をお願いします。",
+   "questions": "some",
+   "keep": [
+    "15"
+   ],
+   "tasks": [
+    {
+     "assignees": [
+      "3"
+     ],
+     "due": true,
+     "machine": "4"
+    }
+   ]
+  },
+  {
+   "id": "m08",
+   "input": "保護メガネをかけてから、プラズマ切断機を使ってください。",
+   "questions": "some",
+   "keep": [
+    "glasses"
+   ],
+   "tasks": []
+  },
+  {
+   "id": "m09",
+   "input": "Sadia, lock out the power before you clean the press brake.",
+   "questions": "some",
+   "keep": [
+    "lock"
+   ],
+   "tasks": [
+    {
+     "assignees": [
+      "4"
+     ],
+     "due": false,
+     "machine": "2"
+    }
+   ]
+  },
+  {
+   "id": "m10",
+   "input": "明日は工場の点検で、作業はお休みです。",
+   "questions": "some",
+   "keep": [
+    "明日"
+   ],
+   "tasks": []
+  }
+ ]
+}
