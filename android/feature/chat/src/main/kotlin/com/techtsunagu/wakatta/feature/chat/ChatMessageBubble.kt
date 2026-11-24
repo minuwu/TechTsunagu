@@ -199,10 +199,20 @@ internal fun ChatMessageBubble(
 
                     Spacer(modifier = Modifier.height(4.dp))
 
+                    // M4: an unsent draft must not look sent, and an untranslated message says so
+                    val draft = isMine && message.isDraft
+                    val status = listOfNotNull(
+                        stringResource(R.string.chat_bubble_draft_not_sent).takeIf { draft },
+                        stringResource(R.string.chat_bubble_japanese_only).takeIf { message.needsEdit },
+                        message.time,
+                    ).joinToString(" · ")
                     Text(
-                        text = message.time,
-                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
-                        color = LocalContentColor.current.copy(alpha = 0.7f),
+                        text = status,
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontSize = 11.sp,
+                            fontWeight = if (draft) FontWeight.Bold else FontWeight.Normal,
+                        ),
+                        color = LocalContentColor.current.copy(alpha = if (draft) 1f else 0.7f),
                         modifier = Modifier.align(Alignment.End),
                     )
                 }

@@ -328,6 +328,18 @@ class ChatComposeTest {
     }
 
     @Test
+    fun anUnsentDraftIsLabelledNotSent_andAnUntranslatedOneJapaneseOnly() { // M4
+        showDraft(draft(needsEdit = true, en = null), mutableListOf())
+        composeTestRule.onNodeWithText("Draft, not sent · Japanese only · 08:00").assertExists()
+    }
+
+    @Test
+    fun aTranslatedDraftIsLabelledNotSentOnly() { // M4
+        showDraft(draft(), mutableListOf())
+        composeTestRule.onNodeWithText("Draft, not sent · 08:00").assertExists()
+    }
+
+    @Test
     fun foremanEditsTheDraftsJapanese() {
         val events = mutableListOf<ChatEvent>()
         showDraft(draft(needsEdit = true, en = null), events)
