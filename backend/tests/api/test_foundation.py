@@ -1,15 +1,19 @@
 """WS0 step 1: envelope, errors, request id, CORS, headers (architecture §9.1, §9.2, §12, §13)."""
 
+import json
 import logging
 
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
 from app.api.errors import ApiError
 from app.config import Settings
 from app.main import create_app
+from app.openapi import contract
+from tests import factories as f
 from tests.conftest import FRONTEND
 
 
@@ -136,6 +140,19 @@ def test_cors_allows_every_listed_origin_so_local_dev_and_the_hosted_frontend_bo
             assert res.headers["access-control-allow-origin"] == origin
 
 
+def test_a_browser_may_send_every_header_the_contract_declares(client: TestClient) -> None:
+    paths = json.loads(contract())["paths"].values()
+    declared = {
+        p["name"] for path in paths for op in path.values() for p in op.get("parameters", []) if p["in"] == "header"
+    }
+    assert {"If-Match", "Idempotency-Key"} <= declared  # the Task Board and the retried creates
+
+    for header in declared:
+        preflight = {"Origin": FRONTEND, "Access-Control-Request-Method": "PATCH"}
+        res = client.options("/api/tasks/1", headers=preflight | {"Access-Control-Request-Headers": header})
+        assert res.status_code == 200, f"CORS refuses {header}: add it to allow_headers in app/main.py"
+
+
 def test_frontend_origin_reads_a_comma_separated_list() -> None:
     parsed = Settings(
         frontend_origin="http://localhost:3000, https://wakatta.example",  # pyright: ignore[reportArgumentType]
@@ -152,6 +169,20 @@ def test_security_headers_are_on_every_response(client: TestClient) -> None:
 
     assert res.headers["X-Content-Type-Options"] == "nosniff"
     assert res.headers["Referrer-Policy"] == "no-referrer"
+
+
+def test_signed_in_answers_are_never_stored_by_a_cache(client: TestClient, db: Session) -> None:
+    worker = f.user(db, f.shop(db), pin="2468", must_change=False)
+    token = client.post("/api/auth/login", json={"userId": str(worker.id), "pin": "2468"}).json()["data"]["token"]
+    signed_in = {"Authorization": f"Bearer {token}"}
+
+    plain = client.get("/api/auth/me", headers=signed_in)
+    polled = client.get("/api/tasks", headers=signed_in)
+    unchanged = client.get("/api/tasks", headers=signed_in | {"If-None-Match": polled.headers["ETag"]})
+
+    assert plain.headers["Cache-Control"] == "no-store"
+    assert polled.headers["Cache-Control"] == "no-cache"  # an ETag route keeps its own rule
+    assert (unchanged.status_code, unchanged.headers.get("Cache-Control")) == (304, None)
 
 
 def test_settings_fail_fast_without_frontend_origin(monkeypatch: pytest.MonkeyPatch) -> None:

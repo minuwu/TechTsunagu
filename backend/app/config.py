@@ -24,6 +24,7 @@ def firebase_key(b64: SecretStr) -> dict[str, Any]:
 
 # An exact origin for CORS: scheme and host[:port], no path, no wildcard.
 Origin = Annotated[str, StringConstraints(pattern=r"^https?://[^/\s*]+$")]
+CertFingerprint = Annotated[str, StringConstraints(pattern=r"^([0-9A-F]{2}:){31}[0-9A-F]{2}$")]
 
 
 class Settings(BaseSettings):
@@ -47,10 +48,10 @@ class Settings(BaseSettings):
     ai_timeout_seconds: int = 45
     ai_max_concurrent: int = 2
 
-    @field_validator("frontend_origin", mode="before")
+    @field_validator("frontend_origin", "android_cert_sha256", mode="before")
     @classmethod
-    def _split_origins(cls, value: object) -> object:
-        return [o.strip() for o in value.split(",")] if isinstance(value, str) else value
+    def _split_commas(cls, value: object) -> object:
+        return [o.strip() for o in value.split(",") if o.strip()] if isinstance(value, str) else value
 
     @model_validator(mode="after")
     def _gemini_needs_a_key(self) -> Self:
@@ -78,3 +79,5 @@ class Settings(BaseSettings):
     app_latest_version: Annotated[str, StringConstraints(pattern=r"^\d+\.\d+\.\d+$")] = "1.0.0"
     app_download_url: str | None = None  # the release APK (direct distribution, no Play Store)
     app_sha256: Annotated[str | None, StringConstraints(pattern=r"^[0-9a-f]{64}$")] = None
+    # App Links (XREQ-026): signing-certificate SHA-256 fingerprints (AB:CD:…), comma-separated: release, debug, …
+    android_cert_sha256: Annotated[list[CertFingerprint], NoDecode] = []

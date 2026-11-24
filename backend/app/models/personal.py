@@ -82,6 +82,8 @@ class ContactMessage(Base):
     translations: Mapped[dict[str, str]] = mapped_column(JSONB, server_default=sql_text("'{}'::jsonb"))
     # False when the sender was blocked: kept for the sender's own view, never shown to the recipient.
     delivered: Mapped[bool] = mapped_column(Boolean, server_default=sql_text("true"))
+    # The recipient deleted their copy. A sender deleting theirs removes the row: nothing of it is kept (ADR 0014).
+    recipient_deleted: Mapped[bool] = mapped_column(Boolean, server_default=sql_text("false"))
     idempotency_key: Mapped[uuid.UUID | None] = mapped_column(Uuid)
     created_at: Mapped[CreatedAt]
 

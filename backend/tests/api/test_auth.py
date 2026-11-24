@@ -223,8 +223,8 @@ def test_anyone_can_open_a_shop_and_becomes_its_foreman(client: TestClient, db: 
     assert data["user"]["shopCode"] == data["shopCode"]
     roster = client.get("/api/auth/roster", params={"code": data["shopCode"], "role": "foreman"})
     assert roster.json()["data"] == [{"id": data["user"]["id"], "displayName": "森 太郎"}]
-    threads = client.get("/api/threads", headers=_bearer(data["token"])).json()["data"]
-    assert [t["titleJa"] for t in (threads if isinstance(threads, list) else threads["items"])] == ["全員"]
+    threads: list[dict[str, object]] = client.get("/api/threads", headers=_bearer(data["token"])).json()["data"]
+    assert [t["titleJa"] for t in threads] == ["全員"]
 
     worker = client.post(
         "/api/workers", headers=_bearer(data["token"]), json={"displayName": "Rahim", "language": "en", "pin": "5820"}

@@ -3636,6 +3636,11 @@
         ],
         "summary": "Your Threads with unread counts, newest activity first; If-None-Match gives 304",
         "operationId": "list_threads_api_threads_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -3648,14 +3653,68 @@
             }
           }
         },
+        "x-roles": [
+          "foreman",
+          "worker"
+        ]
+      },
+      "post": {
+        "tags": [
+          "chat"
+        ],
+        "summary": "Create a group Thread; you are its admin",
+        "operationId": "create_thread_api_threads_post",
         "security": [
           {
             "HTTPBearer": []
           }
         ],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ThreadCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_ThreadDetail_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
         "x-roles": [
-          "foreman",
-          "worker"
+          "foreman"
         ]
       }
     },
@@ -4582,6 +4641,422 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Envelope_TaskOut_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "foreman",
+          "worker"
+        ]
+      }
+    },
+    "/api/threads/{thread_id}": {
+      "get": {
+        "tags": [
+          "chat"
+        ],
+        "summary": "A Thread with its members and your own settings",
+        "operationId": "get_thread_api_threads__thread_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "thread_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Thread Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_ThreadDetail_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "foreman",
+          "worker"
+        ]
+      },
+      "patch": {
+        "tags": [
+          "chat"
+        ],
+        "summary": "Rename, describe or set announce-only (Foreman admin)",
+        "operationId": "update_thread_api_threads__thread_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "thread_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Thread Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ThreadUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_ThreadDetail_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "foreman"
+        ]
+      }
+    },
+    "/api/threads/{thread_id}/members": {
+      "post": {
+        "tags": [
+          "chat"
+        ],
+        "summary": "Add members; they see messages from now on (Foreman admin)",
+        "operationId": "add_members_api_threads__thread_id__members_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "thread_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Thread Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MembersIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_ThreadDetail_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "foreman"
+        ]
+      }
+    },
+    "/api/threads/{thread_id}/members/{user_id}": {
+      "patch": {
+        "tags": [
+          "chat"
+        ],
+        "summary": "Make a member admin or member (Foreman admin)",
+        "operationId": "set_role_api_threads__thread_id__members__user_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "thread_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Thread Id"
+            }
+          },
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "User Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoleIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_ThreadDetail_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "foreman"
+        ]
+      },
+      "delete": {
+        "tags": [
+          "chat"
+        ],
+        "summary": "Remove a member; their messages stay",
+        "operationId": "remove_member_api_threads__thread_id__members__user_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "thread_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Thread Id"
+            }
+          },
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_ThreadDetail_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "foreman"
+        ]
+      }
+    },
+    "/api/threads/{thread_id}/me": {
+      "put": {
+        "tags": [
+          "chat"
+        ],
+        "summary": "Your own mute, pin and archive for this Thread",
+        "operationId": "my_settings_api_threads__thread_id__me_put",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "thread_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Thread Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MySettingsIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_ThreadDetail_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "foreman",
+          "worker"
+        ]
+      }
+    },
+    "/api/threads/{thread_id}/leave": {
+      "post": {
+        "tags": [
+          "chat"
+        ],
+        "summary": "Leave a Thread (the last Foreman admin cannot)",
+        "operationId": "leave_api_threads__thread_id__leave_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "thread_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Thread Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
                 }
               }
             }
@@ -6047,6 +6522,118 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Envelope_ContactMessageOut_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "foreman",
+          "worker"
+        ]
+      },
+      "delete": {
+        "tags": [
+          "personal"
+        ],
+        "summary": "Delete the whole Contact Thread: all you sent, and your copy of what you received",
+        "operationId": "delete_thread_api_contacts__contact_id__messages_delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "contact_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Contact Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "foreman",
+          "worker"
+        ]
+      }
+    },
+    "/api/contacts/{contact_id}/messages/{message_id}": {
+      "delete": {
+        "tags": [
+          "personal"
+        ],
+        "summary": "Delete a message: one you sent goes for both of you, one you received only on your side",
+        "operationId": "delete_message_api_contacts__contact_id__messages__message_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "contact_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Contact Id"
+            }
+          },
+          {
+            "name": "message_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Message Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
                 }
               }
             }
@@ -10128,6 +10715,29 @@
         ],
         "title": "Envelope[TaskOut]"
       },
+      "Envelope_ThreadDetail_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/ThreadDetail"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[ThreadDetail]"
+      },
       "Envelope_TodayWord_": {
         "properties": {
           "success": {
@@ -11764,6 +12374,60 @@
         ],
         "title": "MeetupOut"
       },
+      "MemberOut": {
+        "properties": {
+          "userId": {
+            "type": "string",
+            "title": "Userid"
+          },
+          "displayName": {
+            "type": "string",
+            "title": "Displayname"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "admin",
+              "member"
+            ],
+            "title": "Role"
+          },
+          "joinedAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Joinedat"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "userId",
+          "displayName",
+          "role",
+          "joinedAt"
+        ],
+        "title": "MemberOut"
+      },
+      "MembersIn": {
+        "properties": {
+          "userIds": {
+            "items": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$"
+            },
+            "type": "array",
+            "maxItems": 50,
+            "minItems": 1,
+            "title": "Userids"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "userIds"
+        ],
+        "title": "MembersIn"
+      },
       "MessageForSender": {
         "properties": {
           "id": {
@@ -11784,7 +12448,8 @@
               "voice",
               "text",
               "ask",
-              "reexplain"
+              "reexplain",
+              "system"
             ],
             "title": "Kind"
           },
@@ -11856,6 +12521,16 @@
               }
             ],
             "title": "Sentat"
+          },
+          "event": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SystemEvent"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "questions": {
             "items": {
@@ -11922,7 +12597,8 @@
               "voice",
               "text",
               "ask",
-              "reexplain"
+              "reexplain",
+              "system"
             ],
             "title": "Kind"
           },
@@ -11994,6 +12670,16 @@
               }
             ],
             "title": "Sentat"
+          },
+          "event": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SystemEvent"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "questions": {
             "items": {
@@ -12101,6 +12787,30 @@
           "items"
         ],
         "title": "MessagesPage"
+      },
+      "MySettingsIn": {
+        "properties": {
+          "muted": {
+            "type": "boolean",
+            "title": "Muted"
+          },
+          "pinned": {
+            "type": "boolean",
+            "title": "Pinned"
+          },
+          "archived": {
+            "type": "boolean",
+            "title": "Archived"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "muted",
+          "pinned",
+          "archived"
+        ],
+        "title": "MySettingsIn"
       },
       "NearMissOut": {
         "properties": {
@@ -14084,6 +14794,24 @@
         "title": "ReplyOptionOut",
         "description": "A reply the Worker can show or read aloud. Proposed `replyOptions: [\"…\"]` became objects: the Worker also needs\nto know what the Japanese reply says (`meaning`, in their language)."
       },
+      "RoleIn": {
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "admin",
+              "member"
+            ],
+            "title": "Role"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "role"
+        ],
+        "title": "RoleIn"
+      },
       "RosterEntry": {
         "properties": {
           "id": {
@@ -14574,6 +15302,46 @@
           "ja"
         ],
         "title": "StepEdit"
+      },
+      "SystemEvent": {
+        "properties": {
+          "event": {
+            "type": "string",
+            "enum": [
+              "renamed",
+              "member_added",
+              "member_removed",
+              "member_left",
+              "role_changed",
+              "settings_changed"
+            ],
+            "title": "Event"
+          },
+          "actorId": {
+            "type": "string",
+            "title": "Actorid"
+          },
+          "subjectId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subjectid"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "event",
+          "actorId",
+          "subjectId"
+        ],
+        "title": "SystemEvent",
+        "description": "What a `system` message records (XREQ-019); the app writes the sentence in the reader's language."
       },
       "TalkEntryOut": {
         "properties": {
@@ -15098,6 +15866,109 @@
         ],
         "title": "TermCount"
       },
+      "ThreadCreate": {
+        "properties": {
+          "titleJa": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Titleja"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Description",
+            "default": ""
+          },
+          "memberIds": {
+            "items": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$"
+            },
+            "type": "array",
+            "maxItems": 50,
+            "title": "Memberids",
+            "default": []
+          },
+          "announceOnly": {
+            "type": "boolean",
+            "title": "Announceonly",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "titleJa"
+        ],
+        "title": "ThreadCreate"
+      },
+      "ThreadDetail": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "titleJa": {
+            "type": "string",
+            "title": "Titleja"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "group",
+              "direct"
+            ],
+            "title": "Kind"
+          },
+          "announceOnly": {
+            "type": "boolean",
+            "title": "Announceonly"
+          },
+          "locked": {
+            "type": "boolean",
+            "title": "Locked"
+          },
+          "members": {
+            "items": {
+              "$ref": "#/components/schemas/MemberOut"
+            },
+            "type": "array",
+            "title": "Members"
+          },
+          "muted": {
+            "type": "boolean",
+            "title": "Muted"
+          },
+          "pinned": {
+            "type": "boolean",
+            "title": "Pinned"
+          },
+          "archived": {
+            "type": "boolean",
+            "title": "Archived"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "titleJa",
+          "description",
+          "kind",
+          "announceOnly",
+          "locked",
+          "members",
+          "muted",
+          "pinned",
+          "archived"
+        ],
+        "title": "ThreadDetail"
+      },
       "ThreadOut": {
         "properties": {
           "id": {
@@ -15138,6 +16009,26 @@
               }
             ],
             "title": "Lastmessageat"
+          },
+          "announceOnly": {
+            "type": "boolean",
+            "title": "Announceonly",
+            "default": false
+          },
+          "muted": {
+            "type": "boolean",
+            "title": "Muted",
+            "default": false
+          },
+          "pinned": {
+            "type": "boolean",
+            "title": "Pinned",
+            "default": false
+          },
+          "archived": {
+            "type": "boolean",
+            "title": "Archived",
+            "default": false
           }
         },
         "additionalProperties": false,
@@ -15151,6 +16042,49 @@
           "lastMessageAt"
         ],
         "title": "ThreadOut"
+      },
+      "ThreadUpdate": {
+        "properties": {
+          "titleJa": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Titleja"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "announceOnly": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Announceonly"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "ThreadUpdate"
       },
       "TodayWord": {
         "properties": {

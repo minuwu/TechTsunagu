@@ -86,7 +86,7 @@ def thread(db: Session, at: Shop, by: User, members: list[User] | None = None, k
     db.add(row)
     db.flush()
     for m in [by, *(members or [])]:
-        db.add(ThreadMember(thread_id=row.id, user_id=m.id, shop_id=at.id))
+        db.add(ThreadMember(thread_id=row.id, user_id=m.id, shop_id=at.id, role="admin" if m is by else "member"))
     db.flush()
     return row
 

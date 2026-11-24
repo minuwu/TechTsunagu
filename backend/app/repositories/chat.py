@@ -54,13 +54,57 @@ def threads_of(db: Session, shop_id: int, user_id: int) -> list[tuple[Thread, in
             (Message.shop_id == Thread.shop_id)
             & (Message.thread_id == Thread.id)
             & Message.sent_at.is_not(None)
-            & ((Message.kind != "reexplain") | (Message.to_user_id == user_id) | (Message.from_user_id == user_id)),
+            & ((Message.kind != "reexplain") | (Message.to_user_id == user_id) | (Message.from_user_id == user_id))
+            # A member added later counts (and sees) messages from the join on, as in messages_after.
+            & (ThreadMember.history_from.is_(None) | (Message.sent_at >= ThreadMember.history_from)),
         )
         .where(Thread.shop_id == shop_id)
         .group_by(Thread.id, ThreadMember.last_read_at)
         .order_by(newest.desc().nulls_last(), Thread.id)
     )
     return [(t, n, last) for t, n, last in db.execute(stmt)]
+
+
+def my_memberships(db: Session, shop_id: int, user_id: int, thread_ids: list[int]) -> dict[int, ThreadMember]:
+    if not thread_ids:
+        return {}
+    stmt = select(ThreadMember).where(
+        ThreadMember.shop_id == shop_id, ThreadMember.user_id == user_id, ThreadMember.thread_id.in_(thread_ids)
+    )
+    return {m.thread_id: m for m in db.scalars(stmt)}
+
+
+def roster(db: Session, shop_id: int, thread_id: int) -> list[tuple[ThreadMember, User]]:
+    """Members with their accounts, Foremen first, then by name."""
+    stmt = (
+        select(ThreadMember, User)
+        .join(User, (ThreadMember.user_id == User.id) & (ThreadMember.shop_id == User.shop_id))
+        .where(ThreadMember.shop_id == shop_id, ThreadMember.thread_id == thread_id)
+        .order_by(User.role, User.display_name)
+    )
+    return [(m, u) for m, u in db.execute(stmt)]
+
+
+def muted_ids(db: Session, shop_id: int, thread_id: int) -> set[int]:
+    stmt = select(ThreadMember.user_id).where(
+        ThreadMember.shop_id == shop_id, ThreadMember.thread_id == thread_id, ThreadMember.muted
+    )
+    return set(db.scalars(stmt))
+
+
+def thread_by_key(db: Session, shop_id: int, created_by: int, key: uuid.UUID) -> Thread | None:
+    stmt = select(Thread).where(
+        Thread.shop_id == shop_id, Thread.created_by == created_by, Thread.idempotency_key == key
+    )
+    return db.scalar(stmt)
+
+
+def shop_people(db: Session, shop_id: int, user_ids: list[int]) -> list[User]:
+    """Active Foremen and Workers of the shop among these ids (Posters are not in work Threads)."""
+    stmt = select(User).where(
+        User.shop_id == shop_id, User.id.in_(user_ids), User.active, User.role.in_(("foreman", "worker"))
+    )
+    return list(db.scalars(stmt))
 
 
 def member_ids(db: Session, shop_id: int, thread_ids: list[int]) -> dict[int, list[int]]:
@@ -86,13 +130,19 @@ def message_by_key(db: Session, shop_id: int, user_id: int, key: uuid.UUID) -> M
     return db.scalar(stmt)
 
 
-def messages_after(db: Session, shop_id: int, thread_id: int, viewer_id: int, after_id: int | None) -> list[Message]:
-    """Sent messages the viewer may see (a Re-explanation only to its Worker and sender), plus the viewer's drafts."""
+def messages_after(
+    db: Session, shop_id: int, thread_id: int, viewer_id: int, after_id: int | None, since: datetime | None = None
+) -> list[Message]:
+    """Sent messages the viewer may see (a Re-explanation only to its Worker and sender), plus the viewer's drafts;
+    `since` = the viewer's history start (a member added later sees messages from the join on)."""
     for_everyone = (Message.kind != "reexplain") | (Message.to_user_id == viewer_id)
     visible = (Message.sent_at.is_not(None) & for_everyone) | (Message.from_user_id == viewer_id)
     stmt = select(Message).where(Message.shop_id == shop_id, Message.thread_id == thread_id, visible)
     if after_id is not None:
         stmt = stmt.where(Message.id > after_id)
+    if since is not None:
+        # sent_at, not created_at: created_at is the transaction's start and can precede the join it records.
+        stmt = stmt.where((Message.sent_at >= since) | (Message.from_user_id == viewer_id))
     return list(db.scalars(stmt.order_by(Message.id).limit(MAX_MESSAGES)))
 
 

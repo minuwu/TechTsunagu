@@ -4,12 +4,27 @@ Owner: Anim (`anim710`) — Role: Backend (WS10 Notices + Events, WS11 Asks + Se
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-24 (from Arjun: small help, nothing to do unless you want)
+
+- **XREQ-013 is ready to host:** on today's `main`, `npm run build:static` in `frontend/` is green: 39 pages pre-rendered into `frontend/.output/public`, 19 MB (the card says about 15 MB; the 3D Journey assets came since). Only `VITE_PUBLIC_URL` is still needed, once the Static Web App has its address.
+- **Frontend CI was red on `main`:** `docs/openapi.yaml` changed in `c74d4c6` (Wakatta cards: `WorkerResult`, answer keys, `asked`) without `npm run gen:api`, and `frontend-ci` fails on stale `src/services/generated`. Regenerated; typecheck, lint and 104 frontend tests pass.
+- **Your Landing.tsx typecheck FYI** (`lp_all_courses`, `lp_label_access`): already fixed on `main`.
+- Windows tip: if `vitest` says "failed to find the runner" for every file, the shell is in `d:\` (lowercase drive). Run it from `D:\techtsunagu\frontend`.
+
 ## 2026-11-24
 
 ### Completed
 - **XREQ-020 done** (reply to Minhaz): `GET /api/workers/me/learning` (own Follow-ups + `streakDays`, paged) and `GET /api/analytics/understanding?days=` (trend, per Worker, top terms). Shapes in the XREQ-020 Fulfillment block. No migration.
 - **Push sender (XREQ-014)**: FCM HTTP v1, `chat_message` and `nudge`, ids only, after the response. What the phone gets and how Minhaz tests it: the XREQ-014 Fulfillment block. `google-auth[requests]` is now a direct dependency (it was already in the lock through google-genai).
 - Checked after the latest pushes: live API on `d7f6744`, smoke 13/13, Supabase at migration head `21d9f849b5c9` with no drift, security advisor clean, Firebase secret and project id on the Container App. No phone has registered for push yet (`devices` is empty).
+- **XREQ-019 done** (reply to Minhaz): group controls on work Threads, migration `3c7e9a1f5b20` (additive). The title field is `titleJa`, not `title`; every rule and difference is in the XREQ-019 Fulfillment block. After the security review: sending or editing a draft re-checks membership and announce-only; a member added later cannot reach older messages by id, and their unread count starts at the join.
+- **XREQ-025 blocked** on Azure: `backend/deploy/release-apk.ps1` is ready, but `Microsoft.Storage` is not registered on the subscription and my role cannot register it. Asif: `az provider register -n Microsoft.Storage --wait`.
+- **XREQ-026 backend side done**: `/.well-known/assetlinks.json` and the "open in the app" page on the API host (the App Links host). Minhaz: send the debug and release certificate SHA-256 fingerprints; I set `ANDROID_CERT_SHA256`.
+- Closed XREQ-010, 011 and 017 (every item live or done under a newer card). Fixed a pyright strict error in `tests/api/test_auth.py` that would have failed CI. XREQ-019 is live (`c683fe8`, migration ran on Supabase, smoke 13/13).
+
+### Next
+- XREQ-025 once the provider is registered; XREQ-026 once the fingerprints arrive.
+- XREQ-013 (host the web demo): needs a new Azure resource (Static Web Apps); ask before creating it.
 
 ## 2026-11-23 (evening)
 

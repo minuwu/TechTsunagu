@@ -28,14 +28,16 @@ from app.routers import (
     interviews,
     knowledge,
     life,
+    links,
     near_misses,
     skills,
     support,
     talk,
+    threads,
     users,
     work,
 )
-from app.services.ai_runner import AiLimits, AiRunner
+from app.services.ai_runner import USER_LIMITS, AiLimits, AiRunner
 from app.services.push import Pusher
 
 # Every API router, in include order; app.openapi reads the same list to annotate the contract.
@@ -50,12 +52,14 @@ ROUTERS = tuple(
         support,
         skills,
         chat,
+        threads,
         briefings,
         near_misses,
         interviews,
         knowledge,
         contacts,
         talk,
+        links,
     )
 )
 
@@ -79,7 +83,7 @@ def ai_runner(settings: Settings, factory: sessionmaker[Session], ai_client: AiC
         groq = GroqClient(settings.groq_api_key.get_secret_value(), GROQ_MODEL, timeout)
         links.append((groq, _limits(settings, GROQ_MODEL)))
     (first, first_limits), *backups = links
-    return AiRunner(first, factory, first_limits, backups)
+    return AiRunner(first, factory, first_limits, backups, USER_LIMITS[settings.ai_tier])
 
 
 def create_app(
@@ -124,7 +128,7 @@ def create_app(
         CORSMiddleware,
         allow_origins=settings.frontend_origin,
         allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
-        allow_headers=["Authorization", "Content-Type", "Idempotency-Key", "If-None-Match", "X-Request-ID"],
+        allow_headers=["Authorization", "Content-Type", "Idempotency-Key", "If-Match", "If-None-Match", "X-Request-ID"],
         expose_headers=["ETag", "X-Request-ID", "Retry-After"],
         allow_credentials=False,
         max_age=600,

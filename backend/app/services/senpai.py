@@ -206,13 +206,13 @@ def reply(db: Session, token: str, ask_id: int, body: SenpaiReplyIn, ai: AiRunne
         raise _not_found()
     if a.replied_at is not None:
         raise ApiError(409, "CONFLICT", "This question is already answered")
-    shop_id = pair.shop_id
+    shop_id, pair_id = pair.shop_id, pair.id
     languages = ai_languages(db, shop_id)
     db.commit()  # no lock is held during the model calls (§8.3)
 
     translated = {"ja": body.reply_ja}
     for lang in languages:
-        text = translate(ai, body.reply_ja, "ja", lang, f"shop:{shop_id}", now)
+        text = translate(ai, body.reply_ja, "ja", lang, f"shop:{shop_id}", f"senpai:{pair_id}", now)
         if text:
             translated[lang] = text
 

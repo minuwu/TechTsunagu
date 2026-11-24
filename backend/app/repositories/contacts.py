@@ -4,12 +4,15 @@ another user, and no shop route imports this module."""
 import uuid
 from datetime import datetime
 
-from sqlalchemy import and_, delete, func, or_, select
+from sqlalchemy import ColumnElement, and_, delete, func, or_, select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
 from app.models.personal import Block, Contact, ContactMessage, QrToken
 from app.models.scopes import User
+
+# What a recipient can see: delivered (no block), and not deleted on their side.
+_RECEIVED = (ContactMessage.delivered, ContactMessage.recipient_deleted.is_(False))
 
 
 def qr_of(db: Session, user_id: int) -> QrToken | None:
@@ -52,7 +55,7 @@ def contacts_page(
     """(contact, peer, newest visible message, unread from the peer), hidden and blocked contacts left out."""
     visible = or_(
         ContactMessage.sender_id == owner_id,
-        and_(ContactMessage.sender_id == Contact.peer_id, ContactMessage.delivered),
+        and_(ContactMessage.sender_id == Contact.peer_id, *_RECEIVED),
     )
     pair = or_(
         and_(ContactMessage.sender_id == owner_id, ContactMessage.recipient_id == Contact.peer_id),
@@ -64,7 +67,7 @@ def contacts_page(
         .where(
             ContactMessage.sender_id == Contact.peer_id,
             ContactMessage.recipient_id == owner_id,
-            ContactMessage.delivered,
+            *_RECEIVED,
             or_(Contact.last_read_at.is_(None), ContactMessage.created_at > Contact.last_read_at),
         )
         .correlate(Contact)
@@ -102,8 +105,21 @@ def message_by_key(db: Session, sender_id: int, key: uuid.UUID) -> ContactMessag
 def messages(db: Session, me: int, peer: int, after_id: int | None, limit: int) -> list[ContactMessage]:
     """Oldest first after the cursor: mine to the peer, and the peer's that were delivered to me."""
     mine = and_(ContactMessage.sender_id == me, ContactMessage.recipient_id == peer)
-    theirs = and_(ContactMessage.sender_id == peer, ContactMessage.recipient_id == me, ContactMessage.delivered)
+    theirs = and_(ContactMessage.sender_id == peer, ContactMessage.recipient_id == me, *_RECEIVED)
     stmt = select(ContactMessage).where(or_(mine, theirs))
     if after_id is not None:
         stmt = stmt.where(ContactMessage.id > after_id)
     return list(db.scalars(stmt.order_by(ContactMessage.id).limit(limit + 1)))
+
+
+def delete_messages(db: Session, me: int, peer: int, message_id: int | None = None) -> bool:
+    """What I sent is removed for both; what I received only on my side. One message, or the whole thread.
+    False when there was nothing of mine to delete."""
+    only: list[ColumnElement[bool]] = [] if message_id is None else [ContactMessage.id == message_id]
+    mine = delete(ContactMessage).where(ContactMessage.sender_id == me, ContactMessage.recipient_id == peer, *only)
+    theirs = update(ContactMessage).where(
+        ContactMessage.sender_id == peer, ContactMessage.recipient_id == me, *_RECEIVED, *only
+    )
+    removed = db.execute(mine.returning(ContactMessage.id)).all()
+    hidden = db.execute(theirs.values(recipient_deleted=True).returning(ContactMessage.id)).all()
+    return bool(removed or hidden)

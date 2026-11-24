@@ -10,6 +10,8 @@ import secrets
 from argon2 import PasswordHasher
 from argon2.exceptions import InvalidHashError, VerificationError, VerifyMismatchError
 
+from app.domain.pins import PIN_LENGTH, pin_problem
+
 _hasher = PasswordHasher()
 
 
@@ -26,6 +28,13 @@ def verify_pin(pepper: str, pin_hash: str, pin: str) -> bool:
         return _hasher.verify(pin_hash, _peppered(pepper, pin))
     except (VerifyMismatchError, VerificationError, InvalidHashError):
         return False
+
+
+def new_pin(role: str) -> str:
+    while True:
+        pin = "".join(secrets.choice("0123456789") for _ in range(PIN_LENGTH[role]))
+        if pin_problem(role, pin) is None:
+            return pin
 
 
 def new_token() -> tuple[str, bytes]:

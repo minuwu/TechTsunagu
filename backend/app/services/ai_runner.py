@@ -2,7 +2,8 @@
 chain: budget → limiter → call → validate → one retry → next model → degrade.
 
 It opens its own short database sessions, so no request transaction is held across a model call (§8.3).
-It never raises for AI trouble: the caller gets a value or `None` with the outcome, and builds its degraded draft."""
+It never raises for AI trouble: the caller gets a value or `None` with the outcome, and builds its degraded draft.
+The one exception is a user over their own allowance (§10.3): 429, unless the request asks to degrade instead."""
 
 import hashlib
 import json
@@ -12,15 +13,18 @@ import time
 from collections import deque
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from typing import Literal
 from zoneinfo import ZoneInfo
 
 from pydantic import BaseModel, ValidationError
 from sqlalchemy.orm import Session, sessionmaker
 
+from app.ai.chains import Tier
 from app.ai.client import AiClient, AiUnavailable, Part, Prompt, QuotaExhausted
 from app.ai.schemas import DEFAULT_LANGUAGES
+from app.api.errors import ApiError
+from app.repositories import accounts
 from app.repositories import ai as repo
 
 _log = logging.getLogger("wakatta.ai")
@@ -47,15 +51,36 @@ class AiRequest[T: BaseModel]:
     prompt: Prompt
     parts: list[Part]
     schema: type[T]
-    scope: str  # "shop:<id>" or "district:<id>": one scope never reads another's cache
+    # "shop:<id>" or "district:<id>": one scope never reads another's cache. "user:<id>" is personal (ADR 0014): never
+    # cached, so deleting a message or a thread leaves no copy of it behind.
+    scope: str
     cache_input: bytes  # the input bytes plus anything that changes the answer (e.g. the glossary)
     languages: tuple[str, ...] = DEFAULT_LANGUAGES  # the shop's languages besides ja (XREQ-011 item 5)
+    # "degrade" when the service keeps the person's own words without the model: a message or a safety report is
+    # never refused only because it could not be translated.
+    over_limit: Literal["refuse", "degrade"] = "refuse"
+    # "user:<id>" or "senpai:<pair id>": whose AI allowance this spends (§10.3). A personal scope names its own caller.
+    caller: str = ""
+
+    def __post_init__(self) -> None:
+        if not self.caller and not self.is_personal:
+            raise ValueError(f"{self.pipeline}: a {self.scope} request must name its caller")
+
+    @property
+    def is_personal(self) -> bool:
+        return self.scope.startswith("user:")
 
 
 @dataclass(frozen=True)
 class AiResult[T: BaseModel]:
     value: T | None
     outcome: Outcome
+
+
+# (AI requests per minute, per day) for one user, so nobody can spend the shared budgets of app.ai.chains alone.
+# A cached answer is free; one request may cost a model two calls (the validation retry), so the day stays under half
+# of one model's daily budget.
+USER_LIMITS: dict[Tier, tuple[int, int]] = {"free": (10, 100), "paid": (10, 500)}
 
 
 class _Limiter:
@@ -104,9 +129,12 @@ class AiRunner:
         sessions: sessionmaker[Session],
         limits: AiLimits,
         backups: Sequence[tuple[AiClient, AiLimits]] = (),
+        user_limits: tuple[int, int] = USER_LIMITS["free"],
     ) -> None:
-        """`client` answers first; each backup is tried in order when the one before it gives no valid answer."""
+        """`client` answers first; each backup is tried in order when the one before it gives no valid answer.
+        `user_limits`: AI requests per minute and per day for one caller."""
         self._sessions = sessions
+        self._user_limits = user_limits
         self._chain = [_Link(c, lim, _Limiter(lim)) for c, lim in [(client, limits), *backups]]
 
     @property
@@ -150,6 +178,20 @@ class AiRunner:
         finally:
             link.limiter.release()
 
+    def _spend_allowance(self, caller: str, now: datetime) -> int | None:
+        """Counts one AI request of this caller; the seconds to wait when they are over a limit. In Postgres, so a
+        restart cannot reset it. A request refused by the minute limit does not spend the day."""
+        per_minute, per_day = self._user_limits
+        with self._sessions() as db:
+            if accounts.count_attempt(db, f"ai-minute:{caller}", now, timedelta(minutes=1)) > per_minute:
+                retry_after = 60
+            elif accounts.count_attempt(db, f"ai-day:{caller}", now, timedelta(days=1)) > per_day:
+                retry_after = 3600
+            else:
+                retry_after = None
+            db.commit()
+        return retry_after
+
     def _parse[T: BaseModel](
         self, req: AiRequest[T], raw: str, validate: Callable[[T], list[str]]
     ) -> tuple[T | None, list[str]]:
@@ -163,11 +205,21 @@ class AiRunner:
     def run[T: BaseModel](self, req: AiRequest[T], validate: Callable[[T], list[str]], now: datetime) -> AiResult[T]:
         # A cached answer from any model of the chain wins, best first: a filmed 3.8 Flash take is reused
         # even when 3.8 Flash is out of quota (AI_PLAN.md §3 step 1).
-        with self._sessions() as db:
-            for link in self._chain:
-                hit = repo.cached(db, self._key(req, link.client.model))
-                if hit is not None:
-                    return AiResult(req.schema.model_validate(hit.response), "cached")
+        if not req.is_personal:
+            with self._sessions() as db:
+                for link in self._chain:
+                    hit = repo.cached(db, self._key(req, link.client.model))
+                    if hit is not None:
+                        return AiResult(req.schema.model_validate(hit.response), "cached")
+
+        retry_after = self._spend_allowance(req.caller or req.scope, now)
+        if retry_after is not None:
+            _log.info("ai user limit reached", extra={"route": req.pipeline})
+            if req.over_limit == "degrade":
+                return AiResult(None, "degraded")
+            raise ApiError(
+                429, "RATE_LIMITED", "Too many AI requests; try again later", headers={"Retry-After": str(retry_after)}
+            )
 
         for link in self._chain:
             raw = self._call(link, req, [], now, wait=link is self._chain[-1])
@@ -183,10 +235,11 @@ class AiRunner:
             if value is None:
                 continue
             model = link.client.model
-            with self._sessions() as db:
+            if not req.is_personal:
                 response = json.loads(value.model_dump_json())
-                repo.store(db, self._key(req, model), req.scope, req.pipeline, req.prompt.version, model, response)
-                db.commit()
+                with self._sessions() as db:
+                    repo.store(db, self._key(req, model), req.scope, req.pipeline, req.prompt.version, model, response)
+                    db.commit()
             if link is not self._chain[0]:
                 _log.info("ai answered by backup: %s", model, extra={"route": req.pipeline})
             return AiResult(value, outcome)
