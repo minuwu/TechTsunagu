@@ -1869,6 +1869,21 @@ export type EnvelopeReexplainDraft = {
 };
 
 /**
+ * Envelope[RegisterOut]
+ */
+export type EnvelopeRegisterOut = {
+    /**
+     * Success
+     */
+    success?: true;
+    data: RegisterOut;
+    /**
+     * Message
+     */
+    message?: string;
+};
+
+/**
  * Envelope[SenpaiPairCreated]
  */
 export type EnvelopeSenpaiPairCreated = {
@@ -3975,6 +3990,49 @@ export type ReexplainIn = {
 };
 
 /**
+ * RegisterIn
+ *
+ * POST /api/auth/register (ADR 0017): a new shop and its first Foreman.
+ */
+export type RegisterIn = {
+    /**
+     * Shopname
+     */
+    shopName: string;
+    /**
+     * Displayname
+     */
+    displayName: string;
+    /**
+     * Pin
+     */
+    pin: string;
+};
+
+/**
+ * RegisterOut
+ */
+export type RegisterOut = {
+    /**
+     * Token
+     */
+    token: string;
+    /**
+     * Expiresat
+     */
+    expiresAt: string;
+    /**
+     * Mustchangepin
+     */
+    mustChangePin: boolean;
+    user: UserOut;
+    /**
+     * Shopcode
+     */
+    shopCode: string;
+};
+
+/**
  * RemindIn
  *
  * POST /machines/{id}/remind: the Worker who should take the Machine's Check.
@@ -4647,6 +4705,10 @@ export type UserOut = {
      * Districtid
      */
     districtId: string | null;
+    /**
+     * Shopcode
+     */
+    shopCode?: string | null;
 };
 
 /**
@@ -4841,6 +4903,31 @@ export type LoginApiAuthLoginPostResponses = {
 };
 
 export type LoginApiAuthLoginPostResponse = LoginApiAuthLoginPostResponses[keyof LoginApiAuthLoginPostResponses];
+
+export type RegisterApiAuthRegisterPostData = {
+    body: RegisterIn;
+    path?: never;
+    query?: never;
+    url: '/api/auth/register';
+};
+
+export type RegisterApiAuthRegisterPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type RegisterApiAuthRegisterPostError = RegisterApiAuthRegisterPostErrors[keyof RegisterApiAuthRegisterPostErrors];
+
+export type RegisterApiAuthRegisterPostResponses = {
+    /**
+     * Successful Response
+     */
+    201: EnvelopeRegisterOut;
+};
+
+export type RegisterApiAuthRegisterPostResponse = RegisterApiAuthRegisterPostResponses[keyof RegisterApiAuthRegisterPostResponses];
 
 export type MeApiAuthMeGetData = {
     body?: never;
