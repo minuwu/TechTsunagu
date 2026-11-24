@@ -57,7 +57,7 @@ from app.services.notes import ai_languages
 
 PROMPT_VERSION = 1  # translate
 MESSAGE_PROMPT_VERSION = 2  # reexplain: per-shop languages (XREQ-011)
-DRAFT_PROMPT_VERSION = 3  # draft_message: the Foreman's own words, no quiz for a greeting (audit A4)
+DRAFT_PROMPT_VERSION = 4  # draft_message: Machine ids only, a question for every instruction (message eval)
 NUDGE_WINDOW = timedelta(minutes=10)  # one Nudge per message and Worker in this window
 
 
@@ -419,7 +419,7 @@ def _draft_ai(
 
     glossary = _glossary_block(terms)
     roster = "\n".join(f"{u.id} | {u.display_name}" for u in people)
-    shop_machines = "\n".join(f"{m.id} | {m.code} | {m.name.get('ja', '')} | {m.name.get('en', '')}" for m in machines)
+    shop_machines = "\n".join(f"{m.id} | {m.name.get('ja', '')} | {m.name.get('en', '')}" for m in machines)
     # The Tokyo date is part of the key: 「明日の朝8時」 cached yesterday must not replay yesterday's due time.
     today = now.astimezone(TOKYO).date().isoformat()
     context = hashlib.sha256((glossary + roster + shop_machines + today + ",".join(languages)).encode()).digest()
