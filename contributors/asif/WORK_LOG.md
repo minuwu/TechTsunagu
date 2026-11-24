@@ -4,6 +4,10 @@ Owner: Asif (`MdAsif-Hossain`) — Role: Backend (lead) / Services / Database
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-24 (from Arjun: task 2)
+
+- Question on my task 2 (Task Board against the live API): `frontend/` has no Task Board; only the Android app (`feature/board`) has one. Which client failed on `If-Match`? If it was Android, it is Minhaz's.
+
 ## 2026-11-24 — Android audit (code read + live API; no app code changed)
 
 ### Found (main at `0f7e60c`; not run on a phone)
