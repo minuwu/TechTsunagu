@@ -1,6 +1,7 @@
 """WS0 step 5: the AI fallback ladder (architecture §10.3, §10.4). Every case runs FakeAiClient; nothing hits Gemini."""
 
 import time
+from collections.abc import Sequence
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from typing import Literal
@@ -289,3 +290,40 @@ def test_a_personal_request_is_never_cached_and_spends_its_owners_allowance(db: 
     assert db.scalars(select(AiCache)).all() == []
     with pytest.raises(ApiError):
         runner.run(replace(_request(), caller="user:7"), _no_problems, NOW)
+
+
+class _Slow(FakeAiClient):
+    """A model that answers only after `seconds` (audit A1: Gemini took 51-61 s on some drafts)."""
+
+    def __init__(self, name: str, seconds: float, script: dict[str, list[object]]) -> None:
+        super().__init__(script)  # pyright: ignore[reportArgumentType]
+        self.model, self._seconds = name, seconds
+
+    def generate(
+        self, prompt: Prompt, parts: list[Part], schema: type[object], languages: Sequence[str] = ("en",)
+    ) -> str:
+        time.sleep(self._seconds)
+        return super().generate(prompt, parts, schema, languages)
+
+
+def test_no_new_model_starts_after_the_chain_time_is_used(db: Session) -> None:
+    """The request ends degraded instead of running past the Android app's 30 s timeout."""
+    slow = _Slow("slow", 0.4, {"echo": [AiUnavailable("504 after a long wait")]})
+    backup = _named("backup", {"echo": [{"word": "too late"}]})
+    limits = AiLimits(max_concurrent=2, per_minute=4, daily_budget=18, wait_seconds=1)
+    runner = AiRunner(slow, db.info["factory"], limits, [(backup, limits)], chain_seconds=0.2)
+
+    started = time.monotonic()
+    result = runner.run(_request(), _no_problems, NOW)
+
+    assert result.outcome == "degraded" and backup.calls == 0
+    assert time.monotonic() - started < 1
+
+
+def test_a_backup_still_answers_within_the_chain_time(db: Session) -> None:
+    slow = _Slow("slow", 0.05, {"echo": [AiUnavailable("503")]})
+    backup = _named("backup", {"echo": [{"word": "in time"}]})
+    limits = AiLimits(max_concurrent=2, per_minute=4, daily_budget=18, wait_seconds=1)
+    runner = AiRunner(slow, db.info["factory"], limits, [(backup, limits)], chain_seconds=5)
+
+    assert runner.run(_request(), _no_problems, NOW).value == Echo(word="in time")

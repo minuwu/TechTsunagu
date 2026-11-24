@@ -129,21 +129,43 @@ def task_problems(
     return problems
 
 
+def added_machine_names(said: str, text: AiTri, machine_names: Sequence[tuple[str, str]]) -> list[str]:
+    """Machine names (ja, en) the message text uses although the Foreman said neither (audit A4: "machine 3" was
+    rewritten as "overhead crane (slinging) #3")."""
+    heard = _nfkc(said).lower()
+    ja, en = _nfkc(text.ja), _nfkc(text.en or "").lower()
+    added: list[str] = []
+    for name_ja, name_en in machine_names:
+        n_ja, n_en = _nfkc(name_ja), _nfkc(name_en).lower()
+        used = (n_ja and n_ja in ja) or (n_en and n_en in en)
+        if used and not ((n_ja and n_ja in heard) or (n_en and n_en in heard)):
+            added.append(name_ja or name_en)
+    return added
+
+
 def message_problems(
     draft: MessageDraft,
     glossary: Sequence[GlossaryTerm],
     languages: Collection[str],
     member_ids: Collection[str],
     machine_ids: Collection[str],
+    said: str | None = None,
+    machine_names: Sequence[tuple[str, str]] = (),
 ) -> list[str]:
     """A Chat message: shop words locked in every language, valid questions, Tasks only for real people and
-    Machines, and a due time only when one was said."""
+    Machines, a due time only when one was said, and no Machine name the Foreman did not say. `said`: the typed
+    text (the transcript for a recording)."""
     texts = [draft.text, *question_texts(draft.questions), *(t.title for t in draft.tasks)]
+    added = added_machine_names(said or draft.transcript_ja, draft.text, machine_names)
     return (
         language_problems(texts, languages)
         + glossary_problems(draft.transcript_ja, [draft.text], glossary, languages)
         + question_problems(draft.questions, glossary)
         + task_problems(draft.tasks, draft.transcript_ja, member_ids, machine_ids)
+        + [
+            f"text names 「{n}」, which the Foreman did not say. Keep his own words for the machine (e.g. 3号機)."
+            for n in added
+        ]
     )
 
 

@@ -130,11 +130,14 @@ class AiRunner:
         limits: AiLimits,
         backups: Sequence[tuple[AiClient, AiLimits]] = (),
         user_limits: tuple[int, int] = USER_LIMITS["free"],
+        chain_seconds: float = 25.0,
     ) -> None:
         """`client` answers first; each backup is tried in order when the one before it gives no valid answer.
-        `user_limits`: AI requests per minute and per day for one caller."""
+        `user_limits`: AI requests per minute and per day for one caller. `chain_seconds`: no new model call starts
+        after this long, so a request ends (degraded) before the Android app's 30 s timeout (audit A1)."""
         self._sessions = sessions
         self._user_limits = user_limits
+        self._chain_seconds = chain_seconds
         self._chain = [_Link(c, lim, _Limiter(lim)) for c, lim in [(client, limits), *backups]]
 
     @property
@@ -150,13 +153,16 @@ class AiRunner:
         return hashlib.sha256(head + req.cache_input).hexdigest()
 
     def _call[T: BaseModel](
-        self, link: _Link, req: AiRequest[T], extra: list[Part], now: datetime, *, wait: bool
+        self, link: _Link, req: AiRequest[T], extra: list[Part], now: datetime, *, wait: bool, left: float
     ) -> str | None:
         """One call to one model. `wait`: queue for its per-minute slot (the last model of the chain, and the
         validation retry); otherwise a busy model is skipped at once, because the next model answers sooner.
         The per-minute slot is taken before the day's budget, so a skipped call never spends a daily call."""
         day, model = pacific_day(now), link.client.model
-        if not link.limiter.acquire(link.limits.wait_seconds if wait else 0):
+        if left <= 0:
+            _log.info("ai chain time used up: %s", model, extra={"route": req.pipeline})
+            return None
+        if not link.limiter.acquire(min(link.limits.wait_seconds, left) if wait else 0):
             _log.info("ai limiter busy: %s", model, extra={"route": req.pipeline})
             return None
         try:
@@ -221,15 +227,16 @@ class AiRunner:
                 429, "RATE_LIMITED", "Too many AI requests; try again later", headers={"Retry-After": str(retry_after)}
             )
 
+        ends = time.monotonic() + self._chain_seconds
         for link in self._chain:
-            raw = self._call(link, req, [], now, wait=link is self._chain[-1])
+            raw = self._call(link, req, [], now, wait=link is self._chain[-1], left=ends - time.monotonic())
             if raw is None:
                 continue  # unavailable, out of budget or busy: the next model, at once
             value, problems = self._parse(req, raw, validate)
             outcome: Outcome = "ok"
             if value is None:
                 note = "Your previous answer had these problems; fix them and answer again:\n- " + "\n- ".join(problems)
-                raw = self._call(link, req, [Part.text(note)], now, wait=True)
+                raw = self._call(link, req, [Part.text(note)], now, wait=True, left=ends - time.monotonic())
                 value, _ = self._parse(req, raw, validate) if raw is not None else (None, [])
                 outcome = "retried"
             if value is None:

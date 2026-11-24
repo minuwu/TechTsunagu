@@ -149,7 +149,8 @@ class MessageDraft(AiModel):
 
     transcript_ja: Text
     text: AiTri
-    questions: Annotated[list[AiQuestion], Field(min_length=1, max_length=3)]
+    questions: Annotated[list[AiQuestion], Field(max_length=3)]
+    """None for a message with nothing to check (a greeting, thanks): audit A4, "hello" made a quiz."""
     tasks: Annotated[list[AiTaskDraft], Field(max_length=5)]
 
 

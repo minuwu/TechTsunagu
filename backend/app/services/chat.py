@@ -56,7 +56,8 @@ from app.services.auth import Principal
 from app.services.notes import ai_languages
 
 PROMPT_VERSION = 1  # translate
-MESSAGE_PROMPT_VERSION = 2  # draft_message, reexplain: per-shop languages (XREQ-011)
+MESSAGE_PROMPT_VERSION = 2  # reexplain: per-shop languages (XREQ-011)
+DRAFT_PROMPT_VERSION = 3  # draft_message: the Foreman's own words, no quiz for a greeting (audit A4)
 NUDGE_WINDOW = timedelta(minutes=10)  # one Nudge per message and Worker in this window
 
 
@@ -419,7 +420,7 @@ def _draft_ai(
         pipeline="draft_message",
         prompt=render(
             "draft_message",
-            MESSAGE_PROMPT_VERSION,
+            DRAFT_PROMPT_VERSION,
             glossary=glossary,
             languages=", ".join(languages),
             members=roster,
@@ -434,7 +435,8 @@ def _draft_ai(
         languages=languages,
     )
     member_ids, machine_ids = {str(u.id) for u in people}, {str(m.id) for m in machines}
-    result = ai.run(request, lambda d: message_problems(d, terms, languages, member_ids, machine_ids), now)
+    names = [(m.name.get("ja", ""), m.name.get("en", "")) for m in machines]
+    result = ai.run(request, lambda d: message_problems(d, terms, languages, member_ids, machine_ids, text, names), now)
     return result.value, terms, languages
 
 

@@ -83,7 +83,9 @@ def ai_runner(settings: Settings, factory: sessionmaker[Session], ai_client: AiC
         groq = GroqClient(settings.groq_api_key.get_secret_value(), GROQ_MODEL, timeout)
         links.append((groq, _limits(settings, GROQ_MODEL)))
     (first, first_limits), *backups = links
-    return AiRunner(first, factory, first_limits, backups, USER_LIMITS[settings.ai_tier])
+    return AiRunner(
+        first, factory, first_limits, backups, USER_LIMITS[settings.ai_tier], chain_seconds=settings.ai_chain_seconds
+    )
 
 
 def create_app(
