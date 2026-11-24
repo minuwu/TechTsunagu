@@ -46,6 +46,8 @@ class RoomOutboxStore(
         outboxDao.delete(key)
     }
 
+    override suspend fun oldestFailed(kind: String): OutboxEntity? = outboxDao.oldestFailed(kind)
+
     override fun pendingCount(kind: String): Flow<Int> {
         return outboxDao.observePendingCount(kind)
     }

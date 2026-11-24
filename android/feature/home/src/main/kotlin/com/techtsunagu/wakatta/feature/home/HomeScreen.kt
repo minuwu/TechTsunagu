@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.techtsunagu.wakatta.core.common.MviViewModel
+import com.techtsunagu.wakatta.core.design.component.RefreshOnReturn
 import com.techtsunagu.wakatta.core.design.component.Avatar
 import com.techtsunagu.wakatta.core.design.component.EmptyState
 import com.techtsunagu.wakatta.core.design.component.ErrorState
@@ -60,10 +61,9 @@ import com.techtsunagu.wakatta.core.design.component.WakattaCard
 import com.techtsunagu.wakatta.core.design.component.WakattaListItem
 import com.techtsunagu.wakatta.core.design.component.WakattaTopBar
 import com.techtsunagu.wakatta.core.design.theme.StatusColors
+import com.techtsunagu.wakatta.core.model.AppError
 import com.techtsunagu.wakatta.core.model.AppResult
-import com.techtsunagu.wakatta.core.model.AttentionCard
-import com.techtsunagu.wakatta.core.model.AttentionSource
-import com.techtsunagu.wakatta.core.model.EventSource
+import com.techtsunagu.wakatta.core.model.LanguageManager
 import com.techtsunagu.wakatta.core.model.MachineRepository
 import com.techtsunagu.wakatta.core.model.Role as UserRole
 import com.techtsunagu.wakatta.core.model.SessionStore
@@ -92,10 +92,12 @@ import com.techtsunagu.wakatta.core.navigation.SkillsKey
 import com.techtsunagu.wakatta.core.navigation.SupportLogKey
 import com.techtsunagu.wakatta.core.navigation.TaskKey
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.OffsetDateTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import com.techtsunagu.wakatta.feature.home.data.HomeBoardSource
@@ -106,8 +108,6 @@ data class AttentionCardItem(
     val name: String,
     val message: String,
     val status: WakattaStatus,
-    val threadId: String = "t_line2",
-    val messageId: String = "m1",
 )
 
 data class LockedMachineItem(
@@ -150,15 +150,14 @@ data class HomeUiState(
     val userLanguage: String = "ja",
     val dateText: String = "",
     // Foreman data
-    val followUpCount: Int = 1,
-    val followUpDetailUser: String = "Rahim",
-    val followUpDetailTerm: String = "金型",
-    val tallyGreen: Int = 5,
-    val tallyOrange: Int = 2,
-    val tallyRed: Int = 1,
-    val tallyWait: Int = 1,
-    val openTasksCount: Int = 3,
-    val lockedMachinesCount: Int = 1,
+    val followUpCount: Int = 0,
+    val followUpDetailUser: String = "",
+    val followUpDetailTerm: String = "",
+    val tallyGreen: Int = 0,
+    val tallyOrange: Int = 0,
+    val tallyRed: Int = 0,
+    val openTasksCount: Int = 0,
+    val lockedMachinesCount: Int = 0,
     val attentionCards: List<AttentionCardItem> = emptyList(),
     val lockedMachines: List<LockedMachineItem> = emptyList(),
     // Worker data
@@ -166,7 +165,7 @@ data class HomeUiState(
     val pendingChecks: List<PendingCheckItem> = emptyList(),
     val myTasks: List<HomeTaskItem> = emptyList(),
     val myMachines: List<HomeMachineItem> = emptyList(),
-    val unreadNotificationsCount: Int = 2,
+    val unreadNotificationsCount: Int = 0,
 )
 
 sealed interface HomeEvent {
@@ -182,7 +181,7 @@ sealed interface HomeEvent {
     data object SupportLogClick : HomeEvent
     data object BoardTileClick : HomeEvent
     data object MachinesTileClick : HomeEvent
-    data class AttentionItemClick(val threadId: String, val messageId: String) : HomeEvent
+    data object AttentionItemClick : HomeEvent
     data class LockedMachineClick(val machineId: String) : HomeEvent
     data class PendingCheckClick(val threadId: String) : HomeEvent
     data class TaskClick(val taskId: String) : HomeEvent
@@ -198,14 +197,15 @@ sealed interface HomeEffect {
     data class Navigate(val key: Any) : HomeEffect
 }
 
+private val NO_NETWORK = setOf(AppError.Offline, AppError.Timeout)
+
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val attentionSources: Set<@JvmSuppressWildcards AttentionSource>,
     private val machineRepository: MachineRepository,
     private val taskRepository: TaskRepository,
-    private val eventSource: EventSource,
     private val boardSource: HomeBoardSource,
     private val sessionStore: SessionStore,
+    private val languageManager: LanguageManager,
 ) : MviViewModel<HomeUiState, HomeEvent, HomeEffect>(HomeUiState(isLoading = true)) {
 
     init {
@@ -214,140 +214,88 @@ class HomeViewModel @Inject constructor(
 
     private fun loadData() {
         viewModelScope.launch {
-            updateState { it.copy(isLoading = true, error = null) }
-            try {
-                val session = sessionStore.session.firstOrNull()
-                val isForeman = session?.user?.role == UserRole.FOREMAN
-                val userName = session?.user?.displayName ?: if (isForeman) "田中" else "Rahim"
-                val userLang = session?.user?.language ?: if (isForeman) "ja" else "en"
+            updateState { it.copy(isLoading = it.userName.isEmpty(), error = null) }
+            val user = sessionStore.session.firstOrNull()?.user ?: return@launch
+            val lang = languageManager.currentLanguage.value
 
-                val dateLocale = if (isForeman) Locale.JAPANESE else Locale.ENGLISH
-                val dateFormatted = try {
-                    LocalDate.now().format(DateTimeFormatter.ofPattern("M月d日 (E)", dateLocale))
-                } catch (_: Throwable) {
-                    "Today"
-                }
-
-                // Load machines
-                val machinesResult = machineRepository.getMachines()
-                val machines = (machinesResult as? AppResult.Success)?.value.orEmpty()
-
-                // Load tasks
-                val tasksResult = taskRepository.getTasks()
-                val tasks = (tasksResult as? AppResult.Success)?.value.orEmpty()
-                val openTasks = tasks.filter { it.column != TaskColumn.DONE }
-
-                // Foreman locked machines: live from the Foreman Board, the demo list when there is no live data.
-                val board = if (isForeman) (boardSource.getBoard() as? AppResult.Success)?.value else null
-                val lockedMachines = board?.lockedMachines?.map { m ->
-                    LockedMachineItem(m.machineId, pick(m.name, userLang), m.workerNames.joinToString(", "))
-                } ?: machines.filter { !it.isReady }.map { m ->
-                    LockedMachineItem(
-                        id = m.id,
-                        name = pick(m.name, userLang),
-                        lockedWorkersText = "Rahim, Nguyen",
-                    )
-                }
-
-                // Worker items
-                val workerTasks = openTasks.filter { task ->
-                    val myId = session?.user?.id ?: "u_rahim"
-                    task.assignees.contains(myId) || task.assignees.isEmpty()
-                }.map { task ->
-                    HomeTaskItem(
-                        id = task.id,
-                        title = pick(task.title, userLang),
-                        dueText = task.dueAt ?: "Today",
-                    )
-                }
-
-                val workerMachines = machines.map { m ->
-                    HomeMachineItem(
-                        id = m.id,
-                        name = pick(m.name, userLang),
-                        isReady = m.isReady,
-                    )
-                }
-
-                val attentionList = listOf(
-                    AttentionCardItem(
-                        id = "att1",
-                        name = "Rahim Uddin",
-                        message = "2号プレス: 金型交換の手順",
-                        status = WakattaStatus.ORANGE,
-                        threadId = "t_line2",
-                        messageId = "m1",
+            val machinesCall = async { machineRepository.getMachines() }
+            val tasksCall = async { taskRepository.getTasks() }
+            val machinesResult = machinesCall.await()
+            val tasksResult = tasksCall.await()
+            if (tasksResult is AppResult.Failure && tasksResult.error in NO_NETWORK && state.value.userName.isNotEmpty()) {
+                // A refresh without a network keeps what is shown.
+                updateState { it.copy(isLoading = false) }
+                return@launch
+            }
+            // One failed part leaves its card empty. Both failed means offline or the server is down.
+            if (machinesResult is AppResult.Failure && tasksResult is AppResult.Failure) {
+                updateState { it.copy(isLoading = false, error = tasksResult.error.toString()) }
+                return@launch
+            }
+            val openTasks = tasksResult.orNull().orEmpty().filter { it.column != TaskColumn.DONE }
+            updateState {
+                it.copy(
+                    isForeman = user.role == UserRole.FOREMAN,
+                    userName = user.displayName,
+                    userLanguage = lang,
+                    dateText = LocalDate.now().format(
+                        if (lang == "ja") DateTimeFormatter.ofPattern("M月d日 (E)", Locale.JAPANESE)
+                        else DateTimeFormatter.ofPattern("EEE, d MMM", Locale.forLanguageTag(lang)),
                     ),
-                    AttentionCardItem(
-                        id = "att2",
-                        name = "Nguyen Van An",
-                        message = "安全連絡: 防護メガネ着用",
-                        status = WakattaStatus.RED,
-                        threadId = "t_safety",
-                        messageId = "m2",
-                    ),
+                    openTasksCount = openTasks.size,
                 )
+            }
 
-                val pendingChecks = if (!isForeman) {
-                    listOf(
-                        PendingCheckItem(
-                            id = "chk1",
-                            fromName = "Tanaka Kenichi",
-                            time = "08:02",
-                            text = "今日は3号機の油の点検を先にしてください。",
-                            threadId = "t_line2",
-                        ),
-                    )
-                } else {
-                    emptyList()
-                }
-
-                val briefing = if (!isForeman) {
-                    BriefingItem(
-                        id = "b1",
-                        focusText = "Line 2 press die maintenance safety protocols",
-                    )
-                } else {
-                    null
-                }
-
+            if (user.role == UserRole.FOREMAN) {
+                val lockedCall = async { boardSource.getLockedMachines() }
+                val followUpsCall = async { boardSource.getOpenFollowUps() }
+                val tallyCall = async { boardSource.getTodayTally() }
+                val locked = lockedCall.await().orNull().orEmpty()
+                val followUps = followUpsCall.await().orNull().orEmpty()
+                val tally = tallyCall.await().orNull()
                 updateState {
                     it.copy(
                         isLoading = false,
-                        error = null,
-                        isForeman = isForeman,
-                        userName = userName,
-                        userLanguage = userLang,
-                        dateText = dateFormatted,
-                        // shortcut: no Worker name or term for the open count and no Wakatta tally route, so that demo text stays, wire when the backend ships them.
-                        followUpCount = board?.openConfusions ?: 1,
-                        followUpDetailUser = "Rahim",
-                        followUpDetailTerm = "金型",
-                        tallyGreen = 5,
-                        tallyOrange = 2,
-                        tallyRed = 1,
-                        tallyWait = 1,
-                        openTasksCount = openTasks.size,
-                        lockedMachinesCount = lockedMachines.size,
-                        attentionCards = attentionList,
-                        lockedMachines = lockedMachines,
-                        todayBriefing = briefing,
-                        pendingChecks = pendingChecks,
-                        myTasks = workerTasks,
-                        myMachines = workerMachines,
-                        unreadNotificationsCount = 2,
+                        followUpCount = followUps.size,
+                        followUpDetailUser = followUps.firstOrNull()?.workerName.orEmpty(),
+                        followUpDetailTerm = followUps.firstOrNull()?.termJa.orEmpty(),
+                        tallyGreen = tally?.green ?: 0,
+                        tallyOrange = tally?.orange ?: 0,
+                        tallyRed = tally?.red ?: 0,
+                        lockedMachinesCount = locked.size,
+                        attentionCards = followUps.take(ATTENTION_MAX).map { f ->
+                            AttentionCardItem(f.id, f.workerName, f.termJa, WakattaStatus.RED)
+                        },
+                        lockedMachines = locked.map { m ->
+                            LockedMachineItem(m.machineId, pick(m.name, lang), m.workerNames.joinToString(", "))
+                        },
                     )
                 }
-            } catch (t: Throwable) {
+            } else {
+                val briefingCall = async { boardSource.getBriefing() }
+                val checksCall = async { boardSource.getPendingChecks() }
+                val briefing = briefingCall.await().orNull()
+                val checks = checksCall.await().orNull().orEmpty()
                 updateState {
                     it.copy(
                         isLoading = false,
-                        error = t.message ?: "Failed to load home data",
+                        todayBriefing = briefing?.let { b -> BriefingItem(b.id, pick(b.text, lang)) },
+                        pendingChecks = checks.map { c ->
+                            PendingCheckItem(c.id, c.threadTitle, shortTime(c.sentAt), pick(c.text, lang), c.threadId)
+                        },
+                        myTasks = openTasks.filter { t -> user.id in t.assignees || t.assignees.isEmpty() }.map { t ->
+                            HomeTaskItem(t.id, pick(t.title, lang), t.dueAt.orEmpty())
+                        },
+                        myMachines = machinesResult.orNull().orEmpty().map { m ->
+                            HomeMachineItem(m.id, pick(m.name, lang), m.isReady)
+                        },
                     )
                 }
             }
         }
     }
+
+    private fun <T> AppResult<T>.orNull(): T? = (this as? AppResult.Success)?.value
 
     override fun onEvent(event: HomeEvent) {
         when (event) {
@@ -369,7 +317,7 @@ class HomeViewModel @Inject constructor(
             HomeEvent.SupportLogClick -> sendEffect(HomeEffect.Navigate(SupportLogKey()))
             HomeEvent.BoardTileClick -> sendEffect(HomeEffect.Navigate(BoardKey))
             HomeEvent.MachinesTileClick -> sendEffect(HomeEffect.Navigate(MachinesKey))
-            is HomeEvent.AttentionItemClick -> sendEffect(HomeEffect.Navigate(ChatKey(event.threadId)))
+            HomeEvent.AttentionItemClick -> sendEffect(HomeEffect.Navigate(FollowUpsKey))
             is HomeEvent.LockedMachineClick -> sendEffect(HomeEffect.Navigate(MachineKey(event.machineId)))
             is HomeEvent.PendingCheckClick -> sendEffect(HomeEffect.Navigate(ChatKey(event.threadId)))
             is HomeEvent.TaskClick -> sendEffect(HomeEffect.Navigate(TaskKey(event.taskId)))
@@ -389,12 +337,23 @@ class HomeViewModel @Inject constructor(
     }
 }
 
+private const val ATTENTION_MAX = 5
+
+/** Time only for today, else month/day and time. */
+internal fun shortTime(iso: String, zone: ZoneId = ZoneId.systemDefault(), today: LocalDate = LocalDate.now(zone)): String =
+    runCatching {
+        val local = OffsetDateTime.parse(iso).atZoneSameInstant(zone)
+        local.format(DateTimeFormatter.ofPattern(if (local.toLocalDate() == today) "HH:mm" else "M/d HH:mm"))
+    }.getOrDefault("")
+
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel = viewModel(),
     onNavigate: (Any) -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+
+    RefreshOnReturn { viewModel.onEvent(HomeEvent.Refresh) }
 
     LaunchedEffect(viewModel) {
         viewModel.effects.collect { effect ->
@@ -474,7 +433,7 @@ fun HomeContent(
                     contentAlignment = Alignment.Center,
                 ) {
                     ErrorState(
-                        message = stringResource(R.string.home_error, state.error),
+                        message = stringResource(R.string.home_error),
                         retryLabel = stringResource(R.string.home_retry),
                         onRetry = { onEvent(HomeEvent.Retry) },
                     )
@@ -636,7 +595,7 @@ private fun ForemanHomeLayout(
                         Spacer(modifier = Modifier.height(12.dp))
 
                         // Segmented bar
-                        val total = state.tallyGreen + state.tallyOrange + state.tallyRed + state.tallyWait
+                        val total = state.tallyGreen + state.tallyOrange + state.tallyRed
                         if (total > 0) {
                             Row(
                                 modifier = Modifier
@@ -668,25 +627,7 @@ private fun ForemanHomeLayout(
                                             .background(StatusColors.Red),
                                     )
                                 }
-                                if (state.tallyWait > 0) {
-                                    Box(
-                                        modifier = Modifier
-                                            .weight(state.tallyWait.toFloat())
-                                            .fillMaxSize()
-                                            .background(StatusColors.Grey),
-                                    )
-                                }
                             }
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = stringResource(
-                                    R.string.home_bar_cap_active,
-                                    state.tallyWait,
-                                    total,
-                                ),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
                         } else {
                             Text(
                                 text = stringResource(R.string.home_bar_cap_empty),
@@ -751,7 +692,7 @@ private fun ForemanHomeLayout(
                 contentType = { "attention_item" },
             ) { card ->
                 WakattaCard(
-                    onClick = { onEvent(HomeEvent.AttentionItemClick(card.threadId, card.messageId)) },
+                    onClick = { onEvent(HomeEvent.AttentionItemClick) },
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     WakattaListItem(

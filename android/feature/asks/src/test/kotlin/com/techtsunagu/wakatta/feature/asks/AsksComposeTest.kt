@@ -115,7 +115,7 @@ class AsksComposeTest {
 
         composeTestRule.onNodeWithText("Asks (To Senpai)").assertIsDisplayed()
         composeTestRule.onNodeWithText("病院はどこですか？").assertIsDisplayed()
-        composeTestRule.onNodeWithText("いい質問ですね。明日の昼休みに、いっしょに調べましょう。").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Waiting for the Senpai's reply").assertIsDisplayed()
     }
 
     @Test

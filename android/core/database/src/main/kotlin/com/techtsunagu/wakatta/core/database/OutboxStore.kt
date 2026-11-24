@@ -13,5 +13,6 @@ interface OutboxStore {
     suspend fun getPending(now: Long = System.currentTimeMillis(), limit: Int = 10): List<OutboxEntity>
     suspend fun recordAttempt(key: String, nextAttemptAt: Long, state: String = OutboxEntity.STATE_PENDING)
     suspend fun remove(key: String)
+    suspend fun oldestFailed(kind: String): OutboxEntity?
     fun pendingCount(kind: String): Flow<Int>
 }

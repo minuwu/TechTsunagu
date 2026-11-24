@@ -133,7 +133,7 @@ class NotificationsViewModel @Inject constructor(
                 is AppResult.Success -> {
                     val language = languages.currentLanguage.value
                     val rows = result.value.mapNotNull { item ->
-                        NotificationTextBuilder.buildNotificationText(item.kind, item.senderName, language)
+                        (NotificationTextBuilder.buildNotificationText(item.kind, item.senderName, language) ?: item.title)
                             ?.let { NotificationRow(item.id, it, item.isUnread) }
                     }
                     updateState { it.copy(isLoading = false, items = rows) }

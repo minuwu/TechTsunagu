@@ -1,17 +1,23 @@
 package com.techtsunagu.wakatta.feature.asks
 
+import com.techtsunagu.wakatta.core.model.AppResult
 import com.techtsunagu.wakatta.core.model.DemoSeed
 import com.techtsunagu.wakatta.core.model.Role
 import com.techtsunagu.wakatta.core.model.Session
 import com.techtsunagu.wakatta.core.model.SessionStore
 import com.techtsunagu.wakatta.core.model.User
+import com.techtsunagu.wakatta.core.model.WorkerInfo
+import com.techtsunagu.wakatta.core.model.WorkerRepository
 import com.techtsunagu.wakatta.core.testing.MainDispatcherRule
 import com.techtsunagu.wakatta.feature.asks.data.FakeMeetupRepository
 import com.techtsunagu.wakatta.feature.asks.data.FakeSenpaiRepository
 import com.techtsunagu.wakatta.feature.asks.data.FakeTodayWordSource
+import com.techtsunagu.wakatta.feature.asks.data.SenpaiRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -43,6 +49,7 @@ class SenpaiViewModelTest {
             meetupRepository = FakeMeetupRepository(0L),
             todayWordSource = FakeTodayWordSource(),
             sessionStore = TestSessionStore(session),
+            workerRepository = TestWorkers(),
         )
         advanceUntilIdle()
 
@@ -62,6 +69,7 @@ class SenpaiViewModelTest {
             meetupRepository = FakeMeetupRepository(0L),
             todayWordSource = FakeTodayWordSource(),
             sessionStore = TestSessionStore(),
+            workerRepository = TestWorkers(),
         )
         advanceUntilIdle()
 
@@ -80,6 +88,7 @@ class SenpaiViewModelTest {
             meetupRepository = FakeMeetupRepository(0L),
             todayWordSource = FakeTodayWordSource(),
             sessionStore = TestSessionStore(),
+            workerRepository = TestWorkers(),
         )
         viewModel.onEvent(SenpaiEvent.MeetupKindChanged("festival"))
         assertEquals("festival", viewModel.state.value.meetupDraftKind)
@@ -98,6 +107,7 @@ class SenpaiViewModelTest {
             meetupRepository = FakeMeetupRepository(0L),
             todayWordSource = FakeTodayWordSource(),
             sessionStore = TestSessionStore(),
+            workerRepository = TestWorkers(),
         )
         advanceUntilIdle()
 
@@ -111,22 +121,78 @@ class SenpaiViewModelTest {
     }
 
     @Test
-    fun createPairLinkAndDismissDialog() = runTest {
+    fun foremanPairsAWorkerWithANamedSenpai() = runTest {
+        val foreman = User(id = "u_tanaka", displayName = "Tanaka", role = Role.FOREMAN, language = "ja")
+        val pairs = FakeSenpaiRepository(0L)
         val viewModel = SenpaiViewModel(
-            senpaiRepository = FakeSenpaiRepository(0L),
+            senpaiRepository = pairs,
             meetupRepository = FakeMeetupRepository(0L),
             todayWordSource = FakeTodayWordSource(),
-            sessionStore = TestSessionStore(),
+            sessionStore = TestSessionStore(Session(token = "tok", user = foreman)),
+            workerRepository = TestWorkers(),
         )
         advanceUntilIdle()
 
-        viewModel.onEvent(SenpaiEvent.CreatePairLinkClick("u_newbie"))
+        viewModel.onEvent(SenpaiEvent.OpenPairSheet)
+        viewModel.onEvent(SenpaiEvent.CreatePairLinkClick) // no name: nothing is sent
         advanceUntilIdle()
+        assertNull(viewModel.state.value.createdPairToken)
 
+        viewModel.onEvent(SenpaiEvent.PairDraftChanged("6", " Sato ", "jichikai"))
+        viewModel.onEvent(SenpaiEvent.CreatePairLinkClick)
+        advanceUntilIdle()
         assertNotNull(viewModel.state.value.createdPairToken)
+        val made = viewModel.state.value.pairs.first { it.workerId == "6" }
+        assertEquals("Sato", made.senpaiName)
+        assertEquals("jichikai", made.kind)
 
         viewModel.onEvent(SenpaiEvent.DismissTokenDialog)
         assertNull(viewModel.state.value.createdPairToken)
+    }
+
+    @Test
+    fun aFutureMeetupIsRefusedBeforeTheServerIsAsked() = runTest {
+        val meetups = FakeMeetupRepository(0L)
+        val viewModel = SenpaiViewModel(
+            senpaiRepository = FakeSenpaiRepository(0L),
+            meetupRepository = meetups,
+            todayWordSource = FakeTodayWordSource(),
+            sessionStore = TestSessionStore(),
+            workerRepository = TestWorkers(),
+        )
+        viewModel.onEvent(SenpaiEvent.OpenMeetupSheet())
+        viewModel.onEvent(SenpaiEvent.MeetupDateChanged("2999-01-01"))
+        viewModel.onEvent(SenpaiEvent.SaveMeetupClick)
+        advanceUntilIdle()
+        assertTrue(viewModel.state.value.isMeetupSheetOpen)
+        assertEquals(R.string.asks_error_future_date, (viewModel.effects.first() as SenpaiEffect.ShowToast).messageRes)
+    }
+
+    @Test
+    fun aListThatDoesNotLoadShowsTheErrorAndRetryLoadsItAgain() = runTest {
+        var up = false
+        val real = FakeSenpaiRepository(0L)
+        val flaky = object : SenpaiRepository by real {
+            override fun getSenpaiPairForWorker(workerId: String) = flow {
+                if (!up) error("offline")
+                emit(real.getSenpaiPairForWorker(workerId).first())
+            }
+        }
+        val viewModel = SenpaiViewModel(
+            senpaiRepository = flaky,
+            meetupRepository = FakeMeetupRepository(0L),
+            todayWordSource = FakeTodayWordSource(),
+            sessionStore = TestSessionStore(Session(token = "tok", user = DemoSeed.demoWorker)),
+            workerRepository = TestWorkers(),
+        )
+        advanceUntilIdle()
+        assertEquals(R.string.asks_error_load, viewModel.state.value.errorRes)
+
+        up = true
+        viewModel.onEvent(SenpaiEvent.Retry)
+        advanceUntilIdle()
+        assertNull(viewModel.state.value.errorRes)
+        assertNotNull(viewModel.state.value.pair)
     }
 
     @Test
@@ -138,6 +204,7 @@ class SenpaiViewModelTest {
             meetupRepository = FakeMeetupRepository(0L),
             todayWordSource = FakeTodayWordSource(),
             sessionStore = TestSessionStore(session),
+            workerRepository = TestWorkers(),
         )
         advanceUntilIdle()
 
@@ -147,4 +214,9 @@ class SenpaiViewModelTest {
         assertNotNull(state.todayWord)
         assertEquals("ধন্যবাদ", state.todayWord?.word)
     }
+}
+
+internal class TestWorkers : WorkerRepository {
+    override suspend fun getWorkers(): AppResult<List<WorkerInfo>> =
+        AppResult.Success(listOf(WorkerInfo("5", "Rahim Uddin", "bn"), WorkerInfo("6", "Siti Rahma", "id")))
 }

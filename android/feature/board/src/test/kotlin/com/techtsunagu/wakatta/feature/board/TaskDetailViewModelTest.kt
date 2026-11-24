@@ -1,7 +1,15 @@
 package com.techtsunagu.wakatta.feature.board
 
 import com.techtsunagu.wakatta.core.model.AppError
+import com.techtsunagu.wakatta.core.model.AppResult
+import com.techtsunagu.wakatta.core.model.Machine
+import com.techtsunagu.wakatta.core.model.MachineDetail
+import com.techtsunagu.wakatta.core.model.MachineRepository
+import com.techtsunagu.wakatta.core.model.Role
 import com.techtsunagu.wakatta.core.model.TaskColumn
+import com.techtsunagu.wakatta.core.model.User
+import com.techtsunagu.wakatta.core.model.WorkerInfo
+import com.techtsunagu.wakatta.core.model.WorkerRepository
 import com.techtsunagu.wakatta.feature.board.data.FakeTaskRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -25,14 +33,40 @@ class TaskDetailViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
     private lateinit var repository: FakeTaskRepository
     private lateinit var sessionStore: TestSessionStore
+    private lateinit var languageManager: TestLanguageManager
     private lateinit var viewModel: TaskDetailViewModel
+
+    private val sampleMachine = Machine(
+        id = "mc3",
+        code = "press-3",
+        name = mapOf("ja" to "3号機", "en" to "Machine 3"),
+        currentVersionId = "v1",
+        isReady = true,
+    )
+
+    private val testMachines = object : MachineRepository {
+        override suspend fun getMachines() = AppResult.Success(listOf(sampleMachine))
+        override suspend fun getMachine(id: String): AppResult<MachineDetail> = AppResult.Failure(AppError.NotFound)
+        override suspend fun scan(machineId: String) = AppResult.Success(Unit)
+    }
+
+    private val testWorkers = object : WorkerRepository {
+        override suspend fun getWorkers() = AppResult.Success(
+            listOf(
+                WorkerInfo(id = "u_siti", displayName = "Siti Rahma", language = "id"),
+                WorkerInfo(id = "u_nguyen", displayName = "Nguyen Van", language = "vi"),
+                WorkerInfo(id = "u_rahim", displayName = "Rahim Uddin", language = "bn"),
+            )
+        )
+    }
 
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         repository = FakeTaskRepository(delayMs = 0L)
         sessionStore = TestSessionStore()
-        viewModel = TaskDetailViewModel(repository, sessionStore)
+        languageManager = TestLanguageManager("ja")
+        viewModel = TaskDetailViewModel(repository, sessionStore, testMachines, testWorkers, languageManager)
     }
 
     @After
@@ -47,21 +81,15 @@ class TaskDetailViewModelTest {
 
         val state = viewModel.state.value
         assertFalse(state.isLoading)
-        assertNull(state.error)
+        assertNull(state.errorRes)
         assertFalse(state.isConflict)
         assertNotNull(state.task)
         assertEquals("k1", state.task!!.id)
         assertEquals(TaskColumn.DONE, state.task!!.column)
 
-        // Machine details resolved
+        // Machine details resolved via MachineRepository
         assertNotNull(state.machine)
         assertEquals("mc3", state.machine!!.id)
-
-        // Source message resolved
-        assertNotNull(state.sourceMessageText)
-        assertEquals("田中 健一", state.sourceMessageSender)
-        assertEquals("08:02", state.sourceMessageAt)
-        assertEquals("t_line2", state.sourceThreadId)
     }
 
     @Test
@@ -72,7 +100,7 @@ class TaskDetailViewModelTest {
         val state = viewModel.state.value
         assertFalse(state.isLoading)
         assertNull(state.task)
-        assertNotNull(state.error)
+        assertEquals(R.string.board_error_not_found, state.errorRes)
     }
 
     @Test
@@ -90,7 +118,7 @@ class TaskDetailViewModelTest {
         assertNotNull(state.task)
         assertEquals(TaskColumn.DOING, state.task!!.column)
         assertEquals(2, state.task!!.version)
-        assertEquals("Task moved", state.messageInfo)
+        assertEquals(R.string.board_task_moved, state.messageRes)
     }
 
     @Test
@@ -109,8 +137,7 @@ class TaskDetailViewModelTest {
         val state = viewModel.state.value
         assertFalse(state.isUpdating)
         assertTrue(state.isConflict)
-        assertNotNull(state.error)
-        assertTrue(state.error!!.contains("Conflict"))
+        assertEquals(R.string.board_conflict_message, state.errorRes)
     }
 
     @Test
@@ -132,27 +159,21 @@ class TaskDetailViewModelTest {
 
         val state = viewModel.state.value
         assertFalse(state.isConflict)
-        assertNull(state.error)
+        assertNull(state.errorRes)
         assertEquals(2, state.task!!.version)
         assertEquals(TaskColumn.DONE, state.task!!.column)
     }
 
     @Test
-    fun clickCommentsSetsMessageInfo() = runTest {
-        viewModel.onEvent(TaskDetailEvent.ClickComments)
-        advanceUntilIdle()
-
-        assertEquals("Comments are not in the prototype", viewModel.state.value.messageInfo)
-    }
-
-    @Test
     fun clearMessageResetsMessageInfo() = runTest {
-        viewModel.onEvent(TaskDetailEvent.ClickComments)
+        viewModel.onEvent(TaskDetailEvent.Init("k3"))
         advanceUntilIdle()
-        assertEquals("Comments are not in the prototype", viewModel.state.value.messageInfo)
+        viewModel.onEvent(TaskDetailEvent.ChangeColumn(TaskColumn.DOING))
+        advanceUntilIdle()
+        assertEquals(R.string.board_task_moved, viewModel.state.value.messageRes)
 
         viewModel.onEvent(TaskDetailEvent.ClearMessage)
-        assertNull(viewModel.state.value.messageInfo)
+        assertNull(viewModel.state.value.messageRes)
     }
 
     @Test
@@ -165,14 +186,30 @@ class TaskDetailViewModelTest {
         advanceUntilIdle()
 
         val errorState = viewModel.state.value
-        assertNotNull(errorState.error)
+        assertEquals(R.string.board_error_offline, errorState.errorRes)
 
         repository.simulateError(null)
         viewModel.onEvent(TaskDetailEvent.Retry)
         advanceUntilIdle()
 
         val recoveredState = viewModel.state.value
-        assertNull(recoveredState.error)
+        assertNull(recoveredState.errorRes)
         assertNotNull(recoveredState.task)
+    }
+
+    @Test
+    fun workerViewOfAssigneesShowsOnlySelfAndOthersCount() {
+        val assignees = listOf("u_rahim", "u_siti", "u_nguyen")
+        val result = resolveAssigneeDisplayNames(
+            assigneeIds = assignees,
+            isForeman = false,
+            currentUserId = "u_rahim",
+            currentUserName = "Rahim Uddin",
+            users = emptyList(),
+        )
+        assertEquals(listOf("Rahim Uddin", "+2"), result)
+        // IDs are never displayed
+        assertFalse(result.contains("u_siti"))
+        assertFalse(result.contains("u_nguyen"))
     }
 }

@@ -24,32 +24,36 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 
 /**
- * A Worker's Asks over `GET|POST /asks` and `POST /asks/{id}/forward`. The Foreman's inbox and the Senpai's
- * reply keep the [fake]: `GET /asks` is Worker-only and the Senpai replies through a link token, not this app.
- * shortcut: Foreman reads and replies are Fake, wire when the backend lets a Foreman list Asks (XREQ-024).
+ * Asks over `GET|POST /asks` and `POST /asks/{id}/forward`. A Foreman only reads the shop's Asks: the Senpai replies
+ * through a link, not this app.
  */
 internal class RealAskRepository(
     private val api: () -> AsksApi,
     private val session: SessionStore,
-    private val fake: AskRepository,
 ) : AskRepository {
 
     private val asks = MutableStateFlow<List<AskDto>>(emptyList())
 
     private val me get() = session.session.value?.user?.takeIf { it.role == Role.WORKER }
 
-    override fun getAsks(workerId: String?): Flow<List<AskDto>> =
-        if (me == null) fake.getAsks(workerId) else asks.onStart { refresh() }
+    /** Throws [LoadFailed] when the list cannot be loaded. The server decides whose Asks the caller sees. */
+    override fun getAsks(workerId: String?): Flow<List<AskDto>> = asks.onStart { refresh() }
 
     private suspend fun refresh() {
-        val senpai = api().pairOrNull()?.senpaiName
-        val all = allPages { cursor -> api().asks(PAGE_LIMIT, cursor) }
+        val senpai = if (me == null) null else api().pairOrNull()?.senpaiName
+        val all = allPages { cursor -> api().asks(PAGE_LIMIT, cursor) }.orThrow()
         // The server lists newest first; the chat shows the oldest first.
-        if (all is AppResult.Success) asks.value = all.value.reversed().map { it.toAsk(senpai) }
+        asks.value = all.reversed().map { it.toAsk(senpai) }
+    }
+
+    /** The Ask itself is saved: a name that cannot be loaded must not make it look lost. */
+    private suspend fun senpaiName(): String? = try {
+        api().pairOrNull()?.senpaiName
+    } catch (_: LoadFailed) {
+        null
     }
 
     override suspend fun sendAsk(workerId: String, request: AskCreateRequest): AppResult<AskDto> {
-        if (me == null) return fake.sendAsk(workerId, request)
         val parts = parts(request) ?: return AppResult.Failure(AppError.Validation(listOf("text")))
         val created = when (val r = safeApiCall { api().createAsk(IdempotencyKey(request.idempotencyKey), parts) }) {
             is AppResult.Success -> r.value
@@ -58,21 +62,16 @@ internal class RealAskRepository(
         // A question the Notices do not cover goes to the Senpai at once, as the screen promises; no pair (409) is not an error.
         val sent = if (created.covered) created else
             (safeApiCall { api().forward(created.id) } as? AppResult.Success)?.value ?: created
-        val ask = sent.toAsk(api().pairOrNull()?.senpaiName).copy(kind = if (request.isVoice) AskKind.VOICE else AskKind.TEXT)
-        asks.update { it + ask }
+        val ask = sent.toAsk(senpaiName()).copy(kind = if (request.isVoice) AskKind.VOICE else AskKind.TEXT)
+        asks.update { list -> list.filter { it.id != ask.id } + ask } // a retried Ask is the same Ask
         return AppResult.Success(ask)
     }
 
     override suspend fun forwardAsk(askId: String): AppResult<AskDto> {
-        if (me == null) return fake.forwardAsk(askId)
         return safeApiCall { api().forward(askId) }.map { dto ->
-            dto.toAsk(api().pairOrNull()?.senpaiName).also { ask -> asks.update { list -> list.map { if (it.id == askId) ask else it } } }
+            dto.toAsk(senpaiName()).also { ask -> asks.update { list -> list.map { if (it.id == askId) ask else it } } }
         }
     }
-
-    // shortcut: no route lets a Foreman answer an Ask (the Senpai replies by link token), wire when the backend ships it.
-    override suspend fun replyAsk(askId: String, replyJa: String, replyEn: String, replyBn: String): AppResult<AskDto> =
-        fake.replyAsk(askId, replyJa, replyEn, replyBn)
 
     /** A voice Ask sends the recording, a text Ask sends the text; the server needs at least one part. */
     private fun parts(request: AskCreateRequest): List<MultipartBody.Part>? {
@@ -85,14 +84,14 @@ internal class RealAskRepository(
     }
 
     private fun AskOutDto.toAsk(senpaiName: String?): AskDto {
-        val user = checkNotNull(me)
         val reply = senpaiReply
         val noticeId = sourceNoticeIds.firstOrNull()
         return AskDto(
             id = id,
-            workerId = user.id,
-            workerName = user.displayName,
+            workerId = workerId,
+            workerName = workerName,
             text = text,
+            textJa = textJa,
             covered = covered,
             // shortcut: the server sends no notice title or excerpt, only its id and the answer, wire when the backend ships them.
             matchNotice = if (covered && answer != null && noticeId != null) NoticeMatchDto(noticeId, emptyMap(), answer, emptyMap()) else null,
@@ -100,7 +99,8 @@ internal class RealAskRepository(
             status = when {
                 reply != null -> AskStatus.REPLIED
                 covered -> AskStatus.ANSWERED
-                else -> AskStatus.FORWARDED // shortcut: an Ask that nobody could forward (no Senpai) still shows as forwarded.
+                forwarded -> AskStatus.FORWARDED
+                else -> AskStatus.OPEN
             },
             senpaiName = senpaiName,
             senpaiEnName = senpaiName,

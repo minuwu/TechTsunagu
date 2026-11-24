@@ -7,8 +7,10 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.techtsunagu.wakatta.core.model.Machine
+import com.techtsunagu.wakatta.core.model.Role
 import com.techtsunagu.wakatta.core.model.Task
 import com.techtsunagu.wakatta.core.model.TaskColumn
+import com.techtsunagu.wakatta.core.model.User
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -40,6 +42,13 @@ class TaskDetailComposeTest {
         name = mapOf("en" to "Lathe 1", "ja" to "旋盤1号機"),
         currentVersionId = "v1",
         isReady = true,
+    )
+
+    private val sampleUser = User(
+        id = "u_rahim",
+        displayName = "Rahim Uddin",
+        role = Role.WORKER,
+        language = "bn",
     )
 
     @Test
@@ -74,7 +83,7 @@ class TaskDetailComposeTest {
                 state = TaskDetailUiState(
                     isLoading = false,
                     task = null,
-                    error = "Task not found on server",
+                    errorRes = R.string.board_error_not_found,
                 ),
                 onEvent = { event ->
                     if (event is TaskDetailEvent.Retry) retryClicked = true
@@ -82,7 +91,7 @@ class TaskDetailComposeTest {
             )
         }
 
-        composeTestRule.onNodeWithText("Task not found on server").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Task not found.").assertIsDisplayed()
         composeTestRule.onNodeWithText("Retry").assertIsDisplayed()
         composeTestRule.onNodeWithText("Retry").performClick()
         assertTrue(retryClicked)
@@ -91,7 +100,6 @@ class TaskDetailComposeTest {
     @Test
     fun rendersSuccessStateWithDetails() {
         var movedToColumn: TaskColumn? = null
-        var navigatedChat = false
         var navigatedMachine = false
 
         composeTestRule.setContent {
@@ -100,22 +108,23 @@ class TaskDetailComposeTest {
                     isLoading = false,
                     task = sampleTask,
                     machine = sampleMachine,
-                    sourceMessageText = "Please verify lathe alignment before shift end.",
-                    sourceMessageSender = "Tanaka",
-                    sourceMessageAt = "08:15",
-                    sourceThreadId = "t_line2",
+                    machines = listOf(sampleMachine),
+                    users = listOf(sampleUser),
+                    isForeman = true,
                     currentUserLang = "en",
                 ),
                 onEvent = { event ->
                     if (event is TaskDetailEvent.ChangeColumn) movedToColumn = event.newColumn
                 },
                 onNavigateToMachine = { navigatedMachine = true },
-                onNavigateToChat = { navigatedChat = true },
             )
         }
 
         // Title
         composeTestRule.onNodeWithText("Lathe Alignment Check").assertIsDisplayed()
+
+        // From chat chip
+        composeTestRule.onNodeWithText("From chat").assertIsDisplayed()
 
         // Segmented control options
         composeTestRule.onNodeWithText("To do").assertIsDisplayed()
@@ -123,21 +132,15 @@ class TaskDetailComposeTest {
         composeTestRule.onNodeWithText("Done").assertIsDisplayed()
 
         // Meta info
-        composeTestRule.onNodeWithText("Today 14:00").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Lathe 1").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Today 14:00").assertExists()
+        composeTestRule.onNodeWithText("Lathe 1").performScrollTo().assertIsDisplayed()
 
-        // Source message & comments
-        composeTestRule.onNodeWithText("Please verify lathe alignment before shift end.").assertExists()
-        composeTestRule.onNodeWithText("Open in chat").assertExists()
-        composeTestRule.onNodeWithText("Add a comment…").assertExists()
+        // Assignee
+        composeTestRule.onNodeWithText("Rahim Uddin").assertExists()
 
         // Click segmented control to move to Done
         composeTestRule.onNodeWithText("Done").performClick()
         assertEquals(TaskColumn.DONE, movedToColumn)
-
-        // Click open in chat
-        composeTestRule.onNodeWithText("Open in chat").performScrollTo().performClick()
-        assertTrue(navigatedChat)
 
         // Click machine
         composeTestRule.onNodeWithText("Lathe 1").performScrollTo().performClick()

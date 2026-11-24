@@ -3,7 +3,6 @@
     <string name="notices_life_screen_title">Life &amp; Community</string>
     <string name="notices_notice_screen_title">Notice Detail</string>
     <string name="notices_new_screen_title">Post Notice</string>
-    <string name="notices_screen_id">Screen: %1$s</string>
     <string name="notices_loading">Loading...</string>
     <string name="notices_empty">No notices found</string>
     <string name="notices_retry">Retry</string>
@@ -82,4 +81,7 @@
     <string name="notices_publish_success">Notice published successfully</string>
     <string name="notices_publish_events_unconfirmed">Please confirm all dates before publishing</string>
     <string name="notices_audience_info">Recipients: %1$d workers (%2$s)</string>
+    <string name="notices_error_not_found">Notice not found.</string>
+    <string name="notices_error_submit_check">Could not submit check.</string>
+    <string name="notices_error_create_draft">Could not create notice draft.</string>
 </resources>

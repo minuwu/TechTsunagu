@@ -66,22 +66,34 @@ class MachinesViewModel @Inject constructor(
 
     override fun onEvent(event: MachinesEvent) {
         when (event) {
-            is MachinesEvent.Retry, is MachinesEvent.Refresh -> loadMachines()
+            is MachinesEvent.Retry -> loadMachines(isRefresh = false)
+            is MachinesEvent.Refresh -> loadMachines(isRefresh = true)
             is MachinesEvent.MachineClicked -> sendEffect(MachinesEffect.NavigateToMachine(event.machineId))
             is MachinesEvent.TakeCheckClicked -> sendEffect(MachinesEffect.NavigateToCheck(event.machineId))
         }
     }
 
-    fun loadMachines() {
+    fun loadMachines(isRefresh: Boolean = false) {
         viewModelScope.launch {
-            updateState { it.copy(isLoading = true, error = null) }
+            updateState {
+                if (isRefresh && it.machines.isNotEmpty()) {
+                    it.copy(error = null)
+                } else {
+                    it.copy(isLoading = true, error = null)
+                }
+            }
             val session = sessionStore.session.value
             val isForeman = session?.user?.role == Role.FOREMAN
             val userId = session?.user?.id.orEmpty()
             val userLang = session?.user?.language ?: "ja"
 
             when (val result = machineRepository.getMachines()) {
-                is AppResult.Failure -> updateState { it.copy(isLoading = false, error = result.error) }
+                is AppResult.Failure -> updateState {
+                    it.copy(
+                        isLoading = false,
+                        error = if (isRefresh && it.machines.isNotEmpty()) null else result.error
+                    )
+                }
                 is AppResult.Success -> {
                     val machineList = result.value
                     if (machineList.isEmpty()) {

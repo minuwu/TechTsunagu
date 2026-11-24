@@ -1,10 +1,12 @@
 package com.techtsunagu.wakatta.feature.nearmiss
 
+import android.graphics.BitmapFactory
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -49,11 +51,15 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
@@ -69,8 +75,9 @@ import com.techtsunagu.wakatta.core.design.component.StatusChip
 import com.techtsunagu.wakatta.core.design.component.WakattaCard
 import com.techtsunagu.wakatta.core.design.component.WakattaChip
 import com.techtsunagu.wakatta.core.design.component.WakattaTopBar
+import com.techtsunagu.wakatta.core.media.rememberDictation
+import com.techtsunagu.wakatta.core.model.AppError
 import com.techtsunagu.wakatta.core.model.AppResult
-import com.techtsunagu.wakatta.core.model.AudioRecorder
 import com.techtsunagu.wakatta.core.model.Machine
 import com.techtsunagu.wakatta.core.model.MachineRepository
 import com.techtsunagu.wakatta.core.model.OutboxWriter
@@ -79,6 +86,8 @@ import com.techtsunagu.wakatta.core.model.Role
 import com.techtsunagu.wakatta.core.model.SessionStore
 import com.techtsunagu.wakatta.core.model.WakattaStatus
 import com.techtsunagu.wakatta.core.model.pick
+import com.techtsunagu.wakatta.feature.nearmiss.data.QueuedNearMiss
+import com.techtsunagu.wakatta.feature.nearmiss.data.nearMissOutboxKind
 import com.techtsunagu.wakatta.feature.nearmiss.domain.NearMissCreateRequest
 import com.techtsunagu.wakatta.feature.nearmiss.domain.NearMissDto
 import com.techtsunagu.wakatta.feature.nearmiss.domain.NearMissRepository
@@ -90,10 +99,10 @@ import java.io.File
 import java.util.UUID
 import javax.inject.Inject
 import kotlin.math.roundToInt
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 data class NearMissNewUiState(
     val machineId: String? = null,
@@ -104,15 +113,14 @@ data class NearMissNewUiState(
     val photoUrl: String? = null,
     val photoFile: File? = null,
     val photoMark: PhotoMark = PhotoMark(56f, 46f),
-    val isRecording: Boolean = false,
-    val recordingDurationSeconds: Int = 0,
     val recentReports: List<NearMissDto> = emptyList(),
     val isForeman: Boolean = false,
-    val foremanName: String = "Tanaka",
+    val foremanName: String = "",
     val userLang: String = "en",
     val isLoading: Boolean = false,
     val isSent: Boolean = false,
     val isQueuedOffline: Boolean = false,
+    val sendFailed: Boolean = false,
     val isEmpty: Boolean = false,
     val error: String? = null,
 )
@@ -125,8 +133,6 @@ sealed interface NearMissNewEvent {
     data class AddPhoto(val file: File? = null, val url: String? = null) : NearMissNewEvent
     data class UpdatePhotoMark(val x: Float, val y: Float) : NearMissNewEvent
     data object RemovePhoto : NearMissNewEvent
-    data object StartRecord : NearMissNewEvent
-    data object StopRecord : NearMissNewEvent
     data object SendReport : NearMissNewEvent
     data object Reset : NearMissNewEvent
     data object Retry : NearMissNewEvent
@@ -143,19 +149,13 @@ sealed interface NearMissNewEffect {
 class NearMissNewViewModel @Inject constructor(
     private val nearMissRepository: NearMissRepository,
     private val machineRepository: MachineRepository,
-    private val audioRecorder: AudioRecorder,
     private val photoCapture: PhotoCapture,
     private val outboxWriter: OutboxWriter,
     private val sessionStore: SessionStore,
 ) : MviViewModel<NearMissNewUiState, NearMissNewEvent, NearMissNewEffect>(NearMissNewUiState()) {
 
-    private var recordingJob: Job? = null
-
-    private val cannedDictations = mapOf(
-        "mc1" to "A metal chip flew out when I opened the chuck cover. It missed my eye by a few centimeters.",
-        "mc2" to "The safety guard was open when I reached in to clear a jam. My glove almost got caught between the dies.",
-        "mc3" to "Hot resin splashed from the nozzle when I opened the door too early.",
-    )
+    /** Kept until the report is out, so a second tap after an error is the same report. */
+    private var sendKey: String = UUID.randomUUID().toString()
 
     override fun onEvent(event: NearMissNewEvent) {
         when (event) {
@@ -174,13 +174,29 @@ class NearMissNewViewModel @Inject constructor(
             is NearMissNewEvent.UpdateText -> updateState { it.copy(text = event.text) }
             is NearMissNewEvent.SelectSeverity -> updateState { it.copy(severity = event.severity) }
             is NearMissNewEvent.AddPhoto -> {
-                updateState {
-                    it.copy(
-                        hasPhoto = true,
-                        photoFile = event.file,
-                        photoUrl = event.url ?: "https://picsum.photos/seed/nearmiss-${it.machineId ?: "mc"}/600/400",
-                        photoMark = PhotoMark(56f, 46f),
-                    )
+                if (event.file != null || event.url != null) {
+                    updateState {
+                        it.copy(
+                            hasPhoto = true,
+                            photoFile = event.file,
+                            photoUrl = event.url ?: event.file?.absolutePath,
+                            photoMark = PhotoMark(56f, 46f),
+                        )
+                    }
+                } else {
+                    viewModelScope.launch {
+                        val file = photoCapture.captureOrPick()
+                        if (file != null) {
+                            updateState {
+                                it.copy(
+                                    hasPhoto = true,
+                                    photoFile = file,
+                                    photoUrl = file.absolutePath,
+                                    photoMark = PhotoMark(56f, 46f),
+                                )
+                            }
+                        }
+                    }
                 }
             }
             is NearMissNewEvent.UpdatePhotoMark -> {
@@ -196,8 +212,6 @@ class NearMissNewViewModel @Inject constructor(
                     )
                 }
             }
-            is NearMissNewEvent.StartRecord -> startRecording()
-            is NearMissNewEvent.StopRecord -> stopRecording()
             is NearMissNewEvent.SendReport -> submitReport()
             is NearMissNewEvent.Reset -> resetForm()
             is NearMissNewEvent.Retry -> loadInitialData(state.value.machineId)
@@ -219,11 +233,15 @@ class NearMissNewViewModel @Inject constructor(
 
             val reportsResult = nearMissRepository.getNearMisses()
             val recent = if (reportsResult is AppResult.Success) {
-                val userId = session?.user?.id ?: "u_rahim"
-                reportsResult.value.filter { it.userId == userId }.take(3)
+                val userId = session?.user?.id.orEmpty()
+                if (userId.isNotEmpty()) reportsResult.value.filter { it.userId == userId }.take(3)
+                else emptyList()
             } else {
                 emptyList()
             }
+
+            // A queued report the server refused comes back into the form.
+            val refused = session?.user?.id?.let { outboxWriter.takeFailed(nearMissOutboxKind(it)) }?.let(QueuedNearMiss::decode)
 
             updateState {
                 it.copy(
@@ -235,74 +253,55 @@ class NearMissNewViewModel @Inject constructor(
                     recentReports = recent,
                 )
             }
-        }
-    }
-
-    private fun startRecording() {
-        val mid = state.value.machineId
-        updateState { it.copy(isRecording = true, recordingDurationSeconds = 0) }
-        recordingJob?.cancel()
-        recordingJob = viewModelScope.launch {
-            val words = (cannedDictations[mid] ?: "Near-miss report incident recorded").split(" ")
-            var wordIndex = 0
-            var seconds = 0
-            while (state.value.isRecording && wordIndex <= words.size) {
-                delay(300)
-                seconds++
-                val textSnippet = words.take(wordIndex).joinToString(" ")
-                wordIndex = (wordIndex + 1).coerceAtMost(words.size)
+            if (refused != null) {
                 updateState {
                     it.copy(
-                        text = if (textSnippet.isNotEmpty()) textSnippet else it.text,
-                        recordingDurationSeconds = seconds / 3,
+                        machineId = refused.machineId,
+                        text = refused.text,
+                        severity = refused.severity,
+                        hasPhoto = refused.photo != null,
+                        photoFile = refused.photo?.let(::File),
+                        photoUrl = refused.photo,
+                        photoMark = refused.photoMark ?: it.photoMark,
+                        sendFailed = true,
                     )
                 }
             }
         }
-        audioRecorder.start()
-    }
-
-    private fun stopRecording() {
-        recordingJob?.cancel()
-        recordingJob = null
-        updateState { it.copy(isRecording = false) }
-        viewModelScope.launch {
-            audioRecorder.stop()
-        }
     }
 
     private fun submitReport() {
-        val mid = state.value.machineId ?: return
-        val currentText = state.value.text.trim()
-        if (currentText.length <= 2) return
-
+        val form = state.value
+        val mid = form.machineId ?: return
+        val text = form.text.trim()
+        if (text.length <= 2 || form.isLoading) return
+        val userId = sessionStore.session.value?.user?.id ?: return
+        updateState { it.copy(isLoading = true, sendFailed = false) }
         viewModelScope.launch {
-            updateState { it.copy(isLoading = true) }
-            val idempotencyKey = UUID.randomUUID().toString()
             val request = NearMissCreateRequest(
                 machineId = mid,
-                text = currentText,
-                severity = state.value.severity,
-                photoFile = state.value.photoFile,
-                photoUrl = state.value.photoUrl,
-                photoMark = if (state.value.hasPhoto) state.value.photoMark else null,
-                idempotencyKey = idempotencyKey,
+                text = text,
+                severity = form.severity,
+                photoFile = form.photoFile,
+                photoUrl = form.photoUrl,
+                photoMark = if (form.hasPhoto) form.photoMark else null,
+                idempotencyKey = sendKey,
             )
             when (val result = nearMissRepository.createNearMiss(request)) {
-                is AppResult.Success -> {
-                    updateState { it.copy(isLoading = false, isSent = true, isQueuedOffline = false) }
-                }
-                is AppResult.Failure -> {
-                    // Queue offline via outboxWriter
-                    val payload = """{"machineId":"$mid","text":"$currentText","severity":"${state.value.severity}"}"""
-                    outboxWriter.enqueue("nearmiss", idempotencyKey, payload)
-                    updateState { it.copy(isLoading = false, isSent = true, isQueuedOffline = true) }
+                is AppResult.Success -> updateState { it.copy(isLoading = false, isSent = true, isQueuedOffline = false) }
+                is AppResult.Failure -> when (result.error) {
+                    AppError.Offline, AppError.Timeout, AppError.Server, AppError.Busy -> {
+                        outboxWriter.enqueue(nearMissOutboxKind(userId), sendKey, QueuedNearMiss.of(request).encode())
+                        updateState { it.copy(isLoading = false, isSent = true, isQueuedOffline = true) }
+                    }
+                    else -> updateState { it.copy(isLoading = false, sendFailed = true) }
                 }
             }
         }
     }
 
     private fun resetForm() {
+        sendKey = UUID.randomUUID().toString()
         updateState {
             it.copy(
                 text = "",
@@ -310,8 +309,6 @@ class NearMissNewViewModel @Inject constructor(
                 photoFile = null,
                 photoUrl = null,
                 photoMark = PhotoMark(56f, 46f),
-                isRecording = false,
-                recordingDurationSeconds = 0,
                 isSent = false,
                 isQueuedOffline = false,
                 error = null,
@@ -372,8 +369,8 @@ fun NearMissNewContent(
                 }
                 state.error != null -> {
                     EmptyState(
-                        title = stringResource(R.string.nearmiss_error, state.error),
-                        message = state.error,
+                        title = stringResource(R.string.nearmiss_error),
+                        message = stringResource(R.string.nearmiss_error_hint),
                         actionLabel = stringResource(R.string.nearmiss_retry),
                         onActionClick = { onEvent(NearMissNewEvent.Retry) },
                     )
@@ -384,6 +381,7 @@ fun NearMissNewContent(
                 state.isSent -> {
                     SentSuccessView(
                         foremanName = state.foremanName,
+                        isQueued = state.isQueuedOffline,
                         onDone = onBackClick,
                         onReportAnother = { onEvent(NearMissNewEvent.Reset) },
                     )
@@ -437,6 +435,7 @@ private fun ForemanNearMissPlaceholder(
 @Composable
 private fun SentSuccessView(
     foremanName: String,
+    isQueued: Boolean,
     onDone: () -> Unit,
     onReportAnother: () -> Unit,
     modifier: Modifier = Modifier,
@@ -463,13 +462,13 @@ private fun SentSuccessView(
         }
         Spacer(modifier = Modifier.height(20.dp))
         Text(
-            text = stringResource(R.string.nearmiss_sent_title, foremanName),
+            text = if (isQueued) stringResource(R.string.nearmiss_status_waiting) else stringResource(R.string.nearmiss_sent_title, foremanName),
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = stringResource(R.string.nearmiss_sent_message),
+            text = stringResource(if (isQueued) R.string.nearmiss_queued_message else R.string.nearmiss_sent_message),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -535,12 +534,15 @@ private fun WorkerNearMissForm(
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+        val dictation = rememberDictation(state.userLang, state.text) { onEvent(NearMissNewEvent.UpdateText(it)) }
         RecordSection(
-            isRecording = state.isRecording,
-            durationSeconds = state.recordingDurationSeconds,
-            onStartRecord = { onEvent(NearMissNewEvent.StartRecord) },
-            onStopRecord = { onEvent(NearMissNewEvent.StopRecord) },
+            isRecording = dictation.isListening,
+            durationSeconds = dictation.seconds,
+            onToggle = dictation.toggle,
         )
+        dictation.errorRes?.let {
+            Text(stringResource(it), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+        }
         OutlinedTextField(
             value = state.text,
             onValueChange = { onEvent(NearMissNewEvent.UpdateText(it)) },
@@ -564,6 +566,7 @@ private fun WorkerNearMissForm(
         )
         PhotoAnnotationSection(
             hasPhoto = state.hasPhoto,
+            photo = state.photoFile,
             mark = state.photoMark,
             onAddPhoto = { onEvent(NearMissNewEvent.AddPhoto()) },
             onRemovePhoto = { onEvent(NearMissNewEvent.RemovePhoto) },
@@ -600,7 +603,14 @@ private fun WorkerNearMissForm(
         Spacer(modifier = Modifier.height(8.dp))
 
         // Send Button
-        val canSend = state.machineId != null && state.text.trim().length > 2
+        if (state.sendFailed) {
+            Text(
+                text = stringResource(R.string.nearmiss_send_failed),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.error,
+            )
+        }
+        val canSend = state.machineId != null && state.text.trim().length > 2 && !state.isLoading
         Button(
             onClick = { onEvent(NearMissNewEvent.SendReport) },
             enabled = canSend,
@@ -615,7 +625,11 @@ private fun WorkerNearMissForm(
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = stringResource(R.string.nearmiss_send_button, state.foremanName),
+                text = if (state.foremanName.isNotEmpty()) {
+                    stringResource(R.string.nearmiss_send_button, state.foremanName)
+                } else {
+                    stringResource(R.string.nearmiss_send_button_default)
+                },
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
             )
@@ -652,8 +666,7 @@ private fun MachineChipsRow(
 private fun RecordSection(
     isRecording: Boolean,
     durationSeconds: Int,
-    onStartRecord: () -> Unit,
-    onStopRecord: () -> Unit,
+    onToggle: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -663,9 +676,7 @@ private fun RecordSection(
     ) {
         val buttonColor = if (isRecording) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
         IconButton(
-            onClick = {
-                if (isRecording) onStopRecord() else onStartRecord()
-            },
+            onClick = onToggle,
             modifier = Modifier
                 .size(64.dp)
                 .background(color = buttonColor, shape = CircleShape),
@@ -682,7 +693,7 @@ private fun RecordSection(
         WaveformBars(isRecording = isRecording, modifier = Modifier.weight(1f))
 
         Text(
-            text = String.format("0:%02d", durationSeconds),
+            text = String.format("%d:%02d", durationSeconds / 60, durationSeconds % 60),
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -735,6 +746,7 @@ private fun WaveformBars(
 @Composable
 private fun PhotoAnnotationSection(
     hasPhoto: Boolean,
+    photo: File?,
     mark: PhotoMark,
     onAddPhoto: () -> Unit,
     onRemovePhoto: () -> Unit,
@@ -770,13 +782,19 @@ private fun PhotoAnnotationSection(
                         }
                     },
             ) {
-                // Background placeholder content
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Icon(
-                        imageVector = Icons.Default.AddAPhoto,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                        modifier = Modifier.size(48.dp),
+                val bitmap by produceState<ImageBitmap?>(null, photo) {
+                    value = photo?.let { file ->
+                        withContext(Dispatchers.IO) {
+                            BitmapFactory.decodeFile(file.path, BitmapFactory.Options().apply { inSampleSize = 2 })?.asImageBitmap()
+                        }
+                    }
+                }
+                bitmap?.let {
+                    Image(
+                        bitmap = it,
+                        contentDescription = stringResource(R.string.nearmiss_step_photo),
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize(),
                     )
                 }
 
@@ -888,7 +906,7 @@ private fun RecentReportsCard(
                             else -> WakattaStatus.ORANGE
                         }
                         val label = when {
-                            report.status == NearMissStatus.ACK -> stringResource(R.string.nearmiss_status_seen, "Tanaka")
+                            report.status == NearMissStatus.ACK -> stringResource(R.string.nearmiss_filter_ack)
                             report.isQueuedOffline -> stringResource(R.string.nearmiss_status_waiting)
                             else -> stringResource(R.string.nearmiss_status_sent)
                         }

@@ -21,6 +21,7 @@ import com.techtsunagu.wakatta.feature.chat.model.ReexplainDraft
 import com.techtsunagu.wakatta.feature.chat.model.ReexplainRequest
 import com.techtsunagu.wakatta.feature.chat.model.ThreadDto
 import java.io.File
+import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.first
@@ -28,20 +29,19 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withTimeoutOrNull
 import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
 
 /**
  * Chat over the live routes. A Foreman's `sendMessage` is the two server steps in one call (draft, then Send).
- * [fallback] (the Fake) answers only what has no route yet: dictation and "ask the Foreman".
  */
 internal class RealChatRepository(
     private val api: () -> ChatApi,
     private val session: SessionStore,
     private val workers: WorkerRepository,
     private val glossary: GlossaryRepository,
-    private val fallback: ChatRepository,
+    private val cache: CacheStore,
     private val pollMs: Long = POLL_MS,
-    private val cache: CacheStore = MemoryCacheStore(),
 ) : ChatRepository {
 
     private val conditional = ConditionalGet(cache)
@@ -53,17 +53,29 @@ internal class RealChatRepository(
 
     private val user: User? get() = session.session.value?.user
 
+    private val askingInFlight = ConcurrentHashMap.newKeySet<String>()
+
     override fun getThreads(): Flow<List<ThreadDto>> = flow {
         when (val result = safeApiCall { api().threads() }) {
-            is AppResult.Success -> emit(result.value.map { it.toDto() })
+            is AppResult.Success -> {
+                val me = user
+                emit(result.value.map { it.toDto(me) })
+            }
             // The Chats list has no error channel yet, so a failed load shows the empty list; Refresh asks again.
             is AppResult.Failure -> emit(emptyList())
         }
     }
 
     // shortcut: the thread row has no last-message preview, wire when the backend ships it.
-    override fun getThreadSummaries(): Flow<List<ThreadSummary>> =
-        getThreads().map { list -> list.map { it.toSummary() } }
+    override fun getThreadSummaries(): Flow<List<ThreadSummary>> = flow {
+        when (val result = safeApiCall { api().threads() }) {
+            is AppResult.Success -> {
+                val me = user
+                emit(result.value.map { it.toDto(me).toSummary(me) })
+            }
+            is AppResult.Failure -> emit(emptyList())
+        }
+    }
 
     /**
      * Polls every [pollMs] with `If-None-Match`. The first failure ends the flow (the screen shows Retry); later
@@ -112,22 +124,42 @@ internal class RealChatRepository(
 
     override suspend fun sendMessage(
         threadId: String,
-        text: String,
+        text: String?,
+        audio: File?,
         isVoice: Boolean,
         fromUserId: String,
         idempotencyKey: String,
     ): AppResult<ChatMessageUiModel> {
         val me = user ?: return AppResult.Failure(AppError.SessionExpired)
-        // shortcut: dictation has no route here (audio would go in the `audio` part), so a voice message is sent as its text.
-        val body = text.toRequestBody("text/plain; charset=utf-8".toMediaType())
-        val draft = when (val r = safeApiCall { api().post(threadId, IdempotencyKey(idempotencyKey), body) }) {
+        val hasText = !text.isNullOrBlank()
+        val audioProvided = audio != null
+        if (hasText == audioProvided || (audioProvided && (!audio!!.exists() || audio.length() <= 0))) {
+            return AppResult.Failure(AppError.Validation(listOf("body")))
+        }
+
+        val textPart = if (hasText) MultipartBody.Part.createFormData("text", text!!) else null
+        val audioPart = if (audioProvided) {
+            val file = audio!!
+            val fileBody = file.asRequestBody("audio/mp4".toMediaType())
+            MultipartBody.Part.createFormData("audio", file.name, fileBody)
+        } else null
+
+        val draft = when (val r = safeApiCall {
+            api().post(
+                id = threadId,
+                key = IdempotencyKey(idempotencyKey),
+                text = textPart,
+                audio = audioPart,
+            )
+        }) {
             is AppResult.Success -> r.value
             is AppResult.Failure -> return r
         }
         val ctx = MessageContext(me.id, me.language, names(me))
         // A Worker's message is sent at once; a Foreman's is a draft until Send. ALREADY_SENT on a retry means done.
         if (me.role != Role.FOREMAN || draft.sentAt != null) return done(draft.toUi(ctx))
-        return when (val sent = safeApiCall { api().send(draft.id, draft.toSendBody(text)) }) {
+        val fallbackText = text ?: draft.transcriptJa.orEmpty()
+        return when (val sent = safeApiCall { api().send(draft.id, draft.toSendBody(fallbackText)) }) {
             is AppResult.Success -> done(sent.value.toUi(ctx))
             is AppResult.Failure ->
                 if ((sent.error as? AppError.Conflict)?.code == "ALREADY_SENT") done(draft.toUi(ctx)) else sent
@@ -151,27 +183,90 @@ internal class RealChatRepository(
         return result
     }
 
-    // shortcut: no route for dictation, so the Fake answers with its sample text, wire when the backend ships it.
-    override suspend fun transcribe(audio: File?): AppResult<String> = fallback.transcribe(audio)
+    override suspend fun editDraft(
+        messageId: String,
+        textJa: String,
+    ): AppResult<ChatMessageUiModel> {
+        val me = user ?: return AppResult.Failure(AppError.SessionExpired)
+        val ctx = MessageContext(me.id, me.language, names(me))
+        return when (val r = safeApiCall { api().editDraft(messageId, DraftEditDto(textJa)) }) {
+            is AppResult.Success -> {
+                kick.tryEmit(Unit)
+                AppResult.Success(r.value.toUi(ctx))
+            }
+            is AppResult.Failure -> {
+                if ((r.error as? AppError.Conflict)?.code == "ALREADY_SENT") {
+                    kick.tryEmit(Unit)
+                }
+                r
+            }
+        }
+    }
 
-    /**
-     * shortcut: the server has no draft route (XREQ-022), so the dialog gets the Worker and the term from the
-     * open Follow-up and empty text; the server writes the Re-explanation itself.
-     */
+    override suspend fun transcribe(audio: File?): AppResult<String> =
+        AppResult.Failure(AppError.Validation(listOf("audio")))
+
     override suspend fun getReexplainDraft(messageId: String, workerId: String): AppResult<ReexplainDraft> {
         val followUp = when (val r = getFollowUps()) {
             is AppResult.Success -> r.value.firstOrNull { it.messageId == messageId && it.userId == workerId }
             is AppResult.Failure -> return r
         } ?: return AppResult.Failure(AppError.NotFound)
-        val lang = (workers.getWorkers() as? AppResult.Success)?.value?.firstOrNull { it.id == workerId }?.language ?: "en"
+        val workerInfo = (workers.getWorkers() as? AppResult.Success)?.value?.firstOrNull { it.id == workerId }
+        val lang = workerInfo?.language ?: "en"
+        val name = followUp.displayName.ifEmpty { workerInfo?.displayName.orEmpty() }
+        val draft = when (val r = safeApiCall {
+            api().reexplainDraft(messageId, ReexplainInDto(userId = workerId, termJa = followUp.termJa))
+        }) {
+            is AppResult.Success -> r.value
+            is AppResult.Failure -> return r
+        }
+        val easyJa = draft.text["ja"].orEmpty()
+        val explanation = draft.text.filterKeys { it != "ja" }
         return AppResult.Success(
-            ReexplainDraft(followUp.displayName, lang, followUp.termJa, "", emptyMap(), emptyMap(), emptyList()),
+            ReexplainDraft(
+                workerName = name,
+                workerLang = lang,
+                termJa = followUp.termJa,
+                easyJa = easyJa,
+                explanation = explanation,
+                newQuestionPrompt = draft.question.prompt,
+                newQuestionOptions = draft.question.options,
+                newQuestionCorrectIndex = draft.question.correctIndex,
+            ),
         )
     }
 
-    /** shortcut: the server takes only the Worker and the term (`ReexplainIn`); the edited text is not sent, XREQ-022. */
     override suspend fun reexplain(messageId: String, request: ReexplainRequest): AppResult<Unit> {
-        val result = safeApiCall { api().reexplain(messageId, ReexplainInDto(request.userId, request.termJa)) }
+        val textMap = buildMap<String, String> {
+            if (request.easyJa.isNotBlank()) put("ja", request.easyJa)
+            putAll(request.explanation)
+        }
+        val hasText = textMap.isNotEmpty()
+        val hasQuestion = request.newQuestionPrompt.isNotEmpty()
+        if (hasText != hasQuestion) {
+            return AppResult.Failure(AppError.Validation(listOf("text", "question")))
+        }
+        val body = if (hasText && hasQuestion) {
+            val question = WireSenderQuestion(
+                id = "q1",
+                termId = null,
+                prompt = request.newQuestionPrompt,
+                options = request.newQuestionOptions,
+                correctIndex = request.newQuestionCorrectIndex,
+            )
+            ReexplainInDto(
+                userId = request.userId,
+                termJa = request.termJa,
+                text = textMap,
+                question = question,
+            )
+        } else {
+            ReexplainInDto(
+                userId = request.userId,
+                termJa = request.termJa,
+            )
+        }
+        val result = safeApiCall { api().reexplain(messageId, body) }
         if (result.isSuccess) kick.tryEmit(Unit)
         return result.mapOk { }
     }
@@ -182,9 +277,22 @@ internal class RealChatRepository(
         return result
     }
 
-    // shortcut: "ask the Foreman" has no route (XREQ-022), so the Fake keeps it, wire when the backend ships it.
-    override suspend fun askExplainAgain(messageId: String, userId: String): AppResult<Unit> =
-        fallback.askExplainAgain(messageId, userId)
+    override suspend fun askExplainAgain(
+        messageId: String,
+        userId: String,
+        termJa: String,
+    ): AppResult<Unit> {
+        if (!askingInFlight.add(messageId)) {
+            return AppResult.Success(Unit)
+        }
+        try {
+            val result = safeApiCall { api().ask(messageId, AskForemanInDto(termJa)) }
+            if (result.isSuccess) kick.tryEmit(Unit)
+            return result.mapOk { }
+        } finally {
+            askingInFlight.remove(messageId)
+        }
+    }
 
     override suspend fun getTerms(): AppResult<List<GlossaryTerm>> = glossary.getTerms()
 

@@ -1,11 +1,15 @@
 package com.techtsunagu.wakatta
 
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.LocalActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -22,12 +26,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.core.os.LocaleListCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavKey
+import androidx.navigation3.runtime.rememberDecoratedNavEntries
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import com.techtsunagu.wakatta.core.common.AppConfig
@@ -47,7 +58,10 @@ import com.techtsunagu.wakatta.core.navigation.Navigator
 import com.techtsunagu.wakatta.core.navigation.SignInKey
 import com.techtsunagu.wakatta.core.navigation.TopLevelBackStack
 import dagger.hilt.android.lifecycle.HiltViewModel
+import com.techtsunagu.wakatta.core.sync.NetworkConnectivityObserver
 import javax.inject.Inject
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
 
 @HiltViewModel
 class AppViewModel @Inject constructor(
@@ -58,7 +72,13 @@ class AppViewModel @Inject constructor(
     val fakeSessionStore: FakeSessionStore,
     val appConfig: AppConfig,
     val languageManager: LanguageManager,
-) : ViewModel()
+    connectivity: NetworkConnectivityObserver,
+) : ViewModel() {
+    val isOnline = connectivity.observe().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), true)
+
+    /** Kept here, not in the composition: the language change at sign-out recreates the activity. */
+    var shownUserId: String? = null
+}
 
 private val TOP_LEVEL_KEYS = setOf(
     HomeKey::class,
@@ -73,7 +93,24 @@ fun AppNavHost(
     modifier: Modifier = Modifier,
     viewModel: AppViewModel = hiltViewModel(),
 ) {
+    val session by viewModel.sessionStore.session.collectAsStateWithLifecycle()
+    val userId = session?.user?.id
+    val activity = LocalActivity.current
+    LaunchedEffect(userId) {
+        val previous = viewModel.shownUserId
+        viewModel.shownUserId = userId
+        if (previous != null && previous != userId) {
+            // Shared phones: no screen state of the last user may stay.
+            viewModel.backStack.reset()
+            (activity as? ComponentActivity)?.run {
+                viewModelStore.clear()
+                recreate()
+            }
+        }
+    }
+    val isOnline by viewModel.isOnline.collectAsStateWithLifecycle()
     AppNavHostContent(
+        showOffline = !isOnline,
         featureEntries = viewModel.featureEntries,
         backStack = viewModel.backStack,
         navigator = viewModel.navigator,
@@ -93,6 +130,7 @@ fun AppNavHostContent(
     fakeSessionStore: FakeSessionStore,
     languageManager: LanguageManager,
     modifier: Modifier = Modifier,
+    showOffline: Boolean = false,
 ) {
     val session by sessionStore.session.collectAsStateWithLifecycle()
     val currentTab by backStack.currentTab.collectAsStateWithLifecycle()
@@ -227,10 +265,15 @@ fun AppNavHostContent(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(innerPadding),
+                    .padding(innerPadding)
+                    .consumeWindowInsets(innerPadding),
             ) {
                 NavDisplay(
                     backStack = authBackStack,
+                    entryDecorators = listOf(
+                        rememberSaveableStateHolderNavEntryDecorator(),
+                        rememberViewModelStoreNavEntryDecorator(),
+                    ),
                     entryProvider = authEntryProvider,
                 )
             }
@@ -256,7 +299,17 @@ fun AppNavHostContent(
             }
         }
 
-        val activeTabStack = backStack.stackFor(currentTab)
+        // One set of entries for each tab, so a tab keeps its screens and each screen its own ViewModel.
+        val tabEntries = TopLevelTab.entries.associateWith { tab ->
+            rememberDecoratedNavEntries(
+                backStack = backStack.stackFor(tab),
+                entryDecorators = listOf(
+                    rememberSaveableStateHolderNavEntryDecorator(),
+                    rememberViewModelStoreNavEntryDecorator(),
+                ),
+                entryProvider = entryProvider,
+            )
+        }
 
         Scaffold(
             modifier = modifier.fillMaxSize(),
@@ -269,16 +322,33 @@ fun AppNavHostContent(
                 }
             },
         ) { innerPadding ->
-            Box(
+            Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(innerPadding),
+                    .padding(innerPadding)
+                    .consumeWindowInsets(innerPadding),
             ) {
+                if (showOffline) OfflineBanner()
                 NavDisplay(
-                    backStack = activeTabStack,
-                    entryProvider = entryProvider,
+                    entries = tabEntries.getValue(currentTab),
+                    modifier = Modifier.weight(1f),
+                    onBack = { navigator.pop() },
                 )
             }
         }
     }
+}
+
+@Composable
+private fun OfflineBanner() {
+    Text(
+        text = stringResource(R.string.app_offline),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onErrorContainer,
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.errorContainer)
+            .semantics { liveRegion = LiveRegionMode.Polite }
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+    )
 }

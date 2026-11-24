@@ -21,6 +21,9 @@ interface OutboxDao {
     @Query("SELECT * FROM outbox ORDER BY nextAttemptAt ASC")
     suspend fun getAllOrderedByNextAttempt(): List<OutboxEntity>
 
+    @Query("SELECT * FROM outbox WHERE kind = :kind AND state = 'FAILED' ORDER BY createdAt ASC LIMIT 1")
+    suspend fun oldestFailed(kind: String): OutboxEntity?
+
     @Query("SELECT COUNT(*) FROM outbox WHERE kind = :kind AND state = 'PENDING'")
     fun observePendingCount(kind: String): Flow<Int>
 

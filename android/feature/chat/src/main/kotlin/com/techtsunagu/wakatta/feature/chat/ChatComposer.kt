@@ -1,5 +1,9 @@
 package com.techtsunagu.wakatta.feature.chat
 
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -22,20 +26,29 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import com.techtsunagu.wakatta.feature.chat.model.ComposerStatus
+import kotlinx.coroutines.launch
 
 @Composable
 internal fun ChatComposer(
@@ -45,7 +58,55 @@ internal fun ChatComposer(
     countdownProgress: () -> Float,
     onEvent: (ChatEvent) -> Unit,
     modifier: Modifier = Modifier,
+    hasPendingAudio: Boolean = false,
+    onMicClick: (() -> Unit)? = null,
+    snackbarHostState: SnackbarHostState? = null,
 ) {
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    var permissionDeniedCount by remember { mutableIntStateOf(0) }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { isGranted ->
+        if (isGranted) {
+            permissionDeniedCount = 0
+            onEvent(ChatEvent.StartRecording)
+        } else {
+            permissionDeniedCount++
+            if (permissionDeniedCount == 1 && snackbarHostState != null) {
+                coroutineScope.launch {
+                    snackbarHostState.showSnackbar(context.getString(R.string.chat_mic_rationale))
+                }
+            }
+        }
+    }
+
+    val handleMicClick: () -> Unit = {
+        if (onMicClick != null) {
+            onMicClick()
+        } else {
+            if (status == ComposerStatus.RECORDING) {
+                onEvent(ChatEvent.StopRecording)
+            } else if (permissionDeniedCount >= 2) {
+                if (snackbarHostState != null) {
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar(context.getString(R.string.chat_dictation_type_instead))
+                    }
+                }
+            } else {
+                val hasPermission = ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.RECORD_AUDIO,
+                ) == PackageManager.PERMISSION_GRANTED
+                if (hasPermission) {
+                    onEvent(ChatEvent.StartRecording)
+                } else {
+                    permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                }
+            }
+        }
+    }
     Surface(
         modifier = modifier.fillMaxWidth(),
         color = MaterialTheme.colorScheme.surface,
@@ -81,6 +142,41 @@ internal fun ChatComposer(
                 }
             }
 
+            // Pending Voice Message (after failed send or cancelled countdown)
+            AnimatedVisibility(visible = hasPendingAudio && status == ComposerStatus.EDITING) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Mic,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(16.dp),
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = stringResource(R.string.chat_voice_message),
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Medium,
+                        ),
+                        modifier = Modifier.weight(1f),
+                    )
+                    TextButton(
+                        onClick = { onEvent(ChatEvent.CancelCountdown) },
+                        modifier = Modifier.sizeIn(minHeight = 40.dp),
+                    ) {
+                        Text(
+                            text = stringResource(R.string.chat_cancel),
+                            style = MaterialTheme.typography.labelSmall,
+                        )
+                    }
+                }
+            }
+
             // Input Row
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -88,22 +184,29 @@ internal fun ChatComposer(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 // Mic Button
-                IconButton(
-                    onClick = {
-                        if (status == ComposerStatus.RECORDING) {
-                            onEvent(ChatEvent.StopRecording)
-                        } else {
-                            onEvent(ChatEvent.StartRecording)
-                        }
-                    },
-                    modifier = Modifier.sizeIn(minWidth = 48.dp, minHeight = 48.dp),
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Mic,
-                        contentDescription = stringResource(R.string.chat_mic),
-                        tint = if (status == ComposerStatus.RECORDING) Color.Red else MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(28.dp),
-                    )
+                if (permissionDeniedCount >= 2 && status != ComposerStatus.RECORDING) {
+                    TextButton(
+                        onClick = handleMicClick,
+                        modifier = Modifier.sizeIn(minHeight = 48.dp),
+                    ) {
+                        Text(
+                            text = stringResource(R.string.chat_type_instead),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
+                } else {
+                    IconButton(
+                        onClick = handleMicClick,
+                        modifier = Modifier.sizeIn(minWidth = 48.dp, minHeight = 48.dp),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Mic,
+                            contentDescription = stringResource(R.string.chat_mic),
+                            tint = if (status == ComposerStatus.RECORDING) Color.Red else MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(28.dp),
+                        )
+                    }
                 }
 
                 // Text Input
@@ -117,15 +220,16 @@ internal fun ChatComposer(
                 )
 
                 // Send Button
+                val canSend = inputText.isNotBlank() || status == ComposerStatus.COUNTDOWN || hasPendingAudio
                 IconButton(
                     onClick = { onEvent(ChatEvent.SendNow) },
-                    enabled = inputText.isNotBlank() || status == ComposerStatus.COUNTDOWN,
+                    enabled = canSend,
                     modifier = Modifier.sizeIn(minWidth = 48.dp, minHeight = 48.dp),
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.Send,
                         contentDescription = stringResource(R.string.chat_send),
-                        tint = if (inputText.isNotBlank() || status == ComposerStatus.COUNTDOWN) {
+                        tint = if (canSend) {
                             MaterialTheme.colorScheme.primary
                         } else {
                             MaterialTheme.colorScheme.outlineVariant

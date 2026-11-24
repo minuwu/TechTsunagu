@@ -24,6 +24,7 @@
     <string name="board_add_task_submit">Add task</string>
     <string name="board_add_task_title_required">Enter a title first</string>
     <string name="board_task_added">Task added</string>
+    <string name="board_task_moved">Task moved</string>
 
     <string name="board_due_today">Today</string>
     <string name="board_due_tomorrow">Tomorrow</string>
@@ -34,20 +35,22 @@
     <string name="board_task_due">Due</string>
     <string name="board_task_machine">Machine</string>
     <string name="board_task_from_chat">From chat</string>
-    <string name="board_task_source_message">Source message</string>
-    <string name="board_task_open_in_chat">Open in chat</string>
     <string name="board_task_source_nearmiss">Source</string>
     <string name="board_task_from_nearmiss">From near-miss report</string>
-    <string name="board_task_comments">Comments</string>
-    <string name="board_task_add_comment">Add a comment…</string>
-    <string name="board_task_comments_stub">Comments are not in the prototype</string>
-    <string name="board_filter_stub">Filters are not in the prototype</string>
 
     <string name="board_move_task">Move task</string>
     <string name="board_move_to_col">Move to %1$s</string>
 
     <string name="board_conflict_title">Task Conflict (HTTP 412)</string>
     <string name="board_conflict_message">This task was updated by someone else. Please reload to see the latest version.</string>
+    <string name="board_conflict_reloading">Conflict: Task was modified. Reloading…</string>
     <string name="board_reload">Reload</string>
     <string name="board_foreman_only">Only Foremen can add tasks</string>
+
+    <string name="board_error_offline">Offline. Please check network connection.</string>
+    <string name="board_error_timeout">Request timed out. Please retry.</string>
+    <string name="board_error_conflict">Conflict (HTTP 412): Task was modified.</string>
+    <string name="board_error_not_found">Task not found.</string>
+    <string name="board_error_forbidden">Permission denied.</string>
+    <string name="board_error_generic">An unexpected error occurred.</string>
 </resources>

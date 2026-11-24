@@ -1,12 +1,14 @@
 package com.techtsunagu.wakatta.feature.board
 
 import com.techtsunagu.wakatta.core.model.AppError
+import com.techtsunagu.wakatta.core.model.AppResult
+import com.techtsunagu.wakatta.core.model.Role
 import com.techtsunagu.wakatta.core.model.TaskColumn
+import com.techtsunagu.wakatta.core.model.User
+import com.techtsunagu.wakatta.core.model.WorkerInfo
 import com.techtsunagu.wakatta.feature.board.data.FakeTaskRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -27,14 +29,15 @@ class BoardViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
     private lateinit var repository: FakeTaskRepository
     private lateinit var sessionStore: TestSessionStore
+    private lateinit var languageManager: TestLanguageManager
     private lateinit var viewModel: BoardViewModel
     private val noWorkers = object : com.techtsunagu.wakatta.core.model.WorkerRepository {
-        override suspend fun getWorkers() = com.techtsunagu.wakatta.core.model.AppResult.Success(emptyList<com.techtsunagu.wakatta.core.model.WorkerInfo>())
+        override suspend fun getWorkers() = AppResult.Success(emptyList<WorkerInfo>())
     }
     private val noMachines = object : com.techtsunagu.wakatta.core.model.MachineRepository {
-        override suspend fun getMachines() = com.techtsunagu.wakatta.core.model.AppResult.Success(emptyList<com.techtsunagu.wakatta.core.model.Machine>())
-        override suspend fun getMachine(id: String) = com.techtsunagu.wakatta.core.model.AppResult.Failure(com.techtsunagu.wakatta.core.model.AppError.NotFound)
-        override suspend fun scan(machineId: String) = com.techtsunagu.wakatta.core.model.AppResult.Success(Unit)
+        override suspend fun getMachines() = AppResult.Success(emptyList<com.techtsunagu.wakatta.core.model.Machine>())
+        override suspend fun getMachine(id: String) = AppResult.Failure(AppError.NotFound)
+        override suspend fun scan(machineId: String) = AppResult.Success(Unit)
     }
 
     @Before
@@ -42,7 +45,8 @@ class BoardViewModelTest {
         Dispatchers.setMain(testDispatcher)
         repository = FakeTaskRepository(delayMs = 0L)
         sessionStore = TestSessionStore()
-        viewModel = BoardViewModel(repository, sessionStore, noWorkers, noMachines)
+        languageManager = TestLanguageManager("ja")
+        viewModel = BoardViewModel(repository, sessionStore, noWorkers, noMachines, languageManager)
     }
 
     @After
@@ -57,7 +61,7 @@ class BoardViewModelTest {
 
         assertFalse(state.isLoading)
         assertFalse(state.isEmpty)
-        assertNull(state.error)
+        assertNull(state.errorRes)
         assertTrue(state.isForeman)
         assertEquals("ja", state.currentUserLang)
         assertEquals(3, state.todoTasks.size)
@@ -67,15 +71,33 @@ class BoardViewModelTest {
     }
 
     @Test
+    fun stateDefaultsAreEmptyListsAndEmptyStrings() {
+        val defaultState = BoardUiState()
+        assertEquals("", defaultState.currentUserId)
+        assertEquals("", defaultState.currentUserName)
+        assertEquals("", defaultState.currentUserLang)
+        assertFalse(defaultState.isForeman)
+        assertTrue(defaultState.todoTasks.isEmpty())
+        assertTrue(defaultState.doingTasks.isEmpty())
+        assertTrue(defaultState.doneTasks.isEmpty())
+        assertTrue(defaultState.machines.isEmpty())
+        assertTrue(defaultState.users.isEmpty())
+        assertTrue(defaultState.sheetUsers.isEmpty())
+        assertTrue(defaultState.sheetMachines.isEmpty())
+    }
+
+    @Test
     fun workerSessionUpdatesUiState() = runTest {
         advanceUntilIdle()
         sessionStore.setWorkerSession()
+        languageManager.setLanguage("bn")
         advanceUntilIdle()
 
         val state = viewModel.state.value
         assertFalse(state.isForeman)
         assertEquals("bn", state.currentUserLang)
         assertEquals("u_rahim", state.currentUserId)
+        assertEquals("Rahim Uddin", state.currentUserName)
     }
 
     @Test
@@ -123,7 +145,7 @@ class BoardViewModelTest {
             BoardEvent.SubmitNewTask(
                 titleText = "新規プレス点検",
                 assignees = listOf("u_rahim"),
-                dueAt = "Today 16:00",
+                dueAt = "Today",
                 machineId = "mc2"
             )
         )
@@ -134,7 +156,7 @@ class BoardViewModelTest {
         assertFalse(state.isSubmittingTask)
         assertEquals(6, state.totalTasks)
         assertEquals(4, state.todoTasks.size)
-        assertEquals("Task added", state.messageInfo)
+        assertEquals(R.string.board_task_added, state.messageRes)
     }
 
     @Test
@@ -162,8 +184,7 @@ class BoardViewModelTest {
         advanceUntilIdle()
 
         val state = viewModel.state.value
-        assertNotNull(state.messageInfo)
-        assertTrue(state.messageInfo!!.contains("Conflict"))
+        assertEquals(R.string.board_conflict_reloading, state.messageRes)
     }
 
     @Test
@@ -175,7 +196,8 @@ class BoardViewModelTest {
         advanceUntilIdle()
 
         val errorState = viewModel.state.value
-        assertNotNull(errorState.error)
+        assertNotNull(errorState.errorRes)
+        assertEquals(R.string.board_error_offline, errorState.errorRes)
 
         // Clear error and retry
         repository.simulateError(null)
@@ -183,7 +205,7 @@ class BoardViewModelTest {
         advanceUntilIdle()
 
         val recoveredState = viewModel.state.value
-        assertNull(recoveredState.error)
+        assertNull(recoveredState.errorRes)
         assertEquals(5, recoveredState.totalTasks)
     }
 
@@ -192,25 +214,57 @@ class BoardViewModelTest {
         advanceUntilIdle()
         viewModel.onEvent(BoardEvent.SubmitNewTask("Test", emptyList(), null))
         advanceUntilIdle()
-        assertEquals("Task added", viewModel.state.value.messageInfo)
+        assertEquals(R.string.board_task_added, viewModel.state.value.messageRes)
 
         viewModel.onEvent(BoardEvent.ClearMessage)
-        assertNull(viewModel.state.value.messageInfo)
+        assertNull(viewModel.state.value.messageRes)
     }
 
     @Test
-    fun clickFilterEmitsShowSnackbarEffect() = runTest {
-        advanceUntilIdle()
-        var effectReceived: BoardEffect? = null
-        val job = launch {
-            effectReceived = viewModel.effects.first()
-        }
+    fun workerViewOfAssigneesShowsOwnNameAndPlusNForOthers() {
+        val result = resolveAssigneeDisplayNames(
+            assigneeIds = listOf("u_rahim", "3", "4"),
+            isForeman = false,
+            currentUserId = "u_rahim",
+            currentUserName = "Rahim Uddin",
+            users = emptyList(),
+        )
+        assertEquals(listOf("Rahim Uddin", "+2"), result)
+        // Verify an ID is never shown as a name
+        assertFalse(result.contains("3"))
+        assertFalse(result.contains("4"))
+    }
 
-        viewModel.onEvent(BoardEvent.ClickFilter)
-        advanceUntilIdle()
+    @Test
+    fun workerViewOfAssigneesWithoutSelfShowsOnlyPlusN() {
+        val result = resolveAssigneeDisplayNames(
+            assigneeIds = listOf("3", "4", "5"),
+            isForeman = false,
+            currentUserId = "u_rahim",
+            currentUserName = "Rahim Uddin",
+            users = emptyList(),
+        )
+        assertEquals(listOf("+3"), result)
+        assertFalse(result.contains("3"))
+        assertFalse(result.contains("4"))
+        assertFalse(result.contains("5"))
+    }
 
-        assertNotNull(effectReceived)
-        assertTrue(effectReceived is BoardEffect.ShowSnackbar)
-        job.cancel()
+    @Test
+    fun foremanViewOfAssigneesShowsResolvedDisplayNames() {
+        val users = listOf(
+            User("1", "Rahim Uddin", Role.WORKER, "bn"),
+            User("2", "Nguyen Van", Role.WORKER, "vi")
+        )
+        val result = resolveAssigneeDisplayNames(
+            assigneeIds = listOf("1", "2"),
+            isForeman = true,
+            currentUserId = "u_tanaka",
+            currentUserName = "Tanaka",
+            users = users,
+        )
+        assertEquals(listOf("Rahim Uddin", "Nguyen Van"), result)
+        assertFalse(result.contains("1"))
+        assertFalse(result.contains("2"))
     }
 }

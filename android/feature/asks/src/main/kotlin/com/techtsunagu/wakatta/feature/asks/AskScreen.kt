@@ -1,5 +1,7 @@
 package com.techtsunagu.wakatta.feature.asks
 
+import android.widget.Toast
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -28,7 +30,6 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -46,6 +47,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -61,12 +63,14 @@ import com.techtsunagu.wakatta.core.design.component.TriText
 import com.techtsunagu.wakatta.core.design.component.WakattaCard
 import com.techtsunagu.wakatta.core.design.component.WakattaChip
 import com.techtsunagu.wakatta.core.design.component.WakattaTopBar
+import com.techtsunagu.wakatta.core.media.rememberDictation
+import com.techtsunagu.wakatta.core.model.AppError
 import com.techtsunagu.wakatta.core.model.AppResult
-import com.techtsunagu.wakatta.core.model.AudioRecorder
 import com.techtsunagu.wakatta.core.model.OutboxWriter
 import com.techtsunagu.wakatta.core.model.Role
 import com.techtsunagu.wakatta.core.model.SessionStore
 import com.techtsunagu.wakatta.core.model.Speaker
+import com.techtsunagu.wakatta.core.model.pick
 import com.techtsunagu.wakatta.feature.asks.data.AskRepository
 import com.techtsunagu.wakatta.feature.asks.model.AskCreateRequest
 import com.techtsunagu.wakatta.feature.asks.model.AskDto
@@ -74,18 +78,23 @@ import com.techtsunagu.wakatta.feature.asks.model.AskKind
 import com.techtsunagu.wakatta.feature.asks.model.AskStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class AskUiState(
     val isLoading: Boolean = false,
     val isEmpty: Boolean = false,
     val error: String? = null,
+    @StringRes val errorRes: Int? = null,
     val isForeman: Boolean = false,
-    val workerId: String = "u_rahim",
-    val workerName: String = "Rahim Uddin",
+    val workerId: String = "",
+    val workerName: String = "",
     val currentInput: String = "",
-    val isRecording: Boolean = false,
+    val language: String = "en",
     val isThinking: Boolean = false,
     val asks: List<AskDto> = emptyList(),
     val expandedOriginalIds: Set<String> = emptySet(),
@@ -96,59 +105,51 @@ sealed interface AskEvent {
     data class QueryChanged(val query: String) : AskEvent
     data object SendClick : AskEvent
     data class SuggestionClick(val query: String) : AskEvent
-    data object MicClick : AskEvent
     data class ToggleOriginalClick(val askId: String) : AskEvent
     data class SpeakClick(val askId: String, val text: String, val lang: String) : AskEvent
     data class OpenNoticeClick(val noticeId: String) : AskEvent
-    data class CannedReplyClick(val askId: String, val replyIndex: Int) : AskEvent
     data class ForwardAskClick(val askId: String) : AskEvent
     data object Retry : AskEvent
-    data object Refresh : AskEvent
 }
 
 sealed interface AskEffect {
     data class NavigateToNotice(val noticeId: String) : AskEffect
-    data class ShowToast(val message: String) : AskEffect
+    data class ShowToast(@StringRes val messageRes: Int) : AskEffect
 }
 
 @HiltViewModel
 class AskViewModel @Inject constructor(
     private val askRepository: AskRepository,
-    private val audioRecorder: AudioRecorder,
     private val outboxWriter: OutboxWriter,
     private val speaker: Speaker,
     private val sessionStore: SessionStore,
 ) : MviViewModel<AskUiState, AskEvent, AskEffect>(AskUiState(isLoading = true)) {
 
+    private val reload = MutableStateFlow(0)
+
+    /** The last request that failed: the same question sent again keeps its key, so it is not asked twice. */
+    private var failed: AskCreateRequest? = null
+
     init {
-        observeSessionAndAsks()
-    }
-
-    private fun observeSessionAndAsks() {
         viewModelScope.launch {
-            sessionStore.session.collectLatest { session ->
+            combine(sessionStore.session, reload) { session, _ -> session }.collectLatest { session ->
                 val isForeman = session?.user?.role == Role.FOREMAN
-                val workerId = session?.user?.id ?: "u_rahim"
-                val workerName = session?.user?.displayName ?: "Rahim Uddin"
-
+                val workerId = session?.user?.id.orEmpty()
                 updateState {
                     it.copy(
+                        isLoading = true,
+                        errorRes = null,
                         isForeman = isForeman,
                         workerId = workerId,
-                        workerName = workerName,
+                        workerName = session?.user?.displayName.orEmpty(),
+                        language = session?.user?.language ?: "en",
                     )
                 }
-
-                val filterId = if (isForeman) null else workerId
-                askRepository.getAsks(filterId).collectLatest { asksList ->
-                    updateState {
-                        it.copy(
-                            isLoading = false,
-                            isEmpty = asksList.isEmpty(),
-                            asks = asksList,
-                        )
+                askRepository.getAsks(if (isForeman) null else workerId)
+                    .catch { updateState { it.copy(isLoading = false, errorRes = R.string.asks_error_load) } }
+                    .collect { asks ->
+                        updateState { it.copy(isLoading = false, isEmpty = asks.isEmpty(), asks = asks) }
                     }
-                }
             }
         }
     }
@@ -156,59 +157,30 @@ class AskViewModel @Inject constructor(
     override fun onEvent(event: AskEvent) {
         when (event) {
             is AskEvent.QueryChanged -> updateState { it.copy(currentInput = event.query) }
-            is AskEvent.SendClick -> sendCurrentInput()
-            is AskEvent.SuggestionClick -> sendSpecificQuery(event.query)
-            is AskEvent.MicClick -> toggleMicRecording()
+            is AskEvent.SendClick -> send(state.value.currentInput.trim())
+            is AskEvent.SuggestionClick -> send(event.query)
             is AskEvent.ToggleOriginalClick -> toggleOriginal(event.askId)
             is AskEvent.SpeakClick -> handleSpeak(event.askId, event.text, event.lang)
             is AskEvent.OpenNoticeClick -> sendEffect(AskEffect.NavigateToNotice(event.noticeId))
-            is AskEvent.CannedReplyClick -> sendCannedReply(event.askId, event.replyIndex)
             is AskEvent.ForwardAskClick -> forwardToSenpai(event.askId)
-            is AskEvent.Retry -> updateState { it.copy(isLoading = false, error = null) }
-            is AskEvent.Refresh -> updateState { it.copy(isLoading = false) }
+            is AskEvent.Retry -> reload.update { it + 1 }
         }
     }
 
-    private fun sendCurrentInput() {
-        val query = state.value.currentInput.trim()
-        if (query.isEmpty()) return
+    private fun send(query: String) {
+        if (query.isEmpty() || state.value.isThinking) return
+        val request = failed?.takeIf { it.text == query } ?: AskCreateRequest(text = query)
+        val typed = state.value.currentInput
         updateState { it.copy(currentInput = "", isThinking = true) }
         viewModelScope.launch {
-            when (val res = askRepository.sendAsk(state.value.workerId, AskCreateRequest(text = query))) {
-                is AppResult.Success -> updateState { it.copy(isThinking = false) }
-                is AppResult.Failure -> updateState { it.copy(isThinking = false, error = "Failed to send ask") }
+            val res = askRepository.sendAsk(state.value.workerId, request)
+            failed = request.takeIf { res is AppResult.Failure }
+            updateState {
+                // A question that was not sent goes back in the box.
+                val text = if (res is AppResult.Failure && it.currentInput.isEmpty()) typed else it.currentInput
+                it.copy(isThinking = false, currentInput = text)
             }
-        }
-    }
-
-    private fun sendSpecificQuery(query: String) {
-        updateState { it.copy(isThinking = true) }
-        viewModelScope.launch {
-            when (val res = askRepository.sendAsk(state.value.workerId, AskCreateRequest(text = query))) {
-                is AppResult.Success -> updateState { it.copy(isThinking = false) }
-                is AppResult.Failure -> updateState { it.copy(isThinking = false, error = "Failed to send ask") }
-            }
-        }
-    }
-
-    private fun toggleMicRecording() {
-        if (state.value.isRecording) {
-            updateState { it.copy(isRecording = false, isThinking = true) }
-            viewModelScope.launch {
-                val recording = audioRecorder.stop()
-                // The text is only the mock stand-in for the transcript; the live repository sends the recording.
-                val voiceQuery = "Where can I buy a bus pass?"
-                askRepository.sendAsk(
-                    state.value.workerId,
-                    AskCreateRequest(text = voiceQuery, isVoice = true, audioFile = recording),
-                )
-                updateState { it.copy(isThinking = false) }
-            }
-        } else {
-            updateState { it.copy(isRecording = true) }
-            viewModelScope.launch {
-                audioRecorder.start().collectLatest { }
-            }
+            if (res is AppResult.Failure) sendEffect(AskEffect.ShowToast(R.string.asks_error_failed_to_send))
         }
     }
 
@@ -228,34 +200,12 @@ class AskViewModel @Inject constructor(
         }
     }
 
-    private fun sendCannedReply(askId: String, replyIndex: Int) {
-        val (ja, en, bn) = when (replyIndex) {
-            0 -> Triple(
-                "いい質問ですね。明日の昼休みに、いっしょに調べましょう。",
-                "Good question. Let us look it up together at lunch tomorrow.",
-                "ভালো প্রশ্ন। আসুন আগামীকাল দুপুরের খাবারের সময় একসাথে খোঁজ করি。",
-            )
-            1 -> Triple(
-                "市役所の窓口で聞くといいですよ。私もついて行きます。",
-                "It is best to ask at the city office. I will go with you.",
-                "সিটি অফিসের কাউন্টারে জিজ্ঞাসা করাই ভালো। আমিও আপনার সাথে যাব।",
-            )
-            else -> Triple(
-                "今度の土曜日に、いっしょに行きましょう。",
-                "Let us go together this Saturday.",
-                "আসুন এই শনিবার একসাথে যাই।",
-            )
-        }
-        viewModelScope.launch {
-            askRepository.replyAsk(askId, ja, en, bn)
-        }
-    }
-
     private fun forwardToSenpai(askId: String) {
         viewModelScope.launch {
-            when (val res = askRepository.forwardAsk(askId)) {
-                is AppResult.Success -> { }
-                is AppResult.Failure -> updateState { it.copy(error = "No active Senpai pair") }
+            val res = askRepository.forwardAsk(askId)
+            if (res is AppResult.Failure) {
+                val noPair = res.error is AppError.Conflict
+                sendEffect(AskEffect.ShowToast(if (noPair) R.string.asks_error_no_active_pair else R.string.asks_error_failed_to_send))
             }
         }
     }
@@ -272,13 +222,14 @@ fun AskScreen(
     onNavigateToNotice: (String) -> Unit = {},
     viewModel: AskViewModel = viewModel(),
 ) {
+    val context = LocalContext.current
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     LaunchedEffect(viewModel) {
         viewModel.effects.collect { effect ->
             when (effect) {
                 is AskEffect.NavigateToNotice -> onNavigateToNotice(effect.noticeId)
-                is AskEffect.ShowToast -> { }
+                is AskEffect.ShowToast -> Toast.makeText(context, effect.messageRes, Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -321,19 +272,17 @@ fun AskContent(
                 state.isLoading -> {
                     LoadingState(message = stringResource(R.string.asks_loading))
                 }
-                state.error != null -> {
+                state.error != null || state.errorRes != null -> {
+                    val errorMsg = state.errorRes?.let { stringResource(it) } ?: state.error.orEmpty()
                     EmptyState(
-                        title = stringResource(R.string.asks_error, state.error),
-                        message = state.error,
+                        title = stringResource(R.string.asks_error, errorMsg),
+                        message = errorMsg,
                         actionLabel = stringResource(R.string.asks_retry),
                         onActionClick = { onEvent(AskEvent.Retry) },
                     )
                 }
                 state.isForeman -> {
-                    ForemanAskInbox(
-                        state = state,
-                        onEvent = onEvent,
-                    )
+                    ForemanAskInbox(state = state)
                 }
                 else -> {
                     WorkerAskChat(
@@ -412,7 +361,7 @@ private fun WorkerAskChat(
 
         AskInputArea(
             currentInput = state.currentInput,
-            isRecording = state.isRecording,
+            language = state.language,
             onEvent = onEvent,
         )
     }
@@ -431,6 +380,7 @@ private fun AskConversationItem(
         WorkerQuestionBubble(ask = ask)
         BotAnswerBubble(
             ask = ask,
+            language = state.language,
             isOriginalExpanded = state.expandedOriginalIds.contains(ask.id),
             isSpeaking = state.currentlySpeakingAskId == ask.id,
             onEvent = onEvent,
@@ -473,6 +423,7 @@ private fun WorkerQuestionBubble(ask: AskDto) {
 @Composable
 private fun BotAnswerBubble(
     ask: AskDto,
+    language: String,
     isOriginalExpanded: Boolean,
     isSpeaking: Boolean,
     onEvent: (AskEvent) -> Unit,
@@ -483,10 +434,11 @@ private fun BotAnswerBubble(
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         if (ask.covered && ask.matchNotice != null) {
-            NoticeCoveredCard(notice = ask.matchNotice, onEvent = onEvent)
+            NoticeCoveredCard(notice = ask.matchNotice, language = language, onEvent = onEvent)
         } else {
             SenpaiForwardedCard(
                 ask = ask,
+                language = language,
                 isOriginalExpanded = isOriginalExpanded,
                 isSpeaking = isSpeaking,
                 onEvent = onEvent,
@@ -498,6 +450,7 @@ private fun BotAnswerBubble(
 @Composable
 private fun NoticeCoveredCard(
     notice: com.techtsunagu.wakatta.feature.asks.model.NoticeMatchDto,
+    language: String,
     onEvent: (AskEvent) -> Unit,
 ) {
     WakattaCard(modifier = Modifier.fillMaxWidth()) {
@@ -507,26 +460,28 @@ private fun NoticeCoveredCard(
         ) {
             TriText(
                 tri = notice.answer,
-                lang = "en",
+                lang = language,
                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
             )
-            Surface(
-                shape = RoundedCornerShape(8.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Column(modifier = Modifier.padding(10.dp)) {
-                    Text(
-                        text = stringResource(R.string.asks_from_notice, notice.title["ja"] ?: ""),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    TriText(
-                        tri = notice.snippet,
-                        lang = "en",
-                        style = MaterialTheme.typography.bodySmall,
-                    )
+            if (notice.title.isNotEmpty()) {
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Column(modifier = Modifier.padding(10.dp)) {
+                        Text(
+                            text = stringResource(R.string.asks_from_notice, pick(notice.title, language)),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        TriText(
+                            tri = notice.snippet,
+                            lang = language,
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
                 }
             }
             TextButton(
@@ -542,20 +497,34 @@ private fun NoticeCoveredCard(
 @Composable
 private fun SenpaiForwardedCard(
     ask: AskDto,
+    language: String,
     isOriginalExpanded: Boolean,
     isSpeaking: Boolean,
     onEvent: (AskEvent) -> Unit,
 ) {
-    val senpaiName = ask.senpaiName ?: "佐藤 美咲"
     WakattaCard(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
+            val noSenpai = ask.status == AskStatus.OPEN && ask.senpaiName == null
             Text(
-                text = stringResource(R.string.asks_forwarding_to_senpai, senpaiName),
+                text = when {
+                    noSenpai -> stringResource(R.string.asks_error_no_active_pair)
+                    ask.senpaiName != null -> stringResource(R.string.asks_forwarding_to_senpai, ask.senpaiName)
+                    else -> stringResource(R.string.asks_your_senpai)
+                },
                 style = MaterialTheme.typography.bodyMedium,
             )
+
+            if (ask.status == AskStatus.OPEN && !noSenpai) {
+                OutlinedButton(
+                    onClick = { onEvent(AskEvent.ForwardAskClick(ask.id)) },
+                    modifier = Modifier.sizeIn(minHeight = 48.dp),
+                ) {
+                    Text(text = stringResource(R.string.asks_forward))
+                }
+            }
 
             if (ask.status == AskStatus.FORWARDED) {
                 Surface(
@@ -569,9 +538,10 @@ private fun SenpaiForwardedCard(
                         modifier = Modifier.padding(8.dp),
                     )
                 }
-            } else if (ask.status == AskStatus.REPLIED && ask.replyEn != null) {
+            } else if (ask.status == AskStatus.REPLIED) {
                 SenpaiReplySection(
                     ask = ask,
+                    language = language,
                     isOriginalExpanded = isOriginalExpanded,
                     isSpeaking = isSpeaking,
                     onEvent = onEvent,
@@ -584,30 +554,33 @@ private fun SenpaiForwardedCard(
 @Composable
 private fun SenpaiReplySection(
     ask: AskDto,
+    language: String,
     isOriginalExpanded: Boolean,
     isSpeaking: Boolean,
     onEvent: (AskEvent) -> Unit,
 ) {
+    val reply = ask.replyFor(language).orEmpty()
+    val senpaiName = ask.senpaiEnName ?: ask.senpaiName ?: stringResource(R.string.asks_your_senpai)
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Avatar(
-                name = ask.senpaiName ?: "佐",
+                name = senpaiName,
                 size = 28.dp,
                 containerColor = Color(0xFFAD1457),
                 contentColor = Color.White,
             )
             Text(
-                text = ask.senpaiEnName ?: ask.senpaiName ?: "Sato Misaki",
+                text = senpaiName,
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
             )
         }
 
         Text(
-            text = ask.replyEn ?: "",
+            text = reply,
             style = MaterialTheme.typography.bodyMedium,
         )
 
@@ -615,25 +588,27 @@ private fun SenpaiReplySection(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            Icon(
-                imageVector = Icons.Default.Info,
-                contentDescription = null,
-                modifier = Modifier.size(14.dp),
-                tint = MaterialTheme.colorScheme.primary,
-            )
-            Text(
-                text = stringResource(R.string.asks_translated_from_ja),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.primary,
-            )
+            if (reply != ask.replyJa) {
+                Icon(
+                    imageVector = Icons.Default.Info,
+                    contentDescription = null,
+                    modifier = Modifier.size(14.dp),
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+                Text(
+                    text = stringResource(R.string.asks_translated_from_ja),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
             Spacer(modifier = Modifier.weight(1f))
             IconButton(
                 onClick = {
                     onEvent(
                         AskEvent.SpeakClick(
                             askId = ask.id,
-                            text = ask.replyEn ?: "",
-                            lang = "en-US",
+                            text = reply,
+                            lang = if (reply == ask.replyJa) "ja" else language,
                         ),
                     )
                 },
@@ -663,15 +638,17 @@ private fun SenpaiReplySection(
             }
         }
 
-        TextButton(
-            onClick = { onEvent(AskEvent.ToggleOriginalClick(ask.id)) },
-            modifier = Modifier.sizeIn(minHeight = 48.dp),
-        ) {
-            Text(
-                text = stringResource(
-                    if (isOriginalExpanded) R.string.asks_hide_original else R.string.asks_show_original,
-                ),
-            )
+        if (reply != ask.replyJa) {
+            TextButton(
+                onClick = { onEvent(AskEvent.ToggleOriginalClick(ask.id)) },
+                modifier = Modifier.sizeIn(minHeight = 48.dp),
+            ) {
+                Text(
+                    text = stringResource(
+                        if (isOriginalExpanded) R.string.asks_hide_original else R.string.asks_show_original,
+                    ),
+                )
+            }
         }
     }
 }
@@ -679,9 +656,11 @@ private fun SenpaiReplySection(
 @Composable
 private fun AskInputArea(
     currentInput: String,
-    isRecording: Boolean,
+    language: String,
     onEvent: (AskEvent) -> Unit,
 ) {
+    val dictation = rememberDictation(language, currentInput) { onEvent(AskEvent.QueryChanged(it)) }
+    val isRecording = dictation.isListening
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -708,6 +687,9 @@ private fun AskInputArea(
             }
         }
 
+        dictation.errorRes?.let {
+            Text(stringResource(it), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+        }
         Spacer(modifier = Modifier.height(8.dp))
 
         Row(
@@ -734,7 +716,7 @@ private fun AskInputArea(
             )
 
             IconButton(
-                onClick = { onEvent(AskEvent.MicClick) },
+                onClick = dictation.toggle,
                 modifier = Modifier
                     .size(48.dp)
                     .background(
@@ -751,7 +733,7 @@ private fun AskInputArea(
 
             IconButton(
                 onClick = { onEvent(AskEvent.SendClick) },
-                enabled = currentInput.isNotBlank(),
+                enabled = currentInput.isNotBlank() && !isRecording,
                 modifier = Modifier
                     .size(48.dp)
                     .background(
@@ -770,11 +752,8 @@ private fun AskInputArea(
 }
 
 @Composable
-private fun ForemanAskInbox(
-    state: AskUiState,
-    onEvent: (AskEvent) -> Unit,
-) {
-    val forwarded = state.asks.filter { it.status == AskStatus.FORWARDED }
+private fun ForemanAskInbox(state: AskUiState) {
+    val forwarded = state.asks.filter { it.status == AskStatus.FORWARDED || it.status == AskStatus.OPEN }
     val replied = state.asks.filter { it.status == AskStatus.REPLIED }
     val answered = state.asks.filter { it.status == AskStatus.ANSWERED }
 
@@ -840,7 +819,7 @@ private fun ForemanAskInbox(
                 key = { "fwd_" + it.id },
                 contentType = { "forwarded_item" },
             ) { ask ->
-                ForemanForwardedAskCard(ask = ask, onEvent = onEvent)
+                ForemanForwardedAskCard(ask = ask)
             }
         }
 
@@ -881,10 +860,7 @@ private fun ForemanAskInbox(
 }
 
 @Composable
-private fun ForemanForwardedAskCard(
-    ask: AskDto,
-    onEvent: (AskEvent) -> Unit,
-) {
+private fun ForemanForwardedAskCard(ask: AskDto) {
     WakattaCard(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(14.dp),
@@ -913,34 +889,21 @@ private fun ForemanForwardedAskCard(
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Medium,
             )
-            Text(
-                text = ask.text,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            if (ask.textJa != null) {
+                Text(
+                    text = ask.text,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
 
             Text(
-                text = stringResource(R.string.asks_canned_replies_label),
+                text = stringResource(
+                    if (ask.status == AskStatus.OPEN) R.string.asks_foreman_not_forwarded else R.string.asks_foreman_waiting,
+                ),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-
-            val cannedList = listOf(
-                "いい質問ですね。明日の昼休みに、いっしょに調べましょう。",
-                "市役所の窓口で聞くといいですよ。私もついて行きます。",
-                "今度の土曜日に、いっしょに行きましょう。",
-            )
-
-            cannedList.forEachIndexed { index, replyJa ->
-                OutlinedButton(
-                    onClick = { onEvent(AskEvent.CannedReplyClick(ask.id, index)) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .sizeIn(minHeight = 48.dp),
-                ) {
-                    Text(text = replyJa, fontSize = 13.sp)
-                }
-            }
         }
     }
 }
@@ -998,7 +961,7 @@ private fun ForemanAnsweredAskCard(ask: AskDto) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = ask.textJa ?: ask.text, style = MaterialTheme.typography.bodyMedium)
                 Text(
-                    text = ask.matchNotice?.title?.get("ja") ?: "",
+                    text = pick(ask.matchNotice?.answer, "ja"),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

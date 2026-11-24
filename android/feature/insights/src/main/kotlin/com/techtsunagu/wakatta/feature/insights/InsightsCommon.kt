@@ -106,6 +106,9 @@ internal fun SectionHeader(text: String, modifier: Modifier = Modifier) {
 /** "One instruction, three wins": what the loop gives the Worker, the Foreman and the employer. */
 @Composable
 internal fun ValueCard(stats: LoopStats, modifier: Modifier = Modifier) {
+    if (stats.flagged < 0 && stats.explained < 0 && stats.understood < 0 && stats.records < 0) {
+        return
+    }
     WakattaCard(modifier = modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(
@@ -113,9 +116,12 @@ internal fun ValueCard(stats: LoopStats, modifier: Modifier = Modifier) {
                 style = MaterialTheme.typography.titleMedium,
             )
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                ValueColumn(R.string.insights_role_worker, R.string.insights_value_worker, "${stats.understood}", Modifier.weight(1f))
-                ValueColumn(R.string.insights_role_foreman, R.string.insights_value_foreman, "${stats.explained}/${stats.flagged}", Modifier.weight(1f))
-                ValueColumn(R.string.insights_role_employer, R.string.insights_value_employer, "${stats.records}", Modifier.weight(1f))
+                val workerText = if (stats.understood >= 0) "${stats.understood}" else "—"
+                val foremanText = if (stats.flagged >= 0) "${stats.explained}/${stats.flagged}" else "—"
+                val employerText = if (stats.records >= 0) "${stats.records}" else "—"
+                ValueColumn(R.string.insights_role_worker, R.string.insights_value_worker, workerText, Modifier.weight(1f))
+                ValueColumn(R.string.insights_role_foreman, R.string.insights_value_foreman, foremanText, Modifier.weight(1f))
+                ValueColumn(R.string.insights_role_employer, R.string.insights_value_employer, employerText, Modifier.weight(1f))
             }
         }
     }

@@ -1,15 +1,19 @@
 package com.techtsunagu.wakatta.feature.asks.data
 
+import com.techtsunagu.wakatta.core.model.AppError
 import com.techtsunagu.wakatta.core.model.AppResult
 import com.techtsunagu.wakatta.core.model.Tri
 import com.techtsunagu.wakatta.core.network.ApiConfig.ApiPaths
 import com.techtsunagu.wakatta.core.network.ApiEnvelope
 import com.techtsunagu.wakatta.core.network.IdempotencyKey
 import com.techtsunagu.wakatta.core.network.safeApiCall
+import com.techtsunagu.wakatta.feature.asks.model.SenpaiPairCreateRequest
+import com.techtsunagu.wakatta.feature.asks.model.SenpaiPairCreatedDto
 import kotlinx.serialization.Serializable
 import okhttp3.MultipartBody
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Multipart
 import retrofit2.http.POST
@@ -18,7 +22,7 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 import retrofit2.http.Tag
 
-/** Worker routes of docs/openapi.yaml for Asks, the Senpai pair and Meet-ups. The Worker is the token's; no id is sent. */
+/** Asks, Senpai pairs and Meet-ups of docs/openapi.yaml. A Worker gets their own, a Foreman the shop's. */
 internal interface AsksApi {
     @GET(ApiPaths.ASKS)
     suspend fun asks(@Query("limit") limit: Int, @Query("cursor") cursor: String?): Response<ApiEnvelope<PageDto<AskOutDto>>>
@@ -38,6 +42,15 @@ internal interface AsksApi {
     @GET(ApiPaths.SENPAI_PAIRS_ME)
     suspend fun myPair(): Response<ApiEnvelope<SenpaiPairOutDto>>
 
+    @GET(ApiPaths.SENPAI_PAIRS)
+    suspend fun pairs(@Query("limit") limit: Int, @Query("cursor") cursor: String?): Response<ApiEnvelope<PageDto<SenpaiPairOutDto>>>
+
+    @POST(ApiPaths.SENPAI_PAIRS)
+    suspend fun createPair(@Body body: SenpaiPairCreateRequest): Response<ApiEnvelope<SenpaiPairCreatedDto>>
+
+    @DELETE(ApiPaths.SENPAI_PAIR)
+    suspend fun revokePair(@Path("pair_id") id: String): Response<ApiEnvelope<Unit>>
+
     @GET(ApiPaths.MEETUPS)
     suspend fun meetups(@Query("limit") limit: Int, @Query("cursor") cursor: String?): Response<ApiEnvelope<PageDto<MeetupOutDto>>>
 
@@ -52,7 +65,9 @@ internal data class PageDto<T>(val items: List<T> = emptyList(), val nextCursor:
 internal data class AskOutDto(
     val id: String,
     val workerId: String = "",
+    val workerName: String = "",
     val text: String = "",
+    val textJa: String? = null,
     val covered: Boolean = false,
     val answer: Tri? = null,
     val sourceNoticeIds: List<String> = emptyList(),
@@ -85,9 +100,20 @@ internal data class MeetupOutDto(
 @Serializable
 internal data class MeetupInDto(val kind: String, val date: String, val note: String)
 
-/** The Worker's Senpai, or null when none is paired (the server answers `data: null`) or the call failed. */
-internal suspend fun AsksApi.pairOrNull(): SenpaiPairOutDto? =
-    (safeApiCall { myPair() } as? AppResult.Success)?.value
+/** A list that could not be loaded: the screen shows its error and a retry. */
+internal class LoadFailed(val error: AppError) : Exception(error.toString())
+
+internal fun <T> AppResult<T>.orThrow(): T = when (this) {
+    is AppResult.Success -> value
+    is AppResult.Failure -> throw LoadFailed(error)
+}
+
+/** The Worker's Senpai, or null when none is paired (the server answers `data: null`). */
+internal suspend fun AsksApi.pairOrNull(): SenpaiPairOutDto? {
+    var paired = true
+    val res = safeApiCall { myPair().also { if (it.isSuccessful) paired = it.body()?.data != null } }
+    return if (paired) res.orThrow() else null
+}
 
 internal suspend fun <T> allPages(call: suspend (cursor: String?) -> Response<ApiEnvelope<PageDto<T>>>): AppResult<List<T>> {
     val all = mutableListOf<T>()

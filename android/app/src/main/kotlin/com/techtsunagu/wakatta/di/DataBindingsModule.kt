@@ -14,6 +14,7 @@ import com.techtsunagu.wakatta.core.data.real.RealSignOffRepository
 import com.techtsunagu.wakatta.core.data.real.RealWorkerRepository
 import com.techtsunagu.wakatta.core.data.real.SharedDataApi
 import com.techtsunagu.wakatta.core.media.ZxingQrEncoder
+import com.techtsunagu.wakatta.core.model.CacheStore
 import com.techtsunagu.wakatta.core.model.CheckRepository
 import com.techtsunagu.wakatta.core.model.GlossaryRepository
 import com.techtsunagu.wakatta.core.model.MachineRepository
@@ -47,8 +48,13 @@ abstract class DataBindingsModule {
         fun sharedDataApi(retrofit: Retrofit): SharedDataApi = retrofit.create(SharedDataApi::class.java)
 
         @Provides @Singleton
-        fun machines(fake: Provider<FakeMachineRepository>, api: Lazy<SharedDataApi>, session: SessionStore): MachineRepository =
-            if (ApiConfig.USE_LIVE_API) RealMachineRepository({ api.get() }, session) else fake.get()
+        fun machines(
+            fake: Provider<FakeMachineRepository>,
+            api: Lazy<SharedDataApi>,
+            session: SessionStore,
+            cache: CacheStore,
+        ): MachineRepository =
+            if (ApiConfig.USE_LIVE_API) RealMachineRepository({ api.get() }, session, cache) else fake.get()
 
         @Provides @Singleton
         fun signOffs(fake: Provider<FakeSignOffRepository>, api: Lazy<SharedDataApi>): SignOffRepository =

@@ -90,9 +90,14 @@ class MachineViewModel @Inject constructor(
                     loadMachine(event.machineId)
                 }
             }
-            is MachineEvent.Refresh, is MachineEvent.Retry -> {
+            is MachineEvent.Refresh -> {
                 if (state.value.machineId.isNotEmpty()) {
-                    loadMachine(state.value.machineId)
+                    loadMachine(state.value.machineId, isRefresh = true)
+                }
+            }
+            is MachineEvent.Retry -> {
+                if (state.value.machineId.isNotEmpty()) {
+                    loadMachine(state.value.machineId, isRefresh = false)
                 }
             }
             is MachineEvent.OpenPanel -> sendEffect(MachineEffect.NavigateToPanel(state.value.machineId))
@@ -107,16 +112,27 @@ class MachineViewModel @Inject constructor(
         }
     }
 
-    fun loadMachine(machineId: String) {
+    fun loadMachine(machineId: String, isRefresh: Boolean = false) {
         viewModelScope.launch {
-            updateState { it.copy(machineId = machineId, isLoading = true, error = null) }
+            updateState {
+                if (isRefresh && it.code.isNotEmpty()) {
+                    it.copy(machineId = machineId, error = null)
+                } else {
+                    it.copy(machineId = machineId, isLoading = true, error = null)
+                }
+            }
             val session = sessionStore.session.value
             val isForeman = session?.user?.role == Role.FOREMAN
             val userId = session?.user?.id.orEmpty()
             val userLang = session?.user?.language ?: "ja"
 
             when (val res = machineRepository.getMachine(machineId)) {
-                is AppResult.Failure -> updateState { it.copy(isLoading = false, error = res.error) }
+                is AppResult.Failure -> updateState {
+                    it.copy(
+                        isLoading = false,
+                        error = if (isRefresh && it.code.isNotEmpty()) null else res.error
+                    )
+                }
                 is AppResult.Success -> {
                     val detail = res.value
                     val signOffs = (signOffRepository.getSignOffs(userId) as? AppResult.Success)?.value.orEmpty()

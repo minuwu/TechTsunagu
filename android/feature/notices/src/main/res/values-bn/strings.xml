@@ -3,7 +3,6 @@
     <string name="notices_life_screen_title">জীবন ও সম্প্রদায়</string>
     <string name="notices_notice_screen_title">নোটিশের বিবরণ</string>
     <string name="notices_new_screen_title">নতুন নোটিশ</string>
-    <string name="notices_screen_id">স্ক্রিন আইডি: %1$s</string>
     <string name="notices_loading">লোড হচ্ছে...</string>
     <string name="notices_empty">কোনো নোটিশ পাওয়া যায়নি</string>
     <string name="notices_retry">পুনরায় চেষ্টা করুন</string>
@@ -82,4 +81,7 @@
     <string name="notices_publish_success">নোটিশ সফলভাবে প্রকাশিত হয়েছে</string>
     <string name="notices_publish_events_unconfirmed">প্রকাশের আগে অনুগ্রহ করে সব তারিখ নিশ্চিত করুন</string>
     <string name="notices_audience_info">প্রাপক: কর্মী %1$d জন (%2$s)</string>
+    <string name="notices_error_not_found">নোটিশটি পাওয়া যায়নি।</string>
+    <string name="notices_error_submit_check">যাচাই ফলাফল জমা দেওয়া যায়নি।</string>
+    <string name="notices_error_create_draft">নোটিশের খসড়া তৈরি করা যায়নি।</string>
 </resources>

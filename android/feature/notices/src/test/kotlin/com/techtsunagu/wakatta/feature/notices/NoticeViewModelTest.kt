@@ -214,5 +214,6 @@ class NoticeViewModelTest {
         val state = viewModel.state.value
         assertFalse(state.isLoading)
         assertNotNull(state.error)
+        assertEquals(R.string.notices_error_not_found, state.errorRes)
     }
 }

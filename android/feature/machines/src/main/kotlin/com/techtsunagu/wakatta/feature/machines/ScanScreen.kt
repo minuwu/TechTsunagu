@@ -41,6 +41,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.techtsunagu.wakatta.core.design.component.ErrorState
 import com.techtsunagu.wakatta.core.design.component.LoadingState
+import com.techtsunagu.wakatta.core.media.QrCamera
 
 @Composable
 fun ScanScreen(
@@ -139,6 +140,7 @@ fun ScanContent(
                             .weight(1f),
                         contentAlignment = Alignment.Center
                     ) {
+                        QrCamera(modifier = Modifier.fillMaxSize(), torchOn = state.isTorchOn)
                         ViewfinderFrame(isTorchOn = state.isTorchOn)
                     }
 

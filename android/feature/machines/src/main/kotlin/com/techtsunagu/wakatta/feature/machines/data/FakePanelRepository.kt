@@ -164,6 +164,9 @@ class FakePanelRepository(
         return AppResult.Success(Unit)
     }
 
+    override suspend fun remindWorker(machineId: String, workerId: String): AppResult<Unit> =
+        if (panels.containsKey(machineId)) AppResult.Success(Unit) else AppResult.Failure(AppError.NotFound)
+
     override suspend fun recordPresence(machineId: String, workerId: String): AppResult<Unit> {
         if (delayMs > 0) delay(delayMs)
         val panel = panels[machineId] ?: return AppResult.Failure(AppError.NotFound)

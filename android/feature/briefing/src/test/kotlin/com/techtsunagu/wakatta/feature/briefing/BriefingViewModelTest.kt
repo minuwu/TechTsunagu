@@ -1,19 +1,24 @@
 package com.techtsunagu.wakatta.feature.briefing
 
-import com.techtsunagu.wakatta.core.model.AudioRecorder
 import com.techtsunagu.wakatta.core.model.CheckRepository
 import com.techtsunagu.wakatta.core.model.CheckResult
 import com.techtsunagu.wakatta.core.model.CheckTargetKind
 import com.techtsunagu.wakatta.core.model.ReceiptRepository
 import com.techtsunagu.wakatta.core.model.Receipts
+import com.techtsunagu.wakatta.core.model.Session
+import com.techtsunagu.wakatta.core.model.SessionStore
 import com.techtsunagu.wakatta.core.model.Speaker
+import com.techtsunagu.wakatta.core.model.User
 import com.techtsunagu.wakatta.core.model.WakattaStatus
 import com.techtsunagu.wakatta.core.model.AppResult
 import com.techtsunagu.wakatta.feature.briefing.data.FakeBriefingRepository
+import com.techtsunagu.wakatta.core.model.DemoSeed
 import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -35,19 +40,19 @@ class BriefingViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
 
     private lateinit var briefingRepository: FakeBriefingRepository
-    private lateinit var testAudioRecorder: TestAudioRecorder
     private lateinit var testSpeaker: TestSpeaker
     private lateinit var testReceiptRepository: TestReceiptRepository
     private lateinit var testCheckRepository: TestCheckRepository
+    private lateinit var testSessionStore: TestSessionStore
 
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         briefingRepository = FakeBriefingRepository(delayMs = 0L)
-        testAudioRecorder = TestAudioRecorder()
         testSpeaker = TestSpeaker()
         testReceiptRepository = TestReceiptRepository()
         testCheckRepository = TestCheckRepository()
+        testSessionStore = TestSessionStore()
     }
 
     @After
@@ -59,7 +64,7 @@ class BriefingViewModelTest {
 
     @Test
     fun briefingNew_initialState_loadsPastBriefings() = runTest {
-        val vm = BriefingNewViewModel(briefingRepository, testAudioRecorder)
+        val vm = BriefingNewViewModel(briefingRepository)
         advanceUntilIdle()
 
         val state = vm.state.value
@@ -70,26 +75,12 @@ class BriefingViewModelTest {
     }
 
     @Test
-    fun briefingNew_startAndStopRecording_createsDraft() = runTest {
-        val vm = BriefingNewViewModel(briefingRepository, testAudioRecorder)
-        advanceUntilIdle()
-
-        vm.onEvent(BriefingNewEvent.StartRecording)
-        assertEquals(BriefingNewPhase.RECORDING, vm.state.value.phase)
-
-        vm.onEvent(BriefingNewEvent.StopRecording)
-        advanceUntilIdle()
-
-        val state = vm.state.value
-        assertEquals(BriefingNewPhase.READY, state.phase)
-        assertNotNull(state.draft)
-    }
-
-    @Test
     fun briefingNew_dictateInstead_processesDirectText() = runTest {
-        val vm = BriefingNewViewModel(briefingRepository, testAudioRecorder)
+        val vm = BriefingNewViewModel(briefingRepository)
         advanceUntilIdle()
 
+        vm.onEvent(BriefingNewEvent.TextChanged("入力した朝礼テキスト"))
+        assertEquals("入力した朝礼テキスト", vm.state.value.recordedText)
         vm.onEvent(BriefingNewEvent.DictateInstead("入力した朝礼テキスト"))
         advanceUntilIdle()
 
@@ -100,7 +91,7 @@ class BriefingViewModelTest {
 
     @Test
     fun briefingNew_redoDraft_resetsToIdle() = runTest {
-        val vm = BriefingNewViewModel(briefingRepository, testAudioRecorder)
+        val vm = BriefingNewViewModel(briefingRepository)
         advanceUntilIdle()
 
         vm.onEvent(BriefingNewEvent.DictateInstead("テスト"))
@@ -114,7 +105,7 @@ class BriefingViewModelTest {
 
     @Test
     fun briefingNew_publishFlow_showsDialog_and_publishes() = runTest {
-        val vm = BriefingNewViewModel(briefingRepository, testAudioRecorder)
+        val vm = BriefingNewViewModel(briefingRepository)
         advanceUntilIdle()
 
         vm.onEvent(BriefingNewEvent.DictateInstead("テスト"))
@@ -137,7 +128,7 @@ class BriefingViewModelTest {
 
     @Test
     fun briefingNew_retry_clearsErrorAndReloads() = runTest {
-        val vm = BriefingNewViewModel(briefingRepository, testAudioRecorder)
+        val vm = BriefingNewViewModel(briefingRepository)
         advanceUntilIdle()
 
         vm.onEvent(BriefingNewEvent.Retry)
@@ -201,6 +192,7 @@ class BriefingViewModelTest {
             receiptRepository = testReceiptRepository,
             checkRepository = testCheckRepository,
             speaker = testSpeaker,
+            sessionStore = testSessionStore,
         )
         vm.onEvent(BriefingCardEvent.Init("b_today"))
         advanceUntilIdle()
@@ -219,6 +211,7 @@ class BriefingViewModelTest {
             receiptRepository = testReceiptRepository,
             checkRepository = testCheckRepository,
             speaker = testSpeaker,
+            sessionStore = testSessionStore,
         )
         vm.onEvent(BriefingCardEvent.Init("b_today"))
         advanceUntilIdle()
@@ -240,6 +233,7 @@ class BriefingViewModelTest {
             receiptRepository = testReceiptRepository,
             checkRepository = testCheckRepository,
             speaker = testSpeaker,
+            sessionStore = testSessionStore,
         )
         vm.onEvent(BriefingCardEvent.Init("b_today"))
         advanceUntilIdle()
@@ -261,6 +255,7 @@ class BriefingViewModelTest {
             receiptRepository = testReceiptRepository,
             checkRepository = testCheckRepository,
             speaker = testSpeaker,
+            sessionStore = testSessionStore,
         )
         vm.onEvent(BriefingCardEvent.Init("b_today"))
         advanceUntilIdle()
@@ -282,6 +277,7 @@ class BriefingViewModelTest {
             receiptRepository = testReceiptRepository,
             checkRepository = testCheckRepository,
             speaker = testSpeaker,
+            sessionStore = testSessionStore,
         )
         vm.onEvent(BriefingCardEvent.Init("b_today"))
         advanceUntilIdle()
@@ -302,17 +298,13 @@ class BriefingViewModelTest {
             receiptRepository = testReceiptRepository,
             checkRepository = testCheckRepository,
             speaker = testSpeaker,
+            sessionStore = testSessionStore,
         )
         vm.onEvent(BriefingCardEvent.Done)
         assertTrue(testSpeaker.stopped)
     }
 
     // --- Helpers / Fakes for testing ---
-
-    private class TestAudioRecorder : AudioRecorder {
-        override fun start(): Flow<Pair<Float, Int>> = flowOf(Pair(0.5f, 1))
-        override suspend fun stop(): File? = null
-    }
 
     private class TestSpeaker : Speaker {
         var spokenText: String? = null
@@ -348,5 +340,13 @@ class BriefingViewModelTest {
             val passed = answers.isNotEmpty() && answers[0] == 0
             return AppResult.Success(CheckResult(passed = passed))
         }
+    }
+
+    private class TestSessionStore(user: User = DemoSeed.demoWorker) : SessionStore {
+        private val s = MutableStateFlow<Session?>(Session("tok", user = user))
+        override val session: StateFlow<Session?> = s
+        override suspend fun save(session: Session) { s.value = session }
+        override suspend fun clear() { s.value = null }
+        override fun getCachedToken(): String? = s.value?.token
     }
 }

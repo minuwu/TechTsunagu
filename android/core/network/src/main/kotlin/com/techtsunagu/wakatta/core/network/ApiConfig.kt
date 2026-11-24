@@ -8,6 +8,9 @@ object ApiConfig {
     /** One line to point the whole app at another server. No trailing slash. */
     const val BASE_URL = "https://wakatta-api.agreeablestone-840cfb57.japaneast.azurecontainerapps.io"
 
+    /** Address of the web app a Senpai opens, no trailing slash. Empty until the web app is deployed. */
+    const val WEB_BASE_URL = ""
+
     /** True: sign-in talks to the live backend. False: the Fake repository is used. */
     const val USE_LIVE_API = true
 
@@ -37,6 +40,7 @@ object ApiConfig {
         const val NOTE_VERSION = "/api/note-versions/{note_id}"
         const val NOTE_VERSION_APPROVE = "/api/note-versions/{note_id}/approve"
         const val CHECKS = "/api/checks"
+        const val MACHINE_REMIND = "/api/machines/{machine_id}/remind"
         const val MACHINE_OVERRIDES = "/api/machines/{machine_id}/overrides"
         const val MACHINE_OVERRIDE = "/api/machines/{machine_id}/overrides/{override_id}"
         const val MACHINE_VERSIONS = "/api/machines/{machine_id}/versions"
@@ -85,6 +89,8 @@ object ApiConfig {
         const val BRIEFING_RECEIPTS = "/api/briefings/{briefing_id}/receipts"
         const val NEAR_MISSES = "/api/near-misses"
         const val NEAR_MISS_ACK = "/api/near-misses/{report_id}/ack"
+        const val NEAR_MISS = "/api/near-misses/{report_id}"
+        const val NEAR_MISS_TASK = "/api/near-misses/{report_id}/task"
         const val NEAR_MISS_PHOTO = "/api/near-misses/{report_id}/photo"
         const val INTERVIEWS_DUE = "/api/interviews/due"
         const val WORKER_INTERVIEWS = "/api/workers/{worker_id}/interviews"
@@ -92,5 +98,21 @@ object ApiConfig {
         const val APP_CONFIG = "/api/app/config"
         const val DEVICES_ME = "/api/devices/me"
         const val KNOWLEDGE_ASKS = "/api/knowledge/asks"
+        const val MESSAGE = "/api/messages/{message_id}"
+        const val MESSAGE_REEXPLAIN_DRAFT = "/api/messages/{message_id}/reexplain/draft"
+        const val MESSAGE_ASK = "/api/messages/{message_id}/ask"
+        const val MY_LEARNING = "/api/workers/me/learning"
+        const val ANALYTICS_UNDERSTANDING = "/api/analytics/understanding"
+        const val ME_QR = "/api/me/qr"
+        const val CONTACTS = "/api/contacts"
+        const val CONTACTS_RESOLVE = "/api/contacts/resolve"
+        const val CONTACT = "/api/contacts/{contact_id}"
+        const val CONTACT_MESSAGES = "/api/contacts/{contact_id}/messages"
+        const val BLOCKS = "/api/blocks"
+        const val BLOCK = "/api/blocks/{contact_id}"
+        const val TALK_THREADS = "/api/talk-threads"
+        const val TALK_THREAD = "/api/talk-threads/{thread_id}"
+        const val TALK_ENTRIES = "/api/talk-threads/{thread_id}/entries"
+        const val TALK_ENTRY = "/api/talk-threads/{thread_id}/entries/{entry_id}"
     }
 }

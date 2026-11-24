@@ -4,7 +4,7 @@
     <string name="nearmiss_loading">Loading...</string>
     <string name="nearmiss_empty">No reports</string>
     <string name="nearmiss_retry">Retry</string>
-    <string name="nearmiss_error">Error: %1$s</string>
+    <string name="nearmiss_error">Could not load this</string>
     <string name="nearmiss_done">Done</string>
     <string name="nearmiss_screen_id">Screen: %1$s</string>
 
@@ -14,7 +14,7 @@
     <string name="nearmiss_step_what">2 · What happened? Hold to speak</string>
     <string name="nearmiss_mic_label">Hold to record</string>
     <string name="nearmiss_text_placeholder">Hold the mic and say what happened, or type here</string>
-    <string name="nearmiss_auto_translate_hint">Auto-translated to Japanese for Tanaka</string>
+    <string name="nearmiss_auto_translate_hint">Auto-translated to Japanese for the foreman</string>
     <string name="nearmiss_step_photo">3 · Photo (optional)</string>
     <string name="nearmiss_add_photo">Add photo</string>
     <string name="nearmiss_tap_circle_hint">Tap the photo to circle the spot</string>
@@ -57,4 +57,8 @@
     <string name="nearmiss_btn_ack">Acknowledge</string>
     <string name="nearmiss_btn_acked">Seen</string>
     <string name="nearmiss_task_created_toast">Task added to board</string>
+    <string name="nearmiss_queued_message">There is no network. The report is sent when the network is back.</string>
+    <string name="nearmiss_send_failed">The report was not accepted. Check it and send it again.</string>
+    <string name="nearmiss_error_hint">Check the network and try again.</string>
+    <string name="nearmiss_action_failed">That did not work. Try again.</string>
 </resources>

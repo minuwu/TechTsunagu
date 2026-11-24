@@ -65,6 +65,7 @@ import com.techtsunagu.wakatta.core.model.AppResult
 import com.techtsunagu.wakatta.core.model.InterviewStatus
 import com.techtsunagu.wakatta.core.model.ShareFile
 import com.techtsunagu.wakatta.core.model.WakattaStatus
+import com.techtsunagu.wakatta.feature.support.domain.InterviewDueCalculator
 import com.techtsunagu.wakatta.feature.support.domain.InterviewDueDto
 import com.techtsunagu.wakatta.feature.support.domain.SupportLogData
 import com.techtsunagu.wakatta.feature.support.domain.SupportLogRepository
@@ -78,7 +79,7 @@ import kotlinx.coroutines.launch
 
 internal data class SupportLogUiState(
     val workerId: String = "all",
-    val selectedMonth: String = DEFAULT_MONTH,
+    val selectedMonth: String = InterviewDueCalculator.todayIso().take(7),
     val isLoading: Boolean = true,
     val isExporting: Boolean = false,
     val error: SupportError? = null,
@@ -90,10 +91,6 @@ internal data class SupportLogUiState(
                 logData.meetups.isEmpty() &&
                 logData.notices.isEmpty()
             )
-
-    companion object {
-        const val DEFAULT_MONTH = "2026-11"
-    }
 }
 
 internal sealed interface SupportLogEvent {

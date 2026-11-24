@@ -1,5 +1,6 @@
 package com.techtsunagu.wakatta.feature.nearmiss
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -44,6 +45,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
@@ -89,13 +91,13 @@ data class NearMissDetailUiState(
     val machine: Machine? = null,
     val worker: WorkerInfo? = null,
     val isForeman: Boolean = false,
-    val currentUserId: String = "u_tanaka",
-    val foremanName: String = "Tanaka",
+    val currentUserId: String = "",
+    val foremanName: String = "",
     val userLang: String = "ja",
     val isLoading: Boolean = false,
     val isCreatingTask: Boolean = false,
     val isAcknowledging: Boolean = false,
-    val toastMessage: String? = null,
+    @StringRes val toastMessage: Int? = null,
     val error: String? = null,
 )
 
@@ -119,6 +121,8 @@ class NearMissDetailViewModel @Inject constructor(
     private val sessionStore: SessionStore,
 ) : MviViewModel<NearMissDetailUiState, NearMissDetailEvent, NearMissDetailEffect>(NearMissDetailUiState()) {
 
+    private var unlinkedTask: Pair<String, String>? = null
+
     override fun onEvent(event: NearMissDetailEvent) {
         when (event) {
             is NearMissDetailEvent.Init -> loadDetail(event.id)
@@ -135,7 +139,7 @@ class NearMissDetailViewModel @Inject constructor(
             updateState { it.copy(id = reportId, isLoading = true, error = null) }
             val session = sessionStore.session.firstOrNull()
             val isForeman = session?.user?.role == Role.FOREMAN
-            val currentUserId = session?.user?.id ?: if (isForeman) "u_tanaka" else "u_rahim"
+            val currentUserId = session?.user?.id.orEmpty()
             val userLang = session?.user?.language ?: "ja"
 
             when (val result = nearMissRepository.getNearMiss(reportId)) {
@@ -205,7 +209,7 @@ class NearMissDetailViewModel @Inject constructor(
                     }
                 }
                 is AppResult.Failure -> {
-                    updateState { it.copy(isAcknowledging = false) }
+                    updateState { it.copy(isAcknowledging = false, toastMessage = R.string.nearmiss_action_failed) }
                 }
             }
         }
@@ -217,6 +221,10 @@ class NearMissDetailViewModel @Inject constructor(
 
         viewModelScope.launch {
             updateState { it.copy(isCreatingTask = true) }
+            unlinkedTask?.takeIf { it.first == currentReport.id }?.let { (_, taskId) ->
+                linkTask(currentReport, taskId)
+                return@launch
+            }
             val machine = state.value.machine
             val taskTitle = mapOf(
                 "ja" to "ヒヤリハット対応 · ${machine?.name?.get("ja") ?: machine?.code ?: currentReport.machineId}",
@@ -224,26 +232,22 @@ class NearMissDetailViewModel @Inject constructor(
                 "bn" to "হিয়ারী-হাত্টো পদক্ষেপ · ${machine?.name?.get("bn") ?: machine?.code ?: currentReport.machineId}",
             )
             when (val taskRes = taskRepository.createTask(title = taskTitle, assignees = listOf(state.value.currentUserId), dueAt = "Today")) {
-                is AppResult.Success -> {
-                    val taskId = taskRes.value.id
-                    val linkRes = nearMissRepository.linkTask(currentReport.id, taskId)
-                    val updated = if (linkRes is AppResult.Success) {
-                        linkRes.value
-                    } else {
-                        currentReport.copy(taskId = taskId, status = NearMissStatus.ACK)
-                    }
-                    updateState {
-                        it.copy(
-                            report = updated,
-                            isCreatingTask = false,
-                            toastMessage = "Task added to board",
-                        )
-                    }
-                }
-                is AppResult.Failure -> {
-                    updateState { it.copy(isCreatingTask = false) }
-                }
+                is AppResult.Success -> linkTask(currentReport, taskRes.value.id)
+                is AppResult.Failure -> updateState { it.copy(isCreatingTask = false, toastMessage = R.string.nearmiss_action_failed) }
             }
+        }
+    }
+
+    /** A Task is made once; when the link fails, the next tap links the same Task. */
+    private suspend fun linkTask(report: NearMissDto, taskId: String) {
+        unlinkedTask = report.id to taskId
+        when (val link = nearMissRepository.linkTask(report.id, taskId)) {
+            is AppResult.Success -> {
+                unlinkedTask = null
+                updateState { it.copy(report = link.value, isCreatingTask = false, toastMessage = R.string.nearmiss_task_created_toast) }
+                acknowledgeReport() // a report with a Task has been seen
+            }
+            is AppResult.Failure -> updateState { it.copy(isCreatingTask = false, toastMessage = R.string.nearmiss_action_failed) }
         }
     }
 }
@@ -276,10 +280,12 @@ fun NearMissDetailContent(
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
 
+    val resources = LocalResources.current
+
     LaunchedEffect(state.toastMessage) {
         val msg = state.toastMessage
         if (msg != null) {
-            snackbarHostState.showSnackbar(msg)
+            snackbarHostState.showSnackbar(resources.getString(msg))
             onEvent(NearMissDetailEvent.ClearToast)
         }
     }
@@ -317,8 +323,8 @@ fun NearMissDetailContent(
                 }
                 state.error != null -> {
                     EmptyState(
-                        title = stringResource(R.string.nearmiss_error, state.error),
-                        message = state.error,
+                        title = stringResource(R.string.nearmiss_error),
+                        message = stringResource(R.string.nearmiss_error_hint),
                         actionLabel = stringResource(R.string.nearmiss_retry),
                         onActionClick = { onEvent(NearMissDetailEvent.Retry) },
                     )
@@ -377,7 +383,7 @@ private fun DetailContentBody(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            DetailSeverityChip(severity = report.severity)
+            report.severity?.let { DetailSeverityChip(severity = it) }
 
             val status = when {
                 report.status == NearMissStatus.ACK -> WakattaStatus.GREEN
@@ -385,7 +391,10 @@ private fun DetailContentBody(
                 else -> WakattaStatus.ORANGE
             }
             val statusLabel = when {
-                report.status == NearMissStatus.ACK -> stringResource(R.string.nearmiss_status_seen, foremanName)
+                report.status == NearMissStatus.ACK -> {
+                    if (foremanName.isNotEmpty()) stringResource(R.string.nearmiss_status_seen, foremanName)
+                    else stringResource(R.string.nearmiss_filter_ack)
+                }
                 report.isQueuedOffline -> stringResource(R.string.nearmiss_status_waiting)
                 else -> stringResource(R.string.nearmiss_status_sent)
             }
@@ -394,7 +403,7 @@ private fun DetailContentBody(
 
         // Metadata Card
         val machineName = machine?.let { pick(it.name, userLang).ifEmpty { it.code } } ?: report.machineId
-        val workerName = worker?.displayName ?: report.userId
+        val workerName = worker?.displayName ?: report.userName
         val formattedTime = formatTokyoFullTime(report.createdAt)
 
         WakattaCard(modifier = Modifier.fillMaxWidth()) {
@@ -496,7 +505,11 @@ private fun DetailContentBody(
             }
 
             Text(
-                text = stringResource(R.string.nearmiss_header_foreman_reads, foremanName),
+                text = if (foremanName.isNotEmpty()) {
+                    stringResource(R.string.nearmiss_header_foreman_reads, foremanName)
+                } else {
+                    stringResource(R.string.nearmiss_header_ja_trans)
+                },
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,

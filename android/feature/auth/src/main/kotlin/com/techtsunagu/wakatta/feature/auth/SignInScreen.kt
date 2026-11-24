@@ -55,7 +55,6 @@ fun SignInScreen(
     SignInContent(
         state = state,
         onEvent = viewModel::onEvent,
-        onNavigateToChangePin = onNavigateToChangePin,
     )
 }
 
@@ -64,7 +63,6 @@ fun SignInContent(
     state: SignInUiState,
     onEvent: (SignInEvent) -> Unit,
     modifier: Modifier = Modifier,
-    onNavigateToChangePin: () -> Unit = {},
 ) {
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -80,14 +78,6 @@ fun SignInContent(
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Text(
-                text = stringResource(R.string.auth_screen_id, "auth:signin"),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
             when {
                 state.isLoading -> {
                     LoadingState(message = stringResource(R.string.auth_loading))
@@ -205,15 +195,6 @@ fun SignInContent(
                         ) {
                             Text(stringResource(R.string.auth_submit))
                         }
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Button(
-                        onClick = onNavigateToChangePin,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text(stringResource(R.string.auth_changepin_title))
                     }
                 }
             }

@@ -76,9 +76,9 @@ data class NearMissListUiState(
     val machines: Map<String, Machine> = emptyMap(),
     val workers: Map<String, WorkerInfo> = emptyMap(),
     val isForeman: Boolean = false,
-    val currentUserId: String = "u_rahim",
+    val currentUserId: String = "",
     val userLang: String = "ja",
-    val foremanName: String = "Tanaka",
+    val foremanName: String = "",
     val isLoading: Boolean = false,
     val isEmpty: Boolean = false,
     val error: String? = null,
@@ -124,7 +124,7 @@ class NearMissListViewModel @Inject constructor(
             updateState { it.copy(isLoading = true, error = null) }
             val session = sessionStore.session.firstOrNull()
             val isForeman = session?.user?.role == Role.FOREMAN
-            val currentUserId = session?.user?.id ?: if (isForeman) "u_tanaka" else "u_rahim"
+            val currentUserId = session?.user?.id.orEmpty()
             val userLang = session?.user?.language ?: "ja"
 
             val machinesResult = machineRepository.getMachines()
@@ -250,8 +250,8 @@ fun NearMissListContent(
                 }
                 state.error != null -> {
                     EmptyState(
-                        title = stringResource(R.string.nearmiss_error, state.error),
-                        message = state.error,
+                        title = stringResource(R.string.nearmiss_error),
+                        message = stringResource(R.string.nearmiss_error_hint),
                         actionLabel = stringResource(R.string.nearmiss_retry),
                         onActionClick = { onEvent(NearMissListEvent.Retry) },
                     )
@@ -339,10 +339,11 @@ private fun NearMissItemRow(
         NearMissSeverity.LOW -> Color(0xFF2E7D32)
         NearMissSeverity.MID -> Color(0xFFED6C02)
         NearMissSeverity.HIGH -> Color(0xFFD32F2F)
+        null -> MaterialTheme.colorScheme.outline
     }
 
     val machineName = machine?.let { pick(it.name, userLang).ifEmpty { it.code } } ?: report.machineId
-    val workerName = worker?.displayName ?: report.userId
+    val workerName = worker?.displayName ?: report.userName
     val displayText = if (isForeman) {
         report.text["ja"] ?: report.text["en"] ?: ""
     } else {
@@ -420,7 +421,7 @@ private fun NearMissItemRow(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
-                    SeverityChip(severity = report.severity)
+                    report.severity?.let { SeverityChip(severity = it) }
                 }
             }
 

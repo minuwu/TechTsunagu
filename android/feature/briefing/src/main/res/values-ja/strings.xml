@@ -48,12 +48,14 @@
 
     <!-- Briefing Card Screen -->
     <string name="briefing_card_screen_title">今日の朝礼</string>
+    <string name="briefing_card_foreman_role">班長</string>
     <string name="briefing_card_read_aloud">読み上げ</string>
     <string name="briefing_card_stop_reading">読み上げ停止</string>
     <string name="briefing_card_question_section_title">確認質問 1問</string>
     <string name="briefing_card_not_sure_option">わからない</string>
     <string name="briefing_card_feedback_understood">わかりました！理解できました。</string>
-    <string name="briefing_card_feedback_not_sure">田中がもう一度説明します。</string>
-    <string name="briefing_card_feedback_incorrect">惜しい！田中がもう一度説明します。</string>
+    <string name="briefing_card_feedback_not_sure">班長がもう一度説明します。</string>
+    <string name="briefing_card_feedback_incorrect">惜しい！班長がもう一度説明します。</string>
     <string name="briefing_card_correct_answer">正解: %1$s</string>
+    <string name="briefing_new_make_draft">下書きを作る</string>
 </resources>

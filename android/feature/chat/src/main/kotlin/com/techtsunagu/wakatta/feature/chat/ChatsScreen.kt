@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.techtsunagu.wakatta.core.design.component.RefreshOnReturn
 import com.techtsunagu.wakatta.core.design.component.Avatar
 import com.techtsunagu.wakatta.core.design.component.EmptyState
 import com.techtsunagu.wakatta.core.design.component.ErrorState
@@ -57,6 +58,7 @@ fun ChatsScreen(
     viewModel: ChatsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    RefreshOnReturn { viewModel.onEvent(ChatsEvent.Init) }
     ChatsContent(
         state = state,
         onEvent = viewModel::onEvent,
@@ -190,7 +192,7 @@ private fun ThreadListItem(
         } else {
             val titleText = pick(thread.title, "ja")
             Avatar(
-                name = titleText.ifEmpty { "Tanaka" },
+                name = titleText,
                 size = 48.dp,
                 containerColor = MaterialTheme.colorScheme.primaryContainer,
                 contentColor = MaterialTheme.colorScheme.onPrimaryContainer,

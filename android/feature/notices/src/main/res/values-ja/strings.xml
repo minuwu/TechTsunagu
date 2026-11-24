@@ -3,7 +3,6 @@
     <string name="notices_life_screen_title">くらし・地域</string>
     <string name="notices_notice_screen_title">お知らせ詳細</string>
     <string name="notices_new_screen_title">お知らせ作成</string>
-    <string name="notices_screen_id">画面ID: %1$s</string>
     <string name="notices_loading">読み込み中...</string>
     <string name="notices_empty">お知らせはありません</string>
     <string name="notices_retry">再試行</string>
@@ -82,4 +81,7 @@
     <string name="notices_publish_success">お知らせを配信しました</string>
     <string name="notices_publish_events_unconfirmed">配信する前にすべての日程を確認してください</string>
     <string name="notices_audience_info">配信先: 作業者 %1$d名（%2$s）</string>
+    <string name="notices_error_not_found">お知らせが見つかりません。</string>
+    <string name="notices_error_submit_check">チェックの送信に失敗しました。</string>
+    <string name="notices_error_create_draft">下書きの作成に失敗しました。</string>
 </resources>

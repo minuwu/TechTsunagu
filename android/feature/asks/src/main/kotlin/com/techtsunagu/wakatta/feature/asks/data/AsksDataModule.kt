@@ -1,6 +1,8 @@
 package com.techtsunagu.wakatta.feature.asks.data
 
 import com.techtsunagu.wakatta.core.model.SessionStore
+import com.techtsunagu.wakatta.core.model.TodayWordSource
+import com.techtsunagu.wakatta.core.model.WorkerRepository
 import com.techtsunagu.wakatta.core.network.ApiConfig
 import dagger.Lazy
 import dagger.Module
@@ -23,7 +25,7 @@ object AsksDataModule {
         retrofit: Lazy<Retrofit>,
         session: SessionStore,
     ): AskRepository =
-        if (ApiConfig.USE_LIVE_API) RealAskRepository(apiOf(retrofit), session, fake.get()) else fake.get()
+        if (ApiConfig.USE_LIVE_API) RealAskRepository(apiOf(retrofit), session) else fake.get()
 
     @Provides
     @Singleton
@@ -31,8 +33,9 @@ object AsksDataModule {
         fake: Provider<FakeSenpaiRepository>,
         retrofit: Lazy<Retrofit>,
         session: SessionStore,
+        workers: WorkerRepository,
     ): SenpaiRepository =
-        if (ApiConfig.USE_LIVE_API) RealSenpaiRepository(apiOf(retrofit), session, fake.get()) else fake.get()
+        if (ApiConfig.USE_LIVE_API) RealSenpaiRepository(apiOf(retrofit), session, workers) else fake.get()
 
     @Provides
     @Singleton
@@ -40,8 +43,17 @@ object AsksDataModule {
         fake: Provider<FakeMeetupRepository>,
         retrofit: Lazy<Retrofit>,
         session: SessionStore,
+        workers: WorkerRepository,
     ): MeetupRepository =
-        if (ApiConfig.USE_LIVE_API) RealMeetupRepository(apiOf(retrofit), session, fake.get()) else fake.get()
+        if (ApiConfig.USE_LIVE_API) RealMeetupRepository(apiOf(retrofit), session, workers) else fake.get()
+
+    @Provides
+    @Singleton
+    fun provideTodayWordSource(
+        fake: Provider<FakeTodayWordSource>,
+        real: Provider<RealTodayWordSource>,
+    ): TodayWordSource =
+        if (ApiConfig.USE_LIVE_API) real.get() else fake.get()
 
     private fun apiOf(retrofit: Lazy<Retrofit>): () -> AsksApi {
         val api = lazy { retrofit.get().create(AsksApi::class.java) }

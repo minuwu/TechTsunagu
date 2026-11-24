@@ -24,6 +24,7 @@
     <string name="board_add_task_submit">追加</string>
     <string name="board_add_task_title_required">タイトルを入力してください</string>
     <string name="board_task_added">タスクを追加しました</string>
+    <string name="board_task_moved">タスクを移動しました</string>
 
     <string name="board_due_today">今日</string>
     <string name="board_due_tomorrow">明日</string>
@@ -34,20 +35,22 @@
     <string name="board_task_due">期限</string>
     <string name="board_task_machine">機械</string>
     <string name="board_task_from_chat">チャットから</string>
-    <string name="board_task_source_message">元のメッセージ</string>
-    <string name="board_task_open_in_chat">チャットで開く</string>
     <string name="board_task_source_nearmiss">元の報告</string>
     <string name="board_task_from_nearmiss">ヒヤリハット報告から</string>
-    <string name="board_task_comments">コメント</string>
-    <string name="board_task_add_comment">コメントを書く…</string>
-    <string name="board_task_comments_stub">コメントはプロトタイプでは未対応</string>
-    <string name="board_filter_stub">フィルターはプロトタイプでは未対応</string>
 
     <string name="board_move_task">タスクを移動</string>
     <string name="board_move_to_col">%1$sへ移動</string>
 
     <string name="board_conflict_title">タスク競合 (HTTP 412)</string>
     <string name="board_conflict_message">このタスクは他で更新されました。最新の内容を再読み込みしてください。</string>
+    <string name="board_conflict_reloading">競合: タスクが他で更新されました。再読み込み中…</string>
     <string name="board_reload">再読み込み</string>
     <string name="board_foreman_only">タスクの追加は職長のみ可能です</string>
+
+    <string name="board_error_offline">オフラインです。ネットワーク接続を確認してください。</string>
+    <string name="board_error_timeout">タイムアウトしました。再試行してください。</string>
+    <string name="board_error_conflict">競合 (HTTP 412): タスクが変更されました。</string>
+    <string name="board_error_not_found">タスクが見つかりません。</string>
+    <string name="board_error_forbidden">アクセス権限がありません。</string>
+    <string name="board_error_generic">予期しないエラーが発生しました。</string>
 </resources>

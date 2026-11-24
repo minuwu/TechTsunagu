@@ -86,7 +86,7 @@ internal data class InterviewUiState(
     val workers: List<WorkerInfo> = emptyList(),
     val method: InterviewMethod = InterviewMethod.FACE,
     val consent: Boolean = false,
-    val date: String = InterviewDueCalculator.DEMO_TODAY_ISO,
+    val date: String = InterviewDueCalculator.todayIso(),
     val note: String = "",
 ) {
     val isEmpty: Boolean get() = dueInfo == null && prepInfo == null && !isLoading
@@ -111,7 +111,7 @@ internal sealed interface InterviewEffect {
 /** The record rules from the prototype `saveIv`: note required, no future date, online needs consent. */
 internal fun validateInterview(note: String, date: String, method: InterviewMethod, consent: Boolean): InterviewIssue? = when {
     note.isBlank() -> InterviewIssue.NOTE_REQUIRED
-    date > InterviewDueCalculator.DEMO_TODAY_ISO -> InterviewIssue.FUTURE_DATE
+    date > InterviewDueCalculator.todayIso() -> InterviewIssue.FUTURE_DATE
     method == InterviewMethod.ONLINE && !consent -> InterviewIssue.CONSENT_REQUIRED
     else -> null
 }
@@ -183,7 +183,7 @@ internal class InterviewViewModel @Inject constructor(
             when (val res = interviewRepository.recordInterview(req)) {
                 is AppResult.Success -> {
                     updateState {
-                        it.copy(isSaving = false, note = "", consent = false, date = InterviewDueCalculator.DEMO_TODAY_ISO)
+                        it.copy(isSaving = false, note = "", consent = false, date = InterviewDueCalculator.todayIso())
                     }
                     sendEffect(InterviewEffect.Saved)
                     load(s.selectedWorkerId)

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="media_photo_title">写真を追加</string>
+    <string name="media_photo_take">写真を撮る</string>
+    <string name="media_photo_gallery">写真を選ぶ</string>
+    <string name="media_camera_open">カメラで読み取る</string>
+    <string name="media_camera_denied">カメラが許可されていません。端末の設定で許可するか、コードを入力してください。</string>
+    <string name="media_voice_missing">この端末には、この言語の音声がありません。</string>
+    <string name="media_dictation_unavailable">今は音声入力が使えません。文字で入力してください。</string>
+    <string name="media_dictation_no_speech">声が聞き取れませんでした。もう一度話してください。</string>
+    <string name="media_mic_denied">マイクが許可されていません。端末の設定で許可するか、文字で入力してください。</string>
+</resources>

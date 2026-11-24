@@ -90,31 +90,6 @@ class FakeAskRepository(
         return AppResult.Success(updated)
     }
 
-    override suspend fun replyAsk(
-        askId: String,
-        replyJa: String,
-        replyEn: String,
-        replyBn: String,
-    ): AppResult<AskDto> {
-        delay(simulatedLatencyMs)
-        val current = asksFlow.value.toMutableList()
-        val index = current.indexOfFirst { it.id == askId }
-        if (index < 0) return AppResult.Failure(AppError.NotFound)
-
-        val ask = current[index]
-        val updated = ask.copy(
-            status = AskStatus.REPLIED,
-            replyJa = replyJa,
-            replyEn = replyEn,
-            replyBn = replyBn,
-            senpaiName = "佐藤 美咲",
-            senpaiEnName = "Sato Misaki",
-        )
-        current[index] = updated
-        asksFlow.value = current
-        return AppResult.Success(updated)
-    }
-
     private fun resolveWorkerName(workerId: String): String = when (workerId) {
         "u_rahim" -> "Rahim Uddin"
         "u_nguyen" -> "Nguyen Van An"

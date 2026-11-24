@@ -259,6 +259,7 @@ class PanelViewModelTest {
         advanceUntilIdle()
 
         viewModel.onEvent(PanelEvent.RemindWorker("u_rahim"))
+        advanceUntilIdle()
 
         assertEquals(PanelMessage(R.string.machines_panel_reminded_toast, "Rahim Uddin"), viewModel.state.value.toastMessage)
         viewModel.onEvent(PanelEvent.DismissToast)

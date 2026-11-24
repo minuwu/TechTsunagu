@@ -1,5 +1,6 @@
 package com.techtsunagu.wakatta.feature.board
 
+import com.techtsunagu.wakatta.core.model.LanguageManager
 import com.techtsunagu.wakatta.core.model.Role
 import com.techtsunagu.wakatta.core.model.Session
 import com.techtsunagu.wakatta.core.model.SessionStore
@@ -60,5 +61,14 @@ class TestSessionStore(
                 districtId = "1"
             )
         )
+    }
+}
+
+class TestLanguageManager(initialLang: String = "ja") : LanguageManager {
+    private val _currentLanguage = MutableStateFlow(initialLang)
+    override val currentLanguage: StateFlow<String> = _currentLanguage.asStateFlow()
+
+    override suspend fun setLanguage(lang: String) {
+        _currentLanguage.value = lang
     }
 }

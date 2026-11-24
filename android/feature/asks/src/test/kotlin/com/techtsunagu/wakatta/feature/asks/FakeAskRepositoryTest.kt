@@ -85,19 +85,4 @@ class FakeAskRepositoryTest {
         val err = forwardRes.errorOrNull() as AppError.Conflict
         assertEquals("NO_ACTIVE_PAIR", err.code)
     }
-
-    @Test
-    fun replyAskUpdatesStatusAndReplies() = runTest {
-        val result = repository.replyAsk(
-            askId = "ak3",
-            replyJa = "市役所で買えますよ。",
-            replyEn = "You can buy it at the city office.",
-            replyBn = "আপনি সিটি অফিসে এটি কিনতে পারেন।",
-        )
-        assertTrue(result.isSuccess)
-        val updated = result.getOrNull()!!
-        assertEquals(AskStatus.REPLIED, updated.status)
-        assertEquals("市役所で買えますよ。", updated.replyJa)
-        assertEquals("You can buy it at the city office.", updated.replyEn)
-    }
 }

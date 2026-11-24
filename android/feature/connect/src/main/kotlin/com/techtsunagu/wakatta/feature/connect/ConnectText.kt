@@ -14,6 +14,8 @@ internal enum class ConnectError(@StringRes val message: Int) {
     BLOCKED(R.string.connect_err_blocked),
     BAD_CODE(R.string.connect_err_bad_code),
     NO_SPEECH(R.string.connect_err_no_speech),
+    RATE_LIMITED(R.string.connect_err_rate_limited),
+    ALREADY_CONNECTED(R.string.connect_err_already_connected),
     UNKNOWN(R.string.connect_err_unknown),
 }
 
@@ -23,7 +25,30 @@ internal fun AppError.toConnectError(): ConnectError = when (this) {
     AppError.Server -> ConnectError.SERVER
     AppError.NotFound -> ConnectError.NOT_FOUND
     AppError.Forbidden -> ConnectError.BLOCKED
+    is AppError.RateLimited -> ConnectError.RATE_LIMITED
+    is AppError.Conflict -> ConnectError.ALREADY_CONNECTED
     else -> ConnectError.UNKNOWN
+}
+
+/** Formats an ISO-8601 timestamp as a time (HH:mm) in the local timezone. */
+internal fun formatContactTime(iso: String?): String? {
+    if (iso.isNullOrBlank()) return null
+    return try {
+        val odt = runCatching { java.time.OffsetDateTime.parse(iso) }.getOrNull()
+            ?: runCatching { java.time.Instant.parse(iso).atZone(java.time.ZoneId.systemDefault()).toOffsetDateTime() }.getOrNull()
+        if (odt != null) {
+            val local = odt.atZoneSameInstant(java.time.ZoneId.systemDefault())
+            val formatter = java.time.format.DateTimeFormatter.ofPattern("HH:mm")
+            local.format(formatter)
+        } else if (iso.contains("T")) {
+            val timePart = iso.substringAfter("T").take(5)
+            if (timePart.length == 5 && timePart[2] == ':') timePart else null
+        } else {
+            null
+        }
+    } catch (_: Exception) {
+        null
+    }
 }
 
 /** The person's own name for their language; these are endonyms, not translated. */

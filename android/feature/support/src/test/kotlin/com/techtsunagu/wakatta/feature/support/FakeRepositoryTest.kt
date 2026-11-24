@@ -37,7 +37,7 @@ class FakeRepositoryTest {
     fun recordRejectsBlankNoteFutureDateAndOnlineWithoutConsent() = runTest {
         val repo = newInterviewRepo()
         assertEquals(AppResult.Failure(AppError.Validation(listOf("note"))), repo.recordInterview(request(note = " ")))
-        assertEquals(AppResult.Failure(AppError.Validation(listOf("date"))), repo.recordInterview(request(date = "2026-12-01")))
+        assertEquals(AppResult.Failure(AppError.Validation(listOf("date"))), repo.recordInterview(request(date = "2999-01-01")))
         assertEquals(
             AppResult.Failure(AppError.Validation(listOf("consent"))),
             repo.recordInterview(request(method = InterviewMethod.ONLINE)),

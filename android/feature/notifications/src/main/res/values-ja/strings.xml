@@ -16,4 +16,5 @@
     <string name="notifications_channel_safety">安全・確認</string>
     <string name="notifications_channel_life">生活・お知らせ</string>
     <string name="notifications_channel_updates">お知らせ（その他）</string>
+    <string name="notifications_generic_title">新しいメッセージ</string>
 </resources>

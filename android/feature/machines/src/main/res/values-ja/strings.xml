@@ -6,7 +6,6 @@
     <string name="machines_scan_screen_title">QR読み取り</string>
     <string name="machines_panel_screen_title">マシンパネル</string>
     <string name="machines_note_screen_title">作業手順</string>
-    <string name="machines_screen_id">画面: %1$s</string>
     <string name="machines_loading">読み込み中...</string>
     <string name="machines_empty">機械が見つかりません</string>
     <string name="machines_retry">再試行</string>
@@ -128,4 +127,5 @@
     <string name="machines_panel_state_unknown">不明</string>
     <string name="machines_panel_override_reason_hint">許可しないとラインが止まります</string>
     <string name="machines_note_submit_failed">回答を送信できませんでした。接続を確認して、もう一度お試しください。</string>
+    <string name="machines_error_rate_limited">リマインド済みです。数分待ってください。</string>
 </resources>

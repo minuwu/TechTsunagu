@@ -1,11 +1,11 @@
 package com.techtsunagu.wakatta.feature.chat.data
 
 import com.techtsunagu.wakatta.core.model.AppResult
-import com.techtsunagu.wakatta.core.model.CacheEntry
-import com.techtsunagu.wakatta.core.model.CacheStore
 import com.techtsunagu.wakatta.core.model.FollowUpStatus
 import com.techtsunagu.wakatta.core.model.MessageKind
+import com.techtsunagu.wakatta.core.model.Role
 import com.techtsunagu.wakatta.core.model.ThreadSummary
+import com.techtsunagu.wakatta.core.model.User
 import com.techtsunagu.wakatta.core.model.WakattaStatus
 import com.techtsunagu.wakatta.core.model.pick
 import com.techtsunagu.wakatta.feature.chat.model.AnswerResultDto
@@ -20,7 +20,6 @@ import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
-import java.util.concurrent.ConcurrentHashMap
 
 /** Who is looking: decides `isMine`, the text language and the sender names. */
 internal class MessageContext(val myId: String, val myLang: String, val names: Map<String, String>)
@@ -53,22 +52,38 @@ internal fun listStamp(iso: String?, today: java.time.LocalDate = java.time.Loca
     return at.format(if (at.toLocalDate() == today) clockFormat else dayFormat)
 }
 
-internal fun WireThread.toDto() = ThreadDto(
-    id = id,
-    titleJa = titleJa,
-    kind = kind,
-    memberIds = memberIds,
-    unread = unread,
-    lastMessageAt = listStamp(lastMessageAt),
-)
+internal fun WireThread.toDto(me: User? = null): ThreadDto {
+    val displayTitle = if (me != null && me.role == Role.WORKER) {
+        val myName = me.displayName.trim()
+        val matchesMyName = myName.isNotEmpty() && titleJa.trim().equals(myName, ignoreCase = true)
+        if (matchesMyName) "職長" else titleJa
+    } else {
+        titleJa
+    }
+    return ThreadDto(
+        id = id,
+        titleJa = displayTitle,
+        kind = kind,
+        memberIds = memberIds,
+        unread = unread,
+        lastMessageAt = listStamp(lastMessageAt),
+    )
+}
 
-internal fun ThreadDto.toSummary() = ThreadSummary(
-    id = id,
-    title = mapOf("ja" to titleJa),
-    lastMessage = lastMessage,
-    unreadCount = unread,
-    updatedAt = lastMessageAt.orEmpty(),
-)
+internal fun ThreadDto.toSummary(me: User? = null): ThreadSummary {
+    val titleTri = if (me != null && me.role == Role.WORKER && (titleJa == "職長" || (me.displayName.isNotBlank() && titleJa.trim().equals(me.displayName.trim(), ignoreCase = true)))) {
+        mapOf("ja" to "職長", "en" to "Foreman", "bn" to "ফোরম্যান")
+    } else {
+        mapOf("ja" to titleJa)
+    }
+    return ThreadSummary(
+        id = id,
+        title = titleTri,
+        lastMessage = lastMessage,
+        unreadCount = unread,
+        updatedAt = lastMessageAt.orEmpty(),
+    )
+}
 
 private fun WireMessage.base(ctx: MessageContext): ChatMessageUiModel {
     val kind = wireEnum(kind, MessageKind.UNKNOWN)
@@ -97,6 +112,7 @@ internal fun WireSenderMessage.toUi(ctx: MessageContext): ChatMessageUiModel {
         senderQuestions = forSender,
         workerQuestions = questions.map { CheckQuestionForWorker(it.id, it.termId, it.prompt, it.options) },
         addedTasks = taskDrafts.map { pick(it.title, ctx.myLang) },
+        needsEdit = needsEdit,
     )
 }
 
@@ -128,15 +144,3 @@ internal fun WireSenderMessage.toSendBody(typed: String) = SendInDto(
     questions = questions,
     tasks = taskDrafts,
 )
-
-/** shortcut: the app binds no persistent CacheStore yet, so the poll ETag and body live in memory only. */
-internal class MemoryCacheStore : CacheStore {
-    private val entries = ConcurrentHashMap<String, CacheEntry>()
-    override suspend fun get(key: String): CacheEntry? = entries[key]
-    override suspend fun put(key: String, json: String, etag: String?) {
-        entries[key] = CacheEntry(key, json, etag, System.currentTimeMillis())
-    }
-    override suspend fun evict(prefix: String) {
-        entries.keys.removeAll { it.startsWith(prefix) }
-    }
-}

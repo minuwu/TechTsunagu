@@ -4,7 +4,7 @@
     <string name="nearmiss_loading">লোড হচ্ছে...</string>
     <string name="nearmiss_empty">কোনো রিপোর্ট নেই</string>
     <string name="nearmiss_retry">পুনরায় চেষ্টা করুন</string>
-    <string name="nearmiss_error">ত্রুটি: %1$s</string>
+    <string name="nearmiss_error">লোড করা যায়নি</string>
     <string name="nearmiss_done">সম্পন্ন</string>
     <string name="nearmiss_screen_id">স্ক্রিন আইডি: %1$s</string>
 
@@ -14,7 +14,7 @@
     <string name="nearmiss_step_what">২ · কী ঘটেছিল? কথা বলতে চেপে ধরে রাখুন</string>
     <string name="nearmiss_mic_label">রেকর্ড করতে চেপে ধরে রাখুন</string>
     <string name="nearmiss_text_placeholder">মাইক চেপে ধরে কী ঘটেছে তা বলুন, অথবা এখানে টাইপ করুন</string>
-    <string name="nearmiss_auto_translate_hint">তানাকার জন্য স্বয়ংক্রিয়ভাবে জাপানি ভাষায় অনুবাদ হবে</string>
+    <string name="nearmiss_auto_translate_hint">ফোরম্যানের জন্য স্বয়ংক্রিয়ভাবে জাপানি ভাষায় অনুবাদ হবে</string>
     <string name="nearmiss_step_photo">৩ · ছবি (ঐচ্ছিক)</string>
     <string name="nearmiss_add_photo">ছবি যোগ করুন</string>
     <string name="nearmiss_tap_circle_hint">ঝুঁকিপূর্ণ স্থানে বৃত্ত আঁকতে ছবিতে ট্যাপ করুন</string>
@@ -57,4 +57,8 @@
     <string name="nearmiss_btn_ack">নিশ্চিত করুন</string>
     <string name="nearmiss_btn_acked">নিশ্চিত করা হয়েছে</string>
     <string name="nearmiss_task_created_toast">বোর্ডে টাস্ক যুক্ত করা হয়েছে</string>
+    <string name="nearmiss_queued_message">নেটওয়ার্ক নেই। নেটওয়ার্ক ফিরলে রিপোর্টটি নিজে থেকে পাঠানো হবে।</string>
+    <string name="nearmiss_send_failed">রিপোর্টটি গ্রহণ করা হয়নি। দেখে আবার পাঠান।</string>
+    <string name="nearmiss_error_hint">নেটওয়ার্ক দেখে আবার চেষ্টা করুন।</string>
+    <string name="nearmiss_action_failed">কাজটি হয়নি। আবার চেষ্টা করুন।</string>
 </resources>

@@ -38,6 +38,7 @@ data class ChatMessageUiModel(
     val translatedText: String,
     val time: String,
     val stage: Int = 5,
+    val needsEdit: Boolean = false,
     val isVoice: Boolean = false,
     val voiceDuration: String? = null,
     val hasCheck: Boolean = false,

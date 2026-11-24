@@ -46,20 +46,28 @@ interface Navigator {
     fun replaceAll(key: Any)
 }
 
+/**
+ * Writes that must survive without a network. [kind] is `<name>:<userId>`, so on a shared phone
+ * nothing of one person is sent or shown as another.
+ */
 interface OutboxWriter {
     suspend fun enqueue(kind: String, idempotencyKey: String, payloadJson: String)
     fun pendingCount(kind: String): Flow<Int>
+
+    /** The oldest write the server refused, removed from the queue. The caller gives it back to the user. */
+    suspend fun takeFailed(kind: String): String? = null
+}
+
+/** Sends the queued writes of one [name]. A feature adds it to the set with `@IntoSet`. */
+interface OutboxSender {
+    val name: String
+    suspend fun send(userId: String, idempotencyKey: String, payloadJson: String): AppResult<Unit>
 }
 
 interface CacheStore {
     suspend fun get(key: String): CacheEntry?
     suspend fun put(key: String, json: String, etag: String?)
     suspend fun evict(prefix: String)
-}
-
-interface AudioRecorder {
-    fun start(): Flow<Pair<Float, Int>>
-    suspend fun stop(): File?
 }
 
 interface PhotoCapture {

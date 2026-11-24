@@ -59,6 +59,7 @@ import com.techtsunagu.wakatta.core.model.AppResult
 import com.techtsunagu.wakatta.core.model.CheckRepository
 import com.techtsunagu.wakatta.core.model.CheckTargetKind
 import com.techtsunagu.wakatta.core.model.ReceiptRepository
+import com.techtsunagu.wakatta.core.model.SessionStore
 import com.techtsunagu.wakatta.core.model.Speaker
 import com.techtsunagu.wakatta.core.model.WakattaStatus
 import com.techtsunagu.wakatta.core.model.pick
@@ -104,6 +105,7 @@ class BriefingCardViewModel @Inject constructor(
     private val receiptRepository: ReceiptRepository,
     private val checkRepository: CheckRepository,
     private val speaker: Speaker,
+    private val sessionStore: SessionStore,
 ) : MviViewModel<BriefingCardUiState, BriefingCardEvent, BriefingCardEffect>(BriefingCardUiState()) {
 
     override fun onEvent(event: BriefingCardEvent) {
@@ -192,7 +194,10 @@ class BriefingCardViewModel @Inject constructor(
             val passed = status == WakattaStatus.GREEN
             val correctText = pick(currentBriefing.question.options.firstOrNull(), "en")
 
-            briefingRepository.recordWorkerAnswer(currentBriefing.id, "u_rahim", index, status)
+            val workerId = sessionStore.session.value?.user?.id.orEmpty()
+            if (workerId.isNotEmpty()) {
+                briefingRepository.recordWorkerAnswer(currentBriefing.id, workerId, index, status)
+            }
 
             updateState {
                 it.copy(
@@ -366,11 +371,11 @@ private fun BriefingWorkerCardContent(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Avatar(name = "Tanaka")
+                Avatar(name = "")
                 Spacer(modifier = Modifier.width(12.dp))
                 Column {
                     Text(
-                        text = "Tanaka Kenichi (Foreman)",
+                        text = stringResource(R.string.briefing_card_foreman_role),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                     )

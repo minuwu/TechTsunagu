@@ -43,7 +43,7 @@ class NearMissComposeTest {
                 onEvent = {},
             )
         }
-        composeTestRule.onNodeWithText("Error: Network timeout").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Could not load this").assertIsDisplayed()
         composeTestRule.onNodeWithText("Retry").assertIsDisplayed()
     }
 
@@ -114,7 +114,7 @@ class NearMissComposeTest {
                 onEvent = {},
             )
         }
-        composeTestRule.onNodeWithText("Error: Connection failed").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Could not load this").assertIsDisplayed()
         composeTestRule.onNodeWithText("Retry").assertIsDisplayed()
     }
 

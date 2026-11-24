@@ -126,9 +126,9 @@ internal fun PanelBody(
                             )
                             Text(
                                 text = if (worker.hasSignOff) {
-                                    stringResource(R.string.machines_panel_signed_off_on, worker.signOffVersion ?: "v3")
+                                    stringResource(R.string.machines_panel_signed_off_on, worker.signOffVersion ?: state.noteVersion)
                                 } else {
-                                    stringResource(R.string.machines_panel_no_signoff_yet, "v3")
+                                    stringResource(R.string.machines_panel_no_signoff_yet, state.noteVersion)
                                 },
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant

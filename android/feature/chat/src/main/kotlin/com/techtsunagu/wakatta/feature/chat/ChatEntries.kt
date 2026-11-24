@@ -2,18 +2,12 @@ package com.techtsunagu.wakatta.feature.chat
 
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
-import com.techtsunagu.wakatta.core.model.AudioRecorder
-import com.techtsunagu.wakatta.core.model.OutboxWriter
-import com.techtsunagu.wakatta.core.model.Speaker
 import com.techtsunagu.wakatta.core.model.ThreadSource
 import com.techtsunagu.wakatta.core.navigation.ChatKey
 import com.techtsunagu.wakatta.core.navigation.ChatsKey
 import com.techtsunagu.wakatta.core.navigation.PChatKey
 import com.techtsunagu.wakatta.core.navigation.FeatureEntries
 import com.techtsunagu.wakatta.core.navigation.Navigator
-import com.techtsunagu.wakatta.feature.chat.data.FakeAudioRecorder
-import com.techtsunagu.wakatta.feature.chat.data.FakeOutboxWriter
-import com.techtsunagu.wakatta.feature.chat.data.FakeSpeaker
 import com.techtsunagu.wakatta.feature.chat.data.WorkThreadSource
 import dagger.Binds
 import dagger.Module
@@ -59,16 +53,4 @@ abstract class ChatModule {
     @Binds
     @IntoSet
     abstract fun bindThreadSource(source: WorkThreadSource): ThreadSource
-
-    @Binds
-    @Singleton
-    abstract fun bindAudioRecorder(fake: FakeAudioRecorder): AudioRecorder
-
-    @Binds
-    @Singleton
-    abstract fun bindSpeaker(fake: FakeSpeaker): Speaker
-
-    @Binds
-    @Singleton
-    abstract fun bindOutboxWriter(fake: FakeOutboxWriter): OutboxWriter
 }

@@ -137,6 +137,18 @@ class FakeConnectRepositoryTest {
     }
 
     @Test
+    fun addAndDeleteEntry() = runTest {
+        val talk = repo.createTalk("Mr. Yamada").value()
+        val entry = repo.addEntry(talk.id, "Hello from mic").value()
+        assertEquals("Hello from mic", entry.said)
+        assertEquals(1, repo.getEntries(talk.id).value().size)
+
+        assertTrue(repo.deleteEntry(talk.id, entry.id) is AppResult.Success)
+        assertTrue(repo.getEntries(talk.id).value().isEmpty())
+        assertEquals(AppResult.Failure(AppError.NotFound), repo.deleteEntry(talk.id, entry.id))
+    }
+
+    @Test
     fun noticeIsStoredOnce() = runTest {
         assertFalse(repo.isNoticeAcknowledged())
         repo.acknowledgeNotice()

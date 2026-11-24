@@ -13,7 +13,6 @@ import com.techtsunagu.wakatta.core.navigation.LearningKey
 import com.techtsunagu.wakatta.core.navigation.MachineKey
 import com.techtsunagu.wakatta.core.navigation.NoteKey
 import com.techtsunagu.wakatta.core.navigation.OnboardingKey
-import com.techtsunagu.wakatta.core.navigation.SignInKey
 import com.techtsunagu.wakatta.core.navigation.SkillsKey
 import com.techtsunagu.wakatta.feature.home.data.FakeSettingsStore
 import kotlinx.coroutines.Dispatchers
@@ -52,7 +51,7 @@ private class TestSignOffRepository : SignOffRepository {
     )
 }
 
-private class TestLanguageManager(initialLang: String = "ja") : LanguageManager {
+internal class TestLanguageManager(initialLang: String = "ja") : LanguageManager {
     private val _currentLanguage = MutableStateFlow(initialLang)
     override val currentLanguage: StateFlow<String> = _currentLanguage.asStateFlow()
     override suspend fun setLanguage(lang: String) { _currentLanguage.value = lang }
@@ -91,6 +90,8 @@ class MeViewModelTest {
             sessionStore = sessionStore,
             settingsStore = settingsStore,
             signOffRepository = signOffRepository,
+            machineRepository = TestMachineRepository(),
+            boardSource = com.techtsunagu.wakatta.feature.home.data.FakeHomeBoardSource(),
             languageManager = languageManager,
         )
     }
@@ -206,7 +207,6 @@ class MeViewModelTest {
         advanceUntilIdle()
 
         assertNull(sessionStore.session.value)
-        val effect = viewModel.effects.first()
-        assertEquals(SignInKey, (effect as MeEffect.Navigate).key)
+        assertEquals(MeEffect.ApplyLocales(""), viewModel.effects.first())
     }
 }

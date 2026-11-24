@@ -1,6 +1,7 @@
 package com.techtsunagu.wakatta.feature.notices
 
 import androidx.compose.foundation.BorderStroke
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -60,7 +61,6 @@ import com.techtsunagu.wakatta.core.design.component.LoadingState
 import com.techtsunagu.wakatta.core.design.component.WakattaCard
 import com.techtsunagu.wakatta.core.design.component.WakattaTopBar
 import com.techtsunagu.wakatta.core.model.AppResult
-import com.techtsunagu.wakatta.core.model.AudioRecorder
 import com.techtsunagu.wakatta.core.model.NoticeSourceKind
 import com.techtsunagu.wakatta.core.model.PhotoCapture
 import com.techtsunagu.wakatta.core.model.Role
@@ -98,6 +98,7 @@ data class NoticeNewUiState(
     val selectedSampleId: String? = null,
     val isRecording: Boolean = false,
     val busyMessage: String = "",
+    @StringRes val busyMessageRes: Int? = null,
     val draft: NoticeDraftDto? = null,
     val editableTitle: String = "",
     val events: List<EventDto> = emptyList(),
@@ -106,6 +107,7 @@ data class NoticeNewUiState(
     val publishSuccess: Boolean = false,
     val publishedNoticeId: String? = null,
     val error: String? = null,
+    @StringRes val errorRes: Int? = null,
 )
 
 sealed interface NoticeNewEvent {
@@ -127,7 +129,6 @@ sealed interface NoticeNewEffect
 class NoticeNewViewModel @Inject constructor(
     private val noticeRepository: NoticeRepository,
     private val sessionStore: SessionStore,
-    private val audioRecorder: AudioRecorder,
     private val photoCapture: PhotoCapture,
 ) : MviViewModel<NoticeNewUiState, NoticeNewEvent, NoticeNewEffect>(NoticeNewUiState()) {
 
@@ -156,7 +157,7 @@ class NoticeNewViewModel @Inject constructor(
             is NoticeNewEvent.Reset -> updateState {
                 NoticeNewUiState(isAllowedToPost = it.isAllowedToPost)
             }
-            is NoticeNewEvent.Retry -> updateState { it.copy(error = null, publishError = null) }
+            is NoticeNewEvent.Retry -> updateState { it.copy(error = null, errorRes = null, publishError = null) }
         }
     }
 
@@ -180,15 +181,15 @@ class NoticeNewViewModel @Inject constructor(
         sourceKind: NoticeSourceKind = state.value.selectedSourceKind,
     ) {
         viewModelScope.launch {
-            val message = if (sourceKind == NoticeSourceKind.PHOTO) {
-                "OCR: チラシの文字を読み取り中…"
+            val messageRes = if (sourceKind == NoticeSourceKind.PHOTO) {
+                R.string.notices_processing_ocr
             } else {
-                "AI: やさしい日本語と英語にしています…"
+                R.string.notices_processing_ai
             }
             updateState {
                 it.copy(
                     stage = NoticeNewStage.BUSY,
-                    busyMessage = message,
+                    busyMessageRes = messageRes,
                     publishError = null,
                 )
             }
@@ -217,7 +218,7 @@ class NoticeNewViewModel @Inject constructor(
                     updateState {
                         it.copy(
                             stage = NoticeNewStage.PICK,
-                            error = "Could not create notice draft",
+                            errorRes = R.string.notices_error_create_draft,
                         )
                     }
                 }
@@ -364,7 +365,8 @@ fun NoticeNewContent(
                     }
                     NoticeNewStage.BUSY -> {
                         item(key = "busy_card") {
-                            BusyProgressCard(message = state.busyMessage)
+                            val busy = state.busyMessageRes?.let { stringResource(it) } ?: state.busyMessage
+                            BusyProgressCard(message = busy)
                         }
                     }
                     NoticeNewStage.REVIEW -> {

@@ -38,7 +38,7 @@ data class PanelUiState(
     val isForeman: Boolean = false,
     val currentUserId: String = "",
     val isUserSignedOff: Boolean = false,
-    val noteVersion: String = "v3",
+    val noteVersion: String = "",
     val signedOffAt: String? = null,
     val activeWorkerName: String? = null,
     val isCurrentUserPresent: Boolean = false,
@@ -177,7 +177,7 @@ class PanelViewModel(
                 isForeman = isForeman,
                 currentUserId = userId,
                 isUserSignedOff = userRow?.hasSignOff == true,
-                noteVersion = userRow?.signOffVersion ?: "v3",
+                noteVersion = userRow?.signOffVersion ?: p.workerStatuses.firstNotNullOfOrNull { it.signOffVersion }.orEmpty(),
                 signedOffAt = userRow?.signOffAt,
                 activeWorkerName = p.activeWorkerName,
                 isCurrentUserPresent = p.activeWorkerId == userId,
@@ -249,8 +249,15 @@ class PanelViewModel(
     }
 
     private fun sendReminder(workerId: String) {
-        val name = state.value.perWorkerStatuses.find { it.workerId == workerId }?.displayName ?: workerId
-        updateState { it.copy(toastMessage = PanelMessage(R.string.machines_panel_reminded_toast, name)) }
+        val s = state.value
+        val name = s.perWorkerStatuses.find { it.workerId == workerId }?.displayName ?: workerId
+        viewModelScope.launch {
+            val message = when (val res = panelRepository.remindWorker(s.machineId, workerId)) {
+                is AppResult.Success -> PanelMessage(R.string.machines_panel_reminded_toast, name)
+                is AppResult.Failure -> PanelMessage(res.error.machinesMessageRes())
+            }
+            updateState { it.copy(toastMessage = message) }
+        }
     }
 
     private fun validateAndConfirm() {

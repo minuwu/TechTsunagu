@@ -1,5 +1,6 @@
 plugins {
     id("wakatta.android.feature")
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -15,6 +16,7 @@ android {
 }
 
 dependencies {
+    implementation(project(":core:network"))
     implementation(libs.androidx.compose.material.icons.extended)
 
     testImplementation(platform(libs.androidx.compose.bom))
@@ -25,4 +27,5 @@ dependencies {
     testImplementation(libs.androidx.test.core)
     testImplementation(libs.androidx.test.ext.junit)
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.mockwebserver3)
 }

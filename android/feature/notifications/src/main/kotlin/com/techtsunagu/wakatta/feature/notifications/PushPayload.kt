@@ -8,6 +8,8 @@ data class PushPayload(
     val senderId: String?,
     val senderName: String? = null,
     val link: String? = null,
+    val threadId: String? = null,
+    val machineId: String? = null,
 )
 
 object PushPayloadParser {
@@ -32,6 +34,8 @@ object PushPayloadParser {
             senderId = data["senderId"]?.takeIf { it.isNotBlank() },
             senderName = data["senderName"]?.takeIf { it.isNotBlank() },
             link = data["link"]?.takeIf { it.isNotBlank() },
+            threadId = data["threadId"]?.takeIf { it.isNotBlank() },
+            machineId = data["machineId"]?.takeIf { it.isNotBlank() },
         )
     }
 

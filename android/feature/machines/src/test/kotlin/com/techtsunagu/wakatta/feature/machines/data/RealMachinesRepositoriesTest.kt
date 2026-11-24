@@ -23,7 +23,7 @@ class RealMachinesRepositoriesTest {
     private val api: MachinesApi = ApiClientFactory
         .retrofit(server.url("/").toString(), ApiClientFactory.okHttp("1.0", { "en" }, session, debug = false))
         .create(MachinesApi::class.java)
-    private val panels = RealPanelRepository({ api }, session, TestWorkerRepository(), TestSignOffRepository())
+    private val panels = RealPanelRepository({ api }, session, TestWorkerRepository(), TestSignOffRepository(), MemoryCacheStore())
 
     @After
     fun tearDown() = server.close()
@@ -63,8 +63,8 @@ class RealMachinesRepositoriesTest {
         val request = server.takeRequest()
         assertEquals("""{"workerId":null,"minutes":60,"reason":"line stopped"}""", request.body?.utf8())
         assertEquals("key-9", request.headers["Idempotency-Key"])
-        // The Panel answer has no override id: it comes back from memory.
-        ok("""{"state":"override","worker":null,"reason":null,"versionNo":3,"override":{"by":"Y","until":"b","reason":"line stopped"}}""")
+        // The Panel answer carries the override id, so the Foreman can end it.
+        ok("""{"state":"override","worker":null,"reason":null,"versionNo":3,"override":{"id":"6","by":"Y","until":"b","reason":"line stopped"}}""")
         ok(machineJson)
         val panel = (panels.getPanelState("2") as AppResult.Success).value.panel
         assertEquals("6", panel.override?.id)

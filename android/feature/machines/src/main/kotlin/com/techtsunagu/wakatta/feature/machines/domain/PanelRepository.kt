@@ -13,4 +13,6 @@ interface PanelRepository {
     ): AppResult<PanelOverrideDto>
     suspend fun revokeOverride(machineId: String, overrideId: String): AppResult<Unit>
     suspend fun recordPresence(machineId: String, workerId: String): AppResult<Unit>
+    /** Asks a Worker to take the Machine's Check (Foreman); the server allows one reminder per 10 minutes. */
+    suspend fun remindWorker(machineId: String, workerId: String): AppResult<Unit>
 }

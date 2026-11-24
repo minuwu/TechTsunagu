@@ -13,7 +13,7 @@ set -u
 : "${WAKATTA_PIN:?set WAKATTA_PIN to the PIN of the Worker account to sign in with}"
 
 here="$(cd "$(dirname "$0")" && pwd)"
-cfg="$here/../../core/network/src/main/kotlin/com/techtsunagu/wakatta/core/network/ApiConfig.kt"
+cfg="$here/../../../core/network/src/main/kotlin/com/techtsunagu/wakatta/core/network/ApiConfig.kt"
 const() { grep -E "const val $1 =" "$cfg" | head -1 | cut -d'"' -f2; }
 
 base="${WAKATTA_BASE_URL:-$(const BASE_URL)}"

@@ -34,9 +34,6 @@ abstract class NotificationsModule {
     @Binds
     @IntoSet
     abstract fun bindNotificationsEntries(entries: NotificationsEntries): FeatureEntries
-
-    @Binds
-    abstract fun bindSenderNames(fake: FakeSenderNames): SenderNames
 }
 
 @Module
@@ -54,6 +51,18 @@ object NotificationsProvidesModule {
         real: dagger.Lazy<RealDeviceRegistrar>,
         fake: dagger.Lazy<FakeDeviceRegistrar>,
     ): DeviceRegistrar =
+        if (ApiConfig.USE_LIVE_API) {
+            real.get()
+        } else {
+            fake.get()
+        }
+
+    @Provides
+    @Singleton
+    fun provideSenderNames(
+        real: dagger.Lazy<RealSenderNames>,
+        fake: dagger.Lazy<FakeSenderNames>,
+    ): SenderNames =
         if (ApiConfig.USE_LIVE_API) {
             real.get()
         } else {

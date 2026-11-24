@@ -6,6 +6,7 @@ import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToNode
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.techtsunagu.wakatta.core.design.theme.WakattaTheme
@@ -97,7 +98,7 @@ class ConnectComposeTest {
     @Test
     fun scanError() {
         show { ConnectScanContent(ConnectScanUiState(isLoading = false, error = ConnectError.BAD_CODE), {}) }
-        assertText("This is not a Wakatta? QR code. Check the code and try again.")
+        rule.onNodeWithText("This is not a Wakatta? QR code. Check the code and try again.").performScrollTo().assertIsDisplayed()
     }
 
     @Test
@@ -164,5 +165,12 @@ class ConnectComposeTest {
         val graded = entry.copy(ownText = "more tea", grade = TalkGrade.GREEN)
         show { TalkContent(TalkUiState(isLoading = false, title = "Mr. Yamada", entries = listOf(graded)), {}) }
         assertText("Yes, you understood.")
+    }
+
+    @Test
+    fun talkSuccessShowsNeedsEditBanner() {
+        val draft = entry.copy(needsEdit = true)
+        show { TalkContent(TalkUiState(isLoading = false, title = "Mr. Yamada", entries = listOf(draft)), {}) }
+        assertText("AI unavailable · transcript only")
     }
 }

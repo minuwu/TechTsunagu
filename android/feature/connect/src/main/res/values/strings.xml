@@ -80,6 +80,11 @@
     <string name="connect_delete_title">Delete this talk?</string>
     <string name="connect_delete_body">%1$s · All its messages will be deleted too.</string>
 
+    <string name="connect_needs_edit">AI unavailable · transcript only</string>
+    <string name="connect_mic_rationale">Microphone permission is needed to listen to what is said.</string>
+    <string name="connect_dictation_unavailable">Speech recognition is not available on this phone.</string>
+    <string name="connect_dictation_no_speech">No speech detected. Please try again.</string>
+
     <!-- Errors: what happened, why, what to do -->
     <string name="connect_err_offline">No internet connection, so this could not be done. Check your connection and try again.</string>
     <string name="connect_err_timeout">The server took too long to answer. Wait a moment and try again.</string>
@@ -88,5 +93,7 @@
     <string name="connect_err_blocked">You blocked this person.</string>
     <string name="connect_err_bad_code">This is not a Wakatta? QR code. Check the code and try again.</string>
     <string name="connect_err_no_speech">Read-aloud is not available on this phone. Show the screen to the person instead.</string>
+    <string name="connect_err_rate_limited">Too many requests. Please wait a moment and try again.</string>
+    <string name="connect_err_already_connected">This person is already in your contacts.</string>
     <string name="connect_err_unknown">Something went wrong. Try again. If it keeps happening, tell your Foreman.</string>
 </resources>

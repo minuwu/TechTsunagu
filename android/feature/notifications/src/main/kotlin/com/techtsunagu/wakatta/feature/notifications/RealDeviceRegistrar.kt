@@ -28,6 +28,7 @@ class RealDeviceRegistrar @Inject constructor(
     private val api: dagger.Lazy<DeviceApi>,
     private val config: AppConfig,
     private val sessionStore: dagger.Lazy<SessionStore>,
+    private val notificationsRepository: dagger.Lazy<NotificationsRepository>,
 ) : DeviceRegistrar {
 
     constructor(
@@ -35,11 +36,13 @@ class RealDeviceRegistrar @Inject constructor(
         api: () -> DeviceApi,
         config: AppConfig,
         sessionStore: SessionStore,
+        notificationsRepository: NotificationsRepository = FakeNotificationsRepository(),
     ) : this(
         context = context,
         api = dagger.Lazy { api() },
         config = config,
         sessionStore = dagger.Lazy { sessionStore },
+        notificationsRepository = dagger.Lazy { notificationsRepository },
     )
 
     private val prefs by lazy {
@@ -51,13 +54,14 @@ class RealDeviceRegistrar @Inject constructor(
         scope.launch {
             var previousSession: Session? = null
             sessionStore.get().session.collect { session ->
-                if (previousSession == null && session != null) {
+                val wasLoggedIn = previousSession != null
+                previousSession = session
+                if (!wasLoggedIn && session != null) {
                     val enabled = NotificationManagerCompat.from(context).areNotificationsEnabled()
                     register(notificationsEnabled = enabled)
-                } else if (previousSession != null && session == null) {
-                    unregister()
+                } else if (wasLoggedIn && session == null) {
+                    notificationsRepository.get().clear()
                 }
-                previousSession = session
             }
         }
     }

@@ -9,13 +9,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 class TopLevelBackStack : Navigator {
-    private val stacks: Map<TopLevelTab, SnapshotStateList<NavKey>> = mapOf(
-        TopLevelTab.HOME to mutableStateListOf<NavKey>(HomeKey),
-        TopLevelTab.CHATS to mutableStateListOf<NavKey>(ChatsKey),
-        TopLevelTab.BOARD to mutableStateListOf<NavKey>(BoardKey),
-        TopLevelTab.MACHINES to mutableStateListOf<NavKey>(MachinesKey),
-        TopLevelTab.ME to mutableStateListOf<NavKey>(MeKey)
-    )
+    private val stacks: Map<TopLevelTab, SnapshotStateList<NavKey>> =
+        ROOTS.mapValues { (_, root) -> mutableStateListOf(root) }
 
     private val _currentTab = MutableStateFlow(TopLevelTab.HOME)
     val currentTab: StateFlow<TopLevelTab> = _currentTab.asStateFlow()
@@ -82,5 +77,26 @@ class TopLevelBackStack : Navigator {
         list.clear()
         list.add(key)
         _currentStack.value = list.toList()
+    }
+
+    /** Another person signs in on this phone: every tab starts at its root. */
+    fun reset() {
+        ROOTS.forEach { (tab, root) ->
+            stacks.getValue(tab).run {
+                clear()
+                add(root)
+            }
+        }
+        switchTab(TopLevelTab.HOME)
+    }
+
+    private companion object {
+        val ROOTS: Map<TopLevelTab, NavKey> = mapOf(
+            TopLevelTab.HOME to HomeKey,
+            TopLevelTab.CHATS to ChatsKey,
+            TopLevelTab.BOARD to BoardKey,
+            TopLevelTab.MACHINES to MachinesKey,
+            TopLevelTab.ME to MeKey,
+        )
     }
 }

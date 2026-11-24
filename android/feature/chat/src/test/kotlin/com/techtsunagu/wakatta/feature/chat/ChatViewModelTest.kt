@@ -1,6 +1,9 @@
 package com.techtsunagu.wakatta.feature.chat
 
 import com.techtsunagu.wakatta.core.common.AppConfig
+import com.techtsunagu.wakatta.core.media.DictationErrorKind
+import com.techtsunagu.wakatta.core.media.DictationEvent
+import com.techtsunagu.wakatta.core.media.DictationSource
 import com.techtsunagu.wakatta.core.model.AppError
 import com.techtsunagu.wakatta.core.model.AppResult
 import com.techtsunagu.wakatta.core.model.GlossaryTerm
@@ -11,7 +14,6 @@ import com.techtsunagu.wakatta.core.model.SessionStore
 import com.techtsunagu.wakatta.core.model.User
 import com.techtsunagu.wakatta.core.model.WakattaStatus
 import com.techtsunagu.wakatta.feature.chat.data.ChatRepository
-import com.techtsunagu.wakatta.feature.chat.data.FakeAudioRecorder
 import com.techtsunagu.wakatta.feature.chat.data.FakeChatRepository
 import com.techtsunagu.wakatta.feature.chat.data.FakeSpeaker
 import com.techtsunagu.wakatta.feature.chat.model.AnswerResultDto
@@ -21,8 +23,10 @@ import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
@@ -62,6 +66,8 @@ class ChatViewModelTest {
         var transcript = "TRANSCRIPT"
         val sendKeys = mutableListOf<String>()
         val sendIsVoice = mutableListOf<Boolean>()
+        val sendAudios = mutableListOf<File?>()
+        val sendTexts = mutableListOf<String?>()
         val answerKeys = mutableListOf<String>()
         var activeCollectors = 0
 
@@ -73,15 +79,18 @@ class ChatViewModelTest {
 
         override suspend fun sendMessage(
             threadId: String,
-            text: String,
+            text: String?,
+            audio: File?,
             isVoice: Boolean,
             fromUserId: String,
             idempotencyKey: String,
         ): AppResult<ChatMessageUiModel> {
             sendKeys += idempotencyKey
             sendIsVoice += isVoice
+            sendAudios += audio
+            sendTexts += text
             failSend?.let { return AppResult.Failure(it) }
-            return inner.sendMessage(threadId, text, isVoice, fromUserId, idempotencyKey)
+            return inner.sendMessage(threadId, text, audio, isVoice, fromUserId, idempotencyKey)
         }
 
         override suspend fun submitAnswers(
@@ -96,8 +105,29 @@ class ChatViewModelTest {
         }
     }
 
+    private class FakeDictationSource : DictationSource {
+        var isAvailableResult = true
+        val events = MutableSharedFlow<DictationEvent>(extraBufferCapacity = 16)
+        var lastTag: String? = null
+        var startCount = 0
+        var stopCount = 0
+
+        override fun isAvailable(): Boolean = isAvailableResult
+
+        override fun start(languageTag: String): Flow<DictationEvent> {
+            startCount++
+            lastTag = languageTag
+            return events.asSharedFlow()
+        }
+
+        override fun stop() {
+            stopCount++
+        }
+    }
+
     private val testDispatcher = StandardTestDispatcher()
     private lateinit var repository: SpyRepository
+    private lateinit var fakeDictation: FakeDictationSource
 
     private val foreman = Session("t", user = User("u_tanaka", "Tanaka", Role.FOREMAN, "ja"))
 
@@ -105,6 +135,7 @@ class ChatViewModelTest {
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         repository = SpyRepository(FakeChatRepository().apply { setLatency(0L) })
+        fakeDictation = FakeDictationSource()
     }
 
     @After
@@ -112,9 +143,13 @@ class ChatViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun viewModel(session: Session? = foreman, debug: Boolean = false) = ChatViewModel(
+    private fun viewModel(
+        session: Session? = foreman,
+        debug: Boolean = false,
+        dictation: DictationSource = fakeDictation,
+    ) = ChatViewModel(
         chatRepository = repository,
-        audioRecorder = FakeAudioRecorder(),
+        dictation = dictation,
         speaker = FakeSpeaker(),
         sessionStore = TestSessionStore(session),
         appConfig = AppConfig(true, "", "", "1", 1, isDebug = debug),
@@ -207,38 +242,98 @@ class ChatViewModelTest {
     }
 
     @Test
-    fun recordingFillsInputFromTranscriptAndStartsCountdown() = runTest {
+    fun dictationUnavailable_showsHint_andStaysEditing() = runTest {
+        fakeDictation.isAvailableResult = false
         val vm = viewModel()
         vm.init()
 
         vm.onEvent(ChatEvent.StartRecording)
-        assertEquals(ComposerStatus.RECORDING, vm.state.value.composerStatus)
-        assertTrue(vm.state.value.isListening)
-
-        vm.onEvent(ChatEvent.StopRecording)
-        testDispatcher.scheduler.advanceTimeBy(150)
-
-        assertEquals(ComposerStatus.COUNTDOWN, vm.state.value.composerStatus)
-        assertFalse(vm.state.value.isListening)
-        assertEquals("TRANSCRIPT", vm.state.value.inputText)
-
-        vm.onEvent(ChatEvent.CancelCountdown)
+        testDispatcher.scheduler.advanceUntilIdle()
         assertEquals(ComposerStatus.EDITING, vm.state.value.composerStatus)
+        assertEquals(ChatEffect.ShowHint(R.string.chat_dictation_unavailable), vm.effects.first())
     }
 
     @Test
-    fun transcribeFailureReportsErrorAndStaysIdle() = runTest {
-        repository.failTranscribe = AppError.Offline
+    fun dictationPartial_updatesInputTextLive_andSetsStatusRecording() = runTest {
         val vm = viewModel()
         vm.init()
 
         vm.onEvent(ChatEvent.StartRecording)
-        vm.onEvent(ChatEvent.StopRecording)
+        testDispatcher.scheduler.advanceUntilIdle()
+        assertEquals(ComposerStatus.RECORDING, vm.state.value.composerStatus)
+        assertTrue(vm.state.value.isListening)
+
+        fakeDictation.events.emit(DictationEvent.Partial("明日の朝"))
+        testDispatcher.scheduler.advanceUntilIdle()
+        assertEquals("明日の朝", vm.state.value.inputText)
+        assertEquals(ComposerStatus.RECORDING, vm.state.value.composerStatus)
+        assertTrue(vm.state.value.isListening)
+    }
+
+    @Test
+    fun dictationFinal_setsInputText_andStartsCountdown() = runTest {
+        val vm = viewModel()
+        vm.init()
+
+        vm.onEvent(ChatEvent.StartRecording)
+        testDispatcher.scheduler.advanceUntilIdle()
+        fakeDictation.events.emit(DictationEvent.Final("明日の朝8時集合"))
+        testDispatcher.scheduler.advanceTimeBy(50)
+
+        assertEquals("明日の朝8時集合", vm.state.value.inputText)
+        assertEquals(ComposerStatus.COUNTDOWN, vm.state.value.composerStatus)
+        assertFalse(vm.state.value.isListening)
+
+        vm.onEvent(ChatEvent.CancelCountdown)
+        assertEquals(ComposerStatus.EDITING, vm.state.value.composerStatus)
+        assertEquals("明日の朝8時集合", vm.state.value.inputText)
+    }
+
+    @Test
+    fun dictationError_noSpeech_returnsToIdle_showsHint_andKeepsTypedText() = runTest {
+        val vm = viewModel()
+        vm.init()
+
+        vm.onEvent(ChatEvent.OnInputTextChanged("Existing typed note"))
+        vm.onEvent(ChatEvent.StartRecording)
+        testDispatcher.scheduler.advanceUntilIdle()
+        fakeDictation.events.emit(DictationEvent.Error(DictationErrorKind.NO_SPEECH))
         testDispatcher.scheduler.advanceUntilIdle()
 
         assertEquals(ComposerStatus.IDLE, vm.state.value.composerStatus)
-        assertEquals("", vm.state.value.inputText)
-        assertEquals(ChatEffect.ShowError(AppError.Offline), vm.effects.first())
+        assertEquals("Existing typed note", vm.state.value.inputText)
+        assertFalse(vm.state.value.isListening)
+        assertEquals(ChatEffect.ShowHint(R.string.chat_dictation_no_speech), vm.effects.first())
+    }
+
+    @Test
+    fun dictationError_networkOrUnavailable_returnsToEditing_showsTypeInsteadHint_andKeepsTypedText() = runTest {
+        val vm = viewModel()
+        vm.init()
+
+        vm.onEvent(ChatEvent.OnInputTextChanged("Draft to keep"))
+        vm.onEvent(ChatEvent.StartRecording)
+        testDispatcher.scheduler.advanceUntilIdle()
+        fakeDictation.events.emit(DictationEvent.Error(DictationErrorKind.NETWORK))
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals(ComposerStatus.EDITING, vm.state.value.composerStatus)
+        assertEquals("Draft to keep", vm.state.value.inputText)
+        assertFalse(vm.state.value.isListening)
+        assertEquals(ChatEffect.ShowHint(R.string.chat_dictation_type_instead), vm.effects.first())
+    }
+
+    @Test
+    fun dictationStop_callsDictationStop() = runTest {
+        val vm = viewModel()
+        vm.init()
+
+        vm.onEvent(ChatEvent.StartRecording)
+        testDispatcher.scheduler.advanceUntilIdle()
+        vm.onEvent(ChatEvent.StopRecording)
+
+        assertEquals(1, fakeDictation.stopCount)
+        assertFalse(vm.state.value.isListening)
     }
 
     @Test
@@ -246,8 +341,9 @@ class ChatViewModelTest {
         val vm = viewModel()
         vm.init()
         vm.onEvent(ChatEvent.StartRecording)
-        vm.onEvent(ChatEvent.StopRecording)
-        testDispatcher.scheduler.advanceTimeBy(150)
+        testDispatcher.scheduler.advanceUntilIdle()
+        fakeDictation.events.emit(DictationEvent.Final("テスト"))
+        testDispatcher.scheduler.advanceUntilIdle()
         val before = vm.state.value
 
         testDispatcher.scheduler.advanceTimeBy(1_500)
@@ -257,21 +353,38 @@ class ChatViewModelTest {
     }
 
     @Test
-    fun voiceFlagFollowsDictationNotTextContent() = runTest {
+    fun dictatedVoiceMessage_sendsTextWithIsVoiceTrueAndNoAudio() = runTest {
         val vm = viewModel()
         vm.init()
 
         vm.onEvent(ChatEvent.StartRecording)
-        vm.onEvent(ChatEvent.StopRecording)
-        testDispatcher.scheduler.advanceTimeBy(150)
+        testDispatcher.scheduler.advanceUntilIdle()
+        fakeDictation.events.emit(DictationEvent.Final("金型交換の件"))
+        testDispatcher.scheduler.advanceUntilIdle()
         vm.onEvent(ChatEvent.SendNow)
         testDispatcher.scheduler.advanceUntilIdle()
 
-        vm.onEvent(ChatEvent.OnInputTextChanged("金型交換 " + "x".repeat(40)))
-        vm.onEvent(ChatEvent.SendNow)
-        testDispatcher.scheduler.advanceUntilIdle()
+        assertEquals(1, repository.sendTexts.size)
+        assertEquals("金型交換の件", repository.sendTexts[0])
+        assertTrue(repository.sendIsVoice[0])
+        assertNull(repository.sendAudios[0])
+    }
 
-        assertEquals(listOf(true, false), repository.sendIsVoice)
+    @Test
+    fun dictationTag_matchesSessionUserLanguage() = runTest {
+        val worker = Session("w", user = User("u_rahim", "Rahim", Role.WORKER, "bn"))
+        val workerVm = viewModel(session = worker)
+        workerVm.init()
+
+        workerVm.onEvent(ChatEvent.StartRecording)
+        testDispatcher.scheduler.advanceUntilIdle()
+        assertEquals("bn-BD", fakeDictation.lastTag)
+
+        val foremanVm = viewModel(session = foreman)
+        foremanVm.init()
+        foremanVm.onEvent(ChatEvent.StartRecording)
+        testDispatcher.scheduler.advanceUntilIdle()
+        assertEquals("ja-JP", fakeDictation.lastTag)
     }
 
     @Test
@@ -416,6 +529,29 @@ class ChatViewModelTest {
 
         vm.onEvent(ChatEvent.DismissGlossaryTerm)
         assertNull(vm.state.value.selectedGlossaryTerm)
+    }
+
+    @Test
+    fun editDraftUpdatesMessageContent() = runTest {
+        val vm = viewModel()
+        vm.init()
+
+        vm.onEvent(ChatEvent.EditDraft("m1", "修正後のテキスト"))
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        val updated = vm.state.value.messages.first { it.id == "m1" }
+        assertEquals("修正後のテキスト", updated.originalText)
+    }
+
+    @Test
+    fun askExplainAgainCallsRepositoryAndAddsMessage() = runTest {
+        val vm = viewModel()
+        vm.init()
+
+        vm.onEvent(ChatEvent.AskExplainAgain("m1"))
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertTrue(vm.state.value.messages.any { it.kind == MessageKind.ASK })
     }
 
     @Test

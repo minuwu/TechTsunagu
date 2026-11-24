@@ -6,7 +6,6 @@
     <string name="machines_scan_screen_title">Scan QR</string>
     <string name="machines_panel_screen_title">Machine Panel</string>
     <string name="machines_note_screen_title">Work Instructions</string>
-    <string name="machines_screen_id">Screen: %1$s</string>
     <string name="machines_loading">Loading...</string>
     <string name="machines_empty">No machines found</string>
     <string name="machines_retry">Retry</string>
@@ -128,4 +127,5 @@
     <string name="machines_panel_state_unknown">UNKNOWN</string>
     <string name="machines_panel_override_reason_hint">Line is stopped otherwise...</string>
     <string name="machines_note_submit_failed">Could not send your answers. Check your connection and try again.</string>
+    <string name="machines_error_rate_limited">Already reminded. Wait a few minutes.</string>
 </resources>

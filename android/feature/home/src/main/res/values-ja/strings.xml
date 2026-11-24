@@ -6,10 +6,10 @@
     <string name="home_loading">読み込み中…</string>
     <string name="home_empty">コンテンツがありません</string>
     <string name="home_retry">再試行</string>
-    <string name="home_error">エラー: %1$s</string>
+    <string name="home_error">読み込めませんでした。通信を確認して、もう一度試してください。</string>
 
-    <string name="home_greeting_foreman">おはようございます、%1$sさん</string>
-    <string name="home_greeting_worker">おはようございます、%1$sさん</string>
+    <string name="home_greeting_foreman">お疲れさまです、%1$sさん</string>
+    <string name="home_greeting_worker">お疲れさまです、%1$sさん</string>
     <string name="home_followup_card_title">要フォロー %1$d件</string>
     <string name="home_followup_all_good">みんな理解できています</string>
     <string name="home_followup_detail">%1$sさん · 「%2$s」が理解できていません</string>
@@ -17,8 +17,6 @@
     <string name="home_status_green">理解</string>
     <string name="home_status_orange">確認中</string>
     <string name="home_status_red">要確認</string>
-    <string name="home_status_wait">回答待ち</string>
-    <string name="home_bar_cap_active">回答待ち %1$d件 · 全%2$d件</string>
     <string name="home_bar_cap_empty">まだ指示はありません</string>
     <string name="home_quick_actions">クイック操作</string>
     <string name="home_qa_briefing">朝礼</string>
@@ -50,15 +48,16 @@
     <string name="home_bell_content_desc">通知</string>
     <string name="home_unread_badge">%1$d</string>
 
-    <string name="home_me_plant_foreman">職長 · 第2工場</string>
-    <string name="home_me_plant_worker">作業者 · 第2工場</string>
+    <string name="home_me_plant_foreman">職長</string>
+    <string name="home_me_plant_worker">作業者</string>
     <string name="home_me_team">チーム</string>
     <string name="home_me_team_machines_permitted">%1$d/%2$d 台 使用可</string>
     <string name="home_me_open_skills">力量表を開く</string>
     <string name="home_me_skill_passport">Skill Passport</string>
-    <string name="home_me_signed_off">サインオフ済 %1$s · %2$s</string>
+    <string name="home_me_signed_off">サインオフ済 %1$s</string>
     <string name="home_me_valid_signoff">有効なサインオフ</string>
     <string name="home_me_not_signed_off">未サインオフ</string>
+    <string name="home_me_ready">使用可</string>
     <string name="home_me_take_check">Checkを受ける</string>
     <string name="home_me_settings">設定</string>
     <string name="home_me_language">言語</string>
@@ -68,8 +67,6 @@
     <string name="home_me_simulate_offline_sub">表示のみ</string>
     <string name="home_me_notifications">通知設定</string>
     <string name="home_me_notify_messages">メッセージ・タスク</string>
-    <string name="home_me_notify_safety">安全・朝礼・機械</string>
-    <string name="home_me_notify_life">生活・お知らせ</string>
     <string name="home_me_replay_onboarding">オンボーディングをもう一度</string>
     <string name="home_me_switch_role">ロールを切り替え（デモ）</string>
     <string name="home_me_sign_out">サインアウト</string>

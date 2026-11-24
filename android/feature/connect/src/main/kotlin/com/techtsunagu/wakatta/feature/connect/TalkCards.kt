@@ -62,6 +62,31 @@ internal fun ExchangeCard(entry: TalkEntryDto, lang: String, onEvent: (TalkEvent
     WakattaCard(modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             SaidHeader(entry, onEvent)
+            if (entry.needsEdit) {
+                Surface(
+                    color = MaterialTheme.colorScheme.tertiaryContainer,
+                    shape = MaterialTheme.shapes.small,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Icon(
+                            Icons.Default.Info,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                            modifier = Modifier.size(16.dp),
+                        )
+                        Text(
+                            text = stringResource(R.string.connect_needs_edit),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onTertiaryContainer,
+                        )
+                    }
+                }
+            }
             if (entry.grade == null) {
                 AttemptSection(entry, onEvent)
             } else {
@@ -210,9 +235,12 @@ private fun ChooseReply(entry: TalkEntryDto, lang: String, onEvent: (TalkEvent) 
             onClick = { onEvent(TalkEvent.Reply(entry.id, index)) },
             modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp),
         ) {
-            Column(Modifier.fillMaxWidth()) {
-                Text(if (lang == "ja") option.ja else option.en)
-                if (lang != "ja") Text(option.ja, style = MaterialTheme.typography.labelSmall)
+            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(option.ja, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
+                val sub = option.meaning.ifEmpty { option.en }
+                if (sub.isNotBlank() && sub != option.ja) {
+                    Text(sub, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
             }
         }
     }

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="asks_screen_id">Screen: %1$s</string>
     <string name="asks_loading">Loading...</string>
     <string name="asks_empty_asks">No asks yet</string>
     <string name="asks_empty_meetups">No meet-ups yet</string>
@@ -24,13 +23,10 @@
     <string name="asks_hide_original">Hide original</string>
     <string name="asks_read_aloud">Read aloud</string>
     <string name="asks_stop_reading">Stop</string>
-    <string name="asks_foreman_hint">This screen stands in for Senpai Sato\'s phone. When you reply in Japanese, it is delivered to the worker in their language.</string>
     <string name="asks_forwarded_section">Forwarded asks</string>
     <string name="asks_replied_section">Replied</string>
     <string name="asks_auto_answered_section">Auto-answered by notices</string>
-    <string name="asks_canned_replies_label">Quick reply</string>
     <string name="asks_no_forwarded_asks">No forwarded asks waiting</string>
-    <string name="asks_suggested_meetup">Suggested next meet-up</string>
     <string name="asks_log_meetup">Log a meet-up</string>
     <string name="asks_your_senpai">Your Senpai</string>
     <string name="asks_ask_question">Ask a question</string>
@@ -40,7 +36,6 @@
     <string name="asks_create_pair_link">Create invitation link</string>
     <string name="asks_pair_link_dialog_title">Senpai Invitation Link</string>
     <string name="asks_pair_link_dialog_desc">Send this link to the Senpai. It is shown only once.</string>
-    <string name="asks_copy_link">Copy link</string>
     <string name="asks_close">Close</string>
     <string name="asks_today_word_title">Today\'s Word · %1$s\'s language (%2$s)</string>
     <string name="asks_today_word_subtitle">Try using this word with them today</string>
@@ -57,7 +52,6 @@
     <string name="asks_save">Save</string>
     <string name="asks_cancel">Cancel</string>
     <string name="asks_meetup_logged_toast">Meet-up logged</string>
-    <string name="asks_reply_sent_toast">Reply sent</string>
     <string name="asks_with_senpai">with %1$s</string>
     <string name="asks_mic_content_description">Voice input</string>
     <string name="asks_send_content_description">Send question</string>
@@ -67,4 +61,17 @@
     <string name="asks_sug_garbage">When is garbage day?</string>
     <string name="asks_sug_drill">Where is the drill?</string>
     <string name="asks_sug_bus">How do I get a bus pass?</string>
+    <string name="asks_error_failed_to_send">Could not send your question. Please try again.</string>
+    <string name="asks_error_pair_exists">Worker already has an assigned Senpai.</string>
+    <string name="asks_error_load">Could not load this. Check the connection and try again.</string>
+    <string name="asks_error_save">Could not save this. Check the connection and try again.</string>
+    <string name="asks_forward">Ask my Senpai</string>
+    <string name="asks_foreman_waiting">Waiting for the Senpai\'s reply</string>
+    <string name="asks_foreman_not_forwarded">Not sent: this Worker has no Senpai yet</string>
+    <string name="asks_foreman_hint">Asks the Notices cannot answer go to the Worker\'s Senpai, who replies through their own link.</string>
+    <string name="asks_senpai_name_label">Senpai\'s name</string>
+    <string name="asks_pair_kind_coworker">Coworker</string>
+    <string name="asks_pair_kind_jichikai">Neighborhood association</string>
+    <string name="asks_pair_meetups">%1$d meet-ups · last %2$s</string>
+    <string name="asks_share_link">Share link</string>
 </resources>

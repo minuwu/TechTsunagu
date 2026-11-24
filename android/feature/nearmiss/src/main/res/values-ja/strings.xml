@@ -4,7 +4,7 @@
     <string name="nearmiss_loading">読み込み中...</string>
     <string name="nearmiss_empty">報告がありません</string>
     <string name="nearmiss_retry">再試行</string>
-    <string name="nearmiss_error">エラー: %1$s</string>
+    <string name="nearmiss_error">読み込めませんでした</string>
     <string name="nearmiss_done">完了</string>
     <string name="nearmiss_screen_id">画面ID: %1$s</string>
 
@@ -14,7 +14,7 @@
     <string name="nearmiss_step_what">2 · 何が起きましたか？ 長押しで録音</string>
     <string name="nearmiss_mic_label">長押しで録音</string>
     <string name="nearmiss_text_placeholder">マイクを長押しして話すか、ここに入力してください</string>
-    <string name="nearmiss_auto_translate_hint">田中さんのために自動で日本語に翻訳されます</string>
+    <string name="nearmiss_auto_translate_hint">班長のために自動で日本語に翻訳されます</string>
     <string name="nearmiss_step_photo">3 · 写真（任意）</string>
     <string name="nearmiss_add_photo">写真を追加</string>
     <string name="nearmiss_tap_circle_hint">写真の危ない場所をタップして丸をつけます</string>
@@ -57,4 +57,8 @@
     <string name="nearmiss_btn_ack">確認</string>
     <string name="nearmiss_btn_acked">確認済み</string>
     <string name="nearmiss_task_created_toast">ボードにタスクを追加しました</string>
+    <string name="nearmiss_queued_message">通信できません。つながったら、自動で送ります。</string>
+    <string name="nearmiss_send_failed">報告を受け付けられませんでした。内容を確認して、もう一度送ってください。</string>
+    <string name="nearmiss_error_hint">通信を確認して、もう一度試してください。</string>
+    <string name="nearmiss_action_failed">うまくいきませんでした。もう一度お試しください。</string>
 </resources>

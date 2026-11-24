@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="asks_screen_id">স্ক্রিন আইডি: %1$s</string>
     <string name="asks_loading">লোড হচ্ছে...</string>
     <string name="asks_empty_asks">এখনও কোনো জিজ্ঞাসা নেই</string>
     <string name="asks_empty_meetups">এখনও কোনো সাক্ষাৎ নেই</string>
@@ -24,13 +23,10 @@
     <string name="asks_hide_original">মূল টেক্সট লুকান</string>
     <string name="asks_read_aloud">পড়ে শুনুন</string>
     <string name="asks_stop_reading">থামুন</string>
-    <string name="asks_foreman_hint">এই স্ক্রিনটি সিনিয়র সাতোর ফোনের বিকল্প। জাপানি ভাষায় উত্তর দিলে কর্মীর কাছে তার ভাষায় পৌঁছাবে।</string>
     <string name="asks_forwarded_section">ফরওয়ার্ড করা জিজ্ঞাসা</string>
     <string name="asks_replied_section">উত্তর দেওয়া হয়েছে</string>
     <string name="asks_auto_answered_section">নোটিশ দ্বারা স্বয়ংক্রিয় উত্তর</string>
-    <string name="asks_canned_replies_label">দ্রুত উত্তর</string>
     <string name="asks_no_forwarded_asks">কোনো অপেক্ষমাণ ফরওয়ার্ড জিজ্ঞাসা নেই</string>
-    <string name="asks_suggested_meetup">প্রস্তাবিত পরবর্তী সাক্ষাৎ</string>
     <string name="asks_log_meetup">সাক্ষাৎ লিপিবদ্ধ করুন</string>
     <string name="asks_your_senpai">আপনার সিনিয়র</string>
     <string name="asks_ask_question">প্রশ্ন জিজ্ঞাসা করুন</string>
@@ -40,7 +36,6 @@
     <string name="asks_create_pair_link">আমন্ত্রণ লিংক তৈরি করুন</string>
     <string name="asks_pair_link_dialog_title">সিনিয়র আমন্ত্রণ লিংক</string>
     <string name="asks_pair_link_dialog_desc">এই লিংকটি সিনিয়রকে পাঠান। এটি কেবল একবার দেখানো হয়।</string>
-    <string name="asks_copy_link">লিংক কপি করুন</string>
     <string name="asks_close">বন্ধ করুন</string>
     <string name="asks_today_word_title">আজকের শব্দ · %1$s-এর ভাষা (%2$s)</string>
     <string name="asks_today_word_subtitle">আজ তাদের সাথে এই শব্দটি ব্যবহার করার চেষ্টা করুন</string>
@@ -57,7 +52,6 @@
     <string name="asks_save">সংরক্ষণ</string>
     <string name="asks_cancel">বাতিল</string>
     <string name="asks_meetup_logged_toast">সাক্ষাৎ লিপিবদ্ধ হয়েছে</string>
-    <string name="asks_reply_sent_toast">উত্তর পাঠানো হয়েছে</string>
     <string name="asks_with_senpai">%1$s-এর সাথে</string>
     <string name="asks_mic_content_description">ভয়েস ইনপুট</string>
     <string name="asks_send_content_description">প্রশ্ন পাঠান</string>
@@ -67,4 +61,17 @@
     <string name="asks_sug_garbage">ময়লার দিন কবে?</string>
     <string name="asks_sug_drill">মহড়া কোথায়?</string>
     <string name="asks_sug_bus">বাস পাস কীভাবে কিনব?</string>
+    <string name="asks_error_failed_to_send">প্রশ্ন পাঠানো যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।</string>
+    <string name="asks_error_pair_exists">কর্মীর ইতিমধ্যে একজন সিনিয়র নির্ধারিত আছে।</string>
+    <string name="asks_error_load">লোড করা যায়নি। সংযোগ দেখে আবার চেষ্টা করুন।</string>
+    <string name="asks_error_save">সংরক্ষণ করা যায়নি। সংযোগ দেখে আবার চেষ্টা করুন।</string>
+    <string name="asks_forward">আমার সিনিয়রকে জিজ্ঞাসা করুন</string>
+    <string name="asks_foreman_waiting">সিনিয়রের উত্তরের অপেক্ষায়</string>
+    <string name="asks_foreman_not_forwarded">পাঠানো হয়নি: এই কর্মীর এখনও কোনো সিনিয়র নেই</string>
+    <string name="asks_foreman_hint">নোটিশে উত্তর না থাকলে জিজ্ঞাসা কর্মীর সিনিয়রের কাছে যায়। সিনিয়র নিজের লিংক থেকে উত্তর দেন।</string>
+    <string name="asks_senpai_name_label">সিনিয়রের নাম</string>
+    <string name="asks_pair_kind_coworker">সহকর্মী</string>
+    <string name="asks_pair_kind_jichikai">পাড়া সমিতি</string>
+    <string name="asks_pair_meetups">%1$d সাক্ষাৎ · শেষ %2$s</string>
+    <string name="asks_share_link">লিংক শেয়ার করুন</string>
 </resources>

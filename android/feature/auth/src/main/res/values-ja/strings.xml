@@ -12,7 +12,6 @@
     <string name="auth_submit">ログイン</string>
     <string name="auth_change_pin_submit">暗証番号を更新</string>
     <string name="auth_select_worker">名前を選択</string>
-    <string name="auth_screen_id">画面ID: %1$s</string>
     <string name="auth_loading">読み込み中...</string>
     <string name="auth_empty">作業者が見つかりません</string>
     <string name="auth_retry">再試行</string>

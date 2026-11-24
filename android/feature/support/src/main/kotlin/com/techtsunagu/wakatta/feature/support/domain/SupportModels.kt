@@ -9,6 +9,7 @@ import com.techtsunagu.wakatta.core.model.WakattaStatus
 import com.techtsunagu.wakatta.core.model.WorkerInfo
 import java.io.File
 import java.time.LocalDate
+import java.time.ZoneId
 import java.time.format.DateTimeParseException
 import java.time.temporal.ChronoUnit
 import kotlinx.coroutines.flow.Flow
@@ -132,6 +133,8 @@ data class InterviewCreateRequest(
 
 object InterviewDueCalculator {
     const val DEMO_TODAY_ISO = "2026-11-24"
+
+    fun todayIso(): String = LocalDate.now(ZoneId.of("Asia/Tokyo")).toString()
 
     /**
      * Adds [months] to [isoDate] (YYYY-MM-DD) with month-end clamping.

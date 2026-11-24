@@ -1,5 +1,6 @@
 package com.techtsunagu.wakatta.feature.chat.data
 
+import com.techtsunagu.wakatta.core.model.CacheStore
 import com.techtsunagu.wakatta.core.model.GlossaryRepository
 import com.techtsunagu.wakatta.core.model.SessionStore
 import com.techtsunagu.wakatta.core.model.WorkerRepository
@@ -26,9 +27,10 @@ object ChatDataModule {
         session: SessionStore,
         workers: WorkerRepository,
         glossary: GlossaryRepository,
+        cache: CacheStore,
     ): ChatRepository {
         if (!ApiConfig.USE_LIVE_API) return fake.get()
         val api = lazy { retrofit.get().create(ChatApi::class.java) }
-        return RealChatRepository({ api.value }, session, workers, glossary, fake.get())
+        return RealChatRepository({ api.value }, session, workers, glossary, cache)
     }
 }

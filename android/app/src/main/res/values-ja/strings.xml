@@ -12,4 +12,5 @@
     <string name="app_demo_foreman">職長 (田中)</string>
     <string name="app_demo_signin_prompt">デモ クイックログイン:</string>
     <string name="app_demo_signout">ログアウト</string>
+    <string name="app_offline">通信できません。前に読み込んだ内容を表示しています。</string>
 </resources>

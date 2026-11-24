@@ -227,7 +227,30 @@ class FakeConnectRepository(
         return AppResult.Success(synchronized(lock) { talk.entries.toList() })
     }
 
-    override suspend fun listen(talkId: String): AppResult<TalkEntryDto> {
+    override suspend fun addEntry(talkId: String, text: String): AppResult<TalkEntryDto> {
+        delay(simulatedLatencyMs)
+        return synchronized(lock) {
+            val talk = talks.firstOrNull { it.id == talkId } ?: return@synchronized AppResult.Failure(AppError.NotFound)
+            val utterance = TalkScript.utterances.firstOrNull { it.said == text }
+                ?: TalkScript.utterances[listenCounter++ % TalkScript.utterances.size]
+            val entry = utterance.toEntry(nextId("x"), talkId, now()).copy(said = text)
+            talk.entries += entry
+            publish()
+            AppResult.Success(entry)
+        }
+    }
+
+    override suspend fun deleteEntry(talkId: String, entryId: String): AppResult<Unit> {
+        delay(simulatedLatencyMs)
+        return synchronized(lock) {
+            val talk = talks.firstOrNull { it.id == talkId } ?: return@synchronized AppResult.Failure(AppError.NotFound)
+            if (!talk.entries.removeAll { it.id == entryId }) return@synchronized AppResult.Failure(AppError.NotFound)
+            publish()
+            AppResult.Success(Unit)
+        }
+    }
+
+    suspend fun listen(talkId: String): AppResult<TalkEntryDto> {
         delay(simulatedLatencyMs)
         return synchronized(lock) {
             val talk = talks.firstOrNull { it.id == talkId } ?: return@synchronized AppResult.Failure(AppError.NotFound)

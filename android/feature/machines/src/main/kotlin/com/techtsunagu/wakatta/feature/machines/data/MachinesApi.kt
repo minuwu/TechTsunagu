@@ -42,6 +42,9 @@ internal interface MachinesApi {
         @Path("override_id") overrideId: String,
     ): Response<ApiEnvelope<OverrideDto>>
 
+    @POST(ApiPaths.MACHINE_REMIND)
+    suspend fun remind(@Path("machine_id") id: String, @Body body: RemindInDto): Response<ApiEnvelope<Unit>>
+
     @POST(ApiPaths.MACHINE_SCAN)
     suspend fun scan(@Path("machine_id") id: String): Response<ApiEnvelope<Unit>>
 
@@ -73,7 +76,10 @@ internal data class PageDto<T>(val items: List<T> = emptyList(), val nextCursor:
 internal data class PanelWorkerDto(val id: String, val displayName: String)
 
 @Serializable
-internal data class PanelOverrideInfoDto(val by: String = "", val until: String = "", val reason: String = "")
+internal data class PanelOverrideInfoDto(val id: String = "", val by: String = "", val until: String = "", val reason: String = "")
+
+@Serializable
+internal data class RemindInDto(val workerId: String)
 
 @Serializable
 internal data class PanelDto(

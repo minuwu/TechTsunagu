@@ -119,39 +119,47 @@ class RealDeviceRegistrarTest {
     }
 
     @Test
-    fun sessionTransitionsTriggerRegisterAndUnregister() = runTest {
+    fun sessionTransitionsTriggerRegisterAndClearLocalListOnSignOut() = runTest {
         server.enqueue(
             MockWebServerHelper.envelopeResponse(
                 dataJson = """{"registered":true,"lastSeenAt":"2026-11-23T10:00:00Z"}""",
             ),
         )
-        server.enqueue(
-            MockWebServerHelper.envelopeResponse(
-                dataJson = "null",
-            ),
-        )
+
+        val repo = FakeNotificationsRepository().apply { clear() }
+        repo.save(NotificationItem("n1", ThreadKind.CONTACT, "Test", true))
+        val initialItems = (repo.load() as com.techtsunagu.wakatta.core.model.AppResult.Success).value
+        assertEquals(1, initialItems.size)
 
         val registrar = RealDeviceRegistrar(
             context = context,
             api = { deviceApi },
             config = config,
             sessionStore = sessionStore,
+            notificationsRepository = repo,
         )
         registrar.saveToken("cached-token")
 
         // Trigger sign-in
         sessionFlow.value = Session(
             token = "t1",
-            user = User("u1", "Rahim", Role.WORKER, "bn", "s1", "d1"),
+            user = User("u1", "Worker", Role.WORKER, "bn", "s1", "d1"),
         )
 
         val putRequest = server.takeRequest()
         assertEquals("PUT", putRequest.method)
 
-        // Trigger sign-out
+        // Trigger sign-out: stops pushes, clears local list, but does not call unregister without token
         sessionFlow.value = null
 
-        val deleteRequest = server.takeRequest()
-        assertEquals("DELETE", deleteRequest.method)
+        // The registrar runs on its own dispatcher: wait for it in real time.
+        val deadline = System.currentTimeMillis() + 5_000
+        suspend fun left() = (repo.load() as com.techtsunagu.wakatta.core.model.AppResult.Success).value.size
+        while (left() > 0 && System.currentTimeMillis() < deadline) {
+            kotlinx.coroutines.delay(20)
+            Thread.sleep(20)
+        }
+        assertEquals(0, left())
+        assertEquals(1, server.requestCount) // Only the PUT request, no DELETE on null session
     }
 }

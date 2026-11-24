@@ -1,5 +1,7 @@
 package com.techtsunagu.wakatta.feature.connect
 
+import com.techtsunagu.wakatta.core.media.DictationEvent
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -122,7 +124,10 @@ class ChatViewModelsTest {
 
     // ----- talk thread -----
 
-    private fun talkVm(speaker: RecordingSpeaker = RecordingSpeaker()) = TalkViewModel(repo, speaker)
+    private fun talkVm(
+        speaker: RecordingSpeaker = RecordingSpeaker(),
+        dictation: StubDictationSource = StubDictationSource(events = flowOf(DictationEvent.Final("膝のいたかけん、今日は散歩はせんばい。"))),
+    ) = TalkViewModel(repo, speaker, dictation)
 
     @Test
     fun talkLoadsTheSeededExchange() {
@@ -147,6 +152,42 @@ class ChatViewModelsTest {
         val done = vm.state.value.entries.last()
         assertNotNull(done.grade)
         assertEquals(true, done.confirmed)
+    }
+
+    @Test
+    fun talkListenWithDictationAddsEntry() = runTest {
+        val dictation = StubDictationSource(
+            available = true,
+            events = flowOf(DictationEvent.Final("こんにちは")),
+        )
+        val vm = TalkViewModel(repo, RecordingSpeaker(), dictation)
+        vm.onEvent(TalkEvent.Init("tt_demo", "en"))
+        vm.onEvent(TalkEvent.Listen)
+        assertFalse(vm.state.value.isListening)
+        assertEquals("こんにちは", vm.state.value.entries.last().said)
+        assertEquals(listOf("ja-JP"), dictation.started)
+        assertTrue(dictation.isStopped)
+    }
+
+    @Test
+    fun talkWithoutDictationSendsNothing() = runTest {
+        val vm = talkVm(dictation = StubDictationSource(available = false))
+        vm.onEvent(TalkEvent.Init("tt_demo", "en"))
+        vm.onEvent(TalkEvent.Listen)
+        assertEquals(TalkEffect.Failed(ConnectError.NO_SPEECH), vm.effects.first())
+        assertEquals(1, vm.state.value.entries.size)
+    }
+
+    @Test
+    fun talkStopKeepsTheWordsSpokenBeforeIt() = runTest {
+        val events = MutableSharedFlow<DictationEvent>()
+        val vm = talkVm(dictation = StubDictationSource(events = events))
+        vm.onEvent(TalkEvent.Init("tt_demo", "en"))
+        vm.onEvent(TalkEvent.Listen)
+        vm.onEvent(TalkEvent.StopListening)
+        assertFalse(vm.state.value.isListening)
+        events.emit(DictationEvent.Final("はい"))
+        assertEquals("はい", vm.state.value.entries.last().said)
     }
 
     @Test

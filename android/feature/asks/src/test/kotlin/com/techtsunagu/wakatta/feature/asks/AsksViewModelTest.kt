@@ -1,15 +1,17 @@
 package com.techtsunagu.wakatta.feature.asks
 
-import com.techtsunagu.wakatta.core.model.AudioRecorder
+import com.techtsunagu.wakatta.core.model.AppError
+import com.techtsunagu.wakatta.core.model.AppResult
 import com.techtsunagu.wakatta.core.model.DemoSeed
 import com.techtsunagu.wakatta.core.model.OutboxWriter
-import com.techtsunagu.wakatta.core.model.Role
 import com.techtsunagu.wakatta.core.model.Session
 import com.techtsunagu.wakatta.core.model.SessionStore
 import com.techtsunagu.wakatta.core.model.Speaker
-import com.techtsunagu.wakatta.core.model.User
 import com.techtsunagu.wakatta.core.testing.MainDispatcherRule
+import com.techtsunagu.wakatta.feature.asks.data.AskRepository
 import com.techtsunagu.wakatta.feature.asks.data.FakeAskRepository
+import com.techtsunagu.wakatta.feature.asks.model.AskCreateRequest
+import com.techtsunagu.wakatta.feature.asks.model.AskDto
 import java.io.File
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,7 +22,6 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -36,19 +37,6 @@ class AsksViewModelTest {
         override suspend fun save(session: Session) { _session.value = session }
         override suspend fun clear() { _session.value = null }
         override fun getCachedToken(): String? = _session.value?.token
-    }
-
-    private class TestAudioRecorder : AudioRecorder {
-        var startCount = 0
-        var stopCount = 0
-        override fun start(): Flow<Pair<Float, Int>> {
-            startCount++
-            return flowOf(Pair(0.8f, 60))
-        }
-        override suspend fun stop(): File? {
-            stopCount++
-            return null
-        }
     }
 
     private class TestOutboxWriter : OutboxWriter {
@@ -75,7 +63,6 @@ class AsksViewModelTest {
         val session = Session(token = "tok", user = DemoSeed.demoWorker)
         val viewModel = AskViewModel(
             askRepository = FakeAskRepository(0L),
-            audioRecorder = TestAudioRecorder(),
             outboxWriter = TestOutboxWriter(),
             speaker = TestSpeaker(),
             sessionStore = TestSessionStore(session),
@@ -93,7 +80,6 @@ class AsksViewModelTest {
     fun queryChangedUpdatesState() = runTest {
         val viewModel = AskViewModel(
             askRepository = FakeAskRepository(0L),
-            audioRecorder = TestAudioRecorder(),
             outboxWriter = TestOutboxWriter(),
             speaker = TestSpeaker(),
             sessionStore = TestSessionStore(),
@@ -106,7 +92,6 @@ class AsksViewModelTest {
     fun sendClickClearsInputAndSends() = runTest {
         val viewModel = AskViewModel(
             askRepository = FakeAskRepository(0L),
-            audioRecorder = TestAudioRecorder(),
             outboxWriter = TestOutboxWriter(),
             speaker = TestSpeaker(),
             sessionStore = TestSessionStore(),
@@ -126,7 +111,6 @@ class AsksViewModelTest {
     fun suggestionClickSendsAsk() = runTest {
         val viewModel = AskViewModel(
             askRepository = FakeAskRepository(0L),
-            audioRecorder = TestAudioRecorder(),
             outboxWriter = TestOutboxWriter(),
             speaker = TestSpeaker(),
             sessionStore = TestSessionStore(),
@@ -141,35 +125,9 @@ class AsksViewModelTest {
     }
 
     @Test
-    fun micClickTogglesRecordingAndSendsVoiceAsk() = runTest {
-        val recorder = TestAudioRecorder()
-        val viewModel = AskViewModel(
-            askRepository = FakeAskRepository(0L),
-            audioRecorder = recorder,
-            outboxWriter = TestOutboxWriter(),
-            speaker = TestSpeaker(),
-            sessionStore = TestSessionStore(),
-        )
-        advanceUntilIdle()
-
-        // Start recording
-        viewModel.onEvent(AskEvent.MicClick)
-        assertTrue(viewModel.state.value.isRecording)
-        assertEquals(1, recorder.startCount)
-
-        // Stop recording
-        viewModel.onEvent(AskEvent.MicClick)
-        advanceUntilIdle()
-        assertFalse(viewModel.state.value.isRecording)
-        assertEquals(1, recorder.stopCount)
-        assertTrue(viewModel.state.value.asks.any { it.kind.name == "VOICE" })
-    }
-
-    @Test
     fun toggleOriginalExpandsAndCollapses() = runTest {
         val viewModel = AskViewModel(
             askRepository = FakeAskRepository(0L),
-            audioRecorder = TestAudioRecorder(),
             outboxWriter = TestOutboxWriter(),
             speaker = TestSpeaker(),
             sessionStore = TestSessionStore(),
@@ -188,7 +146,6 @@ class AsksViewModelTest {
         val speaker = TestSpeaker()
         val viewModel = AskViewModel(
             askRepository = FakeAskRepository(0L),
-            audioRecorder = TestAudioRecorder(),
             outboxWriter = TestOutboxWriter(),
             speaker = speaker,
             sessionStore = TestSessionStore(),
@@ -205,25 +162,32 @@ class AsksViewModelTest {
     }
 
     @Test
-    fun foremanModeAllowsCannedReplies() = runTest {
-        val foreman = User(id = "u_tanaka", displayName = "Tanaka", role = Role.FOREMAN, language = "ja")
-        val session = Session(token = "tok", user = foreman)
+    fun aFailedQuestionGoesBackInTheBoxAndIsSentAgainWithItsKey() = runTest {
+        val real = FakeAskRepository(0L)
+        val keys = mutableListOf<String>()
+        val flaky = object : AskRepository by real {
+            override suspend fun sendAsk(workerId: String, request: AskCreateRequest): AppResult<AskDto> {
+                keys += request.idempotencyKey
+                return if (keys.size == 1) AppResult.Failure(AppError.Offline) else real.sendAsk(workerId, request)
+            }
+        }
         val viewModel = AskViewModel(
-            askRepository = FakeAskRepository(0L),
-            audioRecorder = TestAudioRecorder(),
+            askRepository = flaky,
             outboxWriter = TestOutboxWriter(),
             speaker = TestSpeaker(),
-            sessionStore = TestSessionStore(session),
+            sessionStore = TestSessionStore(Session(token = "tok", user = DemoSeed.demoWorker)),
         )
         advanceUntilIdle()
-
-        assertTrue(viewModel.state.value.isForeman)
-
-        viewModel.onEvent(AskEvent.CannedReplyClick("ak3", 0))
+        viewModel.onEvent(AskEvent.QueryChanged("Where is the bus?"))
+        viewModel.onEvent(AskEvent.SendClick)
         advanceUntilIdle()
+        assertEquals("Where is the bus?", viewModel.state.value.currentInput)
+        assertEquals(null, viewModel.state.value.errorRes)
 
-        val updated = viewModel.state.value.asks.find { it.id == "ak3" }
-        assertNotNull(updated)
-        assertEquals("REPLIED", updated?.status?.name)
+        viewModel.onEvent(AskEvent.SendClick)
+        advanceUntilIdle()
+        assertEquals("", viewModel.state.value.currentInput)
+        assertEquals(2, keys.size)
+        assertEquals(keys[0], keys[1])
     }
 }

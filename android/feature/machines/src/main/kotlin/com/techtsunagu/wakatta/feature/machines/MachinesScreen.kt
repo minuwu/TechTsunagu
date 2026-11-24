@@ -14,6 +14,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.techtsunagu.wakatta.core.design.component.EmptyState
 import com.techtsunagu.wakatta.core.design.component.ErrorState
 import com.techtsunagu.wakatta.core.design.component.LoadingState
+import com.techtsunagu.wakatta.core.design.component.RefreshOnReturn
 import com.techtsunagu.wakatta.core.design.component.WakattaTopBar
 
 @Composable
@@ -22,6 +23,7 @@ fun MachinesScreen(
     onTakeCheckClick: (String) -> Unit = onMachineClick,
     viewModel: MachinesViewModel = hiltViewModel(),
 ) {
+    RefreshOnReturn { viewModel.onEvent(MachinesEvent.Refresh) }
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     LaunchedEffect(viewModel) {

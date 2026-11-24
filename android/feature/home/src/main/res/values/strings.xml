@@ -6,10 +6,10 @@
     <string name="home_loading">Loading...</string>
     <string name="home_empty">No content available</string>
     <string name="home_retry">Retry</string>
-    <string name="home_error">Error: %1$s</string>
+    <string name="home_error">Could not load this. Check the network and try again.</string>
 
-    <string name="home_greeting_foreman">Good morning, %1$s</string>
-    <string name="home_greeting_worker">Good morning, %1$s</string>
+    <string name="home_greeting_foreman">Hello, %1$s</string>
+    <string name="home_greeting_worker">Hello, %1$s</string>
     <string name="home_followup_card_title">Follow-ups needed: %1$d</string>
     <string name="home_followup_all_good">Everyone understands the instructions</string>
     <string name="home_followup_detail">%1$s · Gaps in \"%2$s\"</string>
@@ -17,8 +17,6 @@
     <string name="home_status_green">Understood</string>
     <string name="home_status_orange">Clarified</string>
     <string name="home_status_red">Confused</string>
-    <string name="home_status_wait">Waiting</string>
-    <string name="home_bar_cap_active">Waiting: %1$d · Total: %2$d</string>
     <string name="home_bar_cap_empty">No instructions given yet</string>
     <string name="home_quick_actions">Quick Actions</string>
     <string name="home_qa_briefing">Briefing</string>
@@ -50,15 +48,16 @@
     <string name="home_bell_content_desc">Notifications</string>
     <string name="home_unread_badge">%1$d</string>
 
-    <string name="home_me_plant_foreman">Foreman · Plant 2</string>
-    <string name="home_me_plant_worker">Worker · Plant 2</string>
+    <string name="home_me_plant_foreman">Foreman</string>
+    <string name="home_me_plant_worker">Worker</string>
     <string name="home_me_team">Team</string>
     <string name="home_me_team_machines_permitted">%1$d/%2$d machines permitted</string>
     <string name="home_me_open_skills">Open Skill Matrix</string>
     <string name="home_me_skill_passport">Skill Passport</string>
-    <string name="home_me_signed_off">Signed off %1$s · %2$s</string>
+    <string name="home_me_signed_off">Signed off %1$s</string>
     <string name="home_me_valid_signoff">Valid sign-off</string>
     <string name="home_me_not_signed_off">Not signed off yet</string>
+    <string name="home_me_ready">Ready</string>
     <string name="home_me_take_check">Take Check</string>
     <string name="home_me_settings">Settings</string>
     <string name="home_me_language">Language</string>
@@ -68,8 +67,6 @@
     <string name="home_me_simulate_offline_sub">Visual only</string>
     <string name="home_me_notifications">Notification Preferences</string>
     <string name="home_me_notify_messages">Messages &amp; Tasks</string>
-    <string name="home_me_notify_safety">Safety, Briefings &amp; Machines</string>
-    <string name="home_me_notify_life">Life &amp; Notices</string>
     <string name="home_me_replay_onboarding">Replay Onboarding</string>
     <string name="home_me_switch_role">Switch Role (Demo)</string>
     <string name="home_me_sign_out">Sign Out</string>

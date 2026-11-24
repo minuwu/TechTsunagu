@@ -312,7 +312,10 @@ private fun ConnectBody(
         items(state.contacts, key = { it.id }, contentType = { "contact" }) { contact ->
             WakattaListItem(
                 headlineContent = { Text(contact.name, fontWeight = FontWeight.SemiBold) },
-                supportingContent = { Text(contact.lastMessage ?: languageName(contact.language), maxLines = 1) },
+                supportingContent = {
+                    val time = formatContactTime(contact.lastMessage)
+                    Text(time ?: languageName(contact.language), maxLines = 1)
+                },
                 leadingContent = { Avatar(name = contact.name) },
                 onClick = { onOpenThread(contact.id) },
                 modifier = Modifier.defaultMinSize(minHeight = 56.dp),

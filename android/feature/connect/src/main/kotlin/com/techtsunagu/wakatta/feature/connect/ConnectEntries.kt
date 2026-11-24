@@ -52,17 +52,4 @@ abstract class ConnectModule {
     @Binds
     @IntoSet
     abstract fun bindConnectEntries(entries: ConnectEntries): FeatureEntries
-
-    @Binds
-    @Singleton
-    abstract fun bindContactRepository(fake: FakeConnectRepository): ContactRepository
-
-    @Binds
-    @Singleton
-    abstract fun bindPersonalThreadRepository(fake: FakeConnectRepository): PersonalThreadRepository
-
-    /** The chats list shows Contact Threads and Talk Threads next to the work Threads. */
-    @Binds
-    @IntoSet
-    abstract fun bindPersonalThreadSource(fake: FakeConnectRepository): ThreadSource
 }

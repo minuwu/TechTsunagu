@@ -13,6 +13,7 @@ import com.techtsunagu.wakatta.core.model.WorkerInfo
 import com.techtsunagu.wakatta.core.model.WorkerRepository
 import com.techtsunagu.wakatta.core.network.ApiClientFactory
 import com.techtsunagu.wakatta.feature.chat.model.ReexplainRequest
+import java.io.File
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
@@ -53,7 +54,7 @@ class RealChatRepositoryTest {
             override suspend fun addTerm(termJa: String, readingJa: String, termBn: String, termEn: String) =
                 AppResult.Success(GlossaryTerm(termJa, readingJa, termBn, termEn))
         }
-        return RealChatRepository({ api }, session, workers, glossary, FakeChatRepository(), pollMs)
+        return RealChatRepository({ api }, session, workers, glossary, MemoryCacheStore(), pollMs)
     }
 
     @After
@@ -68,9 +69,9 @@ class RealChatRepositoryTest {
 
     private val question = """"id":"q1","termId":null,"prompt":{"ja":"Q"},"options":[{"ja":"a"},{"ja":"b"},{"ja":"c"}]"""
 
-    private fun draft(sentAt: String?) =
+    private fun draft(sentAt: String?, needsEdit: Boolean = false, textJa: String = "hello") =
         """{"id":"91","threadId":"7","fromUserId":"1","kind":"text","language":"ja","stage":3,""" +
-            """"needsEdit":false,"transcriptJa":null,"text":{"ja":"hello","en":"hi"},"toUserId":null,"refMessageId":null,""" +
+            """"needsEdit":$needsEdit,"transcriptJa":null,"text":{"ja":"$textJa","en":"hi"},"toUserId":null,"refMessageId":null,""" +
             """"createdAt":"2026-11-23T08:00:00Z","sentAt":${sentAt?.let { "\"$it\"" }},"questions":[{$question,"correctIndex":0}],""" +
             """"taskDrafts":[{"title":{"ja":"t"},"assigneeIds":[],"dueAt":null,"machineId":null}]}"""
 
@@ -87,6 +88,91 @@ class RealChatRepositoryTest {
         // Every CheckQuestion field is required: the null termId and correctIndex 0 must be on the wire.
         assertTrue(send.contains(""""termId":null"""))
         assertTrue(send.contains(""""correctIndex":0"""))
+    }
+
+    @Test
+    fun voiceMessageSendsOnlyAudioPartWithIdempotencyKey() = runBlocking {
+        ok(draft(null))
+        ok(draft("2026-11-23T08:00:05Z"))
+        val audioFile = File.createTempFile("test_voice_", ".m4a").apply {
+            writeBytes("test audio bytes".toByteArray())
+        }
+        try {
+            val result = repo(foreman).sendMessage(
+                threadId = "7",
+                text = null,
+                audio = audioFile,
+                isVoice = true,
+                fromUserId = "1",
+                idempotencyKey = "key-audio-1",
+            ) as AppResult.Success
+            assertEquals("91", result.value.id)
+            val post = server.takeRequest()
+            assertEquals("key-audio-1", post.headers["Idempotency-Key"])
+            assertTrue(post.headers["Content-Type"]!!.startsWith("multipart/form-data"))
+            val bodyString = post.body!!.utf8()
+            assertTrue(bodyString.contains("""name="audio""""))
+            assertTrue(bodyString.contains("test audio bytes"))
+            assertFalse(bodyString.contains("""name="text""""))
+        } finally {
+            audioFile.delete()
+        }
+    }
+
+    @Test
+    fun workerVoiceMessageSendsImmediatelyWithoutSendCall() = runBlocking {
+        ok(draft("2026-11-23T08:00:05Z"))
+        val audioFile = File.createTempFile("test_worker_voice_", ".m4a").apply {
+            writeBytes("worker voice data".toByteArray())
+        }
+        try {
+            val result = repo(worker).sendMessage(
+                threadId = "7",
+                text = null,
+                audio = audioFile,
+                isVoice = true,
+                fromUserId = "12",
+                idempotencyKey = "key-worker-1",
+            ) as AppResult.Success
+            assertEquals("91", result.value.id)
+            val post = server.takeRequest()
+            assertEquals("key-worker-1", post.headers["Idempotency-Key"])
+            val bodyString = post.body!!.utf8()
+            assertTrue(bodyString.contains("""name="audio""""))
+            assertFalse(bodyString.contains("""name="text""""))
+            // Worker gets sentAt directly, so no /send request is made
+            assertEquals(1, server.requestCount)
+        } finally {
+            audioFile.delete()
+        }
+    }
+
+    @Test
+    fun sendingBothOrNeitherTextAndAudioFailsValidation() = runBlocking {
+        val audioFile = File.createTempFile("test_both_", ".m4a")
+        try {
+            val both = repo(foreman).sendMessage(
+                threadId = "7",
+                text = "hello",
+                audio = audioFile,
+                isVoice = true,
+                fromUserId = "1",
+                idempotencyKey = "key-fail-1",
+            )
+            assertTrue(both is AppResult.Failure && (both as AppResult.Failure).error is AppError.Validation)
+
+            val neither = repo(foreman).sendMessage(
+                threadId = "7",
+                text = null,
+                audio = null,
+                isVoice = false,
+                fromUserId = "1",
+                idempotencyKey = "key-fail-2",
+            )
+            assertTrue(neither is AppResult.Failure && (neither as AppResult.Failure).error is AppError.Validation)
+        } finally {
+            audioFile.delete()
+        }
     }
 
     @Test
@@ -133,9 +219,145 @@ class RealChatRepositoryTest {
         ok(draft("2026-11-23T08:00:05Z"))
         val repo = repo(foreman)
         assertTrue(repo.nudge("91", "12").isSuccess)
-        assertTrue(repo.reexplain("91", ReexplainRequest("12", "term", "easy", emptyMap(), emptyMap(), emptyList())).isSuccess)
+        assertTrue(repo.reexplain("91", ReexplainRequest("12", "term", "", emptyMap(), emptyMap(), emptyList())).isSuccess)
         assertEquals("""{"userId":"12"}""", server.takeRequest().body?.utf8())
         assertEquals("""{"userId":"12","termJa":"term"}""", server.takeRequest().body?.utf8())
+    }
+
+    @Test
+    fun editDraftSendsDraftEditBodyShape() = runBlocking {
+        ok(draft(null, textJa = "edited ja"))
+        val result = repo(foreman).editDraft("91", "edited ja") as AppResult.Success
+        assertEquals("91", result.value.id)
+        val req = server.takeRequest()
+        assertEquals("PATCH", req.method)
+        assertEquals("/api/messages/91", req.url.encodedPath)
+        assertEquals("""{"textJa":"edited ja"}""", req.body?.utf8())
+    }
+
+    @Test
+    fun editDraft409AlreadySentShowsTypedError() = runBlocking {
+        server.enqueue(
+            MockResponse.Builder().code(409)
+                .body("""{"success":false,"error":{"code":"ALREADY_SENT","message":"already sent"}}""").build(),
+        )
+        val result = repo(foreman).editDraft("91", "edited text")
+        assertTrue(result is AppResult.Failure)
+        val error = (result as AppResult.Failure).error
+        assertTrue(error is AppError.Conflict)
+        assertEquals("ALREADY_SENT", (error as AppError.Conflict).code)
+    }
+
+    @Test
+    fun editDraftWithNeedsEditTruePreservesNeedsEditState() = runBlocking {
+        ok(draft(null, needsEdit = true, textJa = "keep my text"))
+        val result = repo(foreman).editDraft("91", "keep my text") as AppResult.Success
+        assertTrue(result.value.needsEdit)
+        assertEquals("keep my text", result.value.originalText)
+    }
+
+    @Test
+    fun reexplainDraftReturnsDraftWithEasyJaAndExplanation() = runBlocking {
+        val fu = """[{"id":"fu1","messageId":"91","userId":"12","displayName":"Rahim","termJa":"金型","status":"open","note":"","createdAt":"2026-11-23T08:00:00Z","resolvedAt":null}]"""
+        ok("""{"items":$fu,"nextCursor":null}""")
+        val draftResponse = """{"text":{"ja":"やさしい日本語","en":"easy english"},"question":{"id":"q1","termId":"金型","prompt":{"ja":"質問","en":"question"},"options":[{"ja":"A","en":"A"},{"ja":"B","en":"B"},{"ja":"C","en":"C"}],"correctIndex":1}}"""
+        ok(draftResponse)
+        val result = repo(foreman).getReexplainDraft("91", "12") as AppResult.Success
+        assertEquals("やさしい日本語", result.value.easyJa)
+        assertEquals("easy english", result.value.explanation["en"])
+        assertEquals(1, result.value.newQuestionCorrectIndex)
+        assertEquals("金型", result.value.termJa)
+        val listReq = server.takeRequest()
+        val draftReq = server.takeRequest()
+        assertEquals("POST", draftReq.method)
+        assertEquals("/api/messages/91/reexplain/draft", draftReq.url.encodedPath)
+        assertEquals("""{"userId":"12","termJa":"金型"}""", draftReq.body?.utf8())
+    }
+
+    @Test
+    fun reexplainSendsBothOrNeither() = runBlocking {
+        val repo = repo(foreman)
+        // 1. Both provided: sends both text and question with correctIndex
+        ok(draft("2026-11-23T08:00:05Z"))
+        val both = repo.reexplain(
+            "91",
+            ReexplainRequest(
+                userId = "12",
+                termJa = "金型",
+                easyJa = "簡単な日本語",
+                explanation = mapOf("en" to "simple"),
+                newQuestionPrompt = mapOf("ja" to "Q"),
+                newQuestionOptions = listOf(mapOf("ja" to "1"), mapOf("ja" to "2"), mapOf("ja" to "3")),
+                newQuestionCorrectIndex = 2,
+            ),
+        )
+        assertTrue(both.isSuccess)
+        val bothReq = server.takeRequest()
+        val bothBody = bothReq.body?.utf8().orEmpty()
+        assertTrue(bothBody.contains(""""userId":"12""""))
+        assertTrue(bothBody.contains(""""termJa":"金型""""))
+        assertTrue(bothBody.contains(""""ja":"簡単な日本語""""))
+        assertTrue(bothBody.contains(""""correctIndex":2"""))
+
+        // 2. Neither provided: sends only userId and termJa
+        ok(draft("2026-11-23T08:00:05Z"))
+        val neither = repo.reexplain(
+            "91",
+            ReexplainRequest(
+                userId = "12",
+                termJa = "金型",
+                easyJa = "",
+                explanation = emptyMap(),
+                newQuestionPrompt = emptyMap(),
+                newQuestionOptions = emptyList(),
+            ),
+        )
+        assertTrue(neither.isSuccess)
+        val neitherReq = server.takeRequest()
+        assertEquals("""{"userId":"12","termJa":"金型"}""", neitherReq.body?.utf8())
+
+        // 3. Text provided without question -> fails validation
+        val onlyText = repo.reexplain(
+            "91",
+            ReexplainRequest(
+                userId = "12",
+                termJa = "金型",
+                easyJa = "簡単な日本語",
+                explanation = emptyMap(),
+                newQuestionPrompt = emptyMap(),
+                newQuestionOptions = emptyList(),
+            ),
+        )
+        assertTrue(onlyText is AppResult.Failure && (onlyText as AppResult.Failure).error is AppError.Validation)
+
+        // 4. Question provided without text -> fails validation
+        val onlyQuestion = repo.reexplain(
+            "91",
+            ReexplainRequest(
+                userId = "12",
+                termJa = "金型",
+                easyJa = "",
+                explanation = emptyMap(),
+                newQuestionPrompt = mapOf("ja" to "Q"),
+                newQuestionOptions = listOf(mapOf("ja" to "1"), mapOf("ja" to "2"), mapOf("ja" to "3")),
+            ),
+        )
+        assertTrue(onlyQuestion is AppResult.Failure && (onlyQuestion as AppResult.Failure).error is AppError.Validation)
+    }
+
+    @Test
+    fun askForemanSendsAskForemanInBodyAndSecondTapWhileInFlightDoesNothing() = runBlocking {
+        val askMsg = """{"id":"99","threadId":"7","fromUserId":"12","kind":"ask","language":"ja","stage":5,""" +
+            """"needsEdit":false,"transcriptJa":null,"text":{"ja":"金型交換"},"toUserId":null,"refMessageId":"91",""" +
+            """"createdAt":"2026-11-23T08:00:00Z","sentAt":"2026-11-23T08:00:01Z","questions":[]}"""
+        ok(askMsg, code = 201)
+        val repo = repo(worker)
+        val result = repo.askExplainAgain("91", "12", "金型交換")
+        assertTrue(result.isSuccess)
+        val req = server.takeRequest()
+        assertEquals("POST", req.method)
+        assertEquals("/api/messages/91/ask", req.url.encodedPath)
+        assertEquals("""{"termJa":"金型交換"}""", req.body?.utf8())
     }
 
     @Test

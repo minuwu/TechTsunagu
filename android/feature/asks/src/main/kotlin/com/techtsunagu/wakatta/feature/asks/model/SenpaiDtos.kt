@@ -22,7 +22,7 @@ data class SenpaiPairDto(
 data class SenpaiPairCreateRequest(
     val workerId: String,
     val senpaiName: String,
-    val kind: String = "coworker",
+    val kind: String,
 )
 
 @Serializable

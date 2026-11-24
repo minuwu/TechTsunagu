@@ -1,7 +1,11 @@
 package com.techtsunagu.wakatta.feature.connect
 
+import com.techtsunagu.wakatta.core.media.DictationEvent
+import com.techtsunagu.wakatta.core.media.DictationSource
 import com.techtsunagu.wakatta.core.media.QrMatrix
 import com.techtsunagu.wakatta.core.model.AppResult
+import com.techtsunagu.wakatta.core.model.CacheEntry
+import com.techtsunagu.wakatta.core.model.CacheStore
 import com.techtsunagu.wakatta.core.model.QrEncoder
 import com.techtsunagu.wakatta.core.model.QrScanner
 import com.techtsunagu.wakatta.core.model.ShareFile
@@ -51,7 +55,34 @@ class RecordingSpeaker(private val available: Boolean = true) : Speaker {
     override fun stop() = Unit
 }
 
+class StubDictationSource(
+    private val available: Boolean = true,
+    private val events: Flow<DictationEvent> = emptyFlow(),
+) : DictationSource {
+    val started = mutableListOf<String>()
+    var isStopped = false
+    override fun isAvailable() = available
+    override fun start(languageTag: String): Flow<DictationEvent> {
+        started += languageTag
+        return events
+    }
+    override fun stop() {
+        isStopped = true
+    }
+}
+
 /** The seeded token of a sample person (what a scan of that person's QR reads). */
 suspend fun FakeConnectRepository.tokenOf(name: String): String = getSamplePeople().first { it.name == name }.token
 
 suspend fun <T> AppResult<T>.value(): T = (this as AppResult.Success).value
+
+class MemoryCacheStore : CacheStore {
+    val entries = mutableMapOf<String, CacheEntry>()
+    override suspend fun get(key: String): CacheEntry? = entries[key]
+    override suspend fun put(key: String, json: String, etag: String?) {
+        entries[key] = CacheEntry(key, json, etag)
+    }
+    override suspend fun evict(prefix: String) {
+        entries.keys.removeAll { it.startsWith(prefix) }
+    }
+}

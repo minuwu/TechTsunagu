@@ -43,7 +43,7 @@ class HomeComposeTest {
             )
         }
 
-        composeTestRule.onNodeWithText("Error: Network timeout").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Could not load this. Check the network and try again.").assertIsDisplayed()
         composeTestRule.onNodeWithText("Retry").assertIsDisplayed().performClick()
         assertTrue(retried)
     }
@@ -74,7 +74,6 @@ class HomeComposeTest {
                     tallyGreen = 5,
                     tallyOrange = 2,
                     tallyRed = 1,
-                    tallyWait = 1,
                     openTasksCount = 3,
                     lockedMachinesCount = 1,
                     attentionCards = listOf(
@@ -97,7 +96,7 @@ class HomeComposeTest {
             )
         }
 
-        composeTestRule.onNodeWithText("Good morning, Tanaka").assertExists()
+        composeTestRule.onNodeWithText("Hello, Tanaka").assertExists()
         composeTestRule.onNodeWithText("Follow-ups needed: 1").assertExists()
         composeTestRule.onNodeWithText("Today's Understanding").assertExists()
         composeTestRule.onNodeWithText("Quick Actions").assertExists()
@@ -149,7 +148,7 @@ class HomeComposeTest {
             )
         }
 
-        composeTestRule.onNodeWithText("Good morning, Rahim").assertExists()
+        composeTestRule.onNodeWithText("Hello, Rahim").assertExists()
         composeTestRule.onNodeWithText("Today's Briefing").assertExists()
         composeTestRule.onNodeWithText("Safety rules today").assertExists()
         composeTestRule.onNodeWithText("Checks Waiting for You").assertExists()

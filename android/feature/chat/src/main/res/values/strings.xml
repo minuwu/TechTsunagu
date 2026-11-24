@@ -10,6 +10,7 @@
 
     <string name="chat_error_offline">No connection. Your message is still here: try again.</string>
     <string name="chat_error_session">You are signed out or not allowed to do this.</string>
+    <string name="chat_error_already_sent">This message was already sent.</string>
     <string name="chat_error_generic">Something went wrong. Please try again.</string>
 
     <string name="chat_filter_all">All</string>
@@ -74,4 +75,10 @@
     <string name="chat_reexplain_worker_lang">Explanation in worker\'s language</string>
     <string name="chat_reexplain_new_question">New confirmation question (1 question)</string>
     <string name="chat_reexplain_approve_send">Approve and send to %1$s</string>
+    <string name="chat_mic_permission_denied">Microphone permission is required to record audio.</string>
+    <string name="chat_dictation_unavailable">Dictation is not available on this phone. Please type your message.</string>
+    <string name="chat_dictation_no_speech">No speech detected. Please try again.</string>
+    <string name="chat_dictation_type_instead">Voice recognition unavailable. Please type your message instead.</string>
+    <string name="chat_mic_rationale">Wakatta? needs the microphone to turn your voice into text. The audio is not saved.</string>
+    <string name="chat_type_instead">Type instead</string>
 </resources>

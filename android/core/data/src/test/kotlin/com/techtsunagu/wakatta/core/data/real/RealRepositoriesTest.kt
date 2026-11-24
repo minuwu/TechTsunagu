@@ -2,6 +2,8 @@ package com.techtsunagu.wakatta.core.data.real
 
 import com.techtsunagu.wakatta.core.model.AppError
 import com.techtsunagu.wakatta.core.model.AppResult
+import com.techtsunagu.wakatta.core.model.CacheStore
+import com.techtsunagu.wakatta.core.model.CacheEntry
 import com.techtsunagu.wakatta.core.model.CheckTargetKind
 import com.techtsunagu.wakatta.core.model.Role
 import com.techtsunagu.wakatta.core.model.Session
@@ -16,6 +18,7 @@ import mockwebserver3.MockResponse
 import mockwebserver3.MockWebServer
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Assert.assertFalse
 import org.junit.Test
 
@@ -55,11 +58,32 @@ class RealRepositoriesTest {
         ok("""{"items":[${machine("1")}],"nextCursor":"c2"}""")
         ok("""{"items":[${machine("2")}],"nextCursor":null}""")
         ok(passport)
-        val result = RealMachineRepository({ api }, store).getMachines()
+        val result = RealMachineRepository({ api }, store, MemoryCache()).getMachines()
         val machines = (result as AppResult.Success).value
         assertEquals(listOf(true, false), machines.map { it.isReady })
         server.takeRequest()
         assertEquals("200", server.takeRequest().url.queryParameter("limit"))
+    }
+
+    @Test
+    fun machinesStayPickableWithoutANetworkButNotReady() = runBlocking {
+        val repository = RealMachineRepository({ api }, store, MemoryCache())
+        ok("""{"items":[${machine("1")}],"nextCursor":null}""")
+        ok(passport)
+        assertTrue((repository.getMachines() as AppResult.Success).value.single().isReady)
+        server.close()
+        val offline = (repository.getMachines() as AppResult.Success).value.single()
+        assertEquals("1", offline.id)
+        assertFalse(offline.isReady)
+    }
+
+    private class MemoryCache : CacheStore {
+        private val rows = mutableMapOf<String, CacheEntry>()
+        override suspend fun get(key: String) = rows[key]
+        override suspend fun put(key: String, json: String, etag: String?) {
+            rows[key] = CacheEntry(key, json, etag)
+        }
+        override suspend fun evict(prefix: String) = Unit
     }
 
     @Test

@@ -72,14 +72,6 @@ fun ChangePinContent(
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Text(
-                text = stringResource(R.string.auth_screen_id, "auth:changepin"),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
             when {
                 state.isLoading -> {
                     LoadingState(message = stringResource(R.string.auth_loading))

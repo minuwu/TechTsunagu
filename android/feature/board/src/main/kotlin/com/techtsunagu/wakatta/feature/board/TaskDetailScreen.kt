@@ -1,7 +1,6 @@
 package com.techtsunagu.wakatta.feature.board
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -21,10 +19,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -40,10 +35,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -52,19 +47,24 @@ import com.techtsunagu.wakatta.core.design.component.Avatar
 import com.techtsunagu.wakatta.core.design.component.EmptyState
 import com.techtsunagu.wakatta.core.design.component.ErrorState
 import com.techtsunagu.wakatta.core.design.component.LoadingState
+import com.techtsunagu.wakatta.core.design.component.RefreshOnReturn
 import com.techtsunagu.wakatta.core.design.component.TriText
 import com.techtsunagu.wakatta.core.design.component.WakattaCard
 import com.techtsunagu.wakatta.core.design.component.WakattaListItem
 import com.techtsunagu.wakatta.core.design.component.WakattaTopBar
 import com.techtsunagu.wakatta.core.model.AppError
 import com.techtsunagu.wakatta.core.model.AppResult
-import com.techtsunagu.wakatta.core.model.DemoSeed
+import com.techtsunagu.wakatta.core.model.LanguageManager
 import com.techtsunagu.wakatta.core.model.Machine
+import com.techtsunagu.wakatta.core.model.MachineRepository
 import com.techtsunagu.wakatta.core.model.Role
 import com.techtsunagu.wakatta.core.model.SessionStore
 import com.techtsunagu.wakatta.core.model.Task
 import com.techtsunagu.wakatta.core.model.TaskColumn
 import com.techtsunagu.wakatta.core.model.TaskRepository
+import com.techtsunagu.wakatta.core.model.User
+import com.techtsunagu.wakatta.core.model.WorkerRepository
+import com.techtsunagu.wakatta.core.model.pick
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.launch
@@ -74,18 +74,18 @@ data class TaskDetailUiState(
     val isLoading: Boolean = false,
     val task: Task? = null,
     val machine: Machine? = null,
-    val sourceMessageText: String? = null,
-    val sourceMessageSender: String? = null,
-    val sourceMessageAt: String? = null,
-    val sourceThreadId: String? = null,
+    val machines: List<Machine> = emptyList(),
     val isConflict: Boolean = false,
-    val error: String? = null,
+    @StringRes val errorRes: Int? = null,
     val isUpdating: Boolean = false,
-    val currentUserLang: String = "ja",
-    val isForeman: Boolean = true,
-    val messageInfo: String? = null,
+    val currentUserLang: String = "",
+    val isForeman: Boolean = false,
+    val currentUserId: String = "",
+    val currentUserName: String = "",
+    val users: List<User> = emptyList(),
+    @StringRes val messageRes: Int? = null,
 ) {
-    val isEmpty: Boolean get() = task == null && !isLoading && error == null
+    val isEmpty: Boolean get() = task == null && !isLoading && errorRes == null
 }
 
 sealed interface TaskDetailEvent {
@@ -93,7 +93,6 @@ sealed interface TaskDetailEvent {
     data object Refresh : TaskDetailEvent
     data object Retry : TaskDetailEvent
     data class ChangeColumn(val newColumn: TaskColumn) : TaskDetailEvent
-    data object ClickComments : TaskDetailEvent
     data object ClearMessage : TaskDetailEvent
 }
 
@@ -105,15 +104,48 @@ sealed interface TaskDetailEffect {
 class TaskDetailViewModel @Inject constructor(
     private val taskRepository: TaskRepository,
     private val sessionStore: SessionStore,
+    private val machineRepository: MachineRepository,
+    private val workerRepository: WorkerRepository,
+    private val languageManager: LanguageManager,
 ) : MviViewModel<TaskDetailUiState, TaskDetailEvent, TaskDetailEffect>(TaskDetailUiState()) {
 
     init {
         viewModelScope.launch {
             sessionStore.session.collect { session ->
-                val role = session?.user?.role ?: Role.FOREMAN
-                val lang = session?.user?.language ?: "ja"
-                updateState { it.copy(isForeman = role == Role.FOREMAN, currentUserLang = lang) }
+                if (session == null) return@collect
+                val isFm = session.user.role == Role.FOREMAN
+                updateState {
+                    it.copy(
+                        isForeman = isFm,
+                        currentUserId = session.user.id,
+                        currentUserName = session.user.displayName,
+                        users = if (isFm) it.users else listOf(session.user),
+                    )
+                }
+                if (isFm) {
+                    loadUsers()
+                }
             }
+        }
+        viewModelScope.launch {
+            languageManager.currentLanguage.collect { lang ->
+                updateState { it.copy(currentUserLang = lang) }
+            }
+        }
+    }
+
+    private fun loadUsers() {
+        viewModelScope.launch {
+            val sessionUser = sessionStore.session.value?.user
+            if (sessionUser?.role != Role.FOREMAN) return@launch
+            val workers = (workerRepository.getWorkers() as? AppResult.Success)?.value.orEmpty()
+            val workerUsers = workers.map { User(it.id, it.displayName, Role.WORKER, it.language) }
+            val allUsers = if (workerUsers.none { it.id == sessionUser.id }) {
+                listOf(sessionUser) + workerUsers
+            } else {
+                workerUsers
+            }
+            updateState { it.copy(users = allUsers) }
         }
     }
 
@@ -123,35 +155,35 @@ class TaskDetailViewModel @Inject constructor(
                 updateState { it.copy(taskId = event.taskId) }
                 loadTask(event.taskId)
             }
-            is TaskDetailEvent.Refresh -> loadTask(state.value.taskId)
+            is TaskDetailEvent.Refresh -> loadTask(state.value.taskId, isRefresh = true)
             is TaskDetailEvent.Retry -> loadTask(state.value.taskId)
             is TaskDetailEvent.ChangeColumn -> changeColumn(event.newColumn)
-            is TaskDetailEvent.ClickComments -> updateState {
-                it.copy(messageInfo = "Comments are not in the prototype")
-            }
-            is TaskDetailEvent.ClearMessage -> updateState { it.copy(messageInfo = null) }
+            is TaskDetailEvent.ClearMessage -> updateState { it.copy(messageRes = null) }
         }
     }
 
-    private fun loadTask(taskId: String) {
+    private fun loadTask(taskId: String, isRefresh: Boolean = false) {
         if (taskId.isBlank()) return
-        updateState { it.copy(isLoading = true, error = null, isConflict = false) }
+        updateState {
+            if (isRefresh && it.task != null) {
+                it.copy(errorRes = null, isConflict = false)
+            } else {
+                it.copy(isLoading = true, errorRes = null, isConflict = false)
+            }
+        }
         viewModelScope.launch {
             when (val result = taskRepository.getTask(taskId)) {
                 is AppResult.Success -> {
                     val task = result.value
-                    val machine = DemoSeed.machines.find { it.id == task.machineId }
-                    val isM1 = task.fromMessageId == "m1"
+                    val machines = (machineRepository.getMachines() as? AppResult.Success)?.value.orEmpty()
+                    val machine = machines.find { it.id == task.machineId }
                     updateState {
                         it.copy(
                             isLoading = false,
                             task = task,
                             machine = machine,
-                            sourceMessageText = if (isM1) "今日は3号機の油の点検を先にしてください。オイルが少ないときは、私に言ってください。" else null,
-                            sourceMessageSender = if (isM1) "田中 健一" else null,
-                            sourceMessageAt = if (isM1) "08:02" else null,
-                            sourceThreadId = if (isM1) "t_line2" else null,
-                            error = null,
+                            machines = machines,
+                            errorRes = null,
                             isConflict = false,
                         )
                     }
@@ -160,7 +192,7 @@ class TaskDetailViewModel @Inject constructor(
                     updateState {
                         it.copy(
                             isLoading = false,
-                            error = formatError(result.error),
+                            errorRes = appErrorToStringRes(result.error),
                         )
                     }
                 }
@@ -187,8 +219,8 @@ class TaskDetailViewModel @Inject constructor(
                             isUpdating = false,
                             task = result.value,
                             isConflict = false,
-                            error = null,
-                            messageInfo = "Task moved",
+                            errorRes = null,
+                            messageRes = R.string.board_task_moved,
                         )
                     }
                 }
@@ -198,27 +230,20 @@ class TaskDetailViewModel @Inject constructor(
                             it.copy(
                                 isUpdating = false,
                                 isConflict = true,
-                                error = "Conflict: Task was modified by someone else.",
+                                errorRes = R.string.board_conflict_message,
                             )
                         }
                     } else {
                         updateState {
                             it.copy(
                                 isUpdating = false,
-                                error = formatError(result.error),
+                                errorRes = appErrorToStringRes(result.error),
                             )
                         }
                     }
                 }
             }
         }
-    }
-
-    private fun formatError(error: AppError): String = when (error) {
-        is AppError.Offline -> "Offline. Please check network connection."
-        is AppError.PreconditionFailed -> "Conflict (HTTP 412): Task was modified."
-        is AppError.NotFound -> "Task not found."
-        else -> "An unexpected error occurred."
     }
 }
 
@@ -230,6 +255,7 @@ fun TaskDetailScreen(
     onNavigateToChat: (String) -> Unit = {},
     viewModel: TaskDetailViewModel = viewModel(),
 ) {
+    RefreshOnReturn { viewModel.onEvent(TaskDetailEvent.Refresh) }
     LaunchedEffect(taskId) {
         viewModel.onEvent(TaskDetailEvent.Init(taskId))
     }
@@ -252,11 +278,12 @@ fun TaskDetailContent(
     onNavigateToMachine: (String) -> Unit = {},
     onNavigateToChat: (String) -> Unit = {},
 ) {
+    val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(state.messageInfo) {
-        state.messageInfo?.let { msg ->
-            snackbarHostState.showSnackbar(msg)
+    LaunchedEffect(state.messageRes) {
+        state.messageRes?.let { msgRes ->
+            snackbarHostState.showSnackbar(context.getString(msgRes))
             onEvent(TaskDetailEvent.ClearMessage)
         }
     }
@@ -280,9 +307,9 @@ fun TaskDetailContent(
                 state.isLoading && state.task == null -> {
                     LoadingState(message = stringResource(R.string.board_loading))
                 }
-                state.error != null && state.task == null && !state.isConflict -> {
+                state.errorRes != null && state.task == null && !state.isConflict -> {
                     ErrorState(
-                        message = state.error,
+                        message = stringResource(state.errorRes),
                         onRetry = { onEvent(TaskDetailEvent.Retry) },
                     )
                 }
@@ -329,6 +356,32 @@ private fun TaskDetailBody(
             lang = state.currentUserLang,
             style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
         )
+
+        if (task.fromMessageId != null) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Surface(
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.secondaryContainer,
+                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Chat,
+                        contentDescription = null,
+                        modifier = Modifier.size(14.dp),
+                    )
+                    Text(
+                        text = stringResource(R.string.board_task_from_chat),
+                        style = MaterialTheme.typography.labelSmall,
+                    )
+                }
+            }
+        }
+
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
@@ -344,7 +397,13 @@ private fun TaskDetailBody(
         )
         Spacer(modifier = Modifier.height(20.dp))
 
-        AssigneesSection(task = task)
+        AssigneesSection(
+            task = task,
+            users = state.users,
+            isForeman = state.isForeman,
+            currentUserId = state.currentUserId,
+            currentUserName = state.currentUserName,
+        )
         Spacer(modifier = Modifier.height(16.dp))
 
         DueAndMachineCard(
@@ -353,19 +412,6 @@ private fun TaskDetailBody(
             lang = state.currentUserLang,
             onMachineClick = { task.machineId?.let(onNavigateToMachine) },
         )
-        Spacer(modifier = Modifier.height(16.dp))
-
-        if (state.sourceMessageText != null) {
-            SourceMessageSection(
-                sender = state.sourceMessageSender ?: "",
-                time = state.sourceMessageAt ?: "",
-                text = state.sourceMessageText,
-                onOpenChat = { state.sourceThreadId?.let(onNavigateToChat) },
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-        }
-
-        CommentsSection(onClick = { onEvent(TaskDetailEvent.ClickComments) })
     }
 }
 
@@ -409,7 +455,21 @@ private fun ConflictBanner(
 }
 
 @Composable
-private fun AssigneesSection(task: Task) {
+private fun AssigneesSection(
+    task: Task,
+    users: List<User>,
+    isForeman: Boolean,
+    currentUserId: String,
+    currentUserName: String,
+) {
+    val assigneeLabels = resolveAssigneeDisplayNames(
+        assigneeIds = task.assignees,
+        isForeman = isForeman,
+        currentUserId = currentUserId,
+        currentUserName = currentUserName,
+        users = users,
+    )
+    if (assigneeLabels.isEmpty()) return
     Text(
         text = stringResource(R.string.board_task_assigned_to),
         style = MaterialTheme.typography.labelLarge,
@@ -421,9 +481,7 @@ private fun AssigneesSection(task: Task) {
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        task.assignees.forEach { userId ->
-            val user = DemoSeed.users.find { it.id == userId }
-            val name = user?.displayName ?: userId
+        assigneeLabels.forEach { label ->
             Surface(
                 shape = RoundedCornerShape(16.dp),
                 color = MaterialTheme.colorScheme.surfaceVariant,
@@ -433,8 +491,8 @@ private fun AssigneesSection(task: Task) {
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
-                    Avatar(name = name, size = 32.dp)
-                    Text(text = name, style = MaterialTheme.typography.bodyMedium)
+                    Avatar(name = label, size = 32.dp)
+                    Text(text = label, style = MaterialTheme.typography.bodyMedium)
                 }
             }
         }
@@ -463,7 +521,7 @@ private fun DueAndMachineCard(
         if (machine != null) {
             WakattaListItem(
                 headlineContent = { Text(stringResource(R.string.board_task_machine)) },
-                supportingContent = { TriText(tri = machine.name, lang = lang) },
+                supportingContent = { Text(pick(machine.name, lang).ifBlank { machine.code }) },
                 leadingContent = {
                     Icon(
                         imageVector = Icons.Default.Build,
@@ -478,108 +536,6 @@ private fun DueAndMachineCard(
                     )
                 },
                 onClick = onMachineClick,
-            )
-        }
-    }
-}
-
-@Composable
-private fun SourceMessageSection(
-    sender: String,
-    time: String,
-    text: String,
-    onOpenChat: () -> Unit,
-) {
-    Text(
-        text = stringResource(R.string.board_task_source_message),
-        style = MaterialTheme.typography.labelLarge,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
-    Spacer(modifier = Modifier.height(8.dp))
-    Surface(
-        shape = RoundedCornerShape(topEnd = 12.dp, bottomEnd = 12.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant,
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Row {
-            Box(
-                modifier = Modifier
-                    .width(4.dp)
-                    .background(MaterialTheme.colorScheme.primary),
-            )
-            Column(modifier = Modifier.padding(12.dp)) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    Avatar(name = sender, size = 20.dp)
-                    Text(
-                        text = "$sender · $time",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(text = text, style = MaterialTheme.typography.bodyMedium)
-            }
-        }
-    }
-    Spacer(modifier = Modifier.height(10.dp))
-    Button(
-        onClick = onOpenChat,
-        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
-        contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(48.dp),
-    ) {
-        Icon(
-            imageVector = Icons.Default.Chat,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSecondaryContainer,
-        )
-        Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
-        Text(
-            text = stringResource(R.string.board_task_open_in_chat),
-            color = MaterialTheme.colorScheme.onSecondaryContainer,
-            fontSize = 15.sp,
-        )
-    }
-}
-
-@Composable
-private fun CommentsSection(onClick: () -> Unit) {
-    Text(
-        text = stringResource(R.string.board_task_comments),
-        style = MaterialTheme.typography.labelLarge,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
-    Spacer(modifier = Modifier.height(8.dp))
-    Surface(
-        onClick = onClick,
-        shape = RoundedCornerShape(24.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(48.dp),
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            Text(
-                text = stringResource(R.string.board_task_add_comment),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Icon(
-                imageVector = Icons.Default.Send,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(18.dp),
             )
         }
     }

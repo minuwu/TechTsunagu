@@ -28,6 +28,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -39,6 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -51,8 +53,8 @@ import com.techtsunagu.wakatta.core.design.component.WakattaCard
 import com.techtsunagu.wakatta.core.design.component.WakattaListItem
 import com.techtsunagu.wakatta.core.design.component.WakattaTopBar
 import com.techtsunagu.wakatta.core.design.theme.StatusColors
+import com.techtsunagu.wakatta.core.media.rememberDictation
 import com.techtsunagu.wakatta.core.model.AppResult
-import com.techtsunagu.wakatta.core.model.AudioRecorder
 import com.techtsunagu.wakatta.core.model.pick
 import com.techtsunagu.wakatta.feature.briefing.data.BriefingRepository
 import com.techtsunagu.wakatta.feature.briefing.data.userMessage
@@ -62,15 +64,10 @@ import com.techtsunagu.wakatta.feature.briefing.model.BriefingPublishRequest
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.UUID
 import javax.inject.Inject
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 enum class BriefingNewPhase {
     IDLE,
-    RECORDING,
     TRANSLATING,
     READY,
 }
@@ -80,7 +77,6 @@ data class BriefingNewUiState(
     val pastBriefings: List<BriefingForForeman> = emptyList(),
     val draft: BriefingDraft? = null,
     val recordedText: String = "",
-    val recordingSeconds: Int = 0,
     val isLoading: Boolean = false,
     val isPublishing: Boolean = false,
     val showPublishConfirm: Boolean = false,
@@ -90,8 +86,7 @@ data class BriefingNewUiState(
 
 sealed interface BriefingNewEvent {
     data object Init : BriefingNewEvent
-    data object StartRecording : BriefingNewEvent
-    data object StopRecording : BriefingNewEvent
+    data class TextChanged(val text: String) : BriefingNewEvent
     data class DictateInstead(val text: String) : BriefingNewEvent
     data object RedoDraft : BriefingNewEvent
     data object RequestPublish : BriefingNewEvent
@@ -108,13 +103,7 @@ sealed interface BriefingNewEffect {
 @HiltViewModel
 class BriefingNewViewModel @Inject constructor(
     private val repository: BriefingRepository,
-    private val audioRecorder: AudioRecorder,
 ) : MviViewModel<BriefingNewUiState, BriefingNewEvent, BriefingNewEffect>(BriefingNewUiState()) {
-
-    private var recordingJob: Job? = null
-    private var typingJob: Job? = null
-
-    private val cannedDictation = "おはようございます。今日の安全の重点は、プレスでの手の挟まれ防止です。作業の前に、必ず安全カバーが閉まっているか確認してください。変更が一つあります。2号プレスの金型交換は午後に行います。午前中は使えません。"
 
     init {
         loadPastBriefings()
@@ -142,8 +131,7 @@ class BriefingNewViewModel @Inject constructor(
                 updateState { it.copy(error = null) }
                 loadPastBriefings()
             }
-            is BriefingNewEvent.StartRecording -> startRecording()
-            is BriefingNewEvent.StopRecording -> stopRecording()
+            is BriefingNewEvent.TextChanged -> updateState { it.copy(recordedText = event.text, error = null) }
             is BriefingNewEvent.DictateInstead -> {
                 updateState { it.copy(recordedText = event.text) }
                 processDictation(event.text)
@@ -158,48 +146,6 @@ class BriefingNewViewModel @Inject constructor(
                 updateState { it.copy(showPublishConfirm = false) }
             }
             is BriefingNewEvent.ConfirmPublish -> publishDraft()
-        }
-    }
-
-    private fun startRecording() {
-        updateState {
-            it.copy(
-                phase = BriefingNewPhase.RECORDING,
-                recordedText = "",
-                recordingSeconds = 0,
-                error = null,
-            )
-        }
-        recordingJob = audioRecorder.start()
-            .onEach { (_, elapsed) ->
-                updateState { it.copy(recordingSeconds = elapsed) }
-            }
-            .launchIn(viewModelScope)
-
-        // Type out canned speech preview for visual demo
-        typingJob = viewModelScope.launch {
-            var index = 0
-            while (index < cannedDictation.length) {
-                delay(70)
-                index = (index + 4).coerceAtMost(cannedDictation.length)
-                val chunk = cannedDictation.substring(0, index)
-                updateState { it.copy(recordedText = chunk) }
-            }
-        }
-    }
-
-    private fun stopRecording() {
-        recordingJob?.cancel()
-        recordingJob = null
-        typingJob?.cancel()
-        typingJob = null
-
-        val spokenText = state.value.recordedText.ifBlank { cannedDictation }
-        updateState { it.copy(phase = BriefingNewPhase.TRANSLATING) }
-
-        viewModelScope.launch {
-            audioRecorder.stop()
-            processDictation(spokenText)
         }
     }
 
@@ -344,7 +290,6 @@ fun BriefingNewContent(
                     )
                 }
                 else -> {
-                    // Phase: IDLE or RECORDING
                     RecordAndPastSection(
                         state = state,
                         onEvent = onEvent,
@@ -388,7 +333,9 @@ private fun RecordAndPastSection(
     onNavigateToBoard: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val isRecording = state.phase == BriefingNewPhase.RECORDING
+    // The Foreman speaks Japanese in the morning briefing.
+    val dictation = rememberDictation("ja", state.recordedText) { onEvent(BriefingNewEvent.TextChanged(it)) }
+    val isRecording = dictation.isListening
 
     LazyColumn(
         modifier = modifier.fillMaxSize(),
@@ -422,13 +369,7 @@ private fun RecordAndPastSection(
                     Surface(
                         modifier = Modifier
                             .size(80.dp)
-                            .clickable {
-                                if (isRecording) {
-                                    onEvent(BriefingNewEvent.StopRecording)
-                                } else {
-                                    onEvent(BriefingNewEvent.StartRecording)
-                                }
-                            },
+                            .clickable(role = Role.Button, onClick = dictation.toggle),
                         shape = CircleShape,
                         color = micBgColor,
                     ) {
@@ -449,26 +390,38 @@ private fun RecordAndPastSection(
                     if (isRecording) {
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            text = String.format("%02d:%02d", state.recordingSeconds / 60, state.recordingSeconds % 60),
+                            text = String.format("%02d:%02d", dictation.seconds / 60, dictation.seconds % 60),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = StatusColors.Red,
                         )
-                        if (state.recordedText.isNotBlank()) {
-                            Spacer(modifier = Modifier.height(12.dp))
-                            Surface(
-                                modifier = Modifier.fillMaxWidth(),
-                                color = MaterialTheme.colorScheme.surfaceVariant,
-                                shape = MaterialTheme.shapes.small,
-                            ) {
-                                Text(
-                                    text = state.recordedText,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    modifier = Modifier.padding(12.dp),
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
-                        }
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                    OutlinedTextField(
+                        value = state.recordedText,
+                        onValueChange = { onEvent(BriefingNewEvent.TextChanged(it)) },
+                        readOnly = isRecording,
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text(stringResource(R.string.briefing_new_spoken_section_title)) },
+                        minLines = 3,
+                    )
+                    (dictation.errorRes?.let { stringResource(it) } ?: state.error)?.let {
+                        Text(
+                            text = it,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(top = 8.dp),
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Button(
+                        onClick = { onEvent(BriefingNewEvent.DictateInstead(state.recordedText.trim())) },
+                        enabled = !isRecording && state.recordedText.isNotBlank(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                    ) {
+                        Text(stringResource(R.string.briefing_new_make_draft))
                     }
                 }
             }

@@ -2,7 +2,6 @@ package com.techtsunagu.wakatta.feature.board
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -71,7 +70,7 @@ class BoardComposeTest {
             BoardContent(
                 state = BoardUiState(
                     isLoading = false,
-                    error = "Network connection failed",
+                    errorRes = R.string.board_error_offline,
                 ),
                 onEvent = { event ->
                     if (event is BoardEvent.Retry) retryClicked = true
@@ -79,7 +78,7 @@ class BoardComposeTest {
             )
         }
 
-        composeTestRule.onNodeWithText("Network connection failed").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Offline. Please check network connection.").assertIsDisplayed()
         composeTestRule.onNodeWithText("Retry").assertIsDisplayed()
         composeTestRule.onNodeWithText("Retry").performClick()
         assertTrue(retryClicked)

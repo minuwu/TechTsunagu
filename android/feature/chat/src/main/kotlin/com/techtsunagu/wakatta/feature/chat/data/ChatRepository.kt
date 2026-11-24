@@ -23,11 +23,27 @@ interface ChatRepository {
 
     suspend fun sendMessage(
         threadId: String,
+        text: String? = null,
+        audio: File? = null,
+        isVoice: Boolean = audio != null,
+        fromUserId: String,
+        idempotencyKey: String,
+    ): AppResult<ChatMessageUiModel>
+
+    suspend fun sendMessage(
+        threadId: String,
         text: String,
         isVoice: Boolean,
         fromUserId: String,
         idempotencyKey: String,
-    ): AppResult<ChatMessageUiModel>
+    ): AppResult<ChatMessageUiModel> = sendMessage(
+        threadId = threadId,
+        text = text,
+        audio = null,
+        isVoice = isVoice,
+        fromUserId = fromUserId,
+        idempotencyKey = idempotencyKey,
+    )
 
     suspend fun submitAnswers(
         messageId: String,
@@ -35,6 +51,11 @@ interface ChatRepository {
         answers: List<Int>,
         idempotencyKey: String,
     ): AppResult<AnswerResultDto>
+
+    suspend fun editDraft(
+        messageId: String,
+        textJa: String,
+    ): AppResult<ChatMessageUiModel>
 
     /** Speech to text for a finished recording. */
     suspend fun transcribe(audio: File?): AppResult<String>
@@ -54,6 +75,7 @@ interface ChatRepository {
     suspend fun askExplainAgain(
         messageId: String,
         userId: String,
+        termJa: String,
     ): AppResult<Unit>
 
     suspend fun getTerms(): AppResult<List<GlossaryTerm>>

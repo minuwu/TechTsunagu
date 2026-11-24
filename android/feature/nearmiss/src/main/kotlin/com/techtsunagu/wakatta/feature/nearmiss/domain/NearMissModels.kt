@@ -14,6 +14,7 @@ enum class NearMissStatus {
     OPEN, ACK
 }
 
+/** Percent of the photo's width and height. */
 @Serializable
 data class PhotoMark(
     val x: Float,
@@ -24,9 +25,11 @@ data class PhotoMark(
 data class NearMissDto(
     val id: String,
     val userId: String,
+    val userName: String = "",
     val machineId: String,
     val text: Tri,
-    val severity: NearMissSeverity,
+    /** Null when the report was sent without one (the web app). */
+    val severity: NearMissSeverity? = null,
     val photoUrl: String? = null,
     val photoMark: PhotoMark? = null,
     val createdAt: String,
@@ -44,6 +47,7 @@ data class NearMissCreateRequest(
     val photoFile: File? = null,
     val photoUrl: String? = null,
     val photoMark: PhotoMark? = null,
+    val audioFile: File? = null,
     val idempotencyKey: String,
 )
 

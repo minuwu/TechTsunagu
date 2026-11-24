@@ -1,5 +1,9 @@
 package com.techtsunagu.wakatta.feature.chat
 
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -27,12 +31,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.techtsunagu.wakatta.core.design.component.EmptyState
@@ -41,6 +47,8 @@ import com.techtsunagu.wakatta.core.design.component.LoadingState
 import com.techtsunagu.wakatta.core.design.component.WakattaTopBar
 import com.techtsunagu.wakatta.core.model.GlossaryTerm
 import com.techtsunagu.wakatta.core.model.Role
+import com.techtsunagu.wakatta.feature.chat.model.ComposerStatus
+import kotlinx.coroutines.launch
 
 @Composable
 fun ChatScreen(
@@ -60,6 +68,7 @@ fun ChatScreen(
         viewModel.effects.collect { effect ->
             when (effect) {
                 is ChatEffect.ShowError -> snackbarHostState.showSnackbar(context.getString(effect.error.chatMessageRes()))
+                is ChatEffect.ShowHint -> snackbarHostState.showSnackbar(context.getString(effect.messageRes))
             }
         }
     }
@@ -83,6 +92,7 @@ fun ChatContent(
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     countdownSeconds: () -> Int = { 0 },
     countdownProgress: () -> Float = { 0f },
+    onMicClick: (() -> Unit)? = null,
 ) {
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -103,6 +113,9 @@ fun ChatContent(
                 inputText = state.inputText,
                 countdownSeconds = countdownSeconds,
                 countdownProgress = countdownProgress,
+                hasPendingAudio = state.hasPendingAudio,
+                onMicClick = onMicClick,
+                snackbarHostState = snackbarHostState,
                 onEvent = onEvent,
             )
         },

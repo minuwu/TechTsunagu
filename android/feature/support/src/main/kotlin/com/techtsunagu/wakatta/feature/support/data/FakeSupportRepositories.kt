@@ -133,39 +133,6 @@ class FakeInterviewRepository(
         val terms = facts.terms
         val asks = facts.asks
 
-        val questions = listOf(
-            InterviewQuestionItem(
-                ja = "仕事で困っていることはありますか？",
-                en = "Is anything difficult at work?",
-                bn = "কাজে কি কোনো সমস্যা হচ্ছে?",
-            ),
-            InterviewQuestionItem(
-                ja = "機械や作業の説明で、わかりにくい言葉はありますか？",
-                en = "Are there words in the instructions you do not understand?",
-                bn = "মেশিন বা কাজের নির্দেশনায় কোনো কঠিন শব্দ আছে কি?",
-            ),
-            InterviewQuestionItem(
-                ja = "最近のお知らせで、わからなかったことはありますか？",
-                en = "Was anything unclear in the recent notices?",
-                bn = "সাম্প্রতিক নোটিশে কি কিছু বুঝতে সমস্যা হয়েছিল?",
-            ),
-            InterviewQuestionItem(
-                ja = "給料・住まい・健康で、相談したいことはありますか？",
-                en = "Do you want to talk about pay, housing or health?",
-                bn = "বেতন, বাসস্থান বা স্বাস্থ্য নিয়ে কিছু বলার আছে?",
-            ),
-            InterviewQuestionItem(
-                ja = "先輩や職場の人との関係はどうですか？",
-                en = "How are things with your Senpai and coworkers?",
-                bn = "সিনিয়র বা সহকর্মীদের সাথে সম্পর্ক কেমন?",
-            ),
-            InterviewQuestionItem(
-                ja = "法律に違反することやハラスメントなど、困っていることはありませんか？",
-                en = "Is anything illegal or unfair happening, such as harassment?",
-                bn = "আইন লঙ্ঘন বা হয়রানির মতো কোনো সমস্যা হচ্ছে কি?",
-            ),
-        )
-
         val prep = InterviewPrepDto(
             workerId = workerId,
             fromDate = lastDate,
@@ -175,7 +142,7 @@ class FakeInterviewRepository(
             confusingNotices = confusingNotices,
             confusionTerms = terms,
             forwardedAsks = asks,
-            questions = questions,
+            questions = INTERVIEW_QUESTIONS,
         )
         return AppResult.Success(prep)
     }
@@ -195,7 +162,7 @@ class FakeInterviewRepository(
         if (request.note.trim().isEmpty()) {
             return AppResult.Failure(AppError.Validation(listOf("note")))
         }
-        if (request.date > InterviewDueCalculator.DEMO_TODAY_ISO) {
+        if (request.date > InterviewDueCalculator.todayIso()) {
             return AppResult.Failure(AppError.Validation(listOf("date")))
         }
         if (request.method == InterviewMethod.ONLINE && !request.consent) {
@@ -549,3 +516,37 @@ private fun String.jsonEscaped(): String = buildString {
 }
 
 private data class PrepFacts(val notices: List<String>, val terms: List<String>, val asks: List<String>)
+
+/** The questions of every Periodic Interview (定期面談). */
+internal val INTERVIEW_QUESTIONS = listOf(
+    InterviewQuestionItem(
+        ja = "仕事で困っていることはありますか？",
+        en = "Is anything difficult at work?",
+        bn = "কাজে কি কোনো সমস্যা হচ্ছে?",
+    ),
+    InterviewQuestionItem(
+        ja = "機械や作業の説明で、わかりにくい言葉はありますか？",
+        en = "Are there words in the instructions you do not understand?",
+        bn = "মেশিন বা কাজের নির্দেশনায় কোনো কঠিন শব্দ আছে কি?",
+    ),
+    InterviewQuestionItem(
+        ja = "最近のお知らせで、わからなかったことはありますか？",
+        en = "Was anything unclear in the recent notices?",
+        bn = "সাম্প্রতিক নোটিশে কি কিছু বুঝতে সমস্যা হয়েছিল?",
+    ),
+    InterviewQuestionItem(
+        ja = "給料・住まい・健康で、相談したいことはありますか？",
+        en = "Do you want to talk about pay, housing or health?",
+        bn = "বেতন, বাসস্থান বা স্বাস্থ্য নিয়ে কিছু বলার আছে?",
+    ),
+    InterviewQuestionItem(
+        ja = "先輩や職場の人との関係はどうですか？",
+        en = "How are things with your Senpai and coworkers?",
+        bn = "সিনিয়র বা সহকর্মীদের সাথে সম্পর্ক কেমন?",
+    ),
+    InterviewQuestionItem(
+        ja = "法律に違反することやハラスメントなど、困っていることはありませんか？",
+        en = "Is anything illegal or unfair happening, such as harassment?",
+        bn = "আইন লঙ্ঘন বা হয়রানির মতো কোনো সমস্যা হচ্ছে কি?",
+    ),
+)

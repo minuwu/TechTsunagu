@@ -1,6 +1,5 @@
 package com.techtsunagu.wakatta.feature.notices
 
-import com.techtsunagu.wakatta.core.model.AudioRecorder
 import com.techtsunagu.wakatta.core.model.NoticeSourceKind
 import com.techtsunagu.wakatta.core.model.PhotoCapture
 import com.techtsunagu.wakatta.core.model.Role
@@ -35,7 +34,6 @@ class NoticeNewViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
     private lateinit var noticeRepository: FakeNoticeRepository
     private lateinit var sessionStore: TestSessionStore
-    private lateinit var audioRecorder: TestAudioRecorder
     private lateinit var photoCapture: TestPhotoCapture
     private lateinit var viewModel: NoticeNewViewModel
 
@@ -46,11 +44,6 @@ class NoticeNewViewModelTest {
         override suspend fun clear() { _session.value = null }
         override fun getCachedToken(): String? = _session.value?.token
         fun setSession(session: Session?) { _session.value = session }
-    }
-
-    class TestAudioRecorder : AudioRecorder {
-        override fun start() = emptyFlow<Pair<Float, Int>>()
-        override suspend fun stop(): File? = null
     }
 
     class TestPhotoCapture : PhotoCapture {
@@ -68,13 +61,11 @@ class NoticeNewViewModelTest {
             language = "ja",
         )
         sessionStore = TestSessionStore(Session(token = "tok_f", user = foremanUser))
-        audioRecorder = TestAudioRecorder()
         photoCapture = TestPhotoCapture()
 
         viewModel = NoticeNewViewModel(
             noticeRepository = noticeRepository,
             sessionStore = sessionStore,
-            audioRecorder = audioRecorder,
             photoCapture = photoCapture,
         )
     }

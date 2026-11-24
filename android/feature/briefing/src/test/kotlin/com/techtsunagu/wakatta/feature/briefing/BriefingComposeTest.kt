@@ -309,7 +309,7 @@ class BriefingComposeTest {
                 )
             }
         }
-        composeTestRule.onNodeWithText("Tanaka Kenichi (Foreman)").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Foreman").assertIsDisplayed()
         composeTestRule.onNodeWithText("Prevent hand entrapment").assertIsDisplayed()
         composeTestRule.onNodeWithText("Die change in the afternoon").assertIsDisplayed()
         composeTestRule.onNodeWithText("Read aloud").assertIsDisplayed()
@@ -355,7 +355,7 @@ class BriefingComposeTest {
                 )
             }
         }
-        composeTestRule.onNodeWithText("Tanaka will explain it again.").assertIsDisplayed()
+        composeTestRule.onNodeWithText("The foreman will explain it again.").assertIsDisplayed()
         composeTestRule.onNodeWithText("Answer: Afternoon").assertIsDisplayed()
         composeTestRule.onNodeWithText("Done").assertIsDisplayed()
     }
@@ -376,7 +376,7 @@ class BriefingComposeTest {
                 )
             }
         }
-        composeTestRule.onNodeWithText("Not quite. Tanaka will explain it again.").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Not quite. The foreman will explain it again.").assertIsDisplayed()
         composeTestRule.onNodeWithText("Answer: Afternoon").assertIsDisplayed()
         composeTestRule.onNodeWithText("Done").assertIsDisplayed()
     }

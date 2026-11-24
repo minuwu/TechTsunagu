@@ -1,5 +1,9 @@
 package com.techtsunagu.wakatta.feature.connect
 
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,11 +35,15 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
@@ -44,6 +52,8 @@ import com.techtsunagu.wakatta.core.design.component.EmptyState
 import com.techtsunagu.wakatta.core.design.component.ErrorState
 import com.techtsunagu.wakatta.core.design.component.LoadingState
 import com.techtsunagu.wakatta.core.design.component.WakattaTopBar
+import com.techtsunagu.wakatta.core.media.DictationEvent
+import com.techtsunagu.wakatta.core.media.DictationSource
 import com.techtsunagu.wakatta.core.model.AppResult
 import com.techtsunagu.wakatta.core.model.Speaker
 import com.techtsunagu.wakatta.feature.connect.domain.EntryAction
@@ -51,6 +61,7 @@ import com.techtsunagu.wakatta.feature.connect.domain.PersonalThreadRepository
 import com.techtsunagu.wakatta.feature.connect.domain.TalkEntryDto
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -73,6 +84,7 @@ internal sealed interface TalkEvent {
     data class Init(val threadId: String, val lang: String) : TalkEvent
     data object Retry : TalkEvent
     data object Listen : TalkEvent
+    data object StopListening : TalkEvent
     data class Understand(val entryId: String, val text: String) : TalkEvent
     data class ShowMeaning(val entryId: String) : TalkEvent
     data class Reply(val entryId: String, val index: Int) : TalkEvent
@@ -99,7 +111,10 @@ internal sealed interface TalkEffect {
 internal class TalkViewModel @Inject constructor(
     private val threads: PersonalThreadRepository,
     private val speaker: Speaker,
+    private val dictation: DictationSource,
 ) : MviViewModel<TalkUiState, TalkEvent, TalkEffect>(TalkUiState()) {
+
+    private var dictationJob: Job? = null
 
     override fun onEvent(event: TalkEvent) {
         when (event) {
@@ -109,9 +124,14 @@ internal class TalkViewModel @Inject constructor(
             }
             TalkEvent.Retry -> load()
             TalkEvent.Listen -> listen()
+            TalkEvent.StopListening -> stopListening()
             is TalkEvent.Understand -> patch(event.entryId, EntryAction.Understand(event.text))
             is TalkEvent.ShowMeaning -> patch(event.entryId, EntryAction.ShowMeaning)
-            is TalkEvent.Reply -> patch(event.entryId, EntryAction.Reply(event.index))
+            is TalkEvent.Reply -> {
+                val replyJa = state.value.entries.find { it.id == event.entryId }
+                    ?.replyOptions?.getOrNull(event.index)?.ja.orEmpty()
+                patch(event.entryId, EntryAction.Reply(event.index, replyJa))
+            }
             is TalkEvent.Confirm -> patch(event.entryId, EntryAction.Confirm(event.understood))
             is TalkEvent.RetryReply -> patch(event.entryId, EntryAction.RetryReply)
             is TalkEvent.Say -> say(event)
@@ -142,17 +162,47 @@ internal class TalkViewModel @Inject constructor(
     }
 
     private fun listen() {
-        if (state.value.isListening) return
+        if (state.value.isListening) {
+            stopListening()
+            return
+        }
+        if (!dictation.isAvailable()) {
+            sendEffect(TalkEffect.Failed(ConnectError.NO_SPEECH))
+            return
+        }
+
         updateState { it.copy(isListening = true) }
-        viewModelScope.launch {
-            when (val res = threads.listen(state.value.threadId)) {
-                is AppResult.Success -> updateState { it.copy(isListening = false, entries = it.entries + res.value) }
-                is AppResult.Failure -> {
-                    updateState { it.copy(isListening = false) }
-                    sendEffect(TalkEffect.Failed(res.error.toConnectError()))
+        dictationJob?.cancel()
+        dictationJob = viewModelScope.launch {
+            dictation.start("ja-JP").collect { event ->
+                when (event) {
+                    is DictationEvent.Listening -> updateState { it.copy(isListening = true) }
+                    is DictationEvent.Partial -> Unit
+                    is DictationEvent.Final -> {
+                        updateState { it.copy(isListening = false) }
+                        dictation.stop()
+                        if (event.text.isNotBlank()) {
+                            when (val res = threads.addEntry(state.value.threadId, event.text)) {
+                                is AppResult.Success -> updateState { it.copy(entries = it.entries + res.value) }
+                                is AppResult.Failure -> sendEffect(TalkEffect.Failed(res.error.toConnectError()))
+                            }
+                        }
+                    }
+                    is DictationEvent.Error -> {
+                        updateState { it.copy(isListening = false) }
+                        dictation.stop()
+                        sendEffect(TalkEffect.Failed(ConnectError.NO_SPEECH))
+                    }
                 }
             }
+            updateState { it.copy(isListening = false) }
         }
+    }
+
+    private fun stopListening() {
+        // The job stays: the recognizer still answers with the words spoken before the stop.
+        dictation.stop()
+        updateState { it.copy(isListening = false) }
     }
 
     private fun patch(entryId: String, action: EntryAction) {
@@ -197,6 +247,12 @@ internal class TalkViewModel @Inject constructor(
         }
     }
 
+    override fun onCleared() {
+        super.onCleared()
+        dictationJob?.cancel()
+        dictation.stop()
+    }
+
     private companion object {
         const val SPEECH_LANG = "ja"
     }
@@ -211,7 +267,45 @@ internal fun TalkScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     val lang = appLanguage()
+    var permissionDeniedCount by remember { mutableIntStateOf(0) }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) { isGranted ->
+        if (isGranted) {
+            permissionDeniedCount = 0
+            viewModel.onEvent(TalkEvent.Listen)
+        } else {
+            permissionDeniedCount++
+            if (permissionDeniedCount == 1) {
+                coroutineScope.launch {
+                    snackbarHostState.showSnackbar(context.getString(R.string.connect_mic_rationale))
+                }
+            }
+        }
+    }
+
+    val onMicClick: () -> Unit = {
+        if (state.isListening) {
+            viewModel.onEvent(TalkEvent.StopListening)
+        } else if (permissionDeniedCount >= 2) {
+            coroutineScope.launch {
+                snackbarHostState.showSnackbar(context.getString(R.string.connect_dictation_unavailable))
+            }
+        } else {
+            val hasPermission = ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.RECORD_AUDIO,
+            ) == PackageManager.PERMISSION_GRANTED
+            if (hasPermission) {
+                viewModel.onEvent(TalkEvent.Listen)
+            } else {
+                permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+            }
+        }
+    }
 
     LaunchedEffect(threadId) { viewModel.onEvent(TalkEvent.Init(threadId, lang)) }
     LaunchedEffect(viewModel) {
@@ -222,7 +316,13 @@ internal fun TalkScreen(
             }
         }
     }
-    TalkContent(state, viewModel::onEvent, onBackClick = onBackClick, snackbarHostState = snackbarHostState)
+    TalkContent(
+        state = state,
+        onEvent = viewModel::onEvent,
+        onBackClick = onBackClick,
+        snackbarHostState = snackbarHostState,
+        onListenClick = onMicClick,
+    )
 }
 
 @Composable
@@ -232,7 +332,9 @@ internal fun TalkContent(
     modifier: Modifier = Modifier,
     onBackClick: () -> Unit = {},
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
+    onListenClick: (() -> Unit)? = null,
 ) {
+    val handleListen = onListenClick ?: { onEvent(TalkEvent.Listen) }
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
@@ -242,7 +344,7 @@ internal fun TalkContent(
                 actions = { TalkActions(onEvent) },
             )
         },
-        bottomBar = { if (state.error == null && !state.isLoading) ListenBar(state.isListening) { onEvent(TalkEvent.Listen) } },
+        bottomBar = { if (state.error == null && !state.isLoading) ListenBar(state.isListening, handleListen) },
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { innerPadding ->
         Box(Modifier.fillMaxSize().padding(innerPadding)) {
@@ -290,7 +392,7 @@ private fun Entries(state: TalkUiState, onEvent: (TalkEvent) -> Unit) {
 @Composable
 private fun ListenBar(listening: Boolean, onListen: () -> Unit) {
     Column(Modifier.fillMaxWidth().padding(16.dp)) {
-        Button(onClick = onListen, enabled = !listening, modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp)) {
+        Button(onClick = onListen, modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp)) {
             if (listening) {
                 CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary)
             } else {

@@ -1,5 +1,6 @@
 package com.techtsunagu.wakatta.feature.machines.data
 
+import com.techtsunagu.wakatta.core.model.CacheStore
 import com.techtsunagu.wakatta.core.model.SessionStore
 import com.techtsunagu.wakatta.core.model.SignOffRepository
 import com.techtsunagu.wakatta.core.model.WorkerRepository
@@ -29,8 +30,9 @@ object MachinesDataModule {
         session: SessionStore,
         workers: WorkerRepository,
         signOffs: SignOffRepository,
+        cache: CacheStore,
     ): PanelRepository =
-        if (ApiConfig.USE_LIVE_API) RealPanelRepository(apiOf(retrofit), session, workers, signOffs) else fake.get()
+        if (ApiConfig.USE_LIVE_API) RealPanelRepository(apiOf(retrofit), session, workers, signOffs, cache) else fake.get()
 
     @Provides
     @Singleton

@@ -28,9 +28,7 @@ import com.techtsunagu.wakatta.core.navigation.ScanKey
 import com.techtsunagu.wakatta.core.navigation.SkillsKey
 import com.techtsunagu.wakatta.core.navigation.SupportLogKey
 import com.techtsunagu.wakatta.core.navigation.TaskKey
-import com.techtsunagu.wakatta.feature.home.data.FakeEventSource
 import com.techtsunagu.wakatta.feature.home.data.FakeTaskRepository
-import com.techtsunagu.wakatta.feature.home.data.HomeAttentionSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -58,7 +56,7 @@ internal class TestSessionStore(initialSession: Session? = null) : SessionStore 
     override fun getCachedToken(): String? = _session.value?.token
 }
 
-private class TestMachineRepository : MachineRepository {
+internal class TestMachineRepository : MachineRepository {
     override suspend fun getMachines(): AppResult<List<Machine>> = AppResult.Success(DemoSeed.machines)
     override suspend fun getMachine(id: String): AppResult<MachineDetail> = AppResult.Failure(AppError.NotFound)
     override suspend fun scan(machineId: String): AppResult<Unit> = AppResult.Success(Unit)
@@ -70,7 +68,6 @@ class HomeViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
     private lateinit var machineRepository: MachineRepository
     private lateinit var taskRepository: FakeTaskRepository
-    private lateinit var eventSource: FakeEventSource
     private lateinit var sessionStore: TestSessionStore
 
     @Before
@@ -78,7 +75,6 @@ class HomeViewModelTest {
         Dispatchers.setMain(testDispatcher)
         machineRepository = TestMachineRepository()
         taskRepository = FakeTaskRepository(delayMs = 0L)
-        eventSource = FakeEventSource()
         sessionStore = TestSessionStore(
             Session(
                 token = "token",
@@ -94,12 +90,11 @@ class HomeViewModelTest {
 
     private fun createViewModel(): HomeViewModel {
         return HomeViewModel(
-            attentionSources = setOf(HomeAttentionSource()),
             machineRepository = machineRepository,
             taskRepository = taskRepository,
-            eventSource = eventSource,
             boardSource = com.techtsunagu.wakatta.feature.home.data.FakeHomeBoardSource(),
             sessionStore = sessionStore,
+            languageManager = TestLanguageManager(),
         )
     }
 
@@ -114,7 +109,7 @@ class HomeViewModelTest {
         assertTrue(state.isForeman)
         assertEquals("田中 健一", state.userName)
         assertEquals(5, state.tallyGreen)
-        assertEquals(1, state.tallyWait)
+        assertEquals(1, state.followUpCount)
         assertTrue(state.attentionCards.isNotEmpty())
         assertTrue(state.lockedMachines.isNotEmpty())
     }
@@ -255,6 +250,24 @@ class HomeViewModelTest {
         advanceUntilIdle()
         assertFalse(viewModel.state.value.isLoading)
         assertNull(viewModel.state.value.error)
+    }
+
+    @Test
+    fun withoutASessionNothingIsLoaded() = runTest(testDispatcher) {
+        sessionStore.clear()
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        assertEquals("", viewModel.state.value.userName)
+        assertTrue(viewModel.state.value.pendingChecks.isEmpty())
+    }
+
+    @Test
+    fun aMessageTimeIsShownInThePhoneZone() {
+        val tokyo = java.time.ZoneId.of("Asia/Tokyo")
+        val day = java.time.LocalDate.of(2026, 11, 24)
+        assertEquals("08:02", shortTime("2026-11-23T23:02:00Z", tokyo, day))
+        assertEquals("11/22 08:02", shortTime("2026-11-21T23:02:00Z", tokyo, day))
+        assertEquals("", shortTime("not a time", tokyo, day))
     }
 
     private fun assertNotNull(value: Any?) {

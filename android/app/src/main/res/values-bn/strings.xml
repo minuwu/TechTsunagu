@@ -12,4 +12,5 @@
     <string name="app_demo_foreman">ফোরম্যান (তানাকা)</string>
     <string name="app_demo_signin_prompt">ডেমো দ্রুত সাইন-ইন:</string>
     <string name="app_demo_signout">সাইন আউট</string>
+    <string name="app_offline">নেটওয়ার্ক নেই। আগে লোড হওয়া তথ্য দেখানো হচ্ছে।</string>
 </resources>

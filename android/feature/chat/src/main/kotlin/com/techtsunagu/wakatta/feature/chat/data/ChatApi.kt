@@ -6,6 +6,7 @@ import com.techtsunagu.wakatta.core.network.ApiEnvelope
 import com.techtsunagu.wakatta.core.network.ExplicitNulls
 import com.techtsunagu.wakatta.core.network.IdempotencyKey
 import kotlinx.serialization.Serializable
+import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
 import retrofit2.Response
@@ -13,6 +14,7 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Multipart
+import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Part
 import retrofit2.http.Path
@@ -36,7 +38,8 @@ internal interface ChatApi {
     suspend fun post(
         @Path("thread_id") id: String,
         @Tag key: IdempotencyKey,
-        @Part("text") text: RequestBody,
+        @Part text: MultipartBody.Part? = null,
+        @Part audio: MultipartBody.Part? = null,
     ): Response<ApiEnvelope<WireSenderMessage>>
 
     /** `@ExplicitNulls`: every `CheckQuestion` field is required, including a null `termId` and `correctIndex` 0. */
@@ -52,10 +55,28 @@ internal interface ChatApi {
         @Body body: AnswersInDto,
     ): Response<ApiEnvelope<WireAnswerResult>>
 
+    @PATCH(ApiPaths.MESSAGE)
+    suspend fun editDraft(
+        @Path("message_id") id: String,
+        @Body body: DraftEditDto,
+    ): Response<ApiEnvelope<WireSenderMessage>>
+
     @POST(ApiPaths.MESSAGE_REEXPLAIN)
     suspend fun reexplain(
         @Path("message_id") id: String,
         @Body body: ReexplainInDto,
+    ): Response<ApiEnvelope<WireSenderMessage>>
+
+    @POST(ApiPaths.MESSAGE_REEXPLAIN_DRAFT)
+    suspend fun reexplainDraft(
+        @Path("message_id") id: String,
+        @Body body: ReexplainInDto,
+    ): Response<ApiEnvelope<WireReexplainDraft>>
+
+    @POST(ApiPaths.MESSAGE_ASK)
+    suspend fun ask(
+        @Path("message_id") id: String,
+        @Body body: AskForemanInDto,
     ): Response<ApiEnvelope<WireSenderMessage>>
 
     @POST(ApiPaths.MESSAGE_NUDGE)
@@ -154,13 +175,30 @@ internal data class WireWorkerMessage(
 ) : WireMessage
 
 @Serializable
+internal data class DraftEditDto(val textJa: String)
+
+@Serializable
+internal data class AskForemanInDto(val termJa: String)
+
+@Serializable
+internal data class WireReexplainDraft(
+    val text: Tri = emptyMap(),
+    val question: WireSenderQuestion,
+)
+
+@Serializable
 internal data class SendInDto(val text: Tri, val questions: List<WireSenderQuestion>, val tasks: List<WireTask>)
 
 @Serializable
 internal data class AnswersInDto(val answers: List<Int>)
 
 @Serializable
-internal data class ReexplainInDto(val userId: String, val termJa: String)
+internal data class ReexplainInDto(
+    val userId: String,
+    val termJa: String,
+    val text: Tri? = null,
+    val question: WireSenderQuestion? = null,
+)
 
 @Serializable
 internal data class NudgeInDto(val userId: String)

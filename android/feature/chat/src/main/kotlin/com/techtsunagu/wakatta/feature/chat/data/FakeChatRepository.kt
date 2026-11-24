@@ -69,7 +69,8 @@ class FakeChatRepository @Inject constructor() : ChatRepository {
 
     override suspend fun sendMessage(
         threadId: String,
-        text: String,
+        text: String?,
+        audio: File?,
         isVoice: Boolean,
         fromUserId: String,
         idempotencyKey: String,
@@ -78,9 +79,11 @@ class FakeChatRepository @Inject constructor() : ChatRepository {
 
         val id = "m_" + System.currentTimeMillis().toString(36)
         val isForeman = fromUserId == "u_tanaka"
-        val kind = if (isVoice) MessageKind.VOICE else MessageKind.TEXT
+        val actualIsVoice = isVoice || audio != null
+        val kind = if (actualIsVoice) MessageKind.VOICE else MessageKind.TEXT
+        val safeText = text.orEmpty()
 
-        val (jaText, enText, bnText) = if (isVoice) {
+        val (jaText, enText, bnText) = if (actualIsVoice && safeText.isBlank()) {
             Triple(
                 DEMO_DICTATION,
                 "Tomorrow from 8:00 we change the die on Press #2. Rahim and Nguyen, gather at 7:45. Before the change, always lock out the power and wear safety shoes and gloves. When you finish, fill in the inspection sheet and report to me.",
@@ -88,13 +91,13 @@ class FakeChatRepository @Inject constructor() : ChatRepository {
             )
         } else {
             Triple(
-                text,
-                if (isForeman) "(auto-translated) $text" else text,
-                if (isForeman) "(অনূদিত) $text" else text,
+                safeText,
+                if (isForeman) "(auto-translated) $safeText" else safeText,
+                if (isForeman) "(অনূদিত) $safeText" else safeText,
             )
         }
 
-        val questionsForSender = if (isVoice && isForeman) {
+        val questionsForSender = if (actualIsVoice && isForeman) {
             listOf(
                 CheckQuestionForSender(
                     id = "q1",
@@ -179,14 +182,14 @@ class FakeChatRepository @Inject constructor() : ChatRepository {
             translatedText = enText,
             time = "08:40",
             stage = 5,
-            isVoice = isVoice,
-            voiceDuration = if (isVoice) "0:12" else null,
+            isVoice = actualIsVoice,
+            voiceDuration = if (actualIsVoice) "0:12" else null,
             hasCheck = questionsForSender.isNotEmpty(),
             workerQuestions = questionsForWorker,
             workerStatuses = initialWorkerStatuses,
             workerNames = DEMO_WORKER_NAMES,
             senderQuestions = questionsForSender,
-            addedTasks = if (isVoice) listOf("2号プレス 金型交換", "交換前 ロックアウト・保護具", "点検表記入・田中へ報告") else emptyList(),
+            addedTasks = if (actualIsVoice) listOf("2号プレス 金型交換", "交換前 ロックアウト・保護具", "点検表記入・田中へ報告") else emptyList(),
         )
 
         val currentMap = messagesFlow.value.toMutableMap()
@@ -195,7 +198,7 @@ class FakeChatRepository @Inject constructor() : ChatRepository {
         messagesFlow.value = currentMap
 
         // Update thread preview
-        updateThreadLastMessage(threadId, if (isVoice) "明日の朝8時から、2号プレスの金型交換をします..." else text, isVoice)
+        updateThreadLastMessage(threadId, if (actualIsVoice) "明日の朝8時から、2号プレスの金型交換をします..." else safeText, actualIsVoice)
 
         return AppResult.Success(newMsg)
     }
@@ -262,6 +265,43 @@ class FakeChatRepository @Inject constructor() : ChatRepository {
         messagesFlow.value = currentMap
 
         return AppResult.Success(AnswerResultDto(status = status, followUpIds = followUpIds))
+    }
+
+    override suspend fun editDraft(
+        messageId: String,
+        textJa: String,
+    ): AppResult<ChatMessageUiModel> {
+        delay(simulatedLatencyMs)
+        val currentMap = messagesFlow.value.toMutableMap()
+        for ((thId, msgList) in currentMap) {
+            val idx = msgList.indexOfFirst { it.id == messageId }
+            if (idx != -1) {
+                val original = msgList[idx]
+                val updated = original.copy(
+                    text = original.text + ("ja" to textJa),
+                    originalText = textJa,
+                    translatedText = textJa,
+                )
+                val newList = msgList.toMutableList()
+                newList[idx] = updated
+                currentMap[thId] = newList
+                messagesFlow.value = currentMap
+                return AppResult.Success(updated)
+            }
+        }
+        val defaultMsg = ChatMessageUiModel(
+            id = messageId,
+            threadId = "t_line2",
+            fromUserId = "u_tanaka",
+            fromUserName = "田中 健一 (Foreman)",
+            isMine = true,
+            kind = MessageKind.TEXT,
+            text = mapOf("ja" to textJa),
+            originalText = textJa,
+            translatedText = textJa,
+            time = "08:00",
+        )
+        return AppResult.Success(defaultMsg)
     }
 
     override suspend fun transcribe(audio: File?): AppResult<String> {
@@ -365,7 +405,11 @@ class FakeChatRepository @Inject constructor() : ChatRepository {
         return AppResult.Success(Unit)
     }
 
-    override suspend fun askExplainAgain(messageId: String, userId: String): AppResult<Unit> {
+    override suspend fun askExplainAgain(
+        messageId: String,
+        userId: String,
+        termJa: String,
+    ): AppResult<Unit> {
         delay(simulatedLatencyMs)
 
         val fuId = "fu_ask_" + System.currentTimeMillis().toString(36)
@@ -374,12 +418,32 @@ class FakeChatRepository @Inject constructor() : ChatRepository {
             messageId = messageId,
             userId = userId,
             displayName = "Rahim Uddin",
-            termJa = "金型交換",
+            termJa = termJa,
             status = FollowUpStatus.OPEN,
             note = "Worker requested re-explanation from Foreman",
             createdAt = "2026-11-23T08:52:00Z",
         )
         followUpsFlow.value = followUpsFlow.value + newFu
+
+        val currentMap = messagesFlow.value.toMutableMap()
+        for ((thId, msgList) in currentMap) {
+            if (msgList.any { it.id == messageId }) {
+                val askMsg = ChatMessageUiModel(
+                    id = "ask_" + System.currentTimeMillis().toString(36),
+                    threadId = thId,
+                    fromUserId = userId,
+                    fromUserName = if (userId == "u_rahim") "Rahim Uddin" else "Worker",
+                    isMine = true,
+                    kind = MessageKind.ASK,
+                    text = mapOf("ja" to termJa),
+                    originalText = termJa,
+                    translatedText = termJa,
+                    time = "08:52",
+                )
+                currentMap[thId] = msgList + askMsg
+            }
+        }
+        messagesFlow.value = currentMap
 
         return AppResult.Success(Unit)
     }

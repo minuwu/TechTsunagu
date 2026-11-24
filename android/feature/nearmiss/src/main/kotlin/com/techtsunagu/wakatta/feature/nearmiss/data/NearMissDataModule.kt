@@ -1,6 +1,6 @@
 package com.techtsunagu.wakatta.feature.nearmiss.data
 
-import com.techtsunagu.wakatta.core.model.SessionStore
+import com.techtsunagu.wakatta.core.model.OutboxSender
 import com.techtsunagu.wakatta.core.network.ApiConfig
 import com.techtsunagu.wakatta.feature.nearmiss.domain.NearMissRepository
 import dagger.Lazy
@@ -8,6 +8,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import dagger.multibindings.IntoSet
 import javax.inject.Provider
 import javax.inject.Singleton
 import retrofit2.Retrofit
@@ -18,14 +19,17 @@ import retrofit2.Retrofit
 object NearMissDataModule {
 
     @Provides
+    @IntoSet
+    fun provideOutboxSender(sender: NearMissOutboxSender): OutboxSender = sender
+
+    @Provides
     @Singleton
     fun provideNearMissRepository(
         fake: Provider<FakeNearMissRepository>,
         retrofit: Lazy<Retrofit>,
-        session: SessionStore,
     ): NearMissRepository {
         if (!ApiConfig.USE_LIVE_API) return fake.get()
         val api = lazy { retrofit.get().create(NearMissApi::class.java) }
-        return RealNearMissRepository({ api.value }, session)
+        return RealNearMissRepository { api.value }
     }
 }

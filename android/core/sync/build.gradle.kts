@@ -1,5 +1,6 @@
 plugins {
     id("wakatta.android.library")
+    id("wakatta.android.hilt")
     alias(libs.plugins.kotlin.serialization)
 }
 

@@ -2,8 +2,12 @@ package com.techtsunagu.wakatta.feature.chat
 
 import androidx.lifecycle.viewModelScope
 import com.techtsunagu.wakatta.core.common.MviViewModel
+import com.techtsunagu.wakatta.core.model.Role
+import com.techtsunagu.wakatta.core.model.SessionStore
 import com.techtsunagu.wakatta.core.model.ThreadSource
 import com.techtsunagu.wakatta.core.model.ThreadSummary
+import com.techtsunagu.wakatta.core.model.Tri
+import com.techtsunagu.wakatta.core.model.User
 import com.techtsunagu.wakatta.core.model.WakattaStatus
 import com.techtsunagu.wakatta.feature.chat.model.ThreadFilter
 import com.techtsunagu.wakatta.feature.chat.model.ThreadUiModel
@@ -38,6 +42,7 @@ sealed interface ChatsEffect {
 @HiltViewModel
 class ChatsViewModel @Inject constructor(
     private val threadSources: Set<@JvmSuppressWildcards ThreadSource>,
+    private val sessionStore: SessionStore,
 ) : MviViewModel<ChatsUiState, ChatsEvent, ChatsEffect>(ChatsUiState(isLoading = true)) {
 
     private var rawSummaries: List<ThreadSummary> = emptyList()
@@ -81,22 +86,24 @@ class ChatsViewModel @Inject constructor(
 
     private fun applyFilter() {
         val currentFilter = state.value.filter
+        val currentUser = sessionStore.session.value?.user
         val filtered = rawSummaries.filter { summary ->
             when (currentFilter) {
                 ThreadFilter.ALL -> true
                 ThreadFilter.UNREAD -> summary.unreadCount > 0
             }
         }.map { summary ->
+            val resolvedTitle = resolveThreadTitle(summary.title, currentUser)
             ThreadUiModel(
                 id = summary.id,
-                title = summary.title,
+                title = resolvedTitle,
                 lastMessage = summary.lastMessage ?: "",
                 lastMessageAt = summary.updatedAt,
                 unreadCount = summary.unreadCount,
                 isVoice = summary.lastMessage?.contains("点検") == true || summary.lastMessage?.contains("金型") == true,
-                worstStatus = if (summary.id == "t_line2") WakattaStatus.ORANGE else if (summary.id == "t_rahim") WakattaStatus.GREEN else null,
-                isGroup = summary.id != "t_rahim",
-                membersCount = if (summary.id == "t_line2" || summary.id == "t_safety") 4 else 2,
+                worstStatus = null,
+                isGroup = false,
+                membersCount = 0,
             )
         }
 
@@ -108,5 +115,28 @@ class ChatsViewModel @Inject constructor(
                 threads = filtered,
             )
         }
+    }
+
+    private fun resolveThreadTitle(title: Tri, currentUser: User?): Tri {
+        if (currentUser != null && currentUser.role == Role.WORKER) {
+            val myName = currentUser.displayName.trim()
+            val jaTitle = title["ja"]?.trim().orEmpty()
+            val matchesMyName = myName.isNotEmpty() && (
+                jaTitle.equals(myName, ignoreCase = true) ||
+                    title.values.any { it.trim().equals(myName, ignoreCase = true) }
+            )
+            if (matchesMyName) {
+                return FOREMAN_TITLE
+            }
+        }
+        return title
+    }
+
+    companion object {
+        private val FOREMAN_TITLE: Tri = mapOf(
+            "ja" to "職長",
+            "en" to "Foreman",
+            "bn" to "ফোরম্যান",
+        )
     }
 }

@@ -16,6 +16,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.techtsunagu.wakatta.core.design.component.EmptyState
 import com.techtsunagu.wakatta.core.design.component.ErrorState
 import com.techtsunagu.wakatta.core.design.component.LoadingState
+import com.techtsunagu.wakatta.core.design.component.RefreshOnReturn
 import com.techtsunagu.wakatta.core.design.component.WakattaTopBar
 
 @Composable
@@ -26,6 +27,7 @@ fun MachineScreen(
     onOpenNoteClick: (String) -> Unit = {},
     viewModel: MachineViewModel = hiltViewModel(),
 ) {
+    RefreshOnReturn { viewModel.onEvent(MachineEvent.Refresh) }
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
 

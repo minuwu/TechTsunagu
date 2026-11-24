@@ -1,6 +1,7 @@
 package com.techtsunagu.wakatta.feature.notices
 
 import androidx.compose.foundation.BorderStroke
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -102,6 +103,7 @@ data class NoticeUiState(
     val checkResult: CheckResultDto? = null,
     val isSpeaking: Boolean = false,
     val error: String? = null,
+    @StringRes val errorRes: Int? = null,
 )
 
 sealed interface NoticeEvent {
@@ -162,7 +164,11 @@ class NoticeViewModel @Inject constructor(
                     }
                     is AppResult.Failure -> {
                         updateState {
-                            it.copy(isLoading = false, error = "Notice not found")
+                            it.copy(
+                                isLoading = false,
+                                error = "error",
+                                errorRes = R.string.notices_error_not_found
+                            )
                         }
                     }
                 }
@@ -191,7 +197,11 @@ class NoticeViewModel @Inject constructor(
                     }
                     is AppResult.Failure -> {
                         updateState {
-                            it.copy(isLoading = false, error = "Notice not found")
+                            it.copy(
+                                isLoading = false,
+                                error = "error",
+                                errorRes = R.string.notices_error_not_found
+                            )
                         }
                     }
                 }
@@ -225,7 +235,13 @@ class NoticeViewModel @Inject constructor(
                     }
                 }
                 is AppResult.Failure -> {
-                    updateState { it.copy(isSubmittingCheck = false, error = "Could not submit check") }
+                    updateState {
+                        it.copy(
+                            isSubmittingCheck = false,
+                            error = "error",
+                            errorRes = R.string.notices_error_submit_check
+                        )
+                    }
                 }
             }
         }
@@ -327,9 +343,10 @@ fun NoticeContent(
                     modifier = Modifier.padding(innerPadding),
                 )
             }
-            state.error != null -> {
+            state.error != null || state.errorRes != null -> {
+                val errorMsg = state.errorRes?.let { stringResource(it) } ?: state.error ?: stringResource(R.string.notices_error, "")
                 ErrorState(
-                    message = state.error,
+                    message = errorMsg,
                     onRetry = { onEvent(NoticeEvent.Retry) },
                     retryLabel = stringResource(R.string.notices_retry),
                     modifier = Modifier.padding(innerPadding),

@@ -43,9 +43,18 @@ data class ContactMessageDto(
 
 data class TalkThreadDto(val id: String, val title: String, val entryCount: Int)
 
-data class TermPair(val from: String, val to: String)
+data class TermPair(
+    val from: String,
+    val to: String,
+    val plain: String = to,
+    val meaning: String = "",
+)
 
-data class ReplyOption(val en: String, val ja: String)
+data class ReplyOption(
+    val ja: String,
+    val meaning: String,
+    val en: String = meaning,
+)
 
 /**
  * One exchange in a Talk Thread. [grade] is null until the owner wrote or looked at the meaning;
@@ -67,13 +76,14 @@ data class TalkEntryDto(
     val replyOptions: List<ReplyOption>,
     val replyJa: String?,
     val confirmed: Boolean?,
+    val needsEdit: Boolean = false,
 )
 
 /** What the owner can do to an entry (the PATCH of E-085). */
 sealed interface EntryAction {
     data class Understand(val text: String) : EntryAction
     data object ShowMeaning : EntryAction
-    data class Reply(val index: Int) : EntryAction
+    data class Reply(val index: Int, val replyJa: String = "") : EntryAction
     data class Confirm(val understood: Boolean) : EntryAction
     data object RetryReply : EntryAction
 }
@@ -117,9 +127,9 @@ interface PersonalThreadRepository : ThreadSource {
     suspend fun renameTalk(id: String, title: String): AppResult<TalkThreadDto>
     suspend fun deleteTalk(id: String): AppResult<Unit>
     suspend fun getEntries(talkId: String): AppResult<List<TalkEntryDto>>
+    suspend fun addEntry(talkId: String, text: String): AppResult<TalkEntryDto>
+    suspend fun deleteEntry(talkId: String, entryId: String): AppResult<Unit>
 
-    /** Listens for one utterance and returns the new entry. */
-    suspend fun listen(talkId: String): AppResult<TalkEntryDto>
     suspend fun updateEntry(talkId: String, entryId: String, action: EntryAction): AppResult<TalkEntryDto>
 
     /** The one-time notice before the first Talk Thread. */

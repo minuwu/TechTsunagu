@@ -6,7 +6,6 @@
     <string name="machines_scan_screen_title">QR স্ক্যান</string>
     <string name="machines_panel_screen_title">মেশিন প্যানেল</string>
     <string name="machines_note_screen_title">কাজের নির্দেশিকা</string>
-    <string name="machines_screen_id">স্ক্রিন: %1$s</string>
     <string name="machines_loading">লোড হচ্ছে...</string>
     <string name="machines_empty">কোনো যন্ত্রপাতি পাওয়া যায়নি</string>
     <string name="machines_retry">পুনরায় চেষ্টা করুন</string>
@@ -128,4 +127,5 @@
     <string name="machines_panel_state_unknown">অজানা</string>
     <string name="machines_panel_override_reason_hint">অনুমতি না দিলে লাইন বন্ধ থাকবে</string>
     <string name="machines_note_submit_failed">উত্তর পাঠানো যায়নি। সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।</string>
+    <string name="machines_error_rate_limited">ইতিমধ্যে মনে করানো হয়েছে। কয়েক মিনিট অপেক্ষা করুন।</string>
 </resources>

@@ -10,6 +10,7 @@
 
     <string name="chat_error_offline">接続できません。メッセージは残っています。もう一度お試しください。</string>
     <string name="chat_error_session">サインアウトされたか、この操作は許可されていません。</string>
+    <string name="chat_error_already_sent">このメッセージは既に送信されています。</string>
     <string name="chat_error_generic">問題が起きました。もう一度お試しください。</string>
 
     <string name="chat_filter_all">すべて</string>
@@ -74,4 +75,10 @@
     <string name="chat_reexplain_worker_lang">相手の言語での説明</string>
     <string name="chat_reexplain_new_question">新しい確認質問（1問）</string>
     <string name="chat_reexplain_approve_send">承認して%1$sさんに送る</string>
+    <string name="chat_mic_permission_denied">音声録音にはマイクの権限が必要です。</string>
+    <string name="chat_dictation_unavailable">この端末では音声入力が利用できません。メッセージを入力してください。</string>
+    <string name="chat_dictation_no_speech">音声が聞き取れませんでした。もう一度お話しください。</string>
+    <string name="chat_dictation_type_instead">音声認識が利用できません。文字で入力してください。</string>
+    <string name="chat_mic_rationale">「わかった？」では声を文字に変換するためにマイクを使用します。音声データは保存されません。</string>
+    <string name="chat_type_instead">文字で入力</string>
 </resources>

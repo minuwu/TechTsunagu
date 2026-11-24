@@ -24,6 +24,7 @@
     <string name="board_add_task_submit">যোগ করুন</string>
     <string name="board_add_task_title_required">প্রথমে একটি শিরোনাম লিখুন</string>
     <string name="board_task_added">কাজ যোগ করা হয়েছে</string>
+    <string name="board_task_moved">কাজ স্থানান্তর করা হয়েছে</string>
 
     <string name="board_due_today">আজ</string>
     <string name="board_due_tomorrow">আগামীকাল</string>
@@ -34,20 +35,22 @@
     <string name="board_task_due">মেয়াদ</string>
     <string name="board_task_machine">মেশিন</string>
     <string name="board_task_from_chat">চ্যাট থেকে</string>
-    <string name="board_task_source_message">মূল বার্তা</string>
-    <string name="board_task_open_in_chat">চ্যাটে খুলুন</string>
     <string name="board_task_source_nearmiss">মূল রিপোর্ট</string>
     <string name="board_task_from_nearmiss">হিয়ারিহাট্ট রিপোর্ট থেকে</string>
-    <string name="board_task_comments">মন্তব্য</string>
-    <string name="board_task_add_comment">একটি মন্তব্য যোগ করুন…</string>
-    <string name="board_task_comments_stub">প্রোটোটাইপে মন্তব্য সমর্থিত নয়</string>
-    <string name="board_filter_stub">প্রোটোটাইপে ফিল্টার সমর্থিত নয়</string>
 
     <string name="board_move_task">কাজ স্থানান্তর</string>
     <string name="board_move_to_col">%1$s-এ স্থানান্তর করুন</string>
 
     <string name="board_conflict_title">সংস্করণ দ্বন্দ্ব (HTTP 412)</string>
     <string name="board_conflict_message">এই কাজটি অন্য কেউ পরিবর্তন করেছেন। সর্বশেষ তথ্য দেখতে পুনরায় লোড করুন।</string>
+    <string name="board_conflict_reloading">দ্বন্দ্ব: কাজটি অন্য কেউ পরিবর্তন করেছেন। পুনরায় লোড হচ্ছে…</string>
     <string name="board_reload">পুনরায় লোড</string>
     <string name="board_foreman_only">শুধুমাত্র ফোরম্যান নতুন কাজ তৈরি করতে পারেন</string>
+
+    <string name="board_error_offline">অফলাইনে আছেন। নেটওয়ার্ক সংযোগ পরীক্ষা করুন।</string>
+    <string name="board_error_timeout">অনুরোধের সময় শেষ হয়েছে। পুনরায় চেষ্টা করুন।</string>
+    <string name="board_error_conflict">সংস্করণ দ্বন্দ্ব (HTTP 412): কাজটি পরিবর্তিত হয়েছে।</string>
+    <string name="board_error_not_found">কাজটি পাওয়া যায়নি।</string>
+    <string name="board_error_forbidden">অনুমতি নেই।</string>
+    <string name="board_error_generic">একটি অপ্রত্যাশিত ত্রুটি ঘটেছে।</string>
 </resources>

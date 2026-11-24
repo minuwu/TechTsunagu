@@ -1,5 +1,6 @@
 package com.techtsunagu.wakatta.feature.board
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,11 +10,9 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -28,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -37,10 +37,11 @@ import com.techtsunagu.wakatta.core.common.MviViewModel
 import com.techtsunagu.wakatta.core.design.component.EmptyState
 import com.techtsunagu.wakatta.core.design.component.ErrorState
 import com.techtsunagu.wakatta.core.design.component.LoadingState
+import com.techtsunagu.wakatta.core.design.component.RefreshOnReturn
 import com.techtsunagu.wakatta.core.design.component.WakattaTopBar
 import com.techtsunagu.wakatta.core.model.AppError
 import com.techtsunagu.wakatta.core.model.AppResult
-import com.techtsunagu.wakatta.core.model.DemoSeed
+import com.techtsunagu.wakatta.core.model.LanguageManager
 import com.techtsunagu.wakatta.core.model.Machine
 import com.techtsunagu.wakatta.core.model.MachineRepository
 import com.techtsunagu.wakatta.core.model.Role
@@ -53,7 +54,6 @@ import com.techtsunagu.wakatta.core.model.WorkerRepository
 import com.techtsunagu.wakatta.feature.board.data.TaskCreator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
 data class BoardUiState(
@@ -62,17 +62,19 @@ data class BoardUiState(
     val todoTasks: List<Task> = emptyList(),
     val doingTasks: List<Task> = emptyList(),
     val doneTasks: List<Task> = emptyList(),
-    val error: String? = null,
-    val isForeman: Boolean = true,
-    val currentUserId: String = "u_tanaka",
-    val currentUserLang: String = "ja",
+    @StringRes val errorRes: Int? = null,
+    val isForeman: Boolean = false,
+    val currentUserId: String = "",
+    val currentUserName: String = "",
+    val currentUserLang: String = "",
     val isAddTaskSheetOpen: Boolean = false,
     val isSubmittingTask: Boolean = false,
     val selectedColumnPage: Int = 0,
-    val messageInfo: String? = null,
-    // The Add Task sheet offers these. The demo lists stay until the real ones load; a failed load empties them.
-    val sheetUsers: List<User> = DemoSeed.users,
-    val sheetMachines: List<Machine> = DemoSeed.machines,
+    @StringRes val messageRes: Int? = null,
+    val users: List<User> = emptyList(),
+    val machines: List<Machine> = emptyList(),
+    val sheetUsers: List<User> = emptyList(),
+    val sheetMachines: List<Machine> = emptyList(),
 ) {
     val totalTasks: Int get() = todoTasks.size + doingTasks.size + doneTasks.size
     val isEmpty: Boolean get() = totalTasks == 0
@@ -93,7 +95,6 @@ sealed interface BoardEvent {
         val machineId: String? = null,
     ) : BoardEvent
     data object ClearMessage : BoardEvent
-    data object ClickFilter : BoardEvent
 }
 
 sealed interface BoardEffect {
@@ -106,31 +107,56 @@ class BoardViewModel @Inject constructor(
     private val sessionStore: SessionStore,
     private val workerRepository: WorkerRepository,
     private val machineRepository: MachineRepository,
+    private val languageManager: LanguageManager,
 ) : MviViewModel<BoardUiState, BoardEvent, BoardEffect>(BoardUiState()) {
 
     init {
         viewModelScope.launch {
             sessionStore.session.collect { session ->
-                val role = session?.user?.role ?: Role.FOREMAN
-                val isFm = role == Role.FOREMAN
-                val lang = session?.user?.language ?: "ja"
-                val uid = session?.user?.id ?: "u_tanaka"
-                updateState { it.copy(isForeman = isFm, currentUserLang = lang, currentUserId = uid) }
+                if (session == null) return@collect
+                val isFm = session.user.role == Role.FOREMAN
+                updateState {
+                    it.copy(
+                        isForeman = isFm,
+                        currentUserId = session.user.id,
+                        currentUserName = session.user.displayName,
+                        users = if (isFm) it.users else listOf(session.user),
+                    )
+                }
+                if (isFm) {
+                    loadForemanUsers()
+                }
+            }
+        }
+        viewModelScope.launch {
+            languageManager.currentLanguage.collect { lang ->
+                updateState { it.copy(currentUserLang = lang) }
             }
         }
         loadTasks()
-        loadSheetChoices()
+        loadMachines()
+    }
+
+    private fun loadMachines() {
+        viewModelScope.launch {
+            val machines = (machineRepository.getMachines() as? AppResult.Success)?.value.orEmpty()
+            updateState { it.copy(machines = machines, sheetMachines = machines) }
+        }
     }
 
     /** Foreman only: a Worker may not list accounts, and only a Foreman can add a card. */
-    private fun loadSheetChoices() {
+    private fun loadForemanUsers() {
         viewModelScope.launch {
-            val isForeman = sessionStore.session.firstOrNull()?.user?.role != Role.WORKER
-            if (!isForeman) return@launch
-            val users = (workerRepository.getWorkers() as? AppResult.Success)?.value
-                ?.map { User(it.id, it.displayName, Role.WORKER, it.language) }.orEmpty()
-            val machines = (machineRepository.getMachines() as? AppResult.Success)?.value.orEmpty()
-            updateState { it.copy(sheetUsers = users, sheetMachines = machines) }
+            val sessionUser = sessionStore.session.value?.user
+            if (sessionUser?.role != Role.FOREMAN) return@launch
+            val workers = (workerRepository.getWorkers() as? AppResult.Success)?.value.orEmpty()
+            val workerUsers = workers.map { User(it.id, it.displayName, Role.WORKER, it.language) }
+            val allUsers = if (workerUsers.none { it.id == sessionUser.id }) {
+                listOf(sessionUser) + workerUsers
+            } else {
+                workerUsers
+            }
+            updateState { it.copy(users = allUsers, sheetUsers = allUsers) }
         }
     }
 
@@ -144,13 +170,12 @@ class BoardViewModel @Inject constructor(
             is BoardEvent.OpenAddTaskSheet -> updateState { it.copy(isAddTaskSheetOpen = true) }
             is BoardEvent.CloseAddTaskSheet -> updateState { it.copy(isAddTaskSheetOpen = false) }
             is BoardEvent.SubmitNewTask -> submitNewTask(event.titleText, event.assignees, event.dueAt, event.machineId)
-            is BoardEvent.ClearMessage -> updateState { it.copy(messageInfo = null) }
-            is BoardEvent.ClickFilter -> sendEffect(BoardEffect.ShowSnackbar("Filters are not in the prototype"))
+            is BoardEvent.ClearMessage -> updateState { it.copy(messageRes = null) }
         }
     }
 
     private fun loadTasks() {
-        updateState { it.copy(isLoading = true, error = null) }
+        updateState { it.copy(isLoading = true, errorRes = null) }
         viewModelScope.launch {
             when (val result = taskRepository.getTasks()) {
                 is AppResult.Success -> {
@@ -161,7 +186,7 @@ class BoardViewModel @Inject constructor(
                             todoTasks = all.filter { t -> t.column == TaskColumn.TODO },
                             doingTasks = all.filter { t -> t.column == TaskColumn.DOING },
                             doneTasks = all.filter { t -> t.column == TaskColumn.DONE },
-                            error = null,
+                            errorRes = null,
                         )
                     }
                 }
@@ -169,7 +194,7 @@ class BoardViewModel @Inject constructor(
                     updateState {
                         it.copy(
                             isLoading = false,
-                            error = formatError(result.error),
+                            errorRes = appErrorToStringRes(result.error),
                         )
                     }
                 }
@@ -189,12 +214,12 @@ class BoardViewModel @Inject constructor(
                             todoTasks = all.filter { t -> t.column == TaskColumn.TODO },
                             doingTasks = all.filter { t -> t.column == TaskColumn.DOING },
                             doneTasks = all.filter { t -> t.column == TaskColumn.DONE },
-                            error = null,
+                            errorRes = null,
                         )
                     }
                 }
                 is AppResult.Failure -> {
-                    updateState { it.copy(isRefreshing = false, error = formatError(result.error)) }
+                    updateState { it.copy(isRefreshing = false, errorRes = appErrorToStringRes(result.error)) }
                 }
             }
         }
@@ -210,10 +235,10 @@ class BoardViewModel @Inject constructor(
                 }
                 is AppResult.Failure -> {
                     if (result.error is AppError.PreconditionFailed) {
-                        updateState { it.copy(messageInfo = "Conflict: Task was modified. Reloading...") }
+                        updateState { it.copy(messageRes = R.string.board_conflict_reloading) }
                         loadTasks()
                     } else {
-                        updateState { it.copy(error = formatError(result.error)) }
+                        updateState { it.copy(errorRes = appErrorToStringRes(result.error)) }
                     }
                 }
             }
@@ -224,32 +249,45 @@ class BoardViewModel @Inject constructor(
         updateState { it.copy(isSubmittingTask = true) }
         viewModelScope.launch {
             val tri = mapOf("ja" to titleText, "en" to titleText, "bn" to titleText)
-            val effectiveAssignees = if (assignees.isEmpty()) listOf(state.value.currentUserId) else assignees
+            val effectiveAssignees = if (assignees.isEmpty()) {
+                if (state.value.currentUserId.isNotBlank()) listOf(state.value.currentUserId) else emptyList()
+            } else assignees
             val result = (taskRepository as? TaskCreator)
                 ?.createTask(tri, effectiveAssignees, dueAt, machineId)
                 ?: taskRepository.createTask(tri, effectiveAssignees, dueAt)
 
             when (result) {
                 is AppResult.Success -> {
-                    updateState { it.copy(isSubmittingTask = false, isAddTaskSheetOpen = false, messageInfo = "Task added") }
+                    updateState {
+                        it.copy(
+                            isSubmittingTask = false,
+                            isAddTaskSheetOpen = false,
+                            messageRes = R.string.board_task_added,
+                        )
+                    }
                     loadTasks()
                 }
                 is AppResult.Failure -> {
-                    updateState { it.copy(isSubmittingTask = false, error = formatError(result.error)) }
+                    updateState {
+                        it.copy(
+                            isSubmittingTask = false,
+                            errorRes = appErrorToStringRes(result.error),
+                        )
+                    }
                 }
             }
         }
     }
+}
 
-    private fun formatError(error: AppError): String = when (error) {
-        is AppError.Offline -> "Offline. Please check network connection."
-        is AppError.Timeout -> "Request timed out. Please retry."
-        is AppError.PreconditionFailed -> "Conflict (HTTP 412): Task was modified."
-        is AppError.NotFound -> "Task not found."
-        is AppError.Forbidden -> "Permission denied."
-        is AppError.Conflict -> "Conflict: ${error.code}"
-        else -> "An unexpected error occurred."
-    }
+internal fun appErrorToStringRes(error: AppError): Int = when (error) {
+    is AppError.Offline -> R.string.board_error_offline
+    is AppError.Timeout -> R.string.board_error_timeout
+    is AppError.PreconditionFailed -> R.string.board_error_conflict
+    is AppError.NotFound -> R.string.board_error_not_found
+    is AppError.Forbidden -> R.string.board_error_forbidden
+    is AppError.Conflict -> R.string.board_error_conflict
+    else -> R.string.board_error_generic
 }
 
 @Composable
@@ -257,6 +295,7 @@ fun BoardScreen(
     onTaskClick: (String) -> Unit = {},
     viewModel: BoardViewModel = viewModel(),
 ) {
+    RefreshOnReturn { viewModel.onEvent(BoardEvent.Refresh) }
     val state by viewModel.state.collectAsStateWithLifecycle()
     BoardContent(
         state = state,
@@ -273,12 +312,13 @@ fun BoardContent(
     modifier: Modifier = Modifier,
     onTaskClick: (String) -> Unit = {},
 ) {
+    val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    LaunchedEffect(state.messageInfo) {
-        state.messageInfo?.let { msg ->
-            snackbarHostState.showSnackbar(msg)
+    LaunchedEffect(state.messageRes) {
+        state.messageRes?.let { msgRes ->
+            snackbarHostState.showSnackbar(context.getString(msgRes))
             onEvent(BoardEvent.ClearMessage)
         }
     }
@@ -288,14 +328,6 @@ fun BoardContent(
         topBar = {
             WakattaTopBar(
                 title = stringResource(R.string.board_screen_title),
-                actions = {
-                    IconButton(onClick = { onEvent(BoardEvent.ClickFilter) }) {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = stringResource(R.string.board_filter_stub),
-                        )
-                    }
-                },
             )
         },
         floatingActionButton = {
@@ -323,9 +355,9 @@ fun BoardContent(
                 state.isLoading && state.isEmpty -> {
                     LoadingState(message = stringResource(R.string.board_loading))
                 }
-                state.error != null && state.isEmpty -> {
+                state.errorRes != null && state.isEmpty -> {
                     ErrorState(
-                        message = state.error,
+                        message = stringResource(state.errorRes),
                         onRetry = { onEvent(BoardEvent.Retry) },
                     )
                 }
@@ -343,6 +375,7 @@ fun BoardContent(
                     sheetState = sheetState,
                     users = state.sheetUsers,
                     machines = state.sheetMachines,
+                    lang = state.currentUserLang,
                     onDismissRequest = { onEvent(BoardEvent.CloseAddTaskSheet) },
                     onSubmit = { title, assignees, due, machineId ->
                         onEvent(BoardEvent.SubmitNewTask(title, assignees, due, machineId))
@@ -400,6 +433,11 @@ private fun BoardPagerContent(
                     column = TaskColumn.TODO,
                     tasks = state.todoTasks,
                     lang = state.currentUserLang,
+                    machines = state.machines,
+                    users = state.users,
+                    isForeman = state.isForeman,
+                    currentUserId = state.currentUserId,
+                    currentUserName = state.currentUserName,
                     onTaskClick = onTaskClick,
                     onMoveTask = { id, col -> onEvent(BoardEvent.MoveTask(id, col)) },
                 )
@@ -407,6 +445,11 @@ private fun BoardPagerContent(
                     column = TaskColumn.DOING,
                     tasks = state.doingTasks,
                     lang = state.currentUserLang,
+                    machines = state.machines,
+                    users = state.users,
+                    isForeman = state.isForeman,
+                    currentUserId = state.currentUserId,
+                    currentUserName = state.currentUserName,
                     onTaskClick = onTaskClick,
                     onMoveTask = { id, col -> onEvent(BoardEvent.MoveTask(id, col)) },
                 )
@@ -414,6 +457,11 @@ private fun BoardPagerContent(
                     column = TaskColumn.DONE,
                     tasks = state.doneTasks,
                     lang = state.currentUserLang,
+                    machines = state.machines,
+                    users = state.users,
+                    isForeman = state.isForeman,
+                    currentUserId = state.currentUserId,
+                    currentUserName = state.currentUserName,
                     onTaskClick = onTaskClick,
                     onMoveTask = { id, col -> onEvent(BoardEvent.MoveTask(id, col)) },
                 )

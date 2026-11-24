@@ -8,5 +8,6 @@ import com.techtsunagu.wakatta.core.model.AppError
 internal fun AppError.chatMessageRes(): Int = when (this) {
     AppError.Offline, AppError.Timeout -> R.string.chat_error_offline
     AppError.SessionExpired, AppError.Forbidden -> R.string.chat_error_session
+    is AppError.Conflict -> R.string.chat_error_already_sent
     else -> R.string.chat_error_generic
 }

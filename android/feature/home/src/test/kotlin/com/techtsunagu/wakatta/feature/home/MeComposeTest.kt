@@ -42,7 +42,7 @@ class MeComposeTest {
             )
         }
 
-        composeTestRule.onNodeWithText("Error: Connection lost").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Could not load this. Check the network and try again.").assertIsDisplayed()
         composeTestRule.onNodeWithText("Retry").assertIsDisplayed().performClick()
         assertTrue(retried)
     }
@@ -63,7 +63,7 @@ class MeComposeTest {
         }
 
         composeTestRule.onNodeWithText("Tanaka Kenichi").assertExists()
-        composeTestRule.onNodeWithText("Foreman · Plant 2").assertExists()
+        composeTestRule.onNodeWithText("Foreman").assertExists()
         composeTestRule.onNodeWithText("Team").assertExists()
         composeTestRule.onNodeWithText("Rahim Uddin").assertExists()
         composeTestRule.onNodeWithText("2/3 machines permitted").assertExists()
@@ -72,7 +72,6 @@ class MeComposeTest {
         composeTestRule.onNodeWithText("Language").assertExists()
         composeTestRule.onNodeWithText("Dark Mode").assertExists()
         composeTestRule.onNodeWithText("Large Text").assertExists()
-        composeTestRule.onNodeWithText("Simulate Offline").assertExists()
         composeTestRule.onNodeWithText("Notification Preferences").assertExists()
         composeTestRule.onNodeWithText("Sign Out").assertExists()
     }
@@ -104,13 +103,12 @@ class MeComposeTest {
         }
 
         composeTestRule.onNodeWithText("Rahim Uddin").assertExists()
-        composeTestRule.onNodeWithText("Worker · Plant 2").assertExists()
+        composeTestRule.onNodeWithText("Worker").assertExists()
         composeTestRule.onNodeWithText("Skill Passport").assertExists()
         composeTestRule.onNodeWithText("Lathe 1").assertExists()
         composeTestRule.onNodeWithText("Press #2").assertExists()
         composeTestRule.onNodeWithText("Not signed off yet").assertExists()
         composeTestRule.onNodeWithText("Take Check").assertExists()
         composeTestRule.onNodeWithText("My Learning").assertExists()
-        composeTestRule.onNodeWithText("Replay Onboarding").assertExists()
     }
 }

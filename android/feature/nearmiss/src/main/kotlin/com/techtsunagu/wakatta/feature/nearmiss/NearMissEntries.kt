@@ -7,8 +7,6 @@ import com.techtsunagu.wakatta.core.navigation.Navigator
 import com.techtsunagu.wakatta.core.navigation.NearMissDetailKey
 import com.techtsunagu.wakatta.core.navigation.NearMissListKey
 import com.techtsunagu.wakatta.core.navigation.NearMissNewKey
-import com.techtsunagu.wakatta.feature.nearmiss.data.FakeNearMissRepository
-import com.techtsunagu.wakatta.feature.nearmiss.domain.NearMissRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -54,7 +52,4 @@ abstract class NearMissModule {
     @IntoSet
     abstract fun bindNearMissEntries(entries: NearMissEntries): FeatureEntries
 
-    @Binds
-    @Singleton
-    abstract fun bindNearMissRepository(fake: FakeNearMissRepository): NearMissRepository
 }

@@ -48,12 +48,14 @@
 
     <!-- Briefing Card Screen -->
     <string name="briefing_card_screen_title">আজকের ব্রিফিং</string>
+    <string name="briefing_card_foreman_role">ফোরম্যান</string>
     <string name="briefing_card_read_aloud">পড়ে শোনান</string>
     <string name="briefing_card_stop_reading">পড়া থামান</string>
     <string name="briefing_card_question_section_title">১টি দ্রুত প্রশ্ন</string>
     <string name="briefing_card_not_sure_option">নিশ্চিত নই</string>
     <string name="briefing_card_feedback_understood">বুঝেছি! আপনি বুঝতে পেরেছেন।</string>
-    <string name="briefing_card_feedback_not_sure">তানাকা আবার বুঝিয়ে বলবেন।</string>
-    <string name="briefing_card_feedback_incorrect">ঠিক হয়নি। তানাকা আবার বুঝিয়ে বলবেন।</string>
+    <string name="briefing_card_feedback_not_sure">ফোরম্যান আবার বুঝিয়ে বলবেন।</string>
+    <string name="briefing_card_feedback_incorrect">ঠিক হয়নি। ফোরম্যান আবার বুঝিয়ে বলবেন।</string>
     <string name="briefing_card_correct_answer">উত্তর: %1$s</string>
+    <string name="briefing_new_make_draft">ব্রিফিং তৈরি করুন</string>
 </resources>

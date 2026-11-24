@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.techtsunagu.wakatta.core.common.MviViewModel
+import com.techtsunagu.wakatta.core.design.component.RefreshOnReturn
 import com.techtsunagu.wakatta.core.design.component.Avatar
 import com.techtsunagu.wakatta.core.design.component.EmptyState
 import com.techtsunagu.wakatta.core.design.component.ErrorState
@@ -52,6 +53,7 @@ import com.techtsunagu.wakatta.core.design.theme.StatusColors
 import com.techtsunagu.wakatta.core.model.AppResult
 import com.techtsunagu.wakatta.core.model.DemoSeed
 import com.techtsunagu.wakatta.core.model.LanguageManager
+import com.techtsunagu.wakatta.core.model.MachineRepository
 import com.techtsunagu.wakatta.core.model.Role
 import com.techtsunagu.wakatta.core.model.Session
 import com.techtsunagu.wakatta.core.model.SessionStore
@@ -63,11 +65,13 @@ import com.techtsunagu.wakatta.core.navigation.LearningKey
 import com.techtsunagu.wakatta.core.navigation.MachineKey
 import com.techtsunagu.wakatta.core.navigation.NoteKey
 import com.techtsunagu.wakatta.core.navigation.OnboardingKey
-import com.techtsunagu.wakatta.core.navigation.SignInKey
 import com.techtsunagu.wakatta.core.navigation.SkillsKey
+import com.techtsunagu.wakatta.core.network.ApiConfig
+import com.techtsunagu.wakatta.feature.home.data.HomeBoardSource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 
 data class TeamMemberItem(
@@ -96,8 +100,6 @@ data class MeUiState(
     val isLargeText: Boolean = false,
     val isSimulateOffline: Boolean = false,
     val notifyMessages: Boolean = true,
-    val notifySafety: Boolean = true,
-    val notifyLife: Boolean = true,
     val teamMembers: List<TeamMemberItem> = emptyList(),
     val passportMachines: List<PassportMachineItem> = emptyList(),
     val showLanguageDialog: Boolean = false,
@@ -105,13 +107,10 @@ data class MeUiState(
 
 sealed interface MeEvent {
     data object Retry : MeEvent
-    data object Refresh : MeEvent
     data class ToggleDarkMode(val enabled: Boolean) : MeEvent
     data class ToggleLargeText(val enabled: Boolean) : MeEvent
     data class ToggleSimulateOffline(val enabled: Boolean) : MeEvent
     data class ToggleNotifyMessages(val enabled: Boolean) : MeEvent
-    data class ToggleNotifySafety(val enabled: Boolean) : MeEvent
-    data class ToggleNotifyLife(val enabled: Boolean) : MeEvent
     data object OpenLanguagePicker : MeEvent
     data object DismissLanguagePicker : MeEvent
     data class SelectLanguage(val langCode: String) : MeEvent
@@ -120,6 +119,7 @@ sealed interface MeEvent {
     data class PassportMachineClick(val machineId: String, val isSignedOff: Boolean) : MeEvent
     data object ReplayOnboarding : MeEvent
     data object SwitchRoleDemo : MeEvent
+    data object Refresh : MeEvent
     data object SignOut : MeEvent
 }
 
@@ -133,6 +133,8 @@ class MeViewModel @Inject constructor(
     private val sessionStore: SessionStore,
     private val settingsStore: SettingsStore,
     private val signOffRepository: SignOffRepository,
+    private val machineRepository: MachineRepository,
+    private val boardSource: HomeBoardSource,
     private val languageManager: LanguageManager,
 ) : MviViewModel<MeUiState, MeEvent, MeEffect>(MeUiState(isLoading = true)) {
 
@@ -142,42 +144,37 @@ class MeViewModel @Inject constructor(
 
     private fun loadData() {
         viewModelScope.launch {
-            updateState { it.copy(isLoading = true, error = null) }
+            updateState { it.copy(isLoading = it.userName.isEmpty(), error = null) }
             try {
-                val session = sessionStore.session.firstOrNull()
-                val isForeman = session?.user?.role == Role.FOREMAN
-                val userName = session?.user?.displayName ?: if (isForeman) "田中 健一" else "Rahim Uddin"
-                val userId = session?.user?.id ?: if (isForeman) "u_tanaka" else "u_rahim"
-                val currentLang = languageManager.currentLanguage.value.ifEmpty { "ja" }
+                val user = sessionStore.session.firstOrNull()?.user ?: return@launch
+                val isForeman = user.role == Role.FOREMAN
+                val currentLang = languageManager.currentLanguage.value
 
                 val darkMode = settingsStore.isDarkMode.value ?: false
                 val largeText = settingsStore.isLargeText.value
                 val offlineHint = settingsStore.isOfflineHintEnabled.value
                 val notifications = settingsStore.isNotificationEnabled.value
 
-                // Foreman team list
                 val teamMembers = if (isForeman) {
-                    listOf(
-                        TeamMemberItem(id = "u_rahim", name = "Rahim Uddin", permittedCount = 2, totalCount = 3),
-                        TeamMemberItem(id = "u_nguyen", name = "Nguyen Van An", permittedCount = 1, totalCount = 3),
-                        TeamMemberItem(id = "u_siti", name = "Siti Rahma", permittedCount = 3, totalCount = 3),
-                    )
+                    (boardSource.getTeam() as? AppResult.Success)?.value.orEmpty()
+                        .map { TeamMemberItem(it.id, it.name, it.permitted, it.total) }
                 } else {
                     emptyList()
                 }
 
-                // Worker passport machines
-                val passport = signOffRepository.getPassport(userId)
-                val signOffs = (passport as? AppResult.Success)?.value?.signOffs.orEmpty()
-                val passportItems = DemoSeed.machines.map { m ->
-                    val so = signOffs.find { it.machineId == m.id }
-                    val isSigned = so != null || m.isReady
-                    PassportMachineItem(
-                        id = m.id,
-                        name = pick(m.name, currentLang),
-                        isSignedOff = isSigned,
-                        signedOffDetail = if (isSigned) "v1 · 11/22" else "",
-                    )
+                val passportItems = if (isForeman) {
+                    emptyList()
+                } else {
+                    val passedAt = (signOffRepository.getPassport(user.id) as? AppResult.Success)?.value?.signOffs.orEmpty()
+                        .associate { it.machineId to it.passedAt }
+                    (machineRepository.getMachines() as? AppResult.Success)?.value.orEmpty().map { m ->
+                        PassportMachineItem(
+                            id = m.id,
+                            name = pick(m.name, currentLang),
+                            isSignedOff = m.isReady,
+                            signedOffDetail = passedAt[m.id]?.take(10).orEmpty(),
+                        )
+                    }
                 }
 
                 updateState {
@@ -185,15 +182,13 @@ class MeViewModel @Inject constructor(
                         isLoading = false,
                         error = null,
                         isForeman = isForeman,
-                        userId = userId,
-                        userName = userName,
+                        userId = user.id,
+                        userName = user.displayName,
                         currentLanguage = currentLang,
                         isDarkMode = darkMode,
                         isLargeText = largeText,
                         isSimulateOffline = offlineHint,
                         notifyMessages = notifications,
-                        notifySafety = true,
-                        notifyLife = true,
                         teamMembers = teamMembers,
                         passportMachines = passportItems,
                     )
@@ -237,12 +232,6 @@ class MeViewModel @Inject constructor(
                     updateState { it.copy(notifyMessages = event.enabled) }
                 }
             }
-            is MeEvent.ToggleNotifySafety -> {
-                updateState { it.copy(notifySafety = event.enabled) }
-            }
-            is MeEvent.ToggleNotifyLife -> {
-                updateState { it.copy(notifyLife = event.enabled) }
-            }
             MeEvent.OpenLanguagePicker -> updateState { it.copy(showLanguageDialog = true) }
             MeEvent.DismissLanguagePicker -> updateState { it.copy(showLanguageDialog = false) }
             is MeEvent.SelectLanguage -> {
@@ -277,13 +266,18 @@ class MeViewModel @Inject constructor(
             }
             MeEvent.SignOut -> {
                 viewModelScope.launch {
+                    // Best effort: it also stops the pushes to this phone. Signing out works offline too.
+                    withTimeoutOrNull(SIGN_OUT_WAIT_MS) { boardSource.signOut() }
                     sessionStore.clear()
-                    sendEffect(MeEffect.Navigate(SignInKey))
+                    // The next person on this phone gets the language of their own account.
+                    sendEffect(MeEffect.ApplyLocales(""))
                 }
             }
         }
     }
 }
+
+private const val SIGN_OUT_WAIT_MS = 3_000L
 
 @Composable
 fun MeScreen(
@@ -291,6 +285,8 @@ fun MeScreen(
     onNavigate: (Any) -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+
+    RefreshOnReturn { viewModel.onEvent(MeEvent.Refresh) }
 
     LaunchedEffect(viewModel) {
         viewModel.effects.collect { effect ->
@@ -351,7 +347,7 @@ fun MeContent(
                     contentAlignment = Alignment.Center,
                 ) {
                     ErrorState(
-                        message = stringResource(R.string.home_error, state.error),
+                        message = stringResource(R.string.home_error),
                         retryLabel = stringResource(R.string.home_retry),
                         onRetry = { onEvent(MeEvent.Retry) },
                     )
@@ -469,8 +465,7 @@ fun MeContent(
                                                         if (machine.signedOffDetail.isNotEmpty()) {
                                                             stringResource(
                                                                 R.string.home_me_signed_off,
-                                                                "11/22",
-                                                                "v1",
+                                                                machine.signedOffDetail,
                                                             )
                                                         } else {
                                                             stringResource(R.string.home_me_valid_signoff)
@@ -491,7 +486,7 @@ fun MeContent(
                                                 if (machine.isSignedOff) {
                                                     StatusChip(
                                                         status = WakattaStatus.GREEN,
-                                                        label = "READY",
+                                                        label = stringResource(R.string.home_me_ready),
                                                     )
                                                 } else {
                                                     StatusChip(
@@ -587,25 +582,27 @@ fun MeContent(
                                         )
                                     },
                                 )
-                                HorizontalDivider()
-                                // Simulate Offline
-                                WakattaListItem(
-                                    headlineContent = { Text(text = stringResource(R.string.home_me_simulate_offline)) },
-                                    supportingContent = { Text(text = stringResource(R.string.home_me_simulate_offline_sub)) },
-                                    leadingContent = {
-                                        Icon(
-                                            painter = painterResource(R.drawable.home_ic_wifioff),
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.primary,
-                                        )
-                                    },
-                                    trailingContent = {
-                                        Switch(
-                                            checked = state.isSimulateOffline,
-                                            onCheckedChange = { onEvent(MeEvent.ToggleSimulateOffline(it)) },
-                                        )
-                                    },
-                                )
+                                if (!ApiConfig.USE_LIVE_API) {
+                                    HorizontalDivider()
+                                    // Simulate Offline
+                                    WakattaListItem(
+                                        headlineContent = { Text(text = stringResource(R.string.home_me_simulate_offline)) },
+                                        supportingContent = { Text(text = stringResource(R.string.home_me_simulate_offline_sub)) },
+                                        leadingContent = {
+                                            Icon(
+                                                painter = painterResource(R.drawable.home_ic_wifioff),
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.primary,
+                                            )
+                                        },
+                                        trailingContent = {
+                                            Switch(
+                                                checked = state.isSimulateOffline,
+                                                onCheckedChange = { onEvent(MeEvent.ToggleSimulateOffline(it)) },
+                                            )
+                                        },
+                                    )
+                                }
                             }
                         }
                     }
@@ -627,26 +624,6 @@ fun MeContent(
                                         Switch(
                                             checked = state.notifyMessages,
                                             onCheckedChange = { onEvent(MeEvent.ToggleNotifyMessages(it)) },
-                                        )
-                                    },
-                                )
-                                HorizontalDivider()
-                                WakattaListItem(
-                                    headlineContent = { Text(text = stringResource(R.string.home_me_notify_safety)) },
-                                    trailingContent = {
-                                        Switch(
-                                            checked = state.notifySafety,
-                                            onCheckedChange = { onEvent(MeEvent.ToggleNotifySafety(it)) },
-                                        )
-                                    },
-                                )
-                                HorizontalDivider()
-                                WakattaListItem(
-                                    headlineContent = { Text(text = stringResource(R.string.home_me_notify_life)) },
-                                    trailingContent = {
-                                        Switch(
-                                            checked = state.notifyLife,
-                                            onCheckedChange = { onEvent(MeEvent.ToggleNotifyLife(it)) },
                                         )
                                     },
                                 )
@@ -678,44 +655,47 @@ fun MeContent(
                                     )
                                     HorizontalDivider()
                                 }
-                                WakattaListItem(
-                                    headlineContent = { Text(text = stringResource(R.string.home_me_replay_onboarding)) },
-                                    leadingContent = {
-                                        Icon(
-                                            painter = painterResource(R.drawable.home_ic_replay),
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.primary,
-                                        )
-                                    },
-                                    trailingContent = {
-                                        Icon(
-                                            painter = painterResource(R.drawable.home_ic_arrow_forward),
-                                            contentDescription = null,
-                                        )
-                                    },
-                                    onClick = { onEvent(MeEvent.ReplayOnboarding) },
-                                )
-                                HorizontalDivider()
-                                WakattaListItem(
-                                    headlineContent = { Text(text = stringResource(R.string.home_me_switch_role)) },
-                                    supportingContent = {
-                                        Text(
-                                            text = if (state.isForeman) {
-                                                "Foreman -> Worker (English)"
-                                            } else {
-                                                "Worker -> Foreman (日本語)"
-                                            },
-                                        )
-                                    },
-                                    trailingContent = {
-                                        Icon(
-                                            painter = painterResource(R.drawable.home_ic_arrow_forward),
-                                            contentDescription = null,
-                                        )
-                                    },
-                                    onClick = { onEvent(MeEvent.SwitchRoleDemo) },
-                                )
-                                HorizontalDivider()
+                                // shortcut: the onboarding steps are the prototype demo (team QR, team code), open them in live mode when they use real data.
+                                if (!ApiConfig.USE_LIVE_API) {
+                                    WakattaListItem(
+                                        headlineContent = { Text(text = stringResource(R.string.home_me_replay_onboarding)) },
+                                        leadingContent = {
+                                            Icon(
+                                                painter = painterResource(R.drawable.home_ic_replay),
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.primary,
+                                            )
+                                        },
+                                        trailingContent = {
+                                            Icon(
+                                                painter = painterResource(R.drawable.home_ic_arrow_forward),
+                                                contentDescription = null,
+                                            )
+                                        },
+                                        onClick = { onEvent(MeEvent.ReplayOnboarding) },
+                                    )
+                                    HorizontalDivider()
+                                    WakattaListItem(
+                                        headlineContent = { Text(text = stringResource(R.string.home_me_switch_role)) },
+                                        supportingContent = {
+                                            Text(
+                                                text = if (state.isForeman) {
+                                                    "Foreman -> Worker (English)"
+                                                } else {
+                                                    "Worker -> Foreman (日本語)"
+                                                },
+                                            )
+                                        },
+                                        trailingContent = {
+                                            Icon(
+                                                painter = painterResource(R.drawable.home_ic_arrow_forward),
+                                                contentDescription = null,
+                                            )
+                                        },
+                                        onClick = { onEvent(MeEvent.SwitchRoleDemo) },
+                                    )
+                                    HorizontalDivider()
+                                }
                                 WakattaListItem(
                                     headlineContent = {
                                         Text(
@@ -730,7 +710,7 @@ fun MeContent(
                     }
 
                     // Demo Data Notice Banner
-                    item(key = "demo_notice", contentType = "notice") {
+                    if (!ApiConfig.USE_LIVE_API) item(key = "demo_notice", contentType = "notice") {
                         Text(
                             text = stringResource(R.string.home_me_demo_data_notice),
                             style = MaterialTheme.typography.bodySmall,

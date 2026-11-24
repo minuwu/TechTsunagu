@@ -6,10 +6,10 @@
     <string name="home_loading">লোড হচ্ছে…</string>
     <string name="home_empty">কোন তথ্য নেই</string>
     <string name="home_retry">পুনরায় চেষ্টা করুন</string>
-    <string name="home_error">ত্রুটি: %1$s</string>
+    <string name="home_error">লোড করা যায়নি। নেটওয়ার্ক দেখে আবার চেষ্টা করুন।</string>
 
-    <string name="home_greeting_foreman">সুপ্রভাত, %1$s</string>
-    <string name="home_greeting_worker">সুপ্রভাত, %1$s</string>
+    <string name="home_greeting_foreman">হ্যালো, %1$s</string>
+    <string name="home_greeting_worker">হ্যালো, %1$s</string>
     <string name="home_followup_card_title">ফলো-আপ প্রয়োজন: %1$dটি</string>
     <string name="home_followup_all_good">সবাই নির্দেশনা বুঝতে পেরেছে</string>
     <string name="home_followup_detail">%1$s · \"%2$s\" বুঝতে সমস্যা রয়েছে</string>
@@ -17,8 +17,6 @@
     <string name="home_status_green">বুঝেছি</string>
     <string name="home_status_orange">স্পষ্ট করা হয়েছে</string>
     <string name="home_status_red">বিভ্রান্তি</string>
-    <string name="home_status_wait">উত্তরের অপেক্ষায়</string>
-    <string name="home_bar_cap_active">উত্তরের অপেক্ষায়: %1$dটি · মোট: %2$dটি</string>
     <string name="home_bar_cap_empty">এখনও কোনো নির্দেশনা দেওয়া হয়নি</string>
     <string name="home_quick_actions">দ্রুত ব্যবস্থা</string>
     <string name="home_qa_briefing">সকালের ব্রিফিং</string>
@@ -50,15 +48,16 @@
     <string name="home_bell_content_desc">বিজ্ঞপ্তি</string>
     <string name="home_unread_badge">%1$d</string>
 
-    <string name="home_me_plant_foreman">ফোরম্যান · ২নং কারখানা</string>
-    <string name="home_me_plant_worker">কর্মী · ২নং কারখানা</string>
+    <string name="home_me_plant_foreman">ফোরম্যান</string>
+    <string name="home_me_plant_worker">কর্মী</string>
     <string name="home_me_team">দল</string>
     <string name="home_me_team_machines_permitted">%1$d/%2$dটি মেশিন অনুমোদিত</string>
     <string name="home_me_open_skills">দক্ষতা তালিকা খুলুন</string>
     <string name="home_me_skill_passport">স্কিল পাসপোর্ট</string>
-    <string name="home_me_signed_off">সাইন-অফ সম্পন্ন %1$s · %2$s</string>
+    <string name="home_me_signed_off">সাইন-অফ সম্পন্ন %1$s</string>
     <string name="home_me_valid_signoff">বৈধ সাইন-অফ</string>
     <string name="home_me_not_signed_off">এখনও সাইন-অফ হয়নি</string>
+    <string name="home_me_ready">প্রস্তুত</string>
     <string name="home_me_take_check">Check দিন</string>
     <string name="home_me_settings">সেটিংস</string>
     <string name="home_me_language">ভাষা</string>
@@ -68,8 +67,6 @@
     <string name="home_me_simulate_offline_sub">কেবলমাত্র প্রদর্শনের জন্য</string>
     <string name="home_me_notifications">বিজ্ঞপ্তি সেটিংস</string>
     <string name="home_me_notify_messages">বার্তা ও কাজ</string>
-    <string name="home_me_notify_safety">নিরাপত্তা, ব্রিফিং ও মেশিন</string>
-    <string name="home_me_notify_life">জীবন ও নোটিশ</string>
     <string name="home_me_replay_onboarding">অনবোর্ডিং পুনরায় দেখুন</string>
     <string name="home_me_switch_role">রোল পরিবর্তন করুন (ডেমো)</string>
     <string name="home_me_sign_out">সাইন আউট</string>

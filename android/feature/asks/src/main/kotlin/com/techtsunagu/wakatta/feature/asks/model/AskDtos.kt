@@ -12,7 +12,10 @@ enum class AskKind {
 
 @Serializable
 enum class AskStatus {
-    ANSWERED, FORWARDED, REPLIED
+    ANSWERED, FORWARDED, REPLIED,
+
+    /** Neither a Notice nor a Senpai has answered: it was not forwarded. */
+    OPEN,
 }
 
 @Serializable
@@ -41,7 +44,14 @@ data class AskDto(
     val replyEn: String? = null,
     val replyBn: String? = null,
     val createdAt: String,
-)
+) {
+    /** The Senpai's reply in the reader's language, else the Japanese the Senpai wrote. */
+    fun replyFor(lang: String): String? = when (lang) {
+        "ja" -> replyJa
+        "bn" -> replyBn
+        else -> replyEn
+    } ?: replyJa
+}
 
 /** [idempotencyKey] is made once per user action, so a retry of the same request reuses it. */
 data class AskCreateRequest(

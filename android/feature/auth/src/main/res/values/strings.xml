@@ -12,7 +12,6 @@
     <string name="auth_submit">Sign In</string>
     <string name="auth_change_pin_submit">Update PIN</string>
     <string name="auth_select_worker">Select your name</string>
-    <string name="auth_screen_id">Screen: %1$s</string>
     <string name="auth_loading">Loading...</string>
     <string name="auth_empty">No workers found</string>
     <string name="auth_retry">Retry</string>

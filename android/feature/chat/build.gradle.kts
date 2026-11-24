@@ -17,6 +17,7 @@ android {
 
 dependencies {
     implementation(project(":core:network"))
+    implementation(project(":core:media"))
     implementation(libs.androidx.compose.material.icons.extended)
 
     testImplementation(platform(libs.androidx.compose.bom))

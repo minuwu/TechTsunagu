@@ -2,7 +2,6 @@ package com.techtsunagu.wakatta.feature.nearmiss
 
 import com.techtsunagu.wakatta.core.model.AppError
 import com.techtsunagu.wakatta.core.model.AppResult
-import com.techtsunagu.wakatta.core.model.AudioRecorder
 import com.techtsunagu.wakatta.core.model.DemoSeed
 import com.techtsunagu.wakatta.core.model.Machine
 import com.techtsunagu.wakatta.core.model.MachineDetail
@@ -20,6 +19,7 @@ import com.techtsunagu.wakatta.core.model.User
 import com.techtsunagu.wakatta.core.model.WorkerInfo
 import com.techtsunagu.wakatta.core.model.WorkerRepository
 import com.techtsunagu.wakatta.feature.nearmiss.data.FakeNearMissRepository
+import com.techtsunagu.wakatta.feature.nearmiss.data.QueuedNearMiss
 import com.techtsunagu.wakatta.feature.nearmiss.domain.NearMissSeverity
 import com.techtsunagu.wakatta.feature.nearmiss.domain.NearMissStatus
 import java.io.File
@@ -52,7 +52,6 @@ class NearMissViewModelTest {
     private lateinit var machineRepository: TestMachineRepository
     private lateinit var workerRepository: TestWorkerRepository
     private lateinit var taskRepository: TestTaskRepository
-    private lateinit var audioRecorder: TestAudioRecorder
     private lateinit var photoCapture: TestPhotoCapture
     private lateinit var outboxWriter: TestOutboxWriter
     private lateinit var sessionStore: TestSessionStore
@@ -64,7 +63,6 @@ class NearMissViewModelTest {
         machineRepository = TestMachineRepository()
         workerRepository = TestWorkerRepository()
         taskRepository = TestTaskRepository()
-        audioRecorder = TestAudioRecorder()
         photoCapture = TestPhotoCapture()
         outboxWriter = TestOutboxWriter()
         sessionStore = TestSessionStore()
@@ -82,7 +80,6 @@ class NearMissViewModelTest {
         val viewModel = NearMissNewViewModel(
             nearMissRepository = nearMissRepository,
             machineRepository = machineRepository,
-            audioRecorder = audioRecorder,
             photoCapture = photoCapture,
             outboxWriter = outboxWriter,
             sessionStore = sessionStore,
@@ -104,7 +101,6 @@ class NearMissViewModelTest {
         val viewModel = NearMissNewViewModel(
             nearMissRepository = nearMissRepository,
             machineRepository = machineRepository,
-            audioRecorder = audioRecorder,
             photoCapture = photoCapture,
             outboxWriter = outboxWriter,
             sessionStore = sessionStore,
@@ -125,7 +121,6 @@ class NearMissViewModelTest {
         val viewModel = NearMissNewViewModel(
             nearMissRepository = nearMissRepository,
             machineRepository = machineRepository,
-            audioRecorder = audioRecorder,
             photoCapture = photoCapture,
             outboxWriter = outboxWriter,
             sessionStore = sessionStore,
@@ -148,33 +143,10 @@ class NearMissViewModelTest {
     }
 
     @Test
-    fun newViewModelRecordingStartAndStop() = runTest {
-        val viewModel = NearMissNewViewModel(
-            nearMissRepository = nearMissRepository,
-            machineRepository = machineRepository,
-            audioRecorder = audioRecorder,
-            photoCapture = photoCapture,
-            outboxWriter = outboxWriter,
-            sessionStore = sessionStore,
-        )
-
-        viewModel.onEvent(NearMissNewEvent.SelectMachine("mc1"))
-        viewModel.onEvent(NearMissNewEvent.StartRecord)
-        assertTrue(viewModel.state.value.isRecording)
-        assertTrue(audioRecorder.started)
-
-        viewModel.onEvent(NearMissNewEvent.StopRecord)
-        advanceUntilIdle()
-        assertFalse(viewModel.state.value.isRecording)
-        assertTrue(audioRecorder.stopped)
-    }
-
-    @Test
     fun newViewModelSendReportOnlineSuccess() = runTest {
         val viewModel = NearMissNewViewModel(
             nearMissRepository = nearMissRepository,
             machineRepository = machineRepository,
-            audioRecorder = audioRecorder,
             photoCapture = photoCapture,
             outboxWriter = outboxWriter,
             sessionStore = sessionStore,
@@ -197,14 +169,13 @@ class NearMissViewModelTest {
         val viewModel = NearMissNewViewModel(
             nearMissRepository = nearMissRepository,
             machineRepository = machineRepository,
-            audioRecorder = audioRecorder,
             photoCapture = photoCapture,
             outboxWriter = outboxWriter,
             sessionStore = sessionStore,
         )
 
         viewModel.onEvent(NearMissNewEvent.SelectMachine("mc2"))
-        viewModel.onEvent(NearMissNewEvent.UpdateText("Emergency jam clearing issue"))
+        viewModel.onEvent(NearMissNewEvent.UpdateText("Emergency \"jam\" clearing issue"))
         viewModel.onEvent(NearMissNewEvent.SendReport)
         advanceUntilIdle()
 
@@ -212,7 +183,31 @@ class NearMissViewModelTest {
         assertTrue(state.isSent)
         assertTrue(state.isQueuedOffline)
         assertEquals(1, outboxWriter.enqueued.size)
-        assertEquals("nearmiss", outboxWriter.enqueued[0].first)
+        val (kind, _, payload) = outboxWriter.enqueued[0]
+        assertEquals("nearmiss:${DemoSeed.demoWorker.id}", kind)
+        assertEquals("Emergency \"jam\" clearing issue", QueuedNearMiss.decode(payload)?.text)
+
+        // The same report, after a refusal by the server, comes back into a new form.
+        outboxWriter.failed = payload
+        nearMissRepository.simulateError(null)
+        val next = NearMissNewViewModel(nearMissRepository, machineRepository, photoCapture, outboxWriter, sessionStore)
+        next.onEvent(NearMissNewEvent.Refresh)
+        advanceUntilIdle()
+        assertTrue(next.state.value.sendFailed)
+        assertEquals("mc2", next.state.value.machineId)
+    }
+
+    @Test
+    fun newViewModelRefusedReportIsNotQueued() = runTest {
+        nearMissRepository.simulateError(AppError.Validation())
+        val viewModel = NearMissNewViewModel(nearMissRepository, machineRepository, photoCapture, outboxWriter, sessionStore)
+        viewModel.onEvent(NearMissNewEvent.SelectMachine("mc2"))
+        viewModel.onEvent(NearMissNewEvent.UpdateText("Report text"))
+        viewModel.onEvent(NearMissNewEvent.SendReport)
+        advanceUntilIdle()
+        assertTrue(viewModel.state.value.sendFailed)
+        assertFalse(viewModel.state.value.isSent)
+        assertTrue(outboxWriter.enqueued.isEmpty())
     }
 
     @Test
@@ -220,7 +215,6 @@ class NearMissViewModelTest {
         val viewModel = NearMissNewViewModel(
             nearMissRepository = nearMissRepository,
             machineRepository = machineRepository,
-            audioRecorder = audioRecorder,
             photoCapture = photoCapture,
             outboxWriter = outboxWriter,
             sessionStore = sessionStore,
@@ -358,7 +352,7 @@ class NearMissViewModelTest {
         assertNotNull(state.report?.taskId)
         assertEquals(NearMissStatus.ACK, state.report?.status)
         assertEquals(1, taskRepository.createdTasks.size)
-        assertEquals("Task added to board", state.toastMessage)
+        assertEquals(R.string.nearmiss_task_created_toast, state.toastMessage)
     }
 
     @Test
@@ -418,19 +412,6 @@ private class TestTaskRepository : TaskRepository {
         AppResult.Failure(AppError.NotFound)
 }
 
-private class TestAudioRecorder : AudioRecorder {
-    var started = false
-    var stopped = false
-    override fun start(): Flow<Pair<Float, Int>> {
-        started = true
-        return emptyFlow()
-    }
-    override suspend fun stop(): File? {
-        stopped = true
-        return null
-    }
-}
-
 private class TestPhotoCapture : PhotoCapture {
     override suspend fun captureOrPick(): File? = null
 }
@@ -441,4 +422,6 @@ private class TestOutboxWriter : OutboxWriter {
         enqueued.add(Triple(kind, idempotencyKey, payloadJson))
     }
     override fun pendingCount(kind: String): Flow<Int> = emptyFlow()
+    var failed: String? = null
+    override suspend fun takeFailed(kind: String): String? = failed.also { failed = null }
 }

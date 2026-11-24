@@ -12,7 +12,6 @@
     <string name="auth_submit">লগইন করুন</string>
     <string name="auth_change_pin_submit">পিন পরিবর্তন করুন</string>
     <string name="auth_select_worker">আপনার নাম বেছে নিন</string>
-    <string name="auth_screen_id">স্ক্রিন আইডি: %1$s</string>
     <string name="auth_loading">লোড হচ্ছে...</string>
     <string name="auth_empty">কোনো কর্মী পাওয়া যায়নি</string>
     <string name="auth_retry">পুনরায় চেষ্টা করুন</string>

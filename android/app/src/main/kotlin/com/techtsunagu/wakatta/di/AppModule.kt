@@ -11,10 +11,12 @@ import com.techtsunagu.wakatta.BuildConfig
 import com.techtsunagu.wakatta.FakeSessionStore
 import com.techtsunagu.wakatta.core.common.AppConfig
 import com.techtsunagu.wakatta.core.common.LanguageManagerImpl
+import com.techtsunagu.wakatta.core.datastore.DataStoreSettingsStore
 import com.techtsunagu.wakatta.core.datastore.EncryptedSessionStore
 import com.techtsunagu.wakatta.core.model.LanguageManager
 import com.techtsunagu.wakatta.core.network.ApiConfig
 import com.techtsunagu.wakatta.core.model.SessionStore
+import com.techtsunagu.wakatta.core.model.SettingsStore
 import com.techtsunagu.wakatta.core.navigation.Navigator
 import com.techtsunagu.wakatta.core.navigation.TopLevelBackStack
 import dagger.Module
@@ -53,28 +55,41 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideSettingsStore(@ApplicationContext context: Context): SettingsStore =
+        DataStoreSettingsStore(PreferenceDataStoreFactory.create(produceFile = { context.preferencesDataStoreFile("settings.preferences_pb") }))
+
+    @Provides
+    @Singleton
     fun provideSessionStore(
         @ApplicationContext context: Context,
         fakeSessionStore: FakeSessionStore,
     ): SessionStore {
         if (ApiConfig.USE_LIVE_API || !BuildConfig.USE_MOCK) {
-            return try {
-                AeadConfig.register()
-                val keysetHandle = AndroidKeysetManager.Builder()
-                    .withSharedPref(context, "session_keyset", "session_keyset_prefs")
+            AeadConfig.register()
+            val keyset = {
+                AndroidKeysetManager.Builder()
+                    .withSharedPref(context, "session_keyset", KEYSET_PREFS)
                     .withKeyTemplate(KeyTemplates.get("AES256_GCM"))
                     .withMasterKeyUri("android-keystore://session_master_key")
                     .build()
                     .keysetHandle
-                val aead = keysetHandle.getPrimitive(Aead::class.java)
-                val dataStore = PreferenceDataStoreFactory.create(
-                    produceFile = { context.preferencesDataStoreFile("session.preferences_pb") },
-                )
-                EncryptedSessionStore(dataStore = dataStore, aead = aead)
-            } catch (_: Throwable) {
-                fakeSessionStore
             }
+            // A keyset the Keystore cannot open any more (restored backup, reset Keystore) means: sign in again.
+            val handle = try {
+                keyset()
+            } catch (_: Exception) {
+                context.deleteSharedPreferences(KEYSET_PREFS)
+                keyset()
+            }
+            return EncryptedSessionStore(
+                dataStore = PreferenceDataStoreFactory.create(
+                    produceFile = { context.preferencesDataStoreFile("session.preferences_pb") },
+                ),
+                aead = handle.getPrimitive(Aead::class.java),
+            )
         }
         return fakeSessionStore
     }
+
+    private const val KEYSET_PREFS = "session_keyset_prefs"
 }

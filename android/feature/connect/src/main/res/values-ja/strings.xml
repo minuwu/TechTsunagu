@@ -80,6 +80,11 @@
     <string name="connect_delete_title">この会話を削除しますか？</string>
     <string name="connect_delete_body">%1$s · メッセージもすべて消えます。</string>
 
+    <string name="connect_needs_edit">AI未対応・文字起こしのみ</string>
+    <string name="connect_mic_rationale">相手の発話を聞き取るためにマイクの許可が必要です。</string>
+    <string name="connect_dictation_unavailable">このスマホでは音声認識が利用できません。</string>
+    <string name="connect_dictation_no_speech">音声が検出されませんでした。もう一度お試しください。</string>
+
     <!-- Errors: what happened, why, what to do -->
     <string name="connect_err_offline">インターネットにつながっていないため、できませんでした。接続を確認して、もう一度お試しください。</string>
     <string name="connect_err_timeout">サーバーの返事が遅れています。少し待ってから、もう一度お試しください。</string>
@@ -88,5 +93,7 @@
     <string name="connect_err_blocked">この人はブロック中です。</string>
     <string name="connect_err_bad_code">Wakatta?のQRコードではありません。コードを確認して、もう一度お試しください。</string>
     <string name="connect_err_no_speech">このスマホでは読み上げができません。代わりに、相手に画面を見せてください。</string>
+    <string name="connect_err_rate_limited">リクエストが多すぎます。しばらく待ってから再試行してください。</string>
+    <string name="connect_err_already_connected">この連絡先はすでに追加されています。</string>
     <string name="connect_err_unknown">問題が起きました。もう一度お試しください。何度も起きるときは親方に伝えてください。</string>
 </resources>

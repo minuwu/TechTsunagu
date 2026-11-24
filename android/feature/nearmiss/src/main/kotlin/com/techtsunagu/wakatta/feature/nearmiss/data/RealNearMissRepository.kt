@@ -1,9 +1,8 @@
 package com.techtsunagu.wakatta.feature.nearmiss.data
 
+import com.techtsunagu.wakatta.core.media.RecordingLimits
 import com.techtsunagu.wakatta.core.model.AppError
 import com.techtsunagu.wakatta.core.model.AppResult
-import com.techtsunagu.wakatta.core.model.Role
-import com.techtsunagu.wakatta.core.model.SessionStore
 import com.techtsunagu.wakatta.core.network.ApiConfig.ApiPaths
 import com.techtsunagu.wakatta.core.network.IdempotencyKey
 import com.techtsunagu.wakatta.core.network.safeApiCall
@@ -13,49 +12,49 @@ import com.techtsunagu.wakatta.feature.nearmiss.domain.NearMissDto
 import com.techtsunagu.wakatta.feature.nearmiss.domain.NearMissRepository
 import com.techtsunagu.wakatta.feature.nearmiss.domain.NearMissSeverity
 import com.techtsunagu.wakatta.feature.nearmiss.domain.NearMissStatus
-import java.util.concurrent.CopyOnWriteArrayList
+import com.techtsunagu.wakatta.feature.nearmiss.domain.PhotoMark
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 
+private const val PAGE_LIMIT = 50
+private const val PERCENT = 100f
+
 /**
- * Near-miss reports over `POST|GET /near-misses`, `POST /near-misses/{id}/ack`. The caller owns the
- * Idempotency-Key and the offline queue (the screen queues a failed send in the Outbox with the same key).
- * shortcut: a Worker cannot list their own reports (`GET /near-misses` is Foreman-only), so a Worker sees what
- * they sent in this session; wire when the backend ships it (XREQ-023).
+ * Near-miss Reports: the server gives a Worker their own reports and a Foreman the shop's.
+ * The caller owns the Idempotency-Key and the offline queue (the screen queues a failed send in the Outbox with the same key).
  */
-internal class RealNearMissRepository(
-    private val api: () -> NearMissApi,
-    private val session: SessionStore,
-) : NearMissRepository {
-
-    private val sent = CopyOnWriteArrayList<NearMissDto>()
-
-    private val isForeman get() = session.session.value?.user?.role == Role.FOREMAN
+internal class RealNearMissRepository(private val api: () -> NearMissApi) : NearMissRepository {
 
     override suspend fun getNearMisses(): AppResult<List<NearMissDto>> =
-        if (isForeman) allPages { api().reports(PAGE_LIMIT, it) }.map { l -> l.map { it.toDto() } }
-        else AppResult.Success(sent.toList())
+        allPages { api().reports(PAGE_LIMIT, it) }.map { l -> l.map { it.toDto() } }
 
     override suspend fun getNearMiss(id: String): AppResult<NearMissDto> =
-        when (val all = getNearMisses()) {
-            is AppResult.Failure -> all
-            is AppResult.Success -> all.value.find { it.id == id }?.let { AppResult.Success(it) } ?: AppResult.Failure(AppError.NotFound)
-        }
+        safeApiCall { api().report(id) }.map { it.toDto() }
 
     override suspend fun createNearMiss(request: NearMissCreateRequest): AppResult<NearMissDto> {
-        val text = request.text.trim().ifEmpty { return AppResult.Failure(AppError.Validation(listOf("text"))) }
+        val text = request.text.trim()
+        if (text.isEmpty() && request.audioFile == null) {
+            return AppResult.Failure(AppError.Validation(listOf("text")))
+        }
         val parts = buildList {
             add(MultipartBody.Part.createFormData("machineId", request.machineId))
-            add(MultipartBody.Part.createFormData("text", text))
+            if (text.isNotEmpty()) {
+                add(MultipartBody.Part.createFormData("text", text))
+            }
+            request.audioFile?.let {
+                add(MultipartBody.Part.createFormData("audio", it.name, it.asRequestBody(RecordingLimits.MIME_TYPE.toMediaType())))
+            }
             request.photoFile?.let {
                 add(MultipartBody.Part.createFormData("photo", it.name, it.asRequestBody("image/jpeg".toMediaType())))
+                request.photoMark?.let { mark ->
+                    add(MultipartBody.Part.createFormData("photoMarkX", (mark.x / PERCENT).coerceIn(0f, 1f).toString()))
+                    add(MultipartBody.Part.createFormData("photoMarkY", (mark.y / PERCENT).coerceIn(0f, 1f).toString()))
+                }
             }
+            add(MultipartBody.Part.createFormData("severity", request.severity.name.lowercase()))
         }
-        return safeApiCall { api().report(IdempotencyKey(request.idempotencyKey), parts) }.map { out ->
-            // shortcut: no severity on the server, the Worker keeps the one just picked.
-            out.toDto(request.severity).also { sent.add(0, it) }
-        }
+        return safeApiCall { api().report(IdempotencyKey(request.idempotencyKey), parts) }.map { it.toDto() }
     }
 
     override suspend fun acknowledge(id: String, acknowledgedBy: String): AppResult<AckResult> =
@@ -63,13 +62,8 @@ internal class RealNearMissRepository(
             AckResult(it.id, NearMissStatus.ACK, it.acknowledgedAt.orEmpty(), acknowledgedBy)
         }
 
-    // shortcut: no Task link on the server, the screen then shows the link locally, wire when the backend ships it (XREQ-023).
     override suspend fun linkTask(nearMissId: String, taskId: String): AppResult<NearMissDto> =
-        AppResult.Failure(AppError.Unknown("Task link is not on the server"))
-
-    private companion object {
-        const val PAGE_LIMIT = 50
-    }
+        safeApiCall { api().linkTask(nearMissId, NearMissTaskInDto(taskId)) }.map { it.toDto() }
 }
 
 internal inline fun <A, B> AppResult<A>.map(transform: (A) -> B): AppResult<B> = when (this) {
@@ -77,15 +71,18 @@ internal inline fun <A, B> AppResult<A>.map(transform: (A) -> B): AppResult<B> =
     is AppResult.Failure -> this
 }
 
-// shortcut: no severity (MID), no photo mark and no acknowledger id on the server; the photo is read from its route.
-internal fun NearMissOutDto.toDto(severity: NearMissSeverity = NearMissSeverity.MID) = NearMissDto(
+// The server does not say who acknowledged; the photo is read from its route.
+internal fun NearMissOutDto.toDto() = NearMissDto(
     id = id,
     userId = workerId,
+    userName = workerName,
     machineId = machineId,
     text = text,
-    severity = severity,
+    severity = NearMissSeverity.entries.find { it.name.equals(severity, ignoreCase = true) },
     photoUrl = photo?.let { ApiPaths.NEAR_MISS_PHOTO.replace("{report_id}", id) },
+    photoMark = photoMark?.let { PhotoMark(it.x * PERCENT, it.y * PERCENT) },
     createdAt = createdAt,
     status = if (acknowledgedAt != null) NearMissStatus.ACK else NearMissStatus.OPEN,
     acknowledgedAt = acknowledgedAt,
+    taskId = taskId,
 )

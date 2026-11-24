@@ -107,14 +107,27 @@ internal fun dueDisplay(iso: String?, zone: ZoneId): String? {
 /**
  * The Add Task sheet offers Today, Tomorrow and Fri; the server wants a date-time. shortcut: a label means 18:00 of
  * that day (the next Friday for "Fri"), wire a time picker when the sheet gets one. A real date-time passes through.
+ * Check that the sent `dueAt` is an ISO instant in the future.
  */
 internal fun dueWire(label: String?, now: ZonedDateTime): String? {
-    val day = when (label) {
-        null, "" -> return null
-        "Today" -> now.toLocalDate()
-        "Tomorrow" -> now.toLocalDate().plusDays(1)
-        "Fri" -> now.toLocalDate().plusDays(((5 - now.dayOfWeek.value + 7) % 7).toLong())
-        else -> return label.takeIf { runCatching { OffsetDateTime.parse(it) }.isSuccess }
+    if (label.isNullOrBlank()) return null
+    val target: ZonedDateTime = when (label) {
+        "Today" -> {
+            val candidate = now.toLocalDate().atTime(END_OF_DAY_HOUR, 0).atZone(now.zone)
+            if (candidate.isAfter(now)) candidate else now.plusHours(2)
+        }
+        "Tomorrow" -> {
+            now.toLocalDate().plusDays(1).atTime(END_OF_DAY_HOUR, 0).atZone(now.zone)
+        }
+        "Fri" -> {
+            val days = (5 - now.dayOfWeek.value + 7) % 7
+            val candidate = now.toLocalDate().plusDays(days.toLong()).atTime(END_OF_DAY_HOUR, 0).atZone(now.zone)
+            if (candidate.isAfter(now)) candidate else candidate.plusDays(7)
+        }
+        else -> {
+            val parsed = runCatching { OffsetDateTime.parse(label).atZoneSameInstant(now.zone) }.getOrNull()
+            if (parsed != null && parsed.isAfter(now)) parsed else return null
+        }
     }
-    return day.atTime(END_OF_DAY_HOUR, 0).atZone(now.zone).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+    return target.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
 }

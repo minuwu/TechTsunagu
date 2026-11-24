@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="asks_screen_id">画面ID: %1$s</string>
     <string name="asks_loading">読み込み中...</string>
     <string name="asks_empty_asks">質問がまだありません</string>
     <string name="asks_empty_meetups">面談がまだありません</string>
@@ -24,13 +23,10 @@
     <string name="asks_hide_original">原文を隠す</string>
     <string name="asks_read_aloud">読み上げる</string>
     <string name="asks_stop_reading">停止</string>
-    <string name="asks_foreman_hint">この画面は佐藤さんのスマホの代わりです。日本語で返信すると、作業者に自国語で届きます。</string>
     <string name="asks_forwarded_section">転送された質問</string>
     <string name="asks_replied_section">返信済み</string>
     <string name="asks_auto_answered_section">お知らせで自動回答</string>
-    <string name="asks_canned_replies_label">返信（定型文）</string>
     <string name="asks_no_forwarded_asks">転送された質問はありません</string>
-    <string name="asks_suggested_meetup">次のおすすめ面談</string>
     <string name="asks_log_meetup">面談を記録</string>
     <string name="asks_your_senpai">あなたの先輩</string>
     <string name="asks_ask_question">質問する</string>
@@ -40,7 +36,6 @@
     <string name="asks_create_pair_link">先輩への招待リンクを作成</string>
     <string name="asks_pair_link_dialog_title">先輩への招待リンク</string>
     <string name="asks_pair_link_dialog_desc">先輩にこのリンクを共有してください。この画面を閉じると再表示されません。</string>
-    <string name="asks_copy_link">リンクをコピー</string>
     <string name="asks_close">閉じる</string>
     <string name="asks_today_word_title">今日のひとこと · %1$sさんの言葉（%2$s）</string>
     <string name="asks_today_word_subtitle">今日、声をかけてみましょう</string>
@@ -57,7 +52,6 @@
     <string name="asks_save">保存</string>
     <string name="asks_cancel">キャンセル</string>
     <string name="asks_meetup_logged_toast">面談を記録しました</string>
-    <string name="asks_reply_sent_toast">返信を送信しました</string>
     <string name="asks_with_senpai">%1$sさんと</string>
     <string name="asks_mic_content_description">音声入力</string>
     <string name="asks_send_content_description">質問を送信</string>
@@ -67,4 +61,17 @@
     <string name="asks_sug_garbage">ごみの日はいつですか？</string>
     <string name="asks_sug_drill">防災訓練はどこですか？</string>
     <string name="asks_sug_bus">定期券はどうやって買いますか？</string>
+    <string name="asks_error_failed_to_send">質問を送信できませんでした。もう一度お試しください。</string>
+    <string name="asks_error_pair_exists">この作業者にはすでに先輩が設定されています。</string>
+    <string name="asks_error_load">読み込めませんでした。通信を確認して、もう一度お試しください。</string>
+    <string name="asks_error_save">保存できませんでした。通信を確認して、もう一度お試しください。</string>
+    <string name="asks_forward">先輩に聞く</string>
+    <string name="asks_foreman_waiting">先輩の返信待ち</string>
+    <string name="asks_foreman_not_forwarded">未転送：この作業者にはまだ先輩がいません</string>
+    <string name="asks_foreman_hint">お知らせで答えられない質問は、作業者の先輩に届きます。先輩は自分のリンクから返信します。</string>
+    <string name="asks_senpai_name_label">先輩の名前</string>
+    <string name="asks_pair_kind_coworker">同僚</string>
+    <string name="asks_pair_kind_jichikai">自治会</string>
+    <string name="asks_pair_meetups">面談 %1$d件 · 最後 %2$s</string>
+    <string name="asks_share_link">リンクを共有</string>
 </resources>

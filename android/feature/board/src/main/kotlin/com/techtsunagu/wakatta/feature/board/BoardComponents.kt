@@ -2,7 +2,6 @@ package com.techtsunagu.wakatta.feature.board
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,7 +15,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -62,12 +60,12 @@ import com.techtsunagu.wakatta.core.design.component.TriText
 import com.techtsunagu.wakatta.core.design.component.WakattaCard
 import com.techtsunagu.wakatta.core.design.component.WakattaChip
 import com.techtsunagu.wakatta.core.design.theme.StatusColors
-import com.techtsunagu.wakatta.core.model.DemoSeed
 import com.techtsunagu.wakatta.core.model.Machine
 import com.techtsunagu.wakatta.core.model.Task
 import com.techtsunagu.wakatta.core.model.TaskColumn
 import com.techtsunagu.wakatta.core.model.User
 import com.techtsunagu.wakatta.core.model.WakattaStatus
+import com.techtsunagu.wakatta.core.model.pick
 
 /**
  * 3-segment accessible control for moving tasks across To do, Doing, and Done.
@@ -160,6 +158,38 @@ private fun SegmentButton(
 }
 
 /**
+ * Resolves assignee labels for display.
+ * For a Worker: shows their own name (if assigned) and "+N" for remaining assignees (or "+N" if not assigned).
+ * An ID is never shown as a name.
+ * For a Foreman: resolves display names from the loaded user list.
+ */
+internal fun resolveAssigneeDisplayNames(
+    assigneeIds: List<String>,
+    isForeman: Boolean,
+    currentUserId: String,
+    currentUserName: String,
+    users: List<User>,
+): List<String> {
+    if (assigneeIds.isEmpty()) return emptyList()
+    if (!isForeman) {
+        val list = mutableListOf<String>()
+        val hasMe = currentUserId.isNotBlank() && assigneeIds.contains(currentUserId)
+        if (hasMe && currentUserName.isNotBlank()) {
+            list.add(currentUserName)
+        }
+        val othersCount = if (hasMe) assigneeIds.size - 1 else assigneeIds.size
+        if (othersCount > 0) {
+            list.add("+$othersCount")
+        }
+        return list
+    }
+    // Foreman
+    return assigneeIds.mapNotNull { id ->
+        users.find { it.id == id }?.displayName?.takeIf { it.isNotBlank() }
+    }
+}
+
+/**
  * Task card displayed in the Kanban column.
  */
 @Composable
@@ -167,6 +197,11 @@ fun TaskCard(
     task: Task,
     lang: String,
     onClick: () -> Unit,
+    machines: List<Machine> = emptyList(),
+    users: List<User> = emptyList(),
+    isForeman: Boolean = false,
+    currentUserId: String = "",
+    currentUserName: String = "",
     onMoveClick: ((TaskColumn) -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
@@ -183,8 +218,15 @@ fun TaskCard(
                 .padding(12.dp),
         ) {
             TaskCardHeader(task = task, lang = lang, isDone = isDone)
-            TaskCardMeta(task = task, lang = lang)
-            TaskCardFooter(task = task, onMoveClick = onMoveClick)
+            TaskCardMeta(task = task, machines = machines, lang = lang)
+            TaskCardFooter(
+                task = task,
+                users = users,
+                isForeman = isForeman,
+                currentUserId = currentUserId,
+                currentUserName = currentUserName,
+                onMoveClick = onMoveClick,
+            )
         }
     }
 }
@@ -210,9 +252,10 @@ private fun TaskCardHeader(
 @Composable
 private fun TaskCardMeta(
     task: Task,
+    machines: List<Machine>,
     lang: String,
 ) {
-    val machine = DemoSeed.machines.find { it.id == task.machineId }
+    val machine = machines.find { it.id == task.machineId }
     if (!task.dueAt.isNullOrEmpty() || machine != null) {
         Row(
             modifier = Modifier
@@ -250,9 +293,8 @@ private fun TaskCardMeta(
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(16.dp),
                     )
-                    TriText(
-                        tri = m.name,
-                        lang = lang,
+                    Text(
+                        text = pick(m.name, lang).ifBlank { m.code },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -265,8 +307,19 @@ private fun TaskCardMeta(
 @Composable
 private fun TaskCardFooter(
     task: Task,
+    users: List<User>,
+    isForeman: Boolean,
+    currentUserId: String,
+    currentUserName: String,
     onMoveClick: ((TaskColumn) -> Unit)?,
 ) {
+    val assigneeLabels = resolveAssigneeDisplayNames(
+        assigneeIds = task.assignees,
+        isForeman = isForeman,
+        currentUserId = currentUserId,
+        currentUserName = currentUserName,
+        users = users,
+    )
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -278,11 +331,9 @@ private fun TaskCardFooter(
             horizontalArrangement = Arrangement.spacedBy((-6).dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            task.assignees.forEach { userId ->
-                val user = DemoSeed.users.find { it.id == userId }
-                val displayName = user?.displayName ?: userId
+            assigneeLabels.forEach { label ->
                 Avatar(
-                    name = displayName,
+                    name = label,
                     size = 28.dp,
                     containerColor = MaterialTheme.colorScheme.secondaryContainer,
                     contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -367,6 +418,11 @@ fun KanbanColumnPage(
     lang: String,
     onTaskClick: (String) -> Unit,
     onMoveTask: (String, TaskColumn) -> Unit,
+    machines: List<Machine> = emptyList(),
+    users: List<User> = emptyList(),
+    isForeman: Boolean = false,
+    currentUserId: String = "",
+    currentUserName: String = "",
     modifier: Modifier = Modifier,
 ) {
     val (titleRes, emptyRes, dotColor) = when (column) {
@@ -423,6 +479,11 @@ fun KanbanColumnPage(
                         task = task,
                         lang = lang,
                         onClick = { onTaskClick(task.id) },
+                        machines = machines,
+                        users = users,
+                        isForeman = isForeman,
+                        currentUserId = currentUserId,
+                        currentUserName = currentUserName,
                         onMoveClick = { targetCol -> onMoveTask(task.id, targetCol) },
                     )
                 }
@@ -483,8 +544,9 @@ fun AddTaskBottomSheet(
     sheetState: SheetState,
     onDismissRequest: () -> Unit,
     onSubmit: (title: String, assignees: List<String>, dueAt: String?, machineId: String?) -> Unit,
-    users: List<User> = DemoSeed.users,
-    machines: List<Machine> = DemoSeed.machines,
+    users: List<User> = emptyList(),
+    machines: List<Machine> = emptyList(),
+    lang: String = "",
 ) {
     var title by remember { mutableStateOf("") }
     var titleError by remember { mutableStateOf(false) }
@@ -590,7 +652,7 @@ fun AddTaskBottomSheet(
             ) {
                 machines.forEach { machine ->
                     val isSelected = selectedMachine == machine.id
-                    val name = machine.name["en"] ?: machine.code
+                    val name = pick(machine.name, lang).ifBlank { machine.code }
                     WakattaChip(
                         selected = isSelected,
                         onClick = { selectedMachine = if (isSelected) null else machine.id },

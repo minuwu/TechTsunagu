@@ -108,4 +108,16 @@ class TopLevelBackStackTest {
         assertEquals(TopLevelTab.HOME, backStack.currentTab.value)
         assertEquals(listOf(HomeKey, MachineKey("m-1")), backStack.currentStack.value)
     }
+
+    @Test
+    fun resetSendsEveryTabToItsRoot() {
+        backStack.push(MachineKey("m-1"))
+        backStack.switchTab(TopLevelTab.ME)
+        backStack.replaceAll(SignInKey)
+        backStack.reset()
+        assertEquals(TopLevelTab.HOME, backStack.currentTab.value)
+        assertEquals(listOf(HomeKey), backStack.currentStack.value)
+        assertEquals(listOf(HomeKey), backStack.stackFor(TopLevelTab.HOME).toList())
+        assertEquals(listOf(MeKey), backStack.stackFor(TopLevelTab.ME).toList())
+    }
 }

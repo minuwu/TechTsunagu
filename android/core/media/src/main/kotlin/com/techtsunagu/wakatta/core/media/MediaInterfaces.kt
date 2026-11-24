@@ -1,6 +1,5 @@
 package com.techtsunagu.wakatta.core.media
 
-typealias AudioRecorder = com.techtsunagu.wakatta.core.model.AudioRecorder
 typealias PhotoCapture = com.techtsunagu.wakatta.core.model.PhotoCapture
 typealias QrScanner = com.techtsunagu.wakatta.core.model.QrScanner
 typealias QrEncoder = com.techtsunagu.wakatta.core.model.QrEncoder

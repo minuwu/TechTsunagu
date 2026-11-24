@@ -70,7 +70,7 @@ private fun VocabRow(rank: Int, stat: TermStat, canPin: Boolean, onPin: (String)
         }
         if (stat.inGlossary) {
             StatusChip(WakattaStatus.GREEN, label = stringResource(R.string.insights_vocab_in_glossary))
-        } else {
+        } else if (stat.canPin) {
             FilledTonalButton(onClick = { onPin(stat.term) }, enabled = canPin, modifier = Modifier.heightIn(min = 48.dp)) {
                 Text(stringResource(R.string.insights_vocab_add))
             }

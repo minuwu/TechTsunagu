@@ -33,6 +33,7 @@ data class TermStat(
     /** Later half minus earlier half of the rows: positive means getting worse. */
     val trend: Int,
     val inGlossary: Boolean,
+    val canPin: Boolean = !inGlossary,
 )
 
 data class HeatCell(val workerId: String, val count: Int, val agesMinutes: List<Long>)

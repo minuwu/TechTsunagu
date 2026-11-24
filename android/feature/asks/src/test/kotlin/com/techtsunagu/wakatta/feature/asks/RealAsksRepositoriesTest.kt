@@ -7,9 +7,6 @@ import com.techtsunagu.wakatta.core.model.SessionStore
 import com.techtsunagu.wakatta.core.model.User
 import com.techtsunagu.wakatta.core.network.ApiClientFactory
 import com.techtsunagu.wakatta.feature.asks.data.AsksApi
-import com.techtsunagu.wakatta.feature.asks.data.FakeAskRepository
-import com.techtsunagu.wakatta.feature.asks.data.FakeMeetupRepository
-import com.techtsunagu.wakatta.feature.asks.data.FakeSenpaiRepository
 import com.techtsunagu.wakatta.feature.asks.data.RealAskRepository
 import com.techtsunagu.wakatta.feature.asks.data.RealMeetupRepository
 import com.techtsunagu.wakatta.feature.asks.data.RealSenpaiRepository
@@ -17,6 +14,7 @@ import com.techtsunagu.wakatta.feature.asks.model.AskCreateRequest
 import com.techtsunagu.wakatta.feature.asks.model.AskKind
 import com.techtsunagu.wakatta.feature.asks.model.AskStatus
 import com.techtsunagu.wakatta.feature.asks.model.MeetupCreateRequest
+import com.techtsunagu.wakatta.feature.asks.model.SenpaiPairCreateRequest
 import java.io.File
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -45,9 +43,9 @@ class RealAsksRepositoriesTest {
     private val api: AsksApi = ApiClientFactory
         .retrofit(server.url("/").toString(), ApiClientFactory.okHttp("1.0", { "en" }, store, debug = false))
         .create(AsksApi::class.java)
-    private val asks = RealAskRepository({ api }, store, FakeAskRepository(0L))
-    private val senpai = RealSenpaiRepository({ api }, store, FakeSenpaiRepository())
-    private val meetups = RealMeetupRepository({ api }, store, FakeMeetupRepository(0L))
+    private val asks = RealAskRepository({ api }, store)
+    private val senpai = RealSenpaiRepository({ api }, store, TestWorkers())
+    private val meetups = RealMeetupRepository({ api }, store, TestWorkers())
 
     @After
     fun tearDown() = server.close()
@@ -57,7 +55,7 @@ class RealAsksRepositoriesTest {
     )
 
     private fun ask(id: String, covered: Boolean, forwarded: Boolean = false, reply: String = "null") =
-        """{"id":"$id","workerId":"5","text":"q$id","covered":$covered,
+        """{"id":"$id","workerId":"5","workerName":"Rahim Uddin","text":"q$id","textJa":"問$id","covered":$covered,
         "answer":${if (covered) """{"ja":"あ","en":"a"}""" else "null"},"sourceNoticeIds":${if (covered) """["7"]""" else "[]"},
         "forwarded":$forwarded,"senpaiReply":$reply,"createdAt":"2026-11-24T00:30:00Z"}"""
 
@@ -116,11 +114,9 @@ class RealAsksRepositoriesTest {
         ok("null")
         assertNull(senpai.getSenpaiPairForWorker("5").first())
 
-        ok(pair)
         ok("""{"id":"8","pairId":"3","kind":"event","date":"2026-11-20","note":"n","loggedBy":"worker"}""")
         val logged = meetups.logMeetup("5", MeetupCreateRequest(kind = "festival", date = "2026-11-20", note = "n")) as AppResult.Success
         assertEquals("festival", logged.value.kind)
-        server.takeRequest()
         server.takeRequest()
         server.takeRequest().let {
             val body = it.body!!.utf8()
@@ -130,9 +126,44 @@ class RealAsksRepositoriesTest {
     }
 
     @Test
-    fun foremanKeepsTheFakeAndMakesNoCall() = runBlocking {
-        val foreman = RealAskRepository({ api }, Store(DemoSeed.demoForeman), FakeAskRepository(0L))
-        assertTrue(foreman.getAsks(null).first().isNotEmpty())
-        assertEquals(0, server.requestCount)
+    fun foremanReadsTheShopsAsksWithTheWorkersName() = runBlocking {
+        val foreman = RealAskRepository({ api }, Store(DemoSeed.demoForeman))
+        ok("""{"items":[${ask("2", false)},${ask("1", false, true)}],"nextCursor":null}""")
+        val list = foreman.getAsks(null).first()
+        assertEquals(listOf(AskStatus.FORWARDED, AskStatus.OPEN), list.map { it.status })
+        assertEquals("Rahim Uddin", list[0].workerName)
+        assertEquals("問1", list[0].textJa)
+        assertEquals(1, server.requestCount)
+    }
+
+    @Test
+    fun foremanPairsAndMeetupsCarryTheWorkersName() = runBlocking {
+        val foreman = Store(DemoSeed.demoForeman)
+        val shopMeetups = """{"items":[{"id":"8","pairId":"3","kind":"event","date":"2026-11-20","note":"n","loggedBy":"senpai"}],"nextCursor":null}"""
+        ok(shopMeetups)
+        ok("""{"items":[$pair],"nextCursor":null}""")
+        val pairs = RealSenpaiRepository({ api }, foreman, TestWorkers()).getAllSenpaiPairs().first()
+        assertEquals("Rahim Uddin", pairs.single().workerName)
+        assertEquals(1, pairs.single().meetupCount)
+        assertEquals("2026-11-20", pairs.single().lastMeetupDate)
+
+        ok(shopMeetups)
+        ok("""{"items":[$pair],"nextCursor":null}""")
+        val shop = RealMeetupRepository({ api }, foreman, TestWorkers())
+        assertEquals("Rahim Uddin", shop.getAllMeetups().first().single().workerName)
+        assertTrue(shop.logMeetup("1", MeetupCreateRequest(kind = "coffee", date = "2026-11-20", note = "")) is AppResult.Failure)
+        assertEquals(4, server.requestCount)
+
+        ok("""{"id":"4","workerId":"5","senpaiName":"Sato","kind":"coworker","token":"abc"}""", 201)
+        val made = senpai.createSenpaiPair(SenpaiPairCreateRequest("5", "Sato", "coworker")) as AppResult.Success
+        assertEquals("abc", made.value.token)
+        repeat(4) { server.takeRequest() }
+        assertEquals("""{"workerId":"5","senpaiName":"Sato","kind":"coworker"}""", server.takeRequest().body!!.utf8())
+    }
+
+    @Test
+    fun aListThatCannotBeLoadedIsAnErrorNotAnEmptyList() = runBlocking {
+        server.enqueue(MockResponse.Builder().code(500).body("{}").build())
+        assertTrue(runCatching { asks.getAsks("5").first() }.isFailure)
     }
 }

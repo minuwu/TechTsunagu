@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="media_photo_title">Add a photo</string>
+    <string name="media_photo_take">Take a photo</string>
+    <string name="media_photo_gallery">Choose from gallery</string>
+    <string name="media_camera_open">Scan with the camera</string>
+    <string name="media_camera_denied">The camera is not allowed. Allow it in the phone settings, or type the code.</string>
+    <string name="media_voice_missing">This phone has no voice for this language.</string>
+    <string name="media_dictation_unavailable">Voice input does not work now. Please type.</string>
+    <string name="media_dictation_no_speech">No speech was heard. Please try again.</string>
+    <string name="media_mic_denied">The microphone is not allowed. Allow it in the phone settings, or type.</string>
+</resources>

@@ -18,17 +18,30 @@ object NotificationTextBuilder {
      */
     fun buildNotificationText(
         threadKind: ThreadKind,
-        senderName: String,
+        senderName: String?,
         language: String,
         @Suppress("UNUSED_PARAMETER") messageText: String? = null,
     ): String? {
         if (threadKind != ThreadKind.CONTACT) {
             return null
         }
-        return when (language.lowercase().substringBefore('-')) {
-            "ja" -> "${senderName}さんから新しいメッセージ"
-            "bn" -> "${senderName} এর কাছ থেকে নতুন বার্তা"
-            else -> "New message from $senderName"
+        val lang = language.lowercase().substringBefore('-')
+        val name = senderName?.trim()
+        val title = genericTitle(lang)
+        if (name.isNullOrEmpty() || name == title) {
+            return title
+        }
+        return when (lang) {
+            "ja" -> "${name}さんから新しいメッセージ"
+            "bn" -> "${name} এর কাছ থেকে নতুন বার্তা"
+            else -> "New message from $name"
         }
     }
+
+    fun genericTitle(language: String): String =
+        when (language.lowercase().substringBefore('-')) {
+            "ja" -> "新しいメッセージ"
+            "bn" -> "নতুন বার্তা"
+            else -> "New message"
+        }
 }

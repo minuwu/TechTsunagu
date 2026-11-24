@@ -25,7 +25,7 @@ class SignInComposeTest {
             )
         }
 
-        composeTestRule.onNodeWithText("Screen: auth:signin").assertIsDisplayed()
+
         composeTestRule.onNodeWithText("Sign In").assertIsDisplayed()
     }
 }

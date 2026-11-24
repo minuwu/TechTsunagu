@@ -1,19 +1,21 @@
 package com.techtsunagu.wakatta.feature.asks.data
 
+import com.techtsunagu.wakatta.core.model.AppError
 import com.techtsunagu.wakatta.core.model.AppResult
 import com.techtsunagu.wakatta.core.model.Role
 import com.techtsunagu.wakatta.core.model.SessionStore
 import com.techtsunagu.wakatta.core.model.User
+import com.techtsunagu.wakatta.core.model.WorkerRepository
 import com.techtsunagu.wakatta.core.network.IdempotencyKey
 import com.techtsunagu.wakatta.core.network.safeApiCall
+import com.techtsunagu.wakatta.core.network.safeApiCallUnit
 import com.techtsunagu.wakatta.feature.asks.model.MeetupCreateRequest
 import com.techtsunagu.wakatta.feature.asks.model.MeetupDto
+import com.techtsunagu.wakatta.feature.asks.model.SenpaiPairCreateRequest
+import com.techtsunagu.wakatta.feature.asks.model.SenpaiPairCreatedDto
 import com.techtsunagu.wakatta.feature.asks.model.SenpaiPairDto
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.update
 
 private const val PAGE_LIMIT = 200
 
@@ -23,75 +25,80 @@ private fun SessionStore.worker(): User? = session.value?.user?.takeIf { it.role
 private fun String.toWire() = if (this == "festival") "event" else this
 private fun String.fromWire() = if (this == "event") "festival" else this
 
-/**
- * A Worker's own Senpai pair (`GET /senpai-pairs/me`). The Foreman list, create and revoke keep the [fake]:
- * those routes exist but are not wired in this task.
- * shortcut: Foreman pair management is Fake, wire GET|POST /senpai-pairs and DELETE /senpai-pairs/{id} next.
- */
-internal class RealSenpaiRepository(
-    private val api: () -> AsksApi,
-    private val session: SessionStore,
-    private val fake: SenpaiRepository,
-) : SenpaiRepository by fake {
+private suspend fun AsksApi.allMeetups() = allPages { c -> meetups(PAGE_LIMIT, c) }.orThrow().sortedByDescending { it.date }
 
-    override fun getSenpaiPairForWorker(workerId: String): Flow<SenpaiPairDto?> {
-        val user = session.worker() ?: return fake.getSenpaiPairForWorker(workerId)
-        return flow { emit(loadPair(user)) }
-    }
-
-    private suspend fun loadPair(user: User): SenpaiPairDto? {
-        val pair = when (val r = safeApiCall { api().myPair() }) {
-            is AppResult.Success -> r.value
-            is AppResult.Failure -> return null // no Senpai (data: null) or a failed call: the screen shows "no Senpai yet"
-        }
-        val meetups = (allPages { c -> api().meetups(PAGE_LIMIT, c) } as? AppResult.Success)?.value.orEmpty()
-        return SenpaiPairDto(
-            id = pair.id,
-            workerId = user.id,
-            workerName = user.displayName,
-            workerLanguage = user.language,
-            senpaiName = pair.senpaiName,
-            kind = pair.kind,
-            meetupCount = meetups.size,
-            lastMeetupDate = meetups.maxOfOrNull { it.date },
-            createdAt = pair.createdAt,
-            expiresAt = pair.expiresAt,
-        )
+/** The shop's pairs (Foreman); the server sends Worker ids, [workers] has their names. */
+private suspend fun AsksApi.shopPairs(workers: WorkerRepository, meetups: List<MeetupOutDto>): List<SenpaiPairDto> {
+    val pairs = allPages { c -> pairs(PAGE_LIMIT, c) }.orThrow()
+    val byId = workers.getWorkers().orThrow().associateBy { it.id }
+    return pairs.map { pair ->
+        val worker = byId[pair.workerId]
+        pair.toPair(pair.workerId, worker?.displayName.orEmpty(), worker?.language.orEmpty(), meetups)
     }
 }
 
-/** A Worker's own Meet-ups (`GET|POST /meetups`); a Foreman keeps the [fake] (the server needs a pair join for names). */
+private fun SenpaiPairOutDto.toPair(workerId: String, workerName: String, language: String, meetups: List<MeetupOutDto>): SenpaiPairDto {
+    val mine = meetups.filter { it.pairId == id }
+    return SenpaiPairDto(
+        id = id,
+        workerId = workerId,
+        workerName = workerName,
+        workerLanguage = language,
+        senpaiName = senpaiName,
+        kind = kind,
+        meetupCount = mine.size,
+        lastMeetupDate = mine.maxOfOrNull { it.date },
+        createdAt = createdAt,
+        expiresAt = expiresAt,
+    )
+}
+
+/** The flows load once per collection and throw [LoadFailed] when the server cannot be read. */
+internal class RealSenpaiRepository(
+    private val api: () -> AsksApi,
+    private val session: SessionStore,
+    private val workers: WorkerRepository,
+) : SenpaiRepository {
+
+    override fun getSenpaiPairForWorker(workerId: String): Flow<SenpaiPairDto?> = flow {
+        val user = session.worker() ?: return@flow emit(null)
+        emit(api().pairOrNull()?.toPair(user.id, user.displayName, user.language, api().allMeetups()))
+    }
+
+    override fun getAllSenpaiPairs(): Flow<List<SenpaiPairDto>> = flow { emit(api().shopPairs(workers, api().allMeetups())) }
+
+    override suspend fun createSenpaiPair(request: SenpaiPairCreateRequest): AppResult<SenpaiPairCreatedDto> =
+        safeApiCall { api().createPair(request) }
+
+    override suspend fun deleteSenpaiPair(pairId: String): AppResult<Unit> = safeApiCallUnit { api().revokePair(pairId) }
+}
+
+/** Meet-ups: a Worker reads and logs their own, a Foreman reads the shop's (the server lets only a Worker log one). */
 internal class RealMeetupRepository(
     private val api: () -> AsksApi,
     private val session: SessionStore,
-    private val fake: MeetupRepository,
-) : MeetupRepository by fake {
+    private val workers: WorkerRepository,
+) : MeetupRepository {
 
-    private val meetups = MutableStateFlow<List<MeetupDto>>(emptyList())
-
-    override fun getMeetupsForWorker(workerId: String): Flow<List<MeetupDto>> {
-        val user = session.worker() ?: return fake.getMeetupsForWorker(workerId)
-        return meetups.onStart { refresh(user) }
+    override fun getMeetupsForWorker(workerId: String): Flow<List<MeetupDto>> = flow {
+        val user = session.worker() ?: return@flow emit(emptyList())
+        val senpai = api().pairOrNull()?.senpaiName.orEmpty()
+        emit(api().allMeetups().map { it.toMeetup(user.id, user.displayName, senpai) })
     }
 
-    private suspend fun refresh(user: User) {
-        val senpai = api().pairOrNull()
-        val all = allPages { c -> api().meetups(PAGE_LIMIT, c) }
-        if (all is AppResult.Success) {
-            meetups.value = all.value.map {
-                MeetupDto(it.id, user.id, user.displayName, it.pairId, senpai?.senpaiName.orEmpty(), it.kind.fromWire(), it.date, it.note, it.loggedBy)
-            }.sortedByDescending { it.date }
-        }
+    override fun getAllMeetups(): Flow<List<MeetupDto>> = flow {
+        val all = api().allMeetups()
+        val byPair = api().shopPairs(workers, all).associateBy { it.id }
+        emit(all.map { m -> byPair[m.pairId].let { m.toMeetup(it?.workerId.orEmpty(), it?.workerName.orEmpty(), it?.senpaiName.orEmpty()) } })
     }
 
-    // shortcut: a Foreman cannot log a Meet-up on the server (Worker-only route), so that path stays Fake.
     override suspend fun logMeetup(workerId: String, request: MeetupCreateRequest): AppResult<MeetupDto> {
-        val user = session.worker() ?: return fake.logMeetup(workerId, request)
+        val user = session.worker() ?: return AppResult.Failure(AppError.Forbidden)
         val body = MeetupInDto(request.kind.toWire(), request.date, request.note)
-        val senpai = api().pairOrNull()
-        return safeApiCall { api().logMeetup(IdempotencyKey(request.idempotencyKey), body) }.map {
-            MeetupDto(it.id, user.id, user.displayName, it.pairId, senpai?.senpaiName.orEmpty(), it.kind.fromWire(), it.date, it.note, it.loggedBy)
-                .also { m -> meetups.update { list -> (list + m).sortedByDescending { x -> x.date } } }
-        }
+        return safeApiCall { api().logMeetup(IdempotencyKey(request.idempotencyKey), body) }
+            .map { it.toMeetup(user.id, user.displayName, "") }
     }
+
+    private fun MeetupOutDto.toMeetup(workerId: String, workerName: String, senpaiName: String) =
+        MeetupDto(id, workerId, workerName, pairId, senpaiName, kind.fromWire(), date, note, loggedBy)
 }

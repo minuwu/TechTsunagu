@@ -177,6 +177,24 @@ class MachineViewModelTest {
     }
 
     @Test
+    fun refreshPreservesExistingDetailsWithoutFullScreenLoading() = runTest {
+        viewModel.onEvent(MachineEvent.Init("mc1"))
+        advanceUntilIdle()
+        assertEquals("mc1", viewModel.state.value.machineId)
+        assertEquals("lathe-1", viewModel.state.value.code)
+        assertFalse(viewModel.state.value.isLoading)
+
+        viewModel.onEvent(MachineEvent.Refresh)
+        // With existing machine loaded, isLoading is NOT flipped to true
+        assertFalse(viewModel.state.value.isLoading)
+        assertEquals("mc1", viewModel.state.value.machineId)
+
+        advanceUntilIdle()
+        assertFalse(viewModel.state.value.isLoading)
+        assertEquals("mc1", viewModel.state.value.machineId)
+    }
+
+    @Test
     fun viewModelHasOnlyHiltInjectableConstructor() {
         val constructors = MachineViewModel::class.java.constructors
         assertEquals(1, constructors.size)

@@ -79,7 +79,7 @@ class SupportViewModelTest {
         assertEquals(InterviewIssue.NOTE_REQUIRED, vm.state.value.issue)
 
         vm.onEvent(InterviewEvent.SetNote("heating"))
-        vm.onEvent(InterviewEvent.SetDate("2026-12-01"))
+        vm.onEvent(InterviewEvent.SetDate("2999-01-01"))
         vm.onEvent(InterviewEvent.SubmitInterview)
         assertEquals(InterviewIssue.FUTURE_DATE, vm.state.value.issue)
 

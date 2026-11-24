@@ -1,12 +1,13 @@
 package com.techtsunagu.wakatta.feature.update
 
 import android.content.Context
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.techtsunagu.wakatta.core.common.AppConfig
+import com.techtsunagu.wakatta.core.model.SessionStore
 import com.techtsunagu.wakatta.core.navigation.FeatureEntries
 import com.techtsunagu.wakatta.core.navigation.Navigator
-import com.techtsunagu.wakatta.core.navigation.SignInKey
 import com.techtsunagu.wakatta.core.navigation.UpdateKey
 import com.techtsunagu.wakatta.core.network.ApiConfig
 import dagger.Binds
@@ -19,18 +20,20 @@ import dagger.multibindings.IntoSet
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import com.techtsunagu.wakatta.core.model.VersionGate as ModelVersionGate
 
 @Singleton
-class UpdateEntries @Inject constructor() : FeatureEntries {
+class UpdateEntries @Inject constructor(private val sessionStore: SessionStore) : FeatureEntries {
     override fun EntryProviderScope<NavKey>.install(navigator: Navigator) {
         // Screen id: update
         entry<UpdateKey> {
+            val scope = rememberCoroutineScope()
             UpdateScreen(
                 onBackClick = { navigator.pop() },
-                onSignOutClick = { navigator.replaceAll(SignInKey) },
+                onSignOutClick = { scope.launch { sessionStore.clear() } },
             )
         }
     }

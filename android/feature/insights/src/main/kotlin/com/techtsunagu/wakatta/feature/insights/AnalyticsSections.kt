@@ -46,8 +46,10 @@ private val GRID_LINES = listOf(50f, 70f, 90f)
 @Composable
 internal fun KpiRow(timeSavedHours: Double, reworkAvoided: Int) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        Kpi(R.string.insights_kpi_time, stringResource(R.string.insights_kpi_hours, timeSavedHours), Modifier.weight(1f))
-        Kpi(R.string.insights_kpi_rework, stringResource(R.string.insights_kpi_cases, reworkAvoided), Modifier.weight(1f))
+        val timeText = if (timeSavedHours >= 0.0) stringResource(R.string.insights_kpi_hours, timeSavedHours) else "—"
+        val reworkText = if (reworkAvoided >= 0) stringResource(R.string.insights_kpi_cases, reworkAvoided) else "—"
+        Kpi(R.string.insights_kpi_time, timeText, Modifier.weight(1f))
+        Kpi(R.string.insights_kpi_rework, reworkText, Modifier.weight(1f))
     }
 }
 
@@ -133,7 +135,8 @@ internal fun FunnelCard(data: AnalyticsData) {
                                 .background(color, RoundedCornerShape(5.dp)),
                         )
                     }
-                    Text("$value", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+                    val displayValue = if (value >= 0) "$value" else "—"
+                    Text(displayValue, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
                 }
             }
         }

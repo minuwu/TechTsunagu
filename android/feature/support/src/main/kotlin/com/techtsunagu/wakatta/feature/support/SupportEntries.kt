@@ -46,16 +46,4 @@ abstract class SupportModule {
     @Binds
     @IntoSet
     abstract fun bindSupportEntries(entries: SupportEntries): FeatureEntries
-
-    @Binds
-    @Singleton
-    abstract fun bindSupportLogRepository(fake: FakeSupportLogRepository): SupportLogRepository
-
-    @Binds
-    @Singleton
-    abstract fun bindInterviewRepository(fake: FakeInterviewRepository): InterviewRepository
-
-    @Binds
-    @Singleton
-    abstract fun bindInterviewDueSource(fake: FakeInterviewRepository): InterviewDueSource
 }
