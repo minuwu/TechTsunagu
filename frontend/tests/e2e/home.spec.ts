@@ -142,8 +142,8 @@ test('the Japan map goes to Nagasaki and back to all of Japan', async ({
 })
 
 // "Journey to Nagasaki" on the v4 landing. Reduced motion (the default in this config) goes straight to the
-// map with Nagasaki chosen; the panel follows the choice from the list and the next button.
-test('the journey map opens on Nagasaki and the panel follows the chosen prefecture', async ({
+// map, zoomed into Nagasaki. One story: no prefecture picker, just all of Japan or Nagasaki.
+test('the journey map zooms into Nagasaki and back out to all of Japan', async ({
   page,
 }) => {
   await page.goto('/?ui=v4')
@@ -152,22 +152,21 @@ test('the journey map opens on Nagasaki and the panel follows the chosen prefect
   })
   await journey.scrollIntoViewIfNeeded()
   await expect(
-    journey.getByRole('img', { name: /Map of Japan's 47 prefectures/ }),
+    journey.getByRole('img', { name: /Map of Japan with Nagasaki/ }),
   ).toBeVisible()
   await expect(journey.getByRole('heading', { name: '長崎県' })).toBeVisible()
   await expect(
     journey.getByRole('heading', { name: 'Megane Bridge' }),
   ).toBeVisible()
+  await expect(journey.getByRole('combobox')).toHaveCount(0)
 
-  await journey.getByLabel('Choose a prefecture').selectOption('JP-26')
-  await expect(journey.getByRole('heading', { name: '京都府' })).toBeVisible()
-  await expect(
-    journey.getByRole('img', { name: 'Fushimi Inari-taisha' }),
-  ).toBeVisible()
-  await expect(journey.getByText(/Each torii is a gift/)).toBeVisible()
-
-  await journey.getByRole('button', { name: 'Next: Ōsaka' }).click()
-  await expect(journey.getByRole('heading', { name: '大阪府' })).toBeVisible()
+  const nagasaki = journey.getByRole('button', { name: /^Nagasaki/ })
+  const all = journey.getByRole('button', { name: 'All Japan' })
+  await expect(nagasaki).toHaveAttribute('aria-pressed', 'true')
+  await all.click()
+  await expect(all).toHaveAttribute('aria-pressed', 'true')
+  await nagasaki.click()
+  await expect(nagasaki).toHaveAttribute('aria-pressed', 'true')
 })
 
 test.describe('journey with motion on', () => {
