@@ -57,7 +57,7 @@ This file is:
 | `XREQ-001` | P1 | Backend (Asif) | Frontend (Minhaz) | Auth, ids and list shape for the real API ([BACKEND_ARCHITECTURE.md §17](docs/BACKEND_ARCHITECTURE.md#17-frontend-contract-changes)) | `[PENDING]` | 2026-11-22 19:10 |
 | `XREQ-002` | P1 | Backend (Anim) | Frontend (Minhaz) | Life contract: Notices, Events, Asks, Senpai, Meet-ups (`backend/app/schemas/`) | `[PENDING]` | 2026-11-22 20:06 |
 | `XREQ-003` | P1 | AI (Galib) | Backend (Asif) | Review the free-AI plan: model chain, budgets, Groq Whisper, settings; Briefing receipts route ([AI_PLAN.md](contributors/galib/AI_PLAN.md)) | `[DONE]` | 2026-11-22 22:40 |
-| `XREQ-004` | P2 | AI (Galib) | Frontend (Minhaz, Arjun) | "Dictate instead" fallback, degraded-draft message, provenance line ([AI_PLAN.md](contributors/galib/AI_PLAN.md) §2, §8) | `[PENDING]` | 2026-11-22 22:40 |
+| `XREQ-004` | P2 | AI (Galib) | Frontend (Minhaz, Arjun) | "Dictate instead" fallback, degraded-draft message, provenance line ([AI_PLAN.md](contributors/galib/AI_PLAN.md) §2, §8) | `[IN_PROGRESS]` | 2026-11-24 18:40 |
 | `XREQ-005` | P1 | Frontend (Minhaz) | Backend (Anim, Asif) | Chat API: Threads, Messages (voice/text), Wakatta Status answers, Follow-ups, Re-explanation, Nudge, Tasks + Task Board | `[DONE]` | 2026-11-22 17:55 |
 | `XREQ-006` | P1 | Frontend (Minhaz) | AI (Galib) | Chat AI: voice → transcript → translation → Check Questions → Task extraction (`build_message`), Worker reply translation, Re-explanation | `[DONE]` | 2026-11-24 17:10 |
 | `XREQ-007` | P1 | Frontend (Minhaz) | AI (Galib), Backend (Asif, Anim) | Pick the Japanese ⇄ English transcription and translation models by a bake-off on our own audio, not on free-tier quota | `[DONE]` | 2026-11-23 03:48 |
@@ -208,7 +208,7 @@ Errors: `403 FORBIDDEN` (not a Foreman), `404 NOT_FOUND` (another shop's Briefin
 - **Priority**: `P2 (Normal)`
 - **From**: AI (Galib)
 - **To**: Frontend (Minhaz, Arjun)
-- **Status**: `[PENDING]`
+- **Status**: `[IN_PROGRESS]`
 - **Created**: `2026-11-22 22:40 (UTC+6)`
 - **Target Interface / Endpoint**: Foreman record and Briefing screens, Poster voice notice (`frontend/src/ui/v2/screens/foreman/ForemanRecordScreen.tsx`, `community/CommunityScreen.tsx`), shared draft view
 
@@ -230,9 +230,9 @@ POST /api/machines/3/notes   (multipart: text = what the browser heard, Idempote
 No new error codes.
 
 **Fulfillment & Proof (filled by recipient on completion):**
-- **Branch / Commit**: 
-- **Status / Notes**: 
-- **Verification Proof**: 
+- **Branch / Commit**: `main` `960f89e`, `a0bf2ef` (Galib, at the user's request, as Arjun's and Minhaz's queue was full)
+- **Status / Notes**: 2026-11-24 Galib. **Web (v4), Foreman record screen and library: all three items.** (1) "Dictate instead": `src/lib/dictation.ts` (`SpeechRecognition` / `webkitSpeechRecognition`, `ja-JP`, final results only), offered on the record step after a `needsEdit` draft (it goes back with what the AI heard and starts listening) or when offline; hidden where the API is missing. (2) A `needsEdit` draft shows an "AI unavailable" card (ja / en) instead of an empty form. (3) Provenance: "AI draft · checked against the back-translation below" on a good draft; the library shows "approved by …" (`approvedBy`). **Still open:** the same on the Briefing and Poster notice screens (web), and Android.
+- **Verification Proof**: `src/lib/dictation.test.ts` (2 tests); 109/109 unit tests, `tsc`, ESLint, build; a sample draft on `/foreman/record/m-press` shows the provenance line (Playwright, 390 px).
 
 #### `[XREQ-005]` Chat API: Threads, Messages, Wakatta Status, Follow-ups, Tasks
 - **Priority**: `P1 (High)`

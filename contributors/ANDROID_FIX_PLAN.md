@@ -86,9 +86,9 @@ One task, one commit, one push. Do not start the next task before the push is th
 - [x] **R3 (P0, live) Drafts are sent without a look, also untranslated ones.** *Logic done (Asif, for Arjun); the app still sends at once until M2 turns `reviewDrafts` on. M2 and M4 can start.* `RealChatRepository.kt:161-163` posts and sends at once. Split it: post returns the draft; a new event sends it; `EditDraft` (`PATCH /messages/{id}`) exists already. `needsEdit = true` is never sent by itself. Put `isDraft` and `needsEdit` in the UI model. **Unblocks M2 and M4.** Push it together with Minhaz's M2, so no version on `main` is without a Send.
   *Done when:* tests cover a good draft, a `needsEdit` draft, and a draft left from an earlier timeout that can still be sent.
 - [x] **R4 (P1, code) Names and empty bubbles.** *Done (Asif, for Arjun): `displayTitle` mapped; names and own words were already fixed and now have tests.* Map `fromDisplayName` and `displayTitle` (the server sends both) in `ChatApi.kt` and `ChatWire.kt`. When a Worker's message has no Japanese, fall back to the Worker's own words in `ChatWire.kt` `base()`; today the Foreman sees an empty bubble.
-- [ ] **R5 (P1, code) Dictation language in chat.** Use the screen language, not the account language; let dictation add to text already in the box.
-- [ ] **R6 (P2, code) Near-miss: changing the Machine erases the text and photo** (`NearMissNewScreen.kt:163-167`). Keep them.
-- [ ] **R7 (P2, code) Contact chat does not refresh by itself.** Poll while the screen is open (`PChatScreen.kt`, ViewModel part).
+- [x] **R5 (P1, code) Dictation language in chat.** *Done (Galib, for Arjun, `181fd94`): `ChatEvent.ScreenLanguage` from the screen; dictation falls back to the account language, then ja; adding to typed text already worked, now tested (3 tests).* Use the screen language, not the account language; let dictation add to text already in the box.
+- [x] **R6 (P2, code) Near-miss: changing the Machine erases the text and photo** *Done (Galib, for Arjun, `8986a32`), test `changingTheMachineKeepsTheTextAndPhoto`.* (`NearMissNewScreen.kt:163-167`). Keep them.
+- [x] **R7 (P2, code) Contact chat does not refresh by itself.** *Done (Galib, for Arjun, `3236809`): the screen sends `PChatEvent.Poll` every 5 s while started; a quiet refresh; test `contactChatPollShowsMessagesSentFromElsewhere`.* Poll while the screen is open (`PChatScreen.kt`, ViewModel part).
 
 ## Galib: AI
 
