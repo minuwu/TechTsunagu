@@ -1,5 +1,7 @@
 package com.techtsunagu.wakatta.feature.chat
 
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.ui.text.withLink
@@ -74,10 +76,19 @@ internal fun ChatMessageBubble(
         if (!isMine && showSender) {
             Avatar(
                 name = message.fromUserName.ifEmpty { "?" },
-                size = 36.dp,
                 containerColor = personColor(message.fromUserId),
                 contentColor = Color.White,
-                modifier = Modifier.padding(end = 8.dp, top = 18.dp),
+                modifier = Modifier
+                    .padding(end = 8.dp, top = 18.dp)
+                    // the Foreman: a thin primary ring with a gap, easy to find, never pulling the eye
+                    .then(
+                        if (message.fromForeman) {
+                            Modifier.border(1.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.6f), CircleShape).padding(2.5.dp)
+                        } else {
+                            Modifier
+                        },
+                    ),
+                size = if (message.fromForeman) 31.dp else 36.dp,
             )
         } else if (!isMine) {
             Spacer(Modifier.width(44.dp))

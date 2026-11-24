@@ -32,6 +32,7 @@ data class ChatMessageUiModel(
     val threadId: String,
     val fromUserId: String,
     val fromUserName: String,
+    val fromForeman: Boolean = false,
     val isMine: Boolean,
     val kind: MessageKind,
     val text: Tri,

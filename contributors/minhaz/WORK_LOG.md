@@ -246,3 +246,4 @@ Minhaz mapped the prototype (`prototypes/wakatta/`) and the frontend against `ma
 - Backend CI now runs on `docs/API_SPEC.md` changes; `/api/transcriptions` is live.
 - Share on My QR sends a PNG of the QR (QrPng, plain-JVM writer) instead of a wk: text file, so chat apps show a scannable image.
 - Chat device pass: a poll no longer closes an open translation or fold; Chats list shows 13:38 instead of a raw ISO time for contact/talk threads; "You: " keeps its space (Android trims unquoted trailing spaces). Checked on the Redmi: send, keyboard, glossary dialog, back, no crashes.
+- Foreman avatar in chat gets a thin primary ring (1.5dp, 60% alpha, 2.5dp gap); the poll now carries `fromRole` (backend + openapi).

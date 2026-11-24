@@ -98,6 +98,8 @@ class _MessageOut(CamelModel):
     """Set on `system` messages only."""
     from_display_name: str | None = None
     """The sender's name, in the poll (Workers cannot read GET /workers)."""
+    from_role: str | None = None
+    """The sender's role (`foreman`, `worker`), so the app can mark the Foreman's avatar."""
 
 
 class WorkerResult(CamelModel):

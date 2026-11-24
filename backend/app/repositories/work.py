@@ -70,6 +70,13 @@ def display_names(db: Session, shop_id: int, ids: list[int]) -> dict[int, str]:
     return {row.id: row.display_name for row in db.execute(stmt)}
 
 
+def roles(db: Session, shop_id: int, ids: list[int]) -> dict[int, str]:
+    if not ids:
+        return {}
+    stmt = select(User.id, User.role).where(User.shop_id == shop_id, User.id.in_(ids))
+    return {row.id: row.role for row in db.execute(stmt)}
+
+
 def override_by_key(db: Session, shop_id: int, key: uuid.UUID) -> PanelOverride | None:
     return db.scalar(
         select(PanelOverride).where(PanelOverride.shop_id == shop_id, PanelOverride.idempotency_key == key)
