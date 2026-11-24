@@ -20,7 +20,7 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 - Notes for the team: `FROM_ASIF_2026-11-24.md` in the anim, galib, minhaz and arjun folders.
 
 ### Next
-- XREQ-013 (static web demo): decide whether Anim or I host it.
+- XREQ-013 (static web demo): stays with Anim (decided 2026-11-24).
 - Team: the AI allowance can be avoided by opening many shops (`POST /auth/register`); options in the notes.
 - Minhaz: `MOBILE_API_CONTRACT.md` still says 76 operations; the exact list is in his note. Arjun or Minhaz: `npm run gen:api`.
 
