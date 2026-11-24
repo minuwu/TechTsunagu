@@ -8,39 +8,39 @@ export function electricalArt({ className }: { className?: string }) {
       aria-hidden="true"
       preserveAspectRatio="xMidYMid slice"
     >
-      <rect width="400" height="300" fill="#E3E2DE" />
-      <rect x="36" y="36" width="130" height="190" fill="#141414" />
-      <rect x="44" y="44" width="114" height="174" fill="#C7C7C7" />
-      <rect x="81" y="56" width="40" height="26" fill="#141414" />
-      <rect x="56" y="100" width="16" height="28" fill="#141414" />
-      <rect x="80" y="110" width="16" height="28" fill="#141414" />
-      <rect x="104" y="100" width="16" height="28" fill="#141414" />
-      <rect x="128" y="100" width="16" height="28" fill="#141414" />
-      <rect x="52" y="146" width="98" height="6" fill="#141414" />
-      <rect x="180" y="36" width="88" height="124" fill="#1351AA" />
+      <rect width="400" height="300" fill="#E4ECF2" />
+      <rect x="36" y="36" width="130" height="190" fill="#0A1C26" />
+      <rect x="44" y="44" width="114" height="174" fill="#A9BCCB" />
+      <rect x="81" y="56" width="40" height="26" fill="#0A1C26" />
+      <rect x="56" y="100" width="16" height="28" fill="#0A1C26" />
+      <rect x="80" y="110" width="16" height="28" fill="#0A1C26" />
+      <rect x="104" y="100" width="16" height="28" fill="#0A1C26" />
+      <rect x="128" y="100" width="16" height="28" fill="#0A1C26" />
+      <rect x="52" y="146" width="98" height="6" fill="#0A1C26" />
+      <rect x="180" y="36" width="88" height="124" fill="#214C69" />
       <polygon
         points="234,44 254,44 232,92 258,92 202,152 216,104 196,104"
-        fill="#E3E2DE"
+        fill="#E4ECF2"
       />
       <path
         d="M 100 226 L 100 258 L 220 258 L 220 236 L 250 236"
         fill="none"
-        stroke="#141414"
+        stroke="#0A1C26"
         strokeWidth="8"
       />
-      <rect x="250" y="224" width="40" height="24" fill="#141414" />
-      <rect x="290" y="228" width="16" height="6" fill="#C7C7C7" />
-      <rect x="290" y="238" width="16" height="6" fill="#C7C7C7" />
-      <rect x="290" y="86" width="62" height="68" fill="#141414" />
-      <rect x="272" y="104" width="18" height="28" fill="#141414" />
-      <rect x="292" y="48" width="11" height="38" fill="#141414" />
-      <rect x="307" y="40" width="11" height="46" fill="#141414" />
-      <rect x="322" y="44" width="11" height="42" fill="#141414" />
-      <rect x="337" y="54" width="11" height="32" fill="#141414" />
-      <rect x="301" y="154" width="40" height="34" fill="#141414" />
-      <circle cx="321" cy="120" r="18" fill="#E3E2DE" />
-      <rect x="309" y="117" width="24" height="6" fill="#141414" />
-      <rect x="24" y="270" width="352" height="6" fill="#C7C7C7" />
+      <rect x="250" y="224" width="40" height="24" fill="#0A1C26" />
+      <rect x="290" y="228" width="16" height="6" fill="#A9BCCB" />
+      <rect x="290" y="238" width="16" height="6" fill="#A9BCCB" />
+      <rect x="290" y="86" width="62" height="68" fill="#0A1C26" />
+      <rect x="272" y="104" width="18" height="28" fill="#0A1C26" />
+      <rect x="292" y="48" width="11" height="38" fill="#0A1C26" />
+      <rect x="307" y="40" width="11" height="46" fill="#0A1C26" />
+      <rect x="322" y="44" width="11" height="42" fill="#0A1C26" />
+      <rect x="337" y="54" width="11" height="32" fill="#0A1C26" />
+      <rect x="301" y="154" width="40" height="34" fill="#0A1C26" />
+      <circle cx="321" cy="120" r="18" fill="#E4ECF2" />
+      <rect x="309" y="117" width="24" height="6" fill="#0A1C26" />
+      <rect x="24" y="270" width="352" height="6" fill="#A9BCCB" />
     </svg>
   )
 }
