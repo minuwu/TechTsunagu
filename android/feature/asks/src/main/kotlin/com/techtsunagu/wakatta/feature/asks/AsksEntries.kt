@@ -3,6 +3,7 @@ package com.techtsunagu.wakatta.feature.asks
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.techtsunagu.wakatta.core.navigation.AskKey
+import com.techtsunagu.wakatta.core.navigation.ChatbotKey
 import com.techtsunagu.wakatta.core.navigation.FeatureEntries
 import com.techtsunagu.wakatta.core.navigation.Navigator
 import com.techtsunagu.wakatta.core.navigation.NoticeKey
@@ -24,6 +25,10 @@ class AsksEntries @Inject constructor() : FeatureEntries {
                 onBackClick = { navigator.pop() },
                 onNavigateToNotice = { noticeId -> navigator.push(NoticeKey(noticeId)) },
             )
+        }
+        // Screen id: chatbot (XREQ-016)
+        entry<ChatbotKey> { key ->
+            ChatbotScreen(machineId = key.machineId, onBackClick = { navigator.pop() })
         }
         // Screen id: senpai
         entry<SenpaiKey> {

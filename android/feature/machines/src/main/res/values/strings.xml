@@ -145,4 +145,5 @@
     <string name="machines_error_code_taken">A machine with this code already exists.</string>
     <string name="machines_error_code_format">Use lowercase letters, digits and hyphens only.</string>
     <string name="machines_error_archived">This machine is archived.</string>
+    <string name="machines_ask_wakatta">Ask Wakatta</string>
 </resources>

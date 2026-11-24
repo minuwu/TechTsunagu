@@ -145,4 +145,5 @@
     <string name="machines_error_code_taken">このコードの機械はすでにあります。</string>
     <string name="machines_error_code_format">英小文字・数字・ハイフンだけを使ってください。</string>
     <string name="machines_error_archived">この機械はアーカイブ済みです。</string>
+    <string name="machines_ask_wakatta">わかった？に聞く</string>
 </resources>

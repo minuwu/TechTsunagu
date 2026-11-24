@@ -73,6 +73,7 @@ import com.techtsunagu.wakatta.core.model.WakattaStatus
 import com.techtsunagu.wakatta.core.model.pick
 import com.techtsunagu.wakatta.core.navigation.AnalyticsKey
 import com.techtsunagu.wakatta.core.navigation.AskKey
+import com.techtsunagu.wakatta.core.navigation.ChatbotKey
 import com.techtsunagu.wakatta.core.navigation.BoardKey
 import com.techtsunagu.wakatta.core.navigation.BriefingCardKey
 import com.techtsunagu.wakatta.core.navigation.BriefingNewKey
@@ -191,6 +192,8 @@ sealed interface HomeEvent {
     data object ScanMachineClick : HomeEvent
     data object ReportNearMissClick : HomeEvent
     data object AskClick : HomeEvent
+    /** "Ask Wakatta", the chatbot pinned on the Worker home (XREQ-016, M7) */
+    data object ChatbotClick : HomeEvent
     data object SafetyCourseClick : HomeEvent
     data object MyLearningClick : HomeEvent
 }
@@ -334,6 +337,7 @@ class HomeViewModel @Inject constructor(
             HomeEvent.ScanMachineClick -> sendEffect(HomeEffect.Navigate(ScanKey))
             HomeEvent.ReportNearMissClick -> sendEffect(HomeEffect.Navigate(NearMissNewKey()))
             HomeEvent.AskClick -> sendEffect(HomeEffect.Navigate(AskKey))
+            HomeEvent.ChatbotClick -> sendEffect(HomeEffect.Navigate(ChatbotKey()))
             HomeEvent.SafetyCourseClick -> sendEffect(HomeEffect.Navigate(CourseKey))
             HomeEvent.MyLearningClick -> sendEffect(HomeEffect.Navigate(LearningKey()))
         }
@@ -930,6 +934,19 @@ private fun WorkerHomeLayout(
                             }
                         }
                     }
+                }
+            }
+        }
+
+        // Ask Wakatta, pinned (XREQ-016)
+        item(key = "worker_chatbot", contentType = "actions") {
+            Button(
+                onClick = { onEvent(HomeEvent.ChatbotClick) },
+                modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(text = stringResource(R.string.home_ask_wakatta), fontWeight = FontWeight.Bold)
+                    Text(text = stringResource(R.string.home_ask_wakatta_sub), style = MaterialTheme.typography.bodySmall)
                 }
             }
         }
