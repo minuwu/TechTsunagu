@@ -2,6 +2,7 @@
 
 from datetime import UTC, datetime, timedelta
 
+import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
@@ -57,7 +58,7 @@ def test_login_returns_a_token_and_the_user(client: TestClient, db: Session) -> 
         "id": str(rahim.id),
         "displayName": "Rahim",
         "role": "worker",
-        "language": "bn",
+        "language": "en",
         "shopId": str(shop.id),
         "districtId": str(shop.default_district_id),
         "shopCode": shop.code,
@@ -144,7 +145,7 @@ def test_a_foreman_creates_a_worker_who_must_choose_a_pin(client: TestClient, db
     _, token = _ready_foreman(client, db, shop)
 
     res = client.post(
-        "/api/workers", headers=_bearer(token), json={"displayName": "Sadia", "language": "bn", "pin": "5820"}
+        "/api/workers", headers=_bearer(token), json={"displayName": "Sadia", "language": "en", "pin": "5820"}
     )
     login = client.post("/api/auth/login", json={"userId": res.json()["data"]["id"], "pin": "5820"})
 
@@ -158,7 +159,7 @@ def test_a_worker_cannot_manage_accounts(client: TestClient, db: Session) -> Non
     token = _login(client, rahim, "2468")
 
     res = client.post(
-        "/api/workers", headers=_bearer(token), json={"displayName": "X", "language": "bn", "pin": "5820"}
+        "/api/workers", headers=_bearer(token), json={"displayName": "X", "language": "en", "pin": "5820"}
     )
 
     assert res.status_code == 403
@@ -291,6 +292,24 @@ def test_find_does_not_tell_a_locked_person_from_nobody(client: TestClient, db: 
 
     assert _find(client, "2468") == 401  # not 423: the reply never confirms that a shop and person exist
     assert _find(client, "2468", name="Nobody") == 401
+
+
+def test_find_hashes_a_pin_for_a_locked_person_too(
+    client: TestClient, db: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Every 401 of /auth/find does one PIN hash, so a locked person does not answer faster than nobody."""
+    from app.services import auth
+
+    hashed: list[str] = []
+    real = auth.verify_pin
+    monkeypatch.setattr(auth, "verify_pin", lambda pepper, stored, pin: hashed.append(pin) or real(pepper, stored, pin))
+    user = f.user(db, f.shop(db), name="Nguyen", pin="2468", must_change=False)
+    user.pin_locked_until = datetime.now(UTC) + timedelta(minutes=10)
+    db.flush()
+
+    assert _find(client, "1357") == 401
+    assert _find(client, "1357", name="Nobody") == 401
+    assert hashed == ["1357", "1357"]
 
 
 def test_one_ip_opens_at_most_ten_shops_a_day(client: TestClient, db: Session) -> None:

@@ -217,9 +217,15 @@ function reset(step) {
 $('restart').onclick = () => reset('p0');
 $('prog').onclick = e => { const b = e.target.closest('[data-go]'); if (b) reset(b.dataset.go); };
 
+// Payload text ends up in innerHTML, so take messages from the two phones only and escape every string in them.
+const ESC = {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'};
+const clean = v => typeof v === 'string' ? v.replace(/[&<>"']/g, c => ESC[c])
+  : Array.isArray(v) ? v.map(clean)
+  : v && typeof v === 'object' ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, clean(x)])) : v;
 addEventListener('message', e => {
+  if (e.origin !== location.origin || (e.source !== foreman.contentWindow && e.source !== worker.contentWindow)) return;
   if (!e.data || !e.data.wk) return;
-  const {t, p} = e.data;
+  const t = e.data.t, p = clean(e.data.p);
   observe(t, p);
   const next = route(t, p);
   // a jump only moves forward from the prologue: the phones are inactive there
