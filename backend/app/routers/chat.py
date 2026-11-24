@@ -29,6 +29,7 @@ from app.schemas.chat import (
     TaskOut,
     TaskUpdate,
     ThreadOut,
+    Transcription,
     UnansweredCheck,
 )
 from app.schemas.common import IdIn
@@ -86,6 +87,18 @@ def post_message(
     voice = (audio.file.read(MAX_AUDIO_BYTES + 1) or None) if audio is not None else None
     data = chat.post_message(db, who, int(thread_id), text, voice, key, _ai(request), now_utc())
     return Envelope(data=_pushed(request, later, db, who, data))
+
+
+@router.post("/transcriptions", summary="Dictation fallback: a recording in, its text out (personal, never stored)")
+def transcribe(
+    who: ShopMember,
+    db: DbSession,
+    request: Request,
+    language: Annotated[str, Form(max_length=8)],
+    audio: Annotated[UploadFile | None, File()] = None,
+) -> Envelope[Transcription]:
+    data = audio.file.read(MAX_AUDIO_BYTES + 1) if audio is not None else None
+    return Envelope(data=Transcription(text=chat.transcribe(db, who, data, language, _ai(request), now_utc())))
 
 
 @router.get(

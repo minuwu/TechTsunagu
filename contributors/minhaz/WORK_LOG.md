@@ -217,3 +217,13 @@ Minhaz mapped the prototype (`prototypes/wakatta/`) and the frontend against `ma
 - Ported the prototype Wakatta fold: status dots and per-status summary, step progress, step grid, numbered question cards, worker rows with marks, read state, status pill and re-explain or nudge.
 - Fixed two send bar bugs found on the emulator: the hidden send circle swallowed mic taps, and the keyboard covered the bar (added `imePadding`).
 - Committed the signed 1.0.0 release APK to `android/release/` and moved compileSdk to 37.1.
+
+## 2026-11-24 (chat: voice fallback, optimistic send, unread divider, worker card)
+
+- Voice: device speech no longer forces the offline model (no pack made it fail). When device speech is missing or fails, the app records an m4a and the new `POST /api/transcriptions` (Gemini, Groq Whisper fallback) fills the composer. Nothing is sent.
+- Optimistic send: the bubble shows at once and is replaced by the server copy; a failed send puts the text back.
+- Chat opens at the first unread with an "N new messages" divider mid-screen, else at the bottom.
+- Status pill: after sending it shows "Waiting for answers · 5/6" with a clock, not a spinner.
+- Worker Wakatta card restyled to the prototype (header with dots, 52dp option rows, result banner, board chips).
+- Bubbles show the original; Workers open "Show translation".
+- Chats top bar: QR button opens Connect.

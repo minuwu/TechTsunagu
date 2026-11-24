@@ -199,6 +199,10 @@ class ReexplainDraft(CamelModel):
     question: CheckQuestion
 
 
+class Transcription(CamelModel):
+    text: str
+
+
 class AskForemanIn(CamelModel):
     """POST /messages/{id}/ask (XREQ-022): a Worker asks the Foreman to explain one term of a sent message again."""
 

@@ -74,7 +74,7 @@ class ChatViewModelTest {
         override fun getMessages(threadId: String): Flow<List<ChatMessageUiModel>> =
             inner.getMessages(threadId).onStart { activeCollectors++ }.onCompletion { activeCollectors-- }
 
-        override suspend fun transcribe(audio: File?): AppResult<String> =
+        override suspend fun transcribe(audio: File, language: String): AppResult<String> =
             failTranscribe?.let { AppResult.Failure(it) } ?: AppResult.Success(transcript)
 
         override suspend fun sendMessage(
@@ -150,6 +150,11 @@ class ChatViewModelTest {
     ) = ChatViewModel(
         chatRepository = repository,
         dictation = dictation,
+        recorder = object : com.techtsunagu.wakatta.core.media.VoiceRecorder {
+            override fun start() = false
+            override fun stop(): java.io.File? = null
+            override fun cancel() {}
+        },
         speaker = FakeSpeaker(),
         sessionStore = TestSessionStore(session),
         appConfig = AppConfig(true, "", "", "1", 1, isDebug = debug),
@@ -242,7 +247,7 @@ class ChatViewModelTest {
     }
 
     @Test
-    fun dictationUnavailable_showsHint_andStaysEditing() = runTest {
+    fun dictationUnavailable_andNoMicForTheServer_showsTypeInsteadHint() = runTest {
         fakeDictation.isAvailableResult = false
         val vm = viewModel()
         vm.init()
@@ -250,7 +255,7 @@ class ChatViewModelTest {
         vm.onEvent(ChatEvent.StartRecording)
         testDispatcher.scheduler.advanceUntilIdle()
         assertEquals(ComposerStatus.EDITING, vm.state.value.composerStatus)
-        assertEquals(ChatEffect.ShowHint(R.string.chat_dictation_unavailable), vm.effects.first())
+        assertEquals(ChatEffect.ShowHint(R.string.chat_dictation_type_instead), vm.effects.first())
     }
 
     @Test

@@ -14,6 +14,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.foundation.gestures.scrollBy
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -144,7 +150,31 @@ fun ChatContent(
                     )
                 }
                 else -> {
+                    val listState = rememberLazyListState()
+                    val unreadIndex = state.messages.indexOfFirst { it.id == state.firstUnreadId }
+                    // Messenger-style open: the "new messages" bar mid-screen, or the newest message against the composer
+                    var placed by remember(state.threadId) { mutableStateOf(false) }
+                    LaunchedEffect(state.threadId, state.messages.isNotEmpty()) {
+                        if (placed || state.messages.isEmpty()) return@LaunchedEffect
+                        placed = true
+                        if (unreadIndex >= 0) {
+                            listState.scrollToItem(unreadIndex) // the divider is the item at this index
+                            listState.scrollBy(-listState.layoutInfo.viewportSize.height / 2f)
+                        } else {
+                            listState.scrollToItem(state.messages.lastIndex)
+                            listState.scrollBy(100_000f) // clamps at the end: a tall last bubble still sits on the composer
+                        }
+                    }
+                    // a new message follows the bottom only when the reader was already there (or sent it)
+                    val last = state.messages.lastOrNull()
+                    LaunchedEffect(last?.id) {
+                        val info = listState.layoutInfo
+                        if (!placed || last == null || info.totalItemsCount == 0) return@LaunchedEffect
+                        val nearBottom = (info.visibleItemsInfo.lastOrNull()?.index ?: 0) >= info.totalItemsCount - 3
+                        if (last.isMine || nearBottom) listState.animateScrollToItem(info.totalItemsCount - 1)
+                    }
                     LazyColumn(
+                        state = listState,
                         modifier = Modifier
                             .fillMaxSize()
                             .weight(1f),
@@ -156,6 +186,7 @@ fun ChatContent(
                             key = { it.id },
                             contentType = { it.kind.name },
                         ) { message ->
+                            if (message.id == state.firstUnreadId) UnreadDivider(state.unreadAtOpen)
                             ChatMessageBubble(
                                 message = message,
                                 isForeman = state.currentRole == Role.FOREMAN,
@@ -259,5 +290,25 @@ private fun RoleSwitch(role: Role, onEvent: (ChatEvent) -> Unit) {
             color = MaterialTheme.colorScheme.onSecondaryContainer,
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
         )
+    }
+}
+
+
+/** The thin "N new messages" bar above the first message the reader has not seen (Messenger, Slack, Stream). */
+@Composable
+private fun UnreadDivider(count: Int) {
+    Row(
+        Modifier.fillMaxWidth().padding(bottom = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        HorizontalDivider(Modifier.weight(1f), color = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f))
+        Text(
+            pluralStringResource(R.plurals.chat_unread_divider, count, count),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.SemiBold,
+        )
+        HorizontalDivider(Modifier.weight(1f), color = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f))
     }
 }

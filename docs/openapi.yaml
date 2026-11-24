@@ -3856,6 +3856,56 @@
         ]
       }
     },
+    "/api/transcriptions": {
+      "post": {
+        "tags": [
+          "chat"
+        ],
+        "summary": "Dictation fallback: a recording in, its text out (personal, never stored)",
+        "operationId": "transcribe_api_transcriptions_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_transcribe_api_transcriptions_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_Transcription_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "x-roles": [
+          "foreman",
+          "worker"
+        ]
+      }
+    },
     "/api/messages/{message_id}": {
       "patch": {
         "tags": [
@@ -8236,6 +8286,32 @@
         ],
         "title": "Body_report_api_near_misses_post"
       },
+      "Body_transcribe_api_transcriptions_post": {
+        "properties": {
+          "language": {
+            "type": "string",
+            "maxLength": 8,
+            "title": "Language"
+          },
+          "audio": {
+            "anyOf": [
+              {
+                "type": "string",
+                "contentMediaType": "application/octet-stream"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Audio"
+          }
+        },
+        "type": "object",
+        "required": [
+          "language"
+        ],
+        "title": "Body_transcribe_api_transcriptions_post"
+      },
       "BriefingForForeman": {
         "properties": {
           "id": {
@@ -10789,6 +10865,29 @@
           "data"
         ],
         "title": "Envelope[TodayWord]"
+      },
+      "Envelope_Transcription_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/Transcription"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[Transcription]"
       },
       "Envelope_Understanding_": {
         "properties": {
@@ -16324,6 +16423,20 @@
           "meaningJa"
         ],
         "title": "TodayWord"
+      },
+      "Transcription": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "title": "Text"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "Transcription"
       },
       "UnansweredCheck": {
         "properties": {

@@ -42,6 +42,13 @@ internal interface ChatApi {
         @Part audio: MultipartBody.Part? = null,
     ): Response<ApiEnvelope<WireSenderMessage>>
 
+    @Multipart
+    @POST(ApiPaths.TRANSCRIPTIONS)
+    suspend fun transcribe(
+        @Part language: MultipartBody.Part,
+        @Part audio: MultipartBody.Part,
+    ): Response<ApiEnvelope<WireTranscription>>
+
     /** `@ExplicitNulls`: every `CheckQuestion` field is required, including a null `termId` and `correctIndex` 0. */
     @POST(ApiPaths.MESSAGE_SEND)
     suspend fun send(
@@ -92,6 +99,9 @@ internal interface ChatApi {
 
 @Serializable
 internal data class WirePage<T>(val items: List<T> = emptyList(), val nextCursor: String? = null)
+
+@Serializable
+internal data class WireTranscription(val text: String = "")
 
 @Serializable
 internal data class WireThread(
