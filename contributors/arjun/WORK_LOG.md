@@ -4,6 +4,17 @@ Owner: Arjun Saha (`sillyfellow21`) — Role: Frontend design
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-24 (v4 on a photo of Fuji at Lake Motosu, Fuji layers in the hero)
+
+### Done
+- **Ground and palette:** the photo is the background of every v4 page under a mist scrim. The palette is sampled from it (mist, lake navy, steel sky) and each text token passes 4.5:1 on the darkest photo pixel. Axe clean at 1440 and 375 px; e2e 15/15 on a v4 build.
+- **Hero Fuji:** three silhouettes behind the Landing hero (`HeroFuji.tsx`). Staggered fade-in after the splash, parallax on desktop, a CSS float, and a hover tint and glow from the two hero buttons. All of it stops under reduced motion. Design decisions are in [frontend/README.md](../../frontend/README.md).
+
+### Next
+- Check the hero layers in a browser (not run yet): desktop, 768 and 375 px, with motion on and off.
+- Course illustrations (`src/ui/v4/art/courses`, `inspect`) still use the old cream, cobalt and black; recolour them, keeping the JIS safety colours.
+- Locally, `.env` picks another kit: open `/?ui=v4`.
+
 ## 2026-11-24 (Android App Links, web side: B8 checked)
 
 ### Done

@@ -385,6 +385,100 @@ input[type='file']::file-selector-button:hover {
   }
 }
 
+/* Hero Fuji (components/HeroFuji.tsx): three silhouettes behind the Landing hero, back to front, in the
+   photo's colours at 8 / 10 / 15%. The box stays in the CTA corner: under the grey lead text a dark layer
+   would drop it below 4.5:1 where the hero sits over the lake. Phones: under 7rem, the CTA row plus the
+   padding below the lead (8rem). From 48rem: the right half of the main column (the lead is on the left).
+   The section is `relative isolate`, so z-index -1 sits behind the text and above the page photo.
+   Motion: fade-in and parallax are GSAP; the float is CSS (transform only, on the compositor). */
+.fuji {
+  --fuji-front: #0a1c26; /* lake navy */
+  --fuji-mid: #214c69; /* steel sky */
+  --fuji-back: #4c7b98; /* upper sky */
+  --fuji-float: -1.5px;
+  --fuji-float-time: 3.5s; /* half a wave: alternate makes the full loop 7 s */
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  width: 100%;
+  height: min(15%, 7rem);
+  overflow: hidden;
+  pointer-events: none;
+}
+@media (min-width: 48rem) {
+  .fuji {
+    --fuji-float: -3px;
+    --fuji-float-time: 2.5s; /* a 5 s loop */
+    width: calc(37.5% - 2rem);
+    height: 25%;
+  }
+}
+@media (min-width: 64rem) {
+  .fuji {
+    height: 30%;
+  }
+}
+.fuji-float {
+  position: absolute;
+  inset: 0;
+}
+.fuji-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  transition:
+    fill 300ms ease-in-out,
+    filter 300ms ease-in-out;
+}
+.fuji-back {
+  fill: var(--fuji-back);
+  opacity: 0.08;
+}
+.fuji-mid {
+  fill: var(--fuji-mid);
+  opacity: 0.1;
+}
+.fuji-front {
+  fill: var(--fuji-front);
+  opacity: 0.15;
+}
+@keyframes fuji-float {
+  to {
+    transform: translateY(var(--fuji-float));
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .fuji-float {
+    animation: fuji-float var(--fuji-float-time) ease-in-out infinite alternate;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fuji-layer {
+    transition: none;
+  }
+}
+/* Pointer devices only: the demo button tints every layer toward the action colour and lights the nearest;
+   "How it works" lights the middle one. Fill and filter ease back over 300 ms, so leaving never snaps. */
+@media (hover: hover) and (pointer: fine) {
+  .fuji-scope:has([data-fuji-cta]:is(:hover, :focus-visible)) .fuji-front {
+    fill: color-mix(in oklch, var(--fuji-front) 65%, var(--fuji-mid));
+    filter: drop-shadow(0 0 0.75rem var(--fuji-mid));
+  }
+  .fuji-scope:has([data-fuji-cta]:is(:hover, :focus-visible)) .fuji-mid,
+  .fuji-scope:has([data-fuji-how]:is(:hover, :focus-visible)) .fuji-mid {
+    fill: color-mix(in oklch, var(--fuji-mid) 70%, var(--fuji-back));
+  }
+  .fuji-scope:has([data-fuji-how]:is(:hover, :focus-visible)) .fuji-mid {
+    filter: drop-shadow(0 0 0.75rem var(--fuji-back));
+  }
+  .fuji-scope:has([data-fuji-cta]:is(:hover, :focus-visible)) .fuji-back {
+    fill: color-mix(in oklch, var(--fuji-back) 75%, white);
+  }
+}
+
 /* Typographic list item: hairline above, index left, big title that turns cobalt on hover */
 .poster-row {
   display: flex;

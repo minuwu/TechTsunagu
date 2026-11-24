@@ -17,6 +17,11 @@ export function reducedMotion(): boolean {
   return typeof window !== 'undefined' && !window.matchMedia(MOTION_OK).matches
 }
 
+/** Seconds an entrance waits so it starts as the first-load splash clears; in-app navigation has no splash. */
+export function splashDelay(): number {
+  return document.querySelector('.splash') ? 1.05 : 0.1
+}
+
 /** Starts Lenis once for the page; returns the cleanup for the Layout's effect. */
 export function startSmoothScroll(): () => void {
   gsap.registerPlugin(ScrollTrigger)
