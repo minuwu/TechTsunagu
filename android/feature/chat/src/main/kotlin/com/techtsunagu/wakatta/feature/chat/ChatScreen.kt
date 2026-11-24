@@ -70,6 +70,10 @@ fun ChatScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
 
+    val screenLang = uiLanguage()
+    LaunchedEffect(screenLang) {
+        viewModel.onEvent(ChatEvent.ScreenLanguage(screenLang))
+    }
     LaunchedEffect(threadId) {
         viewModel.onEvent(ChatEvent.Init(threadId))
     }

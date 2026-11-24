@@ -318,6 +318,44 @@ class ChatViewModelTest {
     }
 
     @Test
+    fun dictationListensInTheScreenLanguage_notTheAccountLanguage() = runTest {
+        val vm = viewModel() // the Foreman's account language is ja
+        vm.init()
+        vm.onEvent(ChatEvent.ScreenLanguage("en"))
+
+        vm.onEvent(ChatEvent.StartRecording)
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals("en-US", fakeDictation.lastTag)
+    }
+
+    @Test
+    fun withoutAScreenLanguage_dictationFallsBackToTheAccountLanguage() = runTest {
+        val vm = viewModel()
+        vm.init()
+
+        vm.onEvent(ChatEvent.StartRecording)
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals("ja-JP", fakeDictation.lastTag)
+    }
+
+    @Test
+    fun dictationAddsToTextAlreadyInTheBox() = runTest {
+        val vm = viewModel()
+        vm.init()
+        vm.onEvent(ChatEvent.OnInputTextChanged("2号機:"))
+
+        vm.onEvent(ChatEvent.StartRecording)
+        testDispatcher.scheduler.advanceUntilIdle()
+        fakeDictation.events.send(DictationEvent.Partial("止めてください"))
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertTrue(vm.state.value.inputText.startsWith("2号機:"))
+        assertTrue(vm.state.value.inputText.endsWith("止めてください"))
+    }
+
+    @Test
     fun dictationPartial_updatesInputTextLive_andSetsStatusRecording() = runTest {
         val vm = viewModel()
         vm.init()

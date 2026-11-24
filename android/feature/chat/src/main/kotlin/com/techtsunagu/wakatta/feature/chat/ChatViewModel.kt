@@ -66,6 +66,8 @@ data class ChatUiState(
 
 sealed interface ChatEvent {
     data class Init(val threadId: String) : ChatEvent
+    /** The language the screen is shown in (R5): dictation listens in it, not in the account's language. */
+    data class ScreenLanguage(val lang: String) : ChatEvent
     data object Retry : ChatEvent
     data object Refresh : ChatEvent
     data object ToggleRole : ChatEvent
@@ -149,6 +151,7 @@ class ChatViewModel @Inject constructor(
         }
     }
     private var currentUserLang: String = ""
+    private var screenLang: String = ""
     private val accumulator = DictationAccumulator()
 
     init {
@@ -167,6 +170,7 @@ class ChatViewModel @Inject constructor(
                 updateState { it.copy(threadId = event.threadId, isLoading = true, error = null) }
                 loadThread(event.threadId)
             }
+            is ChatEvent.ScreenLanguage -> screenLang = event.lang
             is ChatEvent.Retry -> {
                 updateState { it.copy(isLoading = true, error = null) }
                 loadThread(state.value.threadId)
@@ -295,14 +299,8 @@ class ChatViewModel @Inject constructor(
         }
     }
 
-    private fun currentDictationTag(): String {
-        val lang = if (state.value.currentRole == Role.FOREMAN) {
-            currentUserLang.ifEmpty { "ja" }
-        } else {
-            currentUserLang.ifEmpty { "ja" }
-        }
-        return dictationTag(lang)
-    }
+    private fun currentDictationTag(): String =
+        dictationTag(screenLang.ifEmpty { currentUserLang }.ifEmpty { "ja" })
 
     private fun onInputChanged(text: String) {
         cancelCountdownTimer()
