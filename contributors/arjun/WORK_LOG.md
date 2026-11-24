@@ -4,6 +4,33 @@ Owner: Arjun Saha (`sillyfellow21`) — Role: Frontend design
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-24 (Android App Links switched on, with Minhaz's OK)
+
+### Done
+- `AndroidManifest.xml`: the App Links filter is enabled on the API host (XREQ-026) with the contract's path prefixes. `MainActivity.openFromAppLink` opens the linked screen after sign-in. `AppLinkHostTest` keeps the manifest host equal to `ApiConfig.BASE_URL`.
+
+### Next
+- Minhaz: compile and run the Android unit tests (no JDK or SDK on my machine), and send the signing fingerprints to Anim.
+
+## 2026-11-24 (v4 on a photo of Fuji at Lake Motosu, Fuji layers in the hero)
+
+### Done
+- **Ground and palette:** the photo is the background of every v4 page under a mist scrim. The palette is sampled from it (mist, lake navy, steel sky) and each text token passes 4.5:1 on the darkest photo pixel. Axe clean at 1440 and 375 px; e2e 15/15 on a v4 build.
+- **Hero Fuji:** three silhouettes behind the Landing hero (`HeroFuji.tsx`). Staggered fade-in after the splash, parallax on desktop, a CSS float, and a hover tint and glow from the two hero buttons. All of it stops under reduced motion. Design decisions are in [frontend/README.md](../../frontend/README.md).
+
+### Next
+- Check the hero layers in a browser (not run yet): desktop, 768 and 375 px, with motion on and off.
+- Course illustrations (`src/ui/v4/art/courses`, `inspect`) still use the old cream, cobalt and black; recolour them, keeping the JIS safety colours.
+- Locally, `.env` picks another kit: open `/?ui=v4`.
+
+## 2026-11-24 (Android App Links, web side: B8 checked)
+
+### Done
+- Checked my Android item, B8 in [MOBILE_PLATFORM_CONTRACT.md](../../docs/MOBILE_PLATFORM_CONTRACT.md) §5 (with Minhaz): `assetlinks.json` and the "open in the app" page are already live on the API host (Anim, XREQ-026, `backend/app/routers/links.py`), the App Links host until the web app is hosted. Nothing to build on the web for those. Status written into the B8 row.
+
+### Blocked
+- `?s={shopCode}` on Machine QR stickers (XREQ-001 item 10): the web app has no shop code until real sign-in (XREQ-001, Minhaz); mock Machine ids (`m-press`) are not numeric, so the app rejects them anyway; stickers print `VITE_PUBLIC_URL`, not the App Links host. Build it with XREQ-001: take `shopCode` from the login response, and decide with Minhaz which host stickers print. The web `/m/$machineId` route already accepts `?s=`.
+
 ## 2026-11-24 (v4: Journey to Nagasaki, and the v3 work ported to v4)
 
 ### Done
