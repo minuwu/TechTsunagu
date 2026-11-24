@@ -68,6 +68,9 @@ class RequestContextMiddleware:
                 headers["X-Request-ID"] = rid
                 headers["X-Content-Type-Options"] = "nosniff"
                 headers["Referrer-Policy"] = "no-referrer"
+                # API data is never stored; ETag routes and photos set their own rule, and a 304 changes nothing.
+                if scope["path"].startswith("/api/") and status != 304:
+                    headers.setdefault("Cache-Control", "no-store")
             await send(message)
 
         try:

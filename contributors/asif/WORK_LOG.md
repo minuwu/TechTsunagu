@@ -15,10 +15,12 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 - **Message and thread deletion** (`3820598`, ADR 0014), migration `5b1e0c7d92aa`; personal texts are never cached.
 - **Talk Threads**: Galib shipped XREQ-018 first, so I dropped mine.
 - **`docs/API_SPEC.md`** filled in; its endpoint index is generated and checked (`a430bbc`).
-- Notes for the team: `FROM_ASIF_2026-11-24.md` in the anim, galib, minhaz and arjun folders.
+- **XREQ-025 unblocked**: `Microsoft.Storage` registered. **XREQ-009 closed. XREQ-007 item 3** (seam) answered in the card.
+- **`Cache-Control: no-store`** on every API response (sign-in and Senpai links too), as §12 promised; guard test also lists routes outside the contract; untrue claims in BACKEND_ARCHITECTURE corrected (SQLModel, Pillow, docker-compose, `/demo/reset`, load test).
+- Notes for the team: `FROM_ASIF_2026-11-24.md` in the anim, galib, minhaz and arjun folders, each starting with that person's task list.
 
 ### Next
-- Me: `az provider register -n Microsoft.Storage --wait` (XREQ-025, Anim is blocked on it).
+- XREQ-013 (static web demo): stays with Anim (decided 2026-11-24).
 - Team: the AI allowance can be avoided by opening many shops (`POST /auth/register`); options in the notes.
 - Minhaz: `MOBILE_API_CONTRACT.md` still says 76 operations; the exact list is in his note. Arjun or Minhaz: `npm run gen:api`.
 

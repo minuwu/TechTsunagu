@@ -9,9 +9,11 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import pytest
+from fastapi.routing import APIRoute
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
+from app.main import ROUTERS
 from app.models.chat import FollowUp, MessageCheck
 from app.models.life import Ask, Event, Notice, SenpaiPair
 from app.models.personal import Contact, ContactMessage, TalkEntry, TalkThread
@@ -38,6 +40,10 @@ PUBLIC = {
     "GET /api/senpai/{token}",
     "POST /api/senpai/{token}/asks/{ask_id}/reply",
     "POST /api/senpai/{token}/meetups",
+}
+# Hidden from OpenAPI, so the checks below do not see them: static pages on the API host, with no data (XREQ-026).
+OUTSIDE_THE_CONTRACT = {"/.well-known/assetlinks.json"} | {
+    f"/{kind}/{{rest:path}}" for kind in "m c t n b nm i".split()
 }
 BEFORE_PIN_CHANGE = {"GET /api/auth/me", "PUT /api/auth/me/pin", "POST /api/auth/logout"}
 OPERATIONS: dict[str, list[str]] = {
@@ -341,6 +347,12 @@ def _knock(client: TestClient, op: str, headers: dict[str, str]) -> tuple[int, s
 
 def test_only_the_listed_routes_are_public() -> None:
     assert {op for op, roles in OPERATIONS.items() if not roles} == PUBLIC
+
+
+def test_only_the_app_links_are_outside_the_contract() -> None:
+    routes = [r for router in ROUTERS for r in router.routes if isinstance(r, APIRoute)]
+
+    assert {r.path for r in routes if not r.include_in_schema} == OUTSIDE_THE_CONTRACT
 
 
 @pytest.mark.parametrize("headers", [{}, {"Authorization": "Bearer not-a-token"}])

@@ -27,10 +27,10 @@
     <string name="chat_voice_message">音声メッセージ</string>
     <string name="chat_read_aloud">読み上げ</string>
 
-    <string name="chat_auto_send_countdown">%1$d秒後に自動送信 · タップで今すぐ送信</string>
+    <string name="chat_auto_send_countdown">%1$d秒後に送信 · タップで編集</string>
     <string name="chat_cancel">キャンセル</string>
     <string name="chat_editing">編集中</string>
-    <string name="chat_listening">音声を聞き取っています…話してください</string>
+    <string name="chat_listening">聞いています…</string>
     <string name="chat_input_placeholder">メッセージを入力…</string>
     <string name="chat_send">送信</string>
     <string name="chat_mic">音声入力</string>
@@ -46,15 +46,15 @@
     <string name="chat_wk_progress_title">進行状況</string>
     <string name="chat_wk_worker_status">作業員の理解状況</string>
 
-    <string name="chat_status_green">理解（わかった）</string>
+    <string name="chat_status_green">わかった</string>
     <string name="chat_status_orange">要確認</string>
-    <string name="chat_status_red">再説明が必要</string>
+    <string name="chat_status_red">未理解</string>
     <string name="chat_status_wait">回答待ち</string>
 
-    <string name="chat_nudge">催促する</string>
+    <string name="chat_nudge">催促</string>
     <string name="chat_nudged">催促済み</string>
     <string name="chat_nudged_notice">職長が回答を待っています</string>
-    <string name="chat_reexplain">再説明する</string>
+    <string name="chat_reexplain">もう一度説明する</string>
 
     <string name="chat_questions_title">わかった？確認質問（%1$d問）</string>
     <string name="chat_question_progress">質問 %1$d / %2$d</string>
@@ -91,4 +91,12 @@
     <string name="chat_wk_read">既読</string>
     <string name="chat_wk_unread">未読</string>
     <string name="chat_wk_questions">確認質問 (%1$d)</string>
+    <string name="chat_wk_ing_1">文字起こし中</string>
+    <string name="chat_wk_ing_2">英語に翻訳中</string>
+    <string name="chat_wk_ing_3">確認質問を作成中</string>
+    <string name="chat_wk_ing_4">タスクを抽出中</string>
+    <string name="chat_wk_ing_5">作業員へ送信中</string>
+    <string name="chat_wk_ing_6">回答を待っています</string>
+    <string name="chat_wk_answers">作業員の回答</string>
+    <string name="chat_sending">送信中…</string>
 </resources>

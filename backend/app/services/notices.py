@@ -163,7 +163,7 @@ def _draft_problems(d: NoticeDraft) -> list[str]:
 
 def _source_parts(kind: SourceKind, text: str | None, audio: bytes | None, image: bytes | None) -> list[Part]:
     if kind == "voice" and audio:
-        return [Part.blob(audio, audio_mime(audio))]
+        return [Part.blob(audio, audio_mime(audio), "ja")]
     if kind == "photo" and image:
         return [Part.blob(image, "image/jpeg")]
     return [Part.text(f"<notice_source>{text}</notice_source>")]

@@ -63,7 +63,7 @@ This file is:
 | `XREQ-007` | P1 | Frontend (Minhaz) | AI (Galib), Backend (Asif, Anim) | Pick the Japanese ⇄ English transcription and translation models by a bake-off on our own audio, not on free-tier quota | `[IN_PROGRESS]` | 2026-11-23 03:48 |
 
 | `XREQ-008` | P0 | Frontend (Minhaz, Android app) | Backend (Asif) | Hosted API: public base URL, test shop and accounts, health check, Bearer scheme in `openapi.yaml` | `[DONE]` | 2026-11-23 08:25 |
-| `XREQ-009` | P1 | Frontend (Minhaz, Android app) | Backend (Asif) | App platform routes: `GET /app/config` (version gate), device registration, notification list, photo limits | `[PENDING]` | 2026-11-23 08:25 |
+| `XREQ-009` | P1 | Frontend (Minhaz, Android app) | Backend (Asif) | App platform routes: `GET /app/config` (version gate), device registration, notification list, photo limits | `[RESOLVED]` | 2026-11-24 11:40 |
 | `XREQ-010` | P1 | Frontend (Minhaz, Android app) | Backend (Anim, Asif) | Personal side: Contacts, My QR, Talk Threads, group controls, Periodic Interviews, Today's Word, Near-miss | `[DONE]` | 2026-11-24 11:20 |
 | `XREQ-011` | P2 | Frontend (Minhaz, Android app) | Backend (Anim), AI (Galib) | Gaps in live routes: Worker reads, ETag and Idempotency-Key, get-one Notice, Glossary PATCH, analytics, per-shop AI languages, XREQ status upkeep | `[DONE]` | 2026-11-24 11:20 |
 | `XREQ-012` | P1 | Backend (Anim, database) | Backend (Asif, deploy) | Point the Azure API at the Supabase database (`backend/deploy/SUPABASE.md`), reseed, smoke, then delete Azure PostgreSQL | `[DONE]` | 2026-11-23 17:30 |
@@ -80,7 +80,7 @@ This file is:
 | `XREQ-022` | P1 | Frontend (Minhaz, Android app) | Backend (Anim), AI (Galib) | Chat: edit a draft before Send, Re-explanation draft and edit, term-linked Ask the Foreman | `[RESOLVED]` | 2026-11-23 23:56 |
 | `XREQ-023` | P2 | Frontend (Minhaz, Android app) | Backend (Anim) | Near-miss: Worker's own list, severity, Foreman translation, photo mark | `[RESOLVED]` | 2026-11-23 23:56 |
 | `XREQ-024` | P2 | Frontend (Minhaz, Android app) | Backend (Anim) | Foreman reads Asks; set Today's Word; Support Log JSON summary; transcript of voice Asks | `[RESOLVED]` | 2026-11-23 23:56 |
-| `XREQ-025` | P1 | Frontend (Minhaz, Android app) | Backend (Anim, Azure) | Host the release APK and run the release routine behind GET /app/config | `[PENDING]` | 2026-11-23 23:56 |
+| `XREQ-025` | P1 | Frontend (Minhaz, Android app) | Backend (Anim, Azure) | Host the release APK and run the release routine behind GET /app/config | `[RESOLVED]` | 2026-11-24 11:52 |
 | `XREQ-026` | P2 | Frontend (Minhaz, Android app) | Backend (Anim, Azure) | App Links: a host, assetlinks.json and a web fallback for QR and share links | `[RESOLVED]` | 2026-11-24 11:27 |
 *(When adding a request: append a row above AND add a detailed card in 2.2. Never insert in the middle.)*
 
@@ -367,7 +367,7 @@ No API or error-code change.
 
 **Fulfillment & Proof (filled by recipient on completion):**
 - **Branch / Commit**: `main` (Galib, 2026-11-23): `backend/app/ai/bakeoff.py`, `backend/tests/fixtures/ai/bakeoff/clips.json`, `docs/ai-bakeoff.md`, `docs/ai-bakeoff-sheet.csv`
-- **Status / Notes**: Choice made on TTS clips (Haruka ja-JP, Zira en-US, 3 noisy): **transcribe = Groq whisper-large-v3-turbo** (ja CER 5.6%, en WER 1.4%, 0.4 s; fallback whisper-large-v3, better on noise), then the Gemini text path (Whisper does not keep shop words in ja form; the text path and glossary lock do). **Translate ja→en = gemini-3.1-flash-lite** (26/26 shop words); en→ja = 3.5-flash-lite (both 10/10 valid). **Extract = 3.5-flash-lite** (eval 30/30). `gemini-3.5-transcribe` stalled on the free tier (retry on paid). Still open: real recordings (20 ja + 10 en), the Japanese reader's 1–3 scores (`docs/ai-bakeoff-sheet.csv`), 50-call robustness; seam (Asif, Anim): Whisper as its own step before the text path, and a glossary check in `translate`.
+- **Status / Notes**: Choice made on TTS clips (Haruka ja-JP, Zira en-US, 3 noisy): **transcribe = Groq whisper-large-v3-turbo** (ja CER 5.6%, en WER 1.4%, 0.4 s; fallback whisper-large-v3, better on noise), then the Gemini text path (Whisper does not keep shop words in ja form; the text path and glossary lock do). **Translate ja→en = gemini-3.1-flash-lite** (26/26 shop words); en→ja = 3.5-flash-lite (both 10/10 valid). **Extract = 3.5-flash-lite** (eval 30/30). `gemini-3.5-transcribe` stalled on the free tier (retry on paid). Still open: real recordings (20 ja + 10 en), the Japanese reader's 1–3 scores (`docs/ai-bakeoff-sheet.csv`), 50-call robustness; seam (Asif, Anim): Whisper as its own step before the text path, and a glossary check in `translate`. **Asif, 2026-11-24, item 3 (seam):** (1) one chain serves every pipeline today (`main.ai_runner`, `AI_CHAIN`); a model per task is not there. `AiRequest.pipeline` already names the task, so it is one lookup in `AiRunner.run` when wanted. (2) The model is stored with each cached answer (`ai_cache.model`); not on the Note, Briefing or message row (only `ai_outcome`), and not for personal requests, which are never cached. (3) Whisper runs only inside the Groq backup, with `language=ja` fixed, so a Worker speaking English is transcribed as Japanese there (`app/ai/groq.py`, Galib). (4) The 10:00 deadline has passed, so by item 4 of this card AI_PLAN §2 stays for the filming; no `ai_outcome` or message-stage change. 2026-11-24 Anim: agreed with Asif's (1)–(4). **Fixed (3)** (`main` `18ff222`): recordings now carry the speaker's language (`Part.blob(…, language)`: Foreman/Poster `ja`, Workers their own, the chatbot auto-detects), so the Groq backup no longer hears a Worker's Bengali or English as Japanese. **Glossary in `translate`:** the Worker → Japanese prompt was sent `glossary="[]"`; it now gets the shop glossary, and `translation_problems` (`app/domain/ai_checks.py`) retries once when the Worker named a shop word by its fixed translation or romaji ("set-up" / "dandori") and the Japanese lost 「段取り」 (Chat messages; Near-miss still without). Also fixed: a Japanese-speaking Worker's voice message was stored empty. Whisper-first stays unbuilt, as item 4 says.
 - **Verification Proof**: `cd backend; uv run python -m app.ai.bakeoff --clips <folder>`; tables in `docs/ai-bakeoff.md`.
 
 #### `[XREQ-008]` Hosted API: public base URL, test shop and accounts, Bearer scheme
@@ -408,7 +408,7 @@ GET {base}/api/auth/roster?shopCode={code}
 - **Priority**: `P1 (High)`
 - **From**: `Frontend (Minhaz, Android app)`
 - **To**: `Backend (Asif)`
-- **Status**: `[PENDING]`
+- **Status**: `[RESOLVED]`
 - **Created**: `2026-11-23 08:25 (UTC+6)`
 - **Target Interface / Endpoint**: `GET /api/app/config`, `PUT /api/devices/{installId}`, `DELETE /api/devices/{installId}`, `GET /api/notifications`
 
@@ -431,9 +431,9 @@ Exact bodies, errors and the reasoning are in [MOBILE_PLATFORM_CONTRACT.md](docs
 ```
 
 **Fulfillment & Proof (filled by recipient on completion):**
-- **Branch / Commit**: 
+- **Branch / Commit**: `main`: routes by Anim (`backend/app/routers/support.py`, `app/services/platform.py`), checked and closed by Asif
 - **Status / Notes**:  2026-11-23 Anim (Asif is off the project): (1) `GET /api/app/config` is live and public: `minVersion`, `latestVersion`, `downloadUrl`, `sha256`, `serverTime`, set by the env `APP_MIN_VERSION`, `APP_LATEST_VERSION`, `APP_DOWNLOAD_URL`, `APP_SHA256`; the app blocks below `minVersion` (the server-side 426 gate is planned). (2) `PUT /api/devices/me` and `DELETE /api/devices/me?installId=` are live (upsert per user + install, a shared token moves to the new user, 6 per minute, the row is tied to the registering session). Sending: XREQ-014 (Minhaz, Firebase). (3) Rule recorded for the sender. (4) **Push only, no notification list.** (5) **JPEG up to 2 MB** (code and architecture §11 now agree).
-- **Verification Proof**: 
+- **Verification Proof**: 2026-11-24 Asif: `GET /api/app/config` answers 200 without a token on the hosted API; `tests/api/test_interviews_platform.py` 9 passed (public config, one row per user and install, a shared token moves, 6 a minute); `PUT` and `DELETE /devices/me` are in the route guard (401, other roles, first PIN). The server-side 426 gate is not built: the app blocks below `minVersion`.
 
 #### `[XREQ-010]` Personal side: Contacts, My QR, Talk Threads, group controls, Periodic Interviews, Today's Word, Near-miss
 
@@ -871,7 +871,7 @@ Live: `POST /near-misses` (machineId, text, audio, photo), `GET /near-misses` (F
 - **Priority**: `P1 (High)`
 - **From**: `Frontend (Minhaz, Android app)`
 - **To**: `Backend (Anim, Azure)`
-- **Status**: `[PENDING]`
+- **Status**: `[RESOLVED]`
 - **Created**: `2026-11-23 23:56 (UTC+6)`
 - **Target Interface / Endpoint**: Azure Blob Storage (or static hosting), env `APP_MIN_VERSION`, `APP_LATEST_VERSION`, `APP_DOWNLOAD_URL`, `APP_SHA256`
 
@@ -880,8 +880,8 @@ The app updates itself from `GET /app/config` (`minVersion, latestVersion, downl
 
 **Fulfillment & Proof (filled by recipient on completion):**
 - **Branch / Commit**: `main` `c03c7be`: `backend/deploy/release-apk.ps1`
-- **Status / Notes**: 2026-11-24 Anim. **Release routine ready, host blocked.** A release is one command: `powershell -ExecutionPolicy Bypass -File backend\deploy\release-apk.ps1 <wakatta-1.2.0.apk> 1.2.0 [-MinVersion 1.1.0]`. It creates (first run) a Standard_LRS storage account `wakattaapk<n>` in `wakatta-rg` with one container `apk` (anonymous read of blobs only, no listing, HTTPS, TLS 1.2), uploads `wakatta-<version>.apk` with `Content-Type: application/vnd.android.package-archive`, refuses to overwrite a published version, downloads it back over anonymous HTTPS and checks the SHA-256 and Content-Type, then sets `APP_LATEST_VERSION`, `APP_DOWNLOAD_URL`, `APP_SHA256` (and `APP_MIN_VERSION` with `-MinVersion`), waits for the new revision and checks `GET /api/app/config`. `-SkipConfig` uploads and verifies without changing the API. **Blocked:** the `Microsoft.Storage` resource provider is not registered on the Azure for Students subscription, and Anim's Contributor on `wakatta-rg` cannot register it (`AuthorizationFailed` on `Microsoft.Storage/register/action`). **Asif (subscription owner), one command:** `az provider register -n Microsoft.Storage --wait`. Then Anim rehearses with `-SkipConfig` and replies here with the real `downloadUrl` form (`https://wakattaapk<n>.blob.core.windows.net/apk/wakatta-<version>.apk`).
-- **Verification Proof**: rehearsal stopped at the storage create (`SubscriptionNotFound`, provider `NotRegistered`); nothing was created.
+- **Status / Notes**: 2026-11-24 Anim. **Release routine ready, host blocked.** A release is one command: `powershell -ExecutionPolicy Bypass -File backend\deploy\release-apk.ps1 <wakatta-1.2.0.apk> 1.2.0 [-MinVersion 1.1.0]`. It creates (first run) a Standard_LRS storage account `wakattaapk<n>` in `wakatta-rg` with one container `apk` (anonymous read of blobs only, no listing, HTTPS, TLS 1.2), uploads `wakatta-<version>.apk` with `Content-Type: application/vnd.android.package-archive`, refuses to overwrite a published version, downloads it back over anonymous HTTPS and checks the SHA-256 and Content-Type, then sets `APP_LATEST_VERSION`, `APP_DOWNLOAD_URL`, `APP_SHA256` (and `APP_MIN_VERSION` with `-MinVersion`), waits for the new revision and checks `GET /api/app/config`. `-SkipConfig` uploads and verifies without changing the API. **Blocked:** the `Microsoft.Storage` resource provider is not registered on the Azure for Students subscription, and Anim's Contributor on `wakatta-rg` cannot register it (`AuthorizationFailed` on `Microsoft.Storage/register/action`). **Asif (subscription owner), one command:** `az provider register -n Microsoft.Storage --wait`. Then Anim rehearses with `-SkipConfig` and replies here with the real `downloadUrl` form (`https://wakattaapk<n>.blob.core.windows.net/apk/wakatta-<version>.apk`). 2026-11-24 11:52 Anim: **unblocked and ready** (Asif registered the provider). Storage account **`wakattaapk71923`**, container `apk`. **`downloadUrl` = `https://wakattaapk71923.blob.core.windows.net/apk/wakatta-<version>.apk`** (e.g. `…/wakatta-1.0.0.apk`). **Minhaz:** send Anim the signed APK named `wakatta-<version>.apk` (or run the script yourself if you have Contributor on `wakatta-rg`) and say whether it raises `minVersion`; one command publishes it and `GET /api/app/config` offers it. The app should check the downloaded file against `sha256` before installing.
+- **Verification Proof**: 2026-11-24 rehearsal with a dummy `wakatta-0.0.1.apk` and `-SkipConfig`: account and container created, upload done, anonymous HTTPS download matched the SHA-256 and `Content-Type: application/vnd.android.package-archive`; anonymous container listing refused (404); the dummy blob deleted afterwards (404). `GET /api/app/config` unchanged.
 
 #### `[XREQ-026]` App Links host, `assetlinks.json` and web fallback
 

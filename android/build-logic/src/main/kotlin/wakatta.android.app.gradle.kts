@@ -33,7 +33,9 @@ val keyPassword = keystoreProperties.getProperty("keyPassword")
     ?: System.getenv("WAKATTA_KEY_PASSWORD")
 
 configure<ApplicationExtension> {
-    compileSdk = 37
+    compileSdk {
+        version = release(37) { minorApiLevel = 1 }
+    }
 
     defaultConfig {
         applicationId = "com.techtsunagu.wakatta"

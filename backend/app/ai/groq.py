@@ -44,13 +44,12 @@ class GroqClient:
             raise AiUnavailable(f"groq: HTTP {response.status_code}")
         return response
 
-    def _transcribe(self, data: bytes, mime: str) -> str:
+    def _transcribe(self, data: bytes, mime: str, language: str | None) -> str:
         name = _AUDIO_FILES.get(mime, "note.webm")
-        response = self._post(
-            "/audio/transcriptions",
-            files={"file": (name, data, mime)},
-            data={"model": _WHISPER, "language": "ja", "response_format": "text"},
-        )
+        form = {"model": _WHISPER, "response_format": "text"}
+        if language:  # a Worker's Bengali or English recording must not be heard as Japanese
+            form["language"] = language
+        response = self._post("/audio/transcriptions", files={"file": (name, data, mime)}, data=form)
         return response.text.strip()
 
     def generate(
@@ -61,7 +60,9 @@ class GroqClient:
             if part.data is not None and part.mime is not None:
                 if not part.mime.startswith("audio/"):
                     raise AiUnavailable(f"groq: cannot read {part.mime}")
-                texts.append(f"<audio_transcript>{self._transcribe(part.data, part.mime)}</audio_transcript>")
+                texts.append(
+                    f"<audio_transcript>{self._transcribe(part.data, part.mime, part.language)}</audio_transcript>"
+                )
                 texts.append(_TRANSCRIPT_NOTE)
             elif part.text_value is not None:
                 texts.append(part.text_value)

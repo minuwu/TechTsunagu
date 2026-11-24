@@ -7,11 +7,13 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
 from app.api.errors import ApiError
 from app.config import Settings
 from app.main import create_app
 from app.openapi import contract
+from tests import factories as f
 from tests.conftest import FRONTEND
 
 
@@ -167,6 +169,21 @@ def test_security_headers_are_on_every_response(client: TestClient) -> None:
 
     assert res.headers["X-Content-Type-Options"] == "nosniff"
     assert res.headers["Referrer-Policy"] == "no-referrer"
+
+
+def test_api_answers_are_never_stored_by_a_cache(client: TestClient, db: Session) -> None:
+    worker = f.user(db, f.shop(db), pin="2468", must_change=False)
+    login = client.post("/api/auth/login", json={"userId": str(worker.id), "pin": "2468"})
+    signed_in = {"Authorization": f"Bearer {login.json()['data']['token']}"}
+
+    plain = client.get("/api/auth/me", headers=signed_in)
+    polled = client.get("/api/tasks", headers=signed_in)
+    unchanged = client.get("/api/tasks", headers=signed_in | {"If-None-Match": polled.headers["ETag"]})
+
+    assert login.headers["Cache-Control"] == plain.headers["Cache-Control"] == "no-store"
+    assert client.get(f"/api/senpai/{'x' * 22}").headers["Cache-Control"] == "no-store"  # the link is the credential
+    assert polled.headers["Cache-Control"] == "no-cache"  # an ETag route keeps its own rule
+    assert (unchanged.status_code, unchanged.headers.get("Cache-Control")) == (304, None)
 
 
 def test_settings_fail_fast_without_frontend_origin(monkeypatch: pytest.MonkeyPatch) -> None:

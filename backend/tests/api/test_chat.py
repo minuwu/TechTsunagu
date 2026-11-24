@@ -463,3 +463,33 @@ def test_the_wakatta_cards_show_each_workers_answers(client: TestClient, line: L
         "nudged": False,
     }
     assert rows[str(line.sadia_id)]["status"] is None and rows[str(line.sadia_id)]["nudged"] is True
+
+
+def test_a_japanese_speaking_workers_voice_message_is_transcribed(
+    client: TestClient, db: Session, line: Line, fake_ai: FakeAiClient
+) -> None:
+    worker = db.get(User, line.rahim_id)
+    assert worker is not None
+    worker.language = "ja"
+    db.flush()
+    fake_ai.queue("translate", {"text": "手袋が破れました"})
+    ogg = ("v.ogg", b"OggS" + b"\x00" * 32, "audio/ogg")
+
+    res = client.post(f"/api/threads/{line.thread_id}/messages", headers=line.rahim | _key(), files={"audio": ogg})
+
+    assert res.status_code == 201, res.text
+    assert res.json()["data"]["text"] == {"ja": "手袋が破れました"}  # not an empty message
+
+
+def test_a_workers_message_keeps_the_shop_word_in_japanese(
+    client: TestClient, line: Line, fake_ai: FakeAiClient
+) -> None:
+    fake_ai.queue("translate", {"text": "型の交換が終わりました"})  # 「金型」 lost: one retry
+    fake_ai.queue("translate", {"text": "金型の交換が終わりました"})
+
+    res = client.post(
+        f"/api/threads/{line.thread_id}/messages", headers=line.rahim | _key(), data={"text": "ডাই বদল শেষ"}
+    )
+
+    assert res.status_code == 201, res.text
+    assert res.json()["data"]["text"]["ja"] == "金型の交換が終わりました"
