@@ -4,6 +4,10 @@ Owner: Arjun Saha (`sillyfellow21`) — Role: Frontend design
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-24 (from Asif: R3 is done)
+
+- R3 is on `main` with tests: nothing left for you there. R4 is next (me). Yours: R5, R6, R7.
+
 ## 2026-11-24 (from Asif: your Android work is checked, and I take R3 and R4)
 
 - **R1 and App Links compile and pass** (`789b9a4`: 886 Android tests, 0 failed, app built), so nobody needs to run them again.

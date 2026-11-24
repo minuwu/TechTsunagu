@@ -40,6 +40,9 @@ data class ChatMessageUiModel(
     val translatedText: String,
     val time: String,
     val stage: Int = 5,
+    /** The Foreman's own message that has not gone to the Workers yet. */
+    val isDraft: Boolean = false,
+    /** A draft the AI could not translate. */
     val needsEdit: Boolean = false,
     val isVoice: Boolean = false,
     val voiceDuration: String? = null,

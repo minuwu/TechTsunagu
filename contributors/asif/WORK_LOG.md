@@ -4,6 +4,16 @@ Owner: Asif (`MdAsif-Hossain`) — Role: Backend (lead) / Services / Database
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-24 — R3: the AI draft can wait for the Foreman (for Arjun)
+
+### Changed
+- `sendMessage` only posts: a Foreman's message comes back as a draft (`isDraft`, `needsEdit` in `ChatMessageUiModel`). New `ChatRepository.sendDraft(id)` and `ChatEvent.SendDraft(id)`; a double tap sends once; `ALREADY_SENT` counts as sent.
+- A draft left from an earlier timeout arrives with the poll and can be sent or edited, with its questions and Tasks.
+- **Nothing changes for the Foreman yet:** without a Send button on screen, the app still sends at once. M2 sets `reviewDrafts` in `ChatViewModel` to true; from then on no draft, good or `needsEdit`, goes out without `SendDraft`.
+
+### Verified (local; not run on a phone)
+- `testDebugUnitTest checkModuleGraph :app:assembleDebug`: BUILD SUCCESSFUL, 894 tests (85 in chat), 0 failed. 8 new tests; two of them fail when the review guard is removed.
+
 ## 2026-11-24 — Both mobile contract docs match the API again (for Minhaz)
 
 - `MOBILE_API_CONTRACT.md`: 133 live operations on 104 paths (it said 76 on 64). 32 entries became live, 25 routes were missing (E-115 to E-139), three paths corrected.
