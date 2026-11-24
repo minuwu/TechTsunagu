@@ -227,3 +227,10 @@ Minhaz mapped the prototype (`prototypes/wakatta/`) and the frontend against `ma
 - Worker Wakatta card restyled to the prototype (header with dots, 52dp option rows, result banner, board chips).
 - Bubbles show the original; Workers open "Show translation".
 - Chats top bar: QR button opens Connect.
+
+## 2026-11-24 (crash guard for the submission build)
+
+- Release builds no longer crash in a judge's hands: an unexpected error in a screen's coroutine shows "Something went wrong" and the app keeps running (`CrashGuard`, `MviViewModel` shadows `viewModelScope`). Debug builds and tests still throw.
+- A crash outside screens reopens the app on Home silently; a second crash within 10 s falls back to the system, so it never loops.
+- `safeApiCall` turns any unexpected exception into `AppError.Unknown`.
+- Added the 7 path constants teammates' new routes were missing (`OpenApiContractTest` was red).

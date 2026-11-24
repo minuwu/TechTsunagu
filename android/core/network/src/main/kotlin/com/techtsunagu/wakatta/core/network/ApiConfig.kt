@@ -116,5 +116,12 @@ object ApiConfig {
         const val TALK_THREAD = "/api/talk-threads/{thread_id}"
         const val TALK_ENTRIES = "/api/talk-threads/{thread_id}/entries"
         const val TALK_ENTRY = "/api/talk-threads/{thread_id}/entries/{entry_id}"
+        const val CONTACT_MESSAGE = "/api/contacts/{contact_id}/messages/{message_id}"
+        const val MESSAGES_UNANSWERED = "/api/messages/unanswered"
+        const val THREAD = "/api/threads/{thread_id}"
+        const val THREAD_LEAVE = "/api/threads/{thread_id}/leave"
+        const val THREAD_ME = "/api/threads/{thread_id}/me"
+        const val THREAD_MEMBERS = "/api/threads/{thread_id}/members"
+        const val THREAD_MEMBER = "/api/threads/{thread_id}/members/{user_id}"
     }
 }
