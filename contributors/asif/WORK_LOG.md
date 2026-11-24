@@ -4,6 +4,12 @@ Owner: Asif (`MdAsif-Hossain`) — Role: Backend (lead) / Services / Database
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-24 — Both mobile contract docs match the API again (for Minhaz)
+
+- `MOBILE_API_CONTRACT.md`: 133 live operations on 104 paths (it said 76 on 64). 32 entries became live, 25 routes were missing (E-115 to E-139), three paths corrected.
+- `MOBILE_PLATFORM_CONTRACT.md`: the 429 rows give the AI limit (10 a minute, 100 a day, 500 paid; `Retry-After` 60 or 3600).
+- Verified with two separate scripts against `docs/openapi.yaml`: 0 missing, 0 extra. Not checked: the roles written on the Contacts and Talk rows (F W P) were left as they were.
+
 ## 2026-11-24 — Full Android check on `main`
 
 ### Verified (`789b9a4`, local, JDK 17; not run on a phone)

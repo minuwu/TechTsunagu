@@ -7,6 +7,12 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 
 > **Message from Asif (2026-11-23), read first:** [CHATBOT_FROM_ASIF.md](CHATBOT_FROM_ASIF.md) explains the chatbot (what it does, the API, the four screen states, "Ask my Senpai" vs "Safety Senpai") and three decisions that are **yours**: where the ask box goes, one bot or two names, and which half grows first. Answer in XREQ-016.
 
+## 2026-11-24 (from Asif: tasks 8 and 9 of my note are done)
+
+- I updated `MOBILE_API_CONTRACT.md` (133 live operations, same as `openapi.yaml`) and the 429 rows of `MOBILE_PLATFORM_CONTRACT.md`. Nothing left for you in either.
+- In task 5 of the same note, the contact message path is already in `ApiConfig.kt`.
+- One thing to look at: the Contacts and Talk rows give the roles as F W P; the server's guard allows Foreman and Worker only.
+
 ## 2026-11-24 (from Asif: Android check is green, R3 is coming)
 
 - `main` at `789b9a4` passes `testDebugUnitTest checkModuleGraph :app:assembleDebug` (886 tests, 0 failed), including Arjun's R1 and App Links: you do not need to run those for Arjun.

@@ -6,7 +6,7 @@ This file is the endpoint-by-endpoint contract for the whole prototype (Worker, 
 
 How the claims here were checked:
 
-- `docs/openapi.yaml` (JSON despite the extension) was parsed with a script and compared with the `@router` decorators in `backend/app/routers/*.py`: both give the same 76 operations on 64 paths (check printed in section 1).
+- `docs/openapi.yaml` (JSON despite the extension) was parsed with a script and compared with the `@router` decorators in `backend/app/routers/*.py`: both gave the same 76 operations on 64 paths in revision 2; revision 3 counts 133 operations on 104 paths from `docs/openapi.yaml` (check printed in section 1).
 - Request and response models come from `backend/app/schemas/*.py`; what the web client sends comes from `frontend/src/services/wakatta.ts` and `frontend/src/domain/wakatta.ts`.
 - Planned endpoints come from [BACKEND_ARCHITECTURE.md](BACKEND_ARCHITECTURE.md) section 9.3 and `AGENTS.md` XREQ-001..007. `new` endpoints come from a local backend-additions handoff note (not in the repo, `.agent-bridge/` is git-ignored; its content is restated in sections 4.8 to 4.11 below); they are proposals.
 - Where a source is silent the text says `UNKNOWN` and the item is in section 7.2.
@@ -20,14 +20,14 @@ Contents: 1 Status legend and counts · 2 Conventions · 3 Common shapes · 4 En
 
 | Status | Meaning | Count |
 | :--- | :--- | :--- |
-| `live` | Operation is in `docs/openapi.yaml` (generated from the FastAPI routes) and in the routers. Safe to code against. | 76 |
-| `planned` | In `BA` 9.3 or an XREQ, not in `docs/openapi.yaml`. The XREQ id is named when there is one. Shapes are the spec's, not code. | 9 |
-| `new` | From the handoff file only. No XREQ yet. Every path, field and rule can still change. | 29 |
-| **Total** | | 114 |
+| `live` | Operation is in `docs/openapi.yaml` (generated from the FastAPI routes) and in the routers. Safe to code against. | 133 |
+| `planned` | In `BA` 9.3 or an XREQ, not in `docs/openapi.yaml`. The XREQ id is named when there is one. Shapes are the spec's, not code. | 5 |
+| `new` | From the handoff file only. No XREQ yet. Every path, field and rule can still change. | 1 |
+| **Total** | | 139 |
 
-`live` is counted in operations (method + path). The same operations are 64 paths in `docs/openapi.yaml`. `todayWord` on the live `GET /api/senpai/{token}` is a `new` field on a live endpoint; it is listed under 4.10 and does not change the counts. Revision 2 (2026-11-23, after the merge with `origin/main`): the live API grew from 52 operations on 43 paths to 76 on 64 (Chat, Briefings, Skill views, Panel Overrides, Knowledge Library, Sign-off list, effort metrics); 23 endpoints moved from `planned` to `live` and one live route (`POST /api/briefings`, E-114) was not in any plan.
+`live` is counted in operations (method + path). The same operations are 104 paths in `docs/openapi.yaml`. `todayWord` on the live `GET /api/senpai/{token}` is a `new` field on a live endpoint; it is listed under 4.10 and does not change the counts. Revision 2 (2026-11-23, after the merge with `origin/main`): the live API grew from 52 operations on 43 paths to 76 on 64 (Chat, Briefings, Skill views, Panel Overrides, Knowledge Library, Sign-off list, effort metrics); 23 endpoints moved from `planned` to `live` and one live route (`POST /api/briefings`, E-114) was not in any plan. Revision 3 (2026-11-24): the live API grew from 76 operations on 64 paths to 133 on 104 (Contacts, Talk Threads, group Threads, Near-miss Reports, Periodic Interviews, Today's Word, push devices, app config, open registration, the chatbot, Machine rename and archive); 32 endpoints moved from `planned` or `new` to `live` and 25 live routes were added as E-115 to E-139.
 
-Verification result (script run on 2026-11-23, revision 2): the 76 `live` operations equal the `docs/openapi.yaml` operations and the router decorators exactly (0 missing, 0 extra); the 9 `planned` operations equal (BA 9.3 plus the XREQ-003 and XREQ-005 routes) minus the live ones; the 29 `new` operations come from the handoff and overlap no live or planned one; the 34 screen ids, 27 Bus events and 49 `shortcut:` comments each appear exactly once in tables 5.1 to 5.3.
+Verification result (script run on 2026-11-24, revision 3): every `docs/openapi.yaml` operation (133) is in this file as `live` and every `live` entry is in `docs/openapi.yaml` (0 missing, 0 extra); the 5 `planned` and 1 `new` entries are in no schema. The router decorators were not recompared in revision 3. Earlier result (script run on 2026-11-23, revision 2): the 76 `live` operations equal the `docs/openapi.yaml` operations and the router decorators exactly (0 missing, 0 extra); the 9 `planned` operations equal (BA 9.3 plus the XREQ-003 and XREQ-005 routes) minus the live ones; the 29 `new` operations come from the handoff and overlap no live or planned one; the 34 screen ids, 27 Bus events and 49 `shortcut:` comments each appear exactly once in tables 5.1 to 5.3.
 
 Each endpoint below starts with a heading of the form `#### E-nnn METHOD /path` and a line `Status: live|planned|new`. Role letters: **F** Foreman, **W** Worker, **P** Community Poster, **D** Machine Panel device session, **S** Senpai link token, **pub** no token. Role rules for live routes are from the `require(...)` guards in the routers; for planned ones from `BA` 3.2 and 9.3.
 
@@ -395,17 +395,17 @@ Errors: `409 NEEDS_EDIT` placeholder text still present; `409 CONFLICT` already 
 
 ### 4.5 Near-miss Reports
 
-All three are `planned` in BA 9.3 and have no XREQ. A Worker's own list and detail view are not specified (Q-09).
+All three were `planned` in BA 9.3 and are `live` since revision 3 (2026-11-24). A Worker sees only their own reports.
 
 #### E-037 `POST /api/near-misses`
-Status: `planned` (`BA:495`; the key is XREQ-001 item 4, `AGENTS.md:82`) · Roles: W · Idempotency: required · Screens: `nearmiss` · Bus: `nearmiss:new`
-Request: multipart `machineId`, `text` or `audio`, optional `photo` file (JPEG), `Idempotency-Key`. Response `UNKNOWN`; the report holds `text` (Tri), `photoBlobId`, `acknowledgedAt` (`BA:255`). The prototype also asks for a severity and a photo mark position (`prototypes/wakatta/parts/C.js:337` `NM.sev`, `NM.mark`); the backend plan has neither (Q-08).
+Status: `live` (was `planned`; `BA:495`; the key is XREQ-001 item 4, `AGENTS.md:82`) · Roles: W · Idempotency: required · Screens: `nearmiss` · Bus: `nearmiss:new`
+Request: multipart `machineId`, `text` or `audio`, optional `photo` file (JPEG), `Idempotency-Key`. Response `NearMissOut`; the report holds `text` (Tri), `photoBlobId`, `acknowledgedAt` (`BA:255`). The prototype also asks for a severity and a photo mark position (`prototypes/wakatta/parts/C.js:337` `NM.sev`, `NM.mark`); the backend plan has neither (Q-08).
 
 #### E-038 `GET /api/near-misses`
-Status: `planned` (`BA:496`) · Roles: F (W own: `UNKNOWN`) · Request `?open=true` · Screens: `nearmiss-list`, `nearmiss-detail`, `home` (badge) · Bus: `nearmiss:new`. Paged, newest first. No get-by-id route is listed.
+Status: `live` (was `planned`; `BA:496`) · Roles: F, and W (own reports only) · Request `?open=true` · Screens: `nearmiss-list`, `nearmiss-detail`, `home` (badge) · Bus: `nearmiss:new`. Page of `NearMissOut`, newest first; `If-None-Match` gives 304. Get-by-id is E-122.
 
 #### E-039 `POST /api/near-misses/{id}/ack`
-Status: `planned` (`BA:497`) · Roles: F · Screens: `nearmiss-detail` · Bus: `nearmiss:ack`. Response `UNKNOWN`.
+Status: `live` (was `planned`; `BA:497`) · Roles: F · Screens: `nearmiss-detail` · Bus: `nearmiss:ack`. Response `NearMissOut`.
 
 ### 4.6 Board, Skill Matrix, Confusions, Glossary, Shift Assignments
 
@@ -440,7 +440,7 @@ Status: `live` · Roles: F · Screens: `chat`, `analytics` ("add to glossary") �
 Request: `{"ja":"玉掛け","reading":"たまがけ","bn":"..","en":".."}` (`ja`, `reading` up to 40; `bn`, `en` up to 80). Response 201: the term. Errors: `409 CONFLICT` already in the glossary; `422`.
 
 #### E-048 `PATCH /api/glossary/{id}`
-Status: `planned` (`BA:466`) · Roles: F · Request and response `UNKNOWN`.
+Status: `live` (was `planned`; `BA:466`) · Roles: F · Request `GlossaryUpdate`, response `GlossaryOut`.
 
 #### E-049 `GET /api/shift-assignments`
 Status: `live` · Roles: F W (W sees own) · Request: query **`day`** (`YYYY-MM-DD`, optional; BA 9.3 says `date`, D-01) · Screens: `home`, `machine`, `panel`
@@ -512,89 +512,89 @@ Status: `live` · Roles: F W (every Worker may move cards) · Screens: `board`, 
 Request: header **`If-Match: <version>`** (required; the number from `TaskOut.version`, quotes allowed, else `422`) and body with any of `{"column":"doing","assigneeIds":["12"],"dueAt":"..."}`. `"dueAt": null` clears the due time (explicit null, 2.4). Response 200: `<TaskOut>` with `version` plus one.
 Errors: `412 VERSION_CONFLICT` someone moved it first (reload the board); `404`; `422`.
 
-### 4.8 Group controls (new)
+### 4.8 Group controls (live)
 
-Source: handoff section 1 (`.agent-bridge/specs/android/handoff-backend-additions.md:7-14`). It extends XREQ-005 in shop scope. All `new`; no response shape is given.
+Source: handoff section 1 (`.agent-bridge/specs/android/handoff-backend-additions.md:7-14`). It extends XREQ-005 in shop scope. All `live` since revision 3; request and response schema names are from `docs/openapi.yaml`.
 
 Rules from the handoff: members are active users of the same shop; a thread keeps at least one Foreman admin (409); a locked thread (Safety notices; membership follows the roster) refuses edits and leave with `409 THREAD_LOCKED`; Workers get `403` on member changes; announce-only: Workers cannot post but can still answer Checks; removal is soft (history stays); new members see messages from their join time (handoff section 5); system messages have `kind: "system"` with `{event, actorId, subjectId}` and the client renders the text per language. Mute is notification-only: a muted Worker still shows grey on the board, and Nudge and Check deadlines ignore mute.
 
 #### E-063 `POST /api/threads`
-Status: `new` (handoff section 1) · Roles: F (Foreman admin; Worker creation `UNKNOWN`) · Idempotency: "on creates" (handoff section 2 wording; applies here `UNKNOWN`) · Screens: `chats` (group), `chat` · Request and response `UNKNOWN` (fields named: title, `description`, members, `locked`, `announce_only`).
+Status: `live` (handoff section 1) · Roles: F (Foreman admin; Worker creation `UNKNOWN`) · Idempotency: "on creates" (handoff section 2 wording; applies here `UNKNOWN`) · Screens: `chats` (group), `chat` · Request `ThreadCreate`, response `ThreadDetail`.
 
 #### E-064 `GET /api/threads/{id}`
-Status: `new` · Roles: members · Screens: `chat` (header, members). Response `UNKNOWN`.
+Status: `live` · Roles: members · Screens: `chat` (header, members). Response `ThreadDetail`.
 
 #### E-065 `PATCH /api/threads/{id}`
-Status: `new` · Roles: F admin · Screens: `chat` (rename, description, `announce_only`). Errors: `409 THREAD_LOCKED`. Audit `thread_renamed`. Request `UNKNOWN`.
+Status: `live` · Roles: F admin · Screens: `chat` (rename, description, `announce_only`). Errors: `409 THREAD_LOCKED`. Audit `thread_renamed`. Request `ThreadUpdate`, response `ThreadDetail`.
 
 #### E-066 `POST /api/threads/{id}/members`
-Status: `new` · Roles: F admin; `403` for a Worker · Screens: `chat`. Errors: `409`, `409 THREAD_LOCKED`. Audit `thread_member_added`. Request `UNKNOWN`.
+Status: `live` · Roles: F admin; `403` for a Worker · Screens: `chat`. Errors: `409`, `409 THREAD_LOCKED`. Audit `thread_member_added`. Request `MembersIn`, response `ThreadDetail`.
 
 #### E-067 `PATCH /api/threads/{id}/members/{userId}`
-Status: `new` · Roles: F admin · Screens: `chat`. Changes `role` (`admin|member`). Audit `thread_role_changed`. A thread keeps at least one Foreman admin (`409`). Request `UNKNOWN`.
+Status: `live` · Roles: F admin · Screens: `chat`. Changes `role` (`admin|member`). Audit `thread_role_changed`. A thread keeps at least one Foreman admin (`409`). Request `RoleIn`, response `ThreadDetail`.
 
 #### E-068 `DELETE /api/threads/{id}/members/{userId}`
-Status: `new` · Roles: F admin · Screens: `chat`. Soft removal (`removed_at`, `removed_by`). Audit `thread_member_removed`. Errors: `409 THREAD_LOCKED`.
+Status: `live` · Roles: F admin · Screens: `chat`. Soft removal (`removed_at`, `removed_by`). Audit `thread_member_removed`. Errors: `409 THREAD_LOCKED`. Response `ThreadDetail`.
 
 #### E-069 `PUT /api/threads/{id}/me`
-Status: `new` · Roles: any member · Screens: `chats`, `chat`. Per-member `muted`, `pinned`, `archived`. Request body names the three flags; response `UNKNOWN`.
+Status: `live` · Roles: any member · Screens: `chats`, `chat`. Per-member `muted`, `pinned`, `archived`. Request `MySettingsIn`, response `ThreadDetail`.
 
 #### E-070 `POST /api/threads/{id}/leave`
-Status: `new` · Roles: any member · Screens: `chat`. Errors: `409 THREAD_LOCKED` for locked threads.
+Status: `live` · Roles: any member · Screens: `chat`. Errors: `409 THREAD_LOCKED` for locked threads.
 
-### 4.9 Contacts, My QR and Talk Threads (new)
+### 4.9 Contacts, My QR and Talk Threads (live)
 
-Source: handoff section 2 (`handoff-backend-additions.md:16-22`) and ADR 0014. These are user-scoped, not shop-scoped: the scope is `me.user_id`; the Foreman and the employer cannot read them; they never reach the Support Log or Learning History. All roles with an account may use them (Foreman, Worker, Poster); not a Panel or a Senpai link. A blocked sender is dropped silently (no `403` reveals a block). At the per-user daily AI cap the original text is returned untranslated, never a 5xx. Audio is never stored but is sent to Google and Groq (handoff section 2 "Privacy"). The QR payload format and the scan flow are in the platform contract.
+Source: handoff section 2 (`handoff-backend-additions.md:16-22`) and ADR 0014; all `live` since revision 3. These are user-scoped, not shop-scoped: the scope is `me.user_id`; the Foreman and the employer cannot read them; they never reach the Support Log or Learning History. All roles with an account may use them (Foreman, Worker, Poster); not a Panel or a Senpai link. A blocked sender is dropped silently (no `403` reveals a block). At the per-user daily AI cap the original text is returned untranslated, never a 5xx. Audio is never stored but is sent to Google and Groq (handoff section 2 "Privacy"). The QR payload format and the scan flow are in the platform contract.
 
 #### E-071 `POST /api/me/qr`
-Status: `new` · Roles: F W P · Idempotency: n/a · Screens: `connect`
-Get or rotate My QR. Returns an opaque 128-bit token (SHA-256 at rest, revocable, rotatable), never a user id or PIN. Request and response shape `UNKNOWN`.
+Status: `live` · Roles: F W P · Idempotency: n/a · Screens: `connect`
+Get or rotate My QR. Returns an opaque 128-bit token (SHA-256 at rest, revocable, rotatable), never a user id or PIN. Request `QrIn`, response `QrOut`.
 
 #### E-072 `GET /api/contacts/resolve`
-Status: `new` · Roles: F W P · Request `?token=` · Screens: `connect-scan` · Rate-limited. Returns the other person's name and language only, never an id or shop. Response shape `UNKNOWN`.
+Status: `live` · Roles: F W P · Request `?token=` · Screens: `connect-scan` · Rate-limited. Returns the other person's name and language only, never an id or shop. Response `ContactPreview`.
 
 #### E-073 `POST /api/contacts`
-Status: `new` · Roles: F W P · Idempotency: yes · Screens: `connect-scan`. The scanner confirms after seeing the name. Request (token) and response `UNKNOWN`.
+Status: `live` · Roles: F W P · Idempotency: yes · Screens: `connect-scan`. The scanner confirms after seeing the name. Request `ContactCreate`, response `ContactOut`.
 
 #### E-074 `GET /api/contacts`
-Status: `new` · Roles: F W P · Screens: `chats`. Response `UNKNOWN`; per-side `hidden_at` and `muted` exist.
+Status: `live` · Roles: F W P · Screens: `chats`. Response: page of `ContactOut`; per-side `hidden_at` and `muted` exist.
 
 #### E-075 `PUT /api/contacts/{id}`
-Status: `new` · Roles: F W P · Screens: `pchat` (menu). Mute or hide. Request and response `UNKNOWN`.
+Status: `live` · Roles: F W P · Screens: `pchat` (menu). Mute or hide. Request `ContactUpdate`, response `ContactOut`.
 
 #### E-076 `GET /api/contacts/{id}/messages`
-Status: `new` · Roles: F W P · Poll: `UNKNOWN` (no ETag stated) · Screens: `pchat`. Response `UNKNOWN`; a message has `text_src`, `src_lang`, translated text.
+Status: `live` · Roles: F W P · Poll: `If-None-Match` gives 304 · Screens: `pchat`. Response `ContactMessagesPage`; a message has `text_src`, `src_lang`, translated text.
 
 #### E-077 `POST /api/contacts/{id}/messages`
-Status: `new` · Roles: F W P · Idempotency: yes · Rate-limited · Screens: `pchat`. Request `UNKNOWN` (`text_src` and the language). Translated for the other person's language.
+Status: `live` · Roles: F W P · Idempotency: yes · Rate-limited · Screens: `pchat`. Request `ContactMessageIn`, response `ContactMessageOut`. Translated for the other person's language.
 
 #### E-078 `POST /api/blocks`
-Status: `new` · Roles: F W P · Screens: `pchat`, `connect-scan`. Request names `blocked_id`; the wire field name `UNKNOWN`.
+Status: `live` · Roles: F W P · Screens: `pchat`, `connect-scan`. Request `BlockIn`.
 
-#### E-079 `DELETE /api/blocks/{userId}`
-Status: `new` · Roles: F W P · Screens: `pchat` (unblock).
+#### E-079 `DELETE /api/blocks/{contactId}`
+Status: `live` · Roles: F W P · Screens: `pchat` (unblock).
 
 #### E-080 `GET /api/talk-threads`
-Status: `new` · Roles: F W P · Screens: `chats`, `pchat`. Response `UNKNOWN`. No route to read the entries of one Talk Thread is listed in the handoff (Q-06).
+Status: `live` · Roles: F W P · Screens: `chats`, `pchat`. Response: page of `TalkThreadOut`. Entries are read with E-127.
 
 #### E-081 `POST /api/talk-threads`
-Status: `new` · Roles: F W P · Idempotency: yes · Screens: `chats` (new talk). Title 1 to 40 characters (handoff). Request and response otherwise `UNKNOWN`.
+Status: `live` · Roles: F W P · Idempotency: yes · Screens: `chats` (new talk). Title 1 to 40 characters (handoff). Request `TalkThreadIn`, response `TalkThreadOut`.
 
 #### E-082 `PATCH /api/talk-threads/{id}`
-Status: `new` · Roles: owner · Screens: `pchat` (rename). Request `UNKNOWN`.
+Status: `live` · Roles: owner · Screens: `pchat` (rename). Request `TalkThreadIn`, response `TalkThreadOut`.
 
 #### E-083 `DELETE /api/talk-threads/{id}`
-Status: `new` · Roles: owner · Screens: `pchat` (menu). Hard delete of the thread and its entries.
+Status: `live` · Roles: owner · Screens: `pchat` (menu). Hard delete of the thread and its entries.
 
 #### E-084 `POST /api/talk-threads/{id}/entries`
-Status: `new` · Roles: owner · Idempotency: yes · Screens: `pchat` (listen) · Poll: none, AI inline
-Request: audio or text (field names `UNKNOWN`). One call returns an entry holding: transcript, plain Japanese, meaning in the owner's language, dialect term pairs, `needs_staff` flag (a deterministic rule, not the model), `own_text`, `grade` (`green|orange|red`), reply options, `reply_ja`, `confirmed` (bool or null). AI pipelines: `explain_utterance`, `grade_understanding` (handoff section 2). Wire names `UNKNOWN` except those listed.
+Status: `live` · Roles: owner · Idempotency: yes · Screens: `pchat` (listen) · Poll: none, AI inline
+Request: multipart (`Body_add_entry_api_talk_threads__thread_id__entries_post`), audio or text. Response `TalkEntryOut`. One call returns an entry holding: transcript, plain Japanese, meaning in the owner's language, dialect term pairs, `needs_staff` flag (a deterministic rule, not the model), `own_text`, `grade` (`green|orange|red`), reply options, `reply_ja`, `confirmed` (bool or null). AI pipelines: `explain_utterance`, `grade_understanding` (handoff section 2). Wire names `UNKNOWN` except those listed.
 
-#### E-085 `PATCH /api/talk-threads/{id}/entries/{UNKNOWN}`
-Status: `new` · Roles: owner · Screens: `pchat`. The handoff says only "PATCH and DELETE an entry (attempt, reply, confirm)" and names no path; the last segment `{UNKNOWN}` is a placeholder (Q-06). Request `UNKNOWN`.
+#### E-085 `PATCH /api/talk-threads/{id}/entries/{entryId}`
+Status: `live` · Roles: owner · Screens: `pchat`. Request `TalkEntryUpdate`: exactly one of `ownText` (graded by AI), `replyJa` or `confirmed`. Response `TalkEntryOut`.
 
-#### E-086 `DELETE /api/talk-threads/{id}/entries/{UNKNOWN}`
-Status: `new` · Roles: owner · Screens: `pchat`. Same placeholder path. Hard delete.
+#### E-086 `DELETE /api/talk-threads/{id}/entries/{entryId}`
+Status: `live` · Roles: owner · Screens: `pchat`. Hard delete. Response `data: null`.
 
 ### 4.10 Life: Notices, Events, Asks, Senpai, Meet-ups
 
@@ -611,7 +611,7 @@ Errors: `422` source does not match `sourceKind`; `413`; `415` (photo must be JP
 #### E-089 `GET /api/notices`
 Status: `live` · Roles: P (own Notices) and W (published Notices of the district) · Poll: none · Screens: `life`, `notice`, `home`
 Request: `?limit=&cursor=`. Response 200: page of `NoticeForPoster` (Poster) or `NoticeForWorker` (Worker); the two have different `question` types, so use two DTO classes chosen by the signed-in role (7.1, D-19). A Worker item adds `opened` and `passed`.
-No get-by-id route exists; the `notice` screen reads from the list.
+Get-by-id is E-125.
 
 #### E-090 `PATCH /api/notices/{id}`
 Status: `live` · Roles: P · Screens: `notice-new`
@@ -644,7 +644,7 @@ Status: `live` · Roles: W (own) · Poll: none stated; poll on screen open for `
 Status: `live` · Roles: W · Idempotency: forwarding twice changes nothing · Screens: `ask` · Response 200: `<AskOut>` with `forwarded: true`. Errors: `409 NO_ACTIVE_PAIR`; `404`.
 
 #### E-098 `GET /api/senpai-pairs`
-Status: `live` · Roles: F (not Worker) · Screens: `senpai` (Foreman) · Response 200: page of `{"id":"3","workerId":"12","senpaiName":"田中 健","kind":"coworker","createdAt":"..","expiresAt":".."}`. No token. A Worker cannot read their own pair (B-04).
+Status: `live` · Roles: F (not Worker) · Screens: `senpai` (Foreman) · Response 200: page of `{"id":"3","workerId":"12","senpaiName":"田中 健","kind":"coworker","createdAt":"..","expiresAt":".."}`. No token. A Worker reads their own pair with E-126.
 
 #### E-099 `POST /api/senpai-pairs`
 Status: `live` · Roles: F · Screens: `senpai` (Foreman) · Request: `{"workerId":"12","senpaiName":"田中 健","kind":"coworker"}` (`kind` `coworker|jichikai`). Response 201: the pair plus `"token"`, shown once. Errors: `409 CONFLICT` the Worker already has a Senpai (revoke first).
@@ -655,7 +655,7 @@ Status: `live` · Roles: F · Screens: `senpai` (Foreman) · Response 200: `data
 #### E-101 `POST /api/meetups`
 Status: `live` · Roles: W · Idempotency: none (D-20) · Screens: `senpai`, `life` · Bus: `meetup:new`
 Request: `{"kind":"drill","date":"2026-12-06","note":"防災訓練に一緒に行った"}` (`kind` `coffee|event|drill|other`; `note` up to 500, default empty). No `pairId` or `loggedBy`. Response 201: `{"id":"5","pairId":"3","kind":"drill","date":"2026-12-06","note":"..","loggedBy":"worker"}`. Errors: `409 NO_ACTIVE_PAIR`; `422` future date ("A Meet-up is logged after it happened", `backend/app/services/senpai.py:130-134`).
-There is no `GET /meetups` (B-04).
+`GET /api/meetups` is E-121.
 
 #### E-102 `GET /api/senpai/{token}`
 Status: `live` · Roles: S (path token, no Bearer) · Screens: web Senpai page · Response 200: `{"senpaiName":"田中 健","worker":{"displayName":"Rahim Uddin","language":"bn"},"asks":[{"id":"31","text":"..","textJa":"..","createdAt":"..","replyJa":null}],"events":[<EventOccurrence>],"meetups":[<MeetupOut>]}`. A `todayWord` field is `new` (4.11, E-110). Errors: `404` wrong or revoked token.
@@ -669,25 +669,25 @@ Status: `live` · Roles: S · Request as E-101. Response 201: `<MeetupOut>` with
 #### E-105 `GET /api/workers/{id}/calendar.ics`
 Status: `planned` (`BA:512`, P2) · Roles: W (self) · Screens: `life` ("Add to calendar") · Not enveloped, not built; the web app builds the file in the browser. On Android use `CalendarContract` insert intents with the `GET /api/events` data instead (platform decision, Q-13).
 
-### 4.11 Periodic Interview and Today's Word (new)
+### 4.11 Periodic Interview and Today's Word (live except E-107)
 
 Source: handoff sections 3 and 4 (`handoff-backend-additions.md:23-32`). Shop scope, Foreman only. Workers cannot read these records. The due date is derived, never stored: last `held_on` plus 3 months; status `ok`, `soon` (14 days or fewer) or `overdue`.
 
 #### E-106 `GET /api/interviews/due`
-Status: `new` · Roles: F · Screens: `supportlog`, `interview`, `home` · Response `UNKNOWN` (per Worker: last held, due date, status `ok|soon|overdue`).
+Status: `live` · Roles: F · Screens: `supportlog`, `interview`, `home` · Response: list of `InterviewDue` (per Worker: last held, due date, status `ok|soon|overdue`).
 
 #### E-107 `GET /api/workers/{id}/interview-prep`
 Status: `new` · Roles: F · Screens: `interview` · Facts since the last interview (Meet-ups, Notice receipts, Confusion terms, forwarded Asks) plus a fixed question list. Response `UNKNOWN`.
 
 #### E-108 `GET /api/workers/{id}/interviews`
-Status: `new` · Roles: F · Screens: `interview` ("past interviews"). Response `UNKNOWN`.
+Status: `live` · Roles: F · Screens: `interview` ("past interviews"). Response: list of `InterviewOut`.
 
 #### E-109 `POST /api/workers/{id}/interviews`
-Status: `new` · Roles: F · Idempotency: the table has `idempotency_key` (header requirement `UNKNOWN`) · Screens: `interview` · Bus: `interview:new`
-Request fields named by the handoff table: `held_on`, `method` (`face|online`), `online_consent_at` (required when `online`), `note_ja` (up to 1000). Wire names `UNKNOWN`. Audit `interview_recorded`.
+Status: `live` · Roles: F · Idempotency: the table has `idempotency_key` (header requirement `UNKNOWN`) · Screens: `interview` · Bus: `interview:new`
+Request fields named by the handoff table: `held_on`, `method` (`face|online`), `online_consent_at` (required when `online`), `note_ja` (up to 1000). Request `InterviewIn`, response `InterviewOut`. Audit `interview_recorded`.
 
 #### E-110 `GET /api/today-word`
-Status: `new` · Roles: F · Screens: `life` (Foreman) · One word of a Worker's language shown to the Japanese side; from `seed_data/phrasebook.json`, chosen by date from `shops.languages`. Also exposed as a `todayWord` field on `GET /api/senpai/{token}`. Response `UNKNOWN`.
+Status: `live` · Roles: F · Screens: `life` (Foreman) · One word of a Worker's language shown to the Japanese side; from `seed_data/phrasebook.json`, chosen by date from `shops.languages`. Also exposed as a `todayWord` field on `GET /api/senpai/{token}`. Response `TodayWord`.
 
 ### 4.12 Support Log
 
@@ -705,6 +705,85 @@ Status: `live` · Roles: F W P (district members only; a draft's photo only for 
 
 #### E-113 `POST /api/demo/reset`
 Status: `planned` (`BA:528`) · Roles: F, only when the server runs with `DEMO_MODE=true` · Screens: none in the prototype · Re-runs the seed for the caller's shop only. Not for the release build; use only in a debug menu.
+
+### 4.15 Added in revision 3 (live)
+
+Live routes that were in no earlier revision. Request and response names are the schemas in `docs/openapi.yaml`; shapes are not restated here.
+
+#### E-115 `DELETE /api/contacts/{id}/messages`
+Status: `live` · Roles: F W P · Delete the whole Contact Thread: all you sent, and your copy of what you received. Response `data: null`.
+
+#### E-116 `DELETE /api/contacts/{id}/messages/{messageId}`
+Status: `live` · Roles: F W P · Delete one message: one you sent goes for both, one you received only on your side. Response `data: null`. A poll with `after=` does not report a deletion.
+
+#### E-117 `PUT /api/devices/me`
+Status: `live` · Roles: F W · Register this app install for push (upsert; 6 per minute). Request `DeviceIn`, response `DeviceOut`.
+
+#### E-118 `DELETE /api/devices/me`
+Status: `live` · Roles: F W · Forget this app install before signing out (idempotent). Response `data: null`.
+
+#### E-119 `GET /api/analytics/understanding`
+Status: `live` · Roles: F · Wakatta Status trend per day and per Worker, and the top missed terms. Query `days` 1 to 90. Response `Understanding`.
+
+#### E-120 `GET /api/app/config`
+Status: `live` · Roles: pub · Android version gate: minimum and latest version, download link. Response `AppConfig`.
+
+#### E-121 `GET /api/meetups`
+Status: `live` · Roles: F W · Meet-ups, newest first (Worker: own; Foreman: the shop's). Response: page of `MeetupOut`.
+
+#### E-122 `GET /api/near-misses/{id}`
+Status: `live` · Roles: F W · One Near-miss Report (a Worker: only their own). Response `NearMissOut`.
+
+#### E-123 `GET /api/near-misses/{id}/photo`
+Status: `live` · Roles: F W · The report's photo (JPEG, EXIF removed). Not enveloped.
+
+#### E-124 `PUT /api/near-misses/{id}/task`
+Status: `live` · Roles: F · Link the Task made from a Near-miss Report. Request `NearMissTaskIn`, response `NearMissOut`.
+
+#### E-125 `GET /api/notices/{id}`
+Status: `live` · Roles: P W · One Notice: a Poster's own (drafts too), or a published one for a Worker. Response `NoticeForPoster` or `NoticeForWorker`.
+
+#### E-126 `GET /api/senpai-pairs/me`
+Status: `live` · Roles: W · Your own Senpai pair, or `null`; no link token. Response `SenpaiPairOut` or null.
+
+#### E-127 `GET /api/talk-threads/{id}/entries`
+Status: `live` · Roles: F W P · A Talk Thread's entries, oldest first. Response: page of `TalkEntryOut`.
+
+#### E-128 `GET /api/workers/me/learning`
+Status: `live` · Roles: W · Your Learning History: missed terms, newest first, and your streak. Response `Learning`.
+
+#### E-129 `PATCH /api/messages/{id}`
+Status: `live` · Roles: F · Edit an unsent draft's Japanese; the AI translates it again (XREQ-022). Request `DraftEdit`, response `MessageForSender`.
+
+#### E-130 `POST /api/messages/{id}/ask`
+Status: `live` · Roles: W · Ask the Foreman to explain a term again (no AI). Request `AskForemanIn`, response 201 `MessageForSender`.
+
+#### E-131 `POST /api/messages/{id}/reexplain/draft`
+Status: `live` · Roles: F · See the Re-explanation before sending it; nothing is stored. Request `ReexplainIn`, response `ReexplainDraft`.
+
+#### E-132 `POST /api/machines/{id}/remind`
+Status: `live` · Roles: F · Remind a Worker to take the Machine's Check (rate-limited, `Retry-After: 600`). Request `RemindIn`, response `data: null`.
+
+#### E-133 `POST /api/auth/register`
+Status: `live` · Roles: pub · Open a new shop; you become its first Foreman (rate-limited). Request `RegisterIn`, response `RegisterOut`.
+
+#### E-134 `POST /api/knowledge/asks`
+Status: `live` · Roles: W · Ask the chatbot (text or voice), answered only from cited sources. Multipart; response `KnowledgeAnswer`.
+
+#### E-135 `PATCH /api/machines/{id}`
+Status: `live` · Roles: F · Rename a Machine (the code stays). Request `MachineRename`, response `MachineOut`.
+
+#### E-136 `DELETE /api/machines/{id}`
+Status: `live` · Roles: F · Archive a Machine: off the lists, still named in history. Response `data: null`.
+
+#### E-137 `POST /api/auth/find`
+Status: `live` · Roles: pub · Forgot the shop code: shop name, your name and PIN give a Bearer token (rate-limited). Request `FindIn`, response `LoginOut`.
+
+#### E-138 `GET /api/messages/unanswered`
+Status: `live` · Roles: W · Your unanswered Checks across your Threads, newest first (at most 100). Response: list of `UnansweredCheck`.
+
+#### E-139 `POST /api/transcriptions`
+Status: `live` · Roles: F W · Dictation fallback: a recording in, its text out (personal, never stored). Multipart; response `Transcription`.
 
 ---
 ## 5. Mapping tables
@@ -741,7 +820,7 @@ Screen ids are the keys of `SCREENS` in `prototypes/wakatta/parts/*.js` (34 ids;
 | `interview` | F | R: E-106, E-107, E-108. W: E-109 | all `new` |
 | `connect` | F W P | W: E-071 My QR | |
 | `connect-scan` | F W P | R: E-072 resolve. W: E-073 connect, E-078 block | |
-| `pchat` | F W P | R: E-076 messages, E-080 talk-threads. W: E-077, E-075, E-078, E-079, E-081..E-086 | all `new` |
+| `pchat` | F W P | R: E-076 messages, E-080 talk-threads. W: E-077, E-075, E-078, E-079, E-081..E-086 | all `live` |
 | `notifications` | F W | no list endpoint (B-07); push in the platform contract | |
 | `onboarding` | F W | R: E-003 roster. W: E-004 login, E-006 PIN | scan and permissions: platform contract |
 | `analytics` | F | R: E-042 heatmap, E-029 effort (partial); trend and per-Worker bars have no endpoint (B-05). W: E-047 add term | |
