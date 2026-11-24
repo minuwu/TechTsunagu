@@ -18,6 +18,7 @@ from app.api.errors import install_error_handlers
 from app.api.limits import BodyLimitMiddleware
 from app.config import Settings
 from app.db import make_engine, make_session_factory
+from app.push import PushClient, push_client_from
 from app.routers import (
     auth,
     briefings,
@@ -30,10 +31,12 @@ from app.routers import (
     near_misses,
     skills,
     support,
+    talk,
     users,
     work,
 )
 from app.services.ai_runner import AiLimits, AiRunner
+from app.services.push import Pusher
 
 # Every API router, in include order; app.openapi reads the same list to annotate the contract.
 ROUTERS = tuple(
@@ -52,6 +55,7 @@ ROUTERS = tuple(
         interviews,
         knowledge,
         contacts,
+        talk,
     )
 )
 
@@ -82,8 +86,9 @@ def create_app(
     settings: Settings | None = None,
     session_factory: sessionmaker[Session] | None = None,
     ai_client: AiClient | None = None,
+    push_client: PushClient | None = None,
 ) -> FastAPI:
-    """Tests inject a session factory bound to a rolled-back transaction and a scripted AI client."""
+    """Tests inject a session factory bound to a rolled-back transaction, a scripted AI client and a push recorder."""
     settings = settings or Settings()  # pyright: ignore[reportCallIssue]  # values come from the environment
     configure_logging(settings.log_level)
     engine = None if session_factory else make_engine(settings.database_url)
@@ -107,6 +112,7 @@ def create_app(
     app.state.settings = settings
     app.state.session_factory = factory
     app.state.ai = runner
+    app.state.push = Pusher(push_client if push_client is not None else push_client_from(settings), factory)
     install_error_handlers(app)
     for router in ROUTERS:
         app.include_router(router)

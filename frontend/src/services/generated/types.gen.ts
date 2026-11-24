@@ -137,6 +137,18 @@ export type ApproveIn = {
 };
 
 /**
+ * AskForemanIn
+ *
+ * POST /messages/{id}/ask (XREQ-022): a Worker asks the Foreman to explain one term of a sent message again.
+ */
+export type AskForemanIn = {
+    /**
+     * Termja
+     */
+    termJa: string;
+};
+
+/**
  * AskOut
  */
 export type AskOut = {
@@ -149,9 +161,17 @@ export type AskOut = {
      */
     workerId: string;
     /**
+     * Workername
+     */
+    workerName: string;
+    /**
      * Text
      */
     text: string;
+    /**
+     * Textja
+     */
+    textJa: string | null;
     /**
      * Covered
      */
@@ -176,6 +196,10 @@ export type AskOut = {
     senpaiReply: {
         [key: string]: string;
     } | null;
+    /**
+     * Repliedat
+     */
+    repliedAt: string | null;
     /**
      * Createdat
      */
@@ -317,6 +341,20 @@ export type BoardOut = {
 };
 
 /**
+ * Body_add_entry_api_talk_threads__thread_id__entries_post
+ */
+export type BodyAddEntryApiTalkThreadsThreadIdEntriesPost = {
+    /**
+     * Text
+     */
+    text?: string | null;
+    /**
+     * Audio
+     */
+    audio?: Blob | File | null;
+};
+
+/**
  * Body_ask_knowledge_api_knowledge_asks_post
  */
 export type BodyAskKnowledgeApiKnowledgeAsksPost = {
@@ -432,6 +470,18 @@ export type BodyReportApiNearMissesPost = {
      * Photo
      */
     photo?: Blob | File | null;
+    /**
+     * Severity
+     */
+    severity?: 'low' | 'mid' | 'high' | null;
+    /**
+     * Photomarkx
+     */
+    photoMarkX?: number | null;
+    /**
+     * Photomarky
+     */
+    photoMarkY?: number | null;
 };
 
 /**
@@ -850,6 +900,28 @@ export type ContactUpdate = {
 };
 
 /**
+ * DayCounts
+ */
+export type DayCounts = {
+    /**
+     * Day
+     */
+    day: string;
+    /**
+     * Green
+     */
+    green: number;
+    /**
+     * Orange
+     */
+    orange: number;
+    /**
+     * Red
+     */
+    red: number;
+};
+
+/**
  * DeviceIn
  */
 export type DeviceIn = {
@@ -895,6 +967,37 @@ export type DeviceOut = {
      * Lastseenat
      */
     lastSeenAt: string;
+};
+
+/**
+ * DialectTermOut
+ */
+export type DialectTermOut = {
+    /**
+     * Dialect
+     */
+    dialect: string;
+    /**
+     * Plain
+     */
+    plain: string;
+    /**
+     * Meaning
+     */
+    meaning: string;
+};
+
+/**
+ * DraftEdit
+ *
+ * PATCH /messages/{id} (XREQ-022): the Foreman's corrected Japanese for an unsent draft. The AI translates it and
+ * makes the Check Questions again, as for a new draft.
+ */
+export type DraftEdit = {
+    /**
+     * Textja
+     */
+    textJa: string;
 };
 
 /**
@@ -1253,6 +1356,21 @@ export type EnvelopeKnowledgeAnswer = {
      */
     success?: true;
     data: KnowledgeAnswer;
+    /**
+     * Message
+     */
+    message?: string;
+};
+
+/**
+ * Envelope[Learning]
+ */
+export type EnvelopeLearning = {
+    /**
+     * Success
+     */
+    success?: true;
+    data: Learning;
     /**
      * Message
      */
@@ -1623,6 +1741,36 @@ export type EnvelopePageSignOffOut = {
 };
 
 /**
+ * Envelope[Page[TalkEntryOut]]
+ */
+export type EnvelopePageTalkEntryOut = {
+    /**
+     * Success
+     */
+    success?: true;
+    data: PageTalkEntryOut;
+    /**
+     * Message
+     */
+    message?: string;
+};
+
+/**
+ * Envelope[Page[TalkThreadOut]]
+ */
+export type EnvelopePageTalkThreadOut = {
+    /**
+     * Success
+     */
+    success?: true;
+    data: PageTalkThreadOut;
+    /**
+     * Message
+     */
+    message?: string;
+};
+
+/**
  * Envelope[Page[TaskOut]]
  */
 export type EnvelopePageTaskOut = {
@@ -1698,6 +1846,21 @@ export type EnvelopeQrOut = {
 };
 
 /**
+ * Envelope[ReexplainDraft]
+ */
+export type EnvelopeReexplainDraft = {
+    /**
+     * Success
+     */
+    success?: true;
+    data: ReexplainDraft;
+    /**
+     * Message
+     */
+    message?: string;
+};
+
+/**
  * Envelope[SenpaiPairCreated]
  */
 export type EnvelopeSenpaiPairCreated = {
@@ -1743,6 +1906,36 @@ export type EnvelopeSkillMatrix = {
 };
 
 /**
+ * Envelope[TalkEntryOut]
+ */
+export type EnvelopeTalkEntryOut = {
+    /**
+     * Success
+     */
+    success?: true;
+    data: TalkEntryOut;
+    /**
+     * Message
+     */
+    message?: string;
+};
+
+/**
+ * Envelope[TalkThreadOut]
+ */
+export type EnvelopeTalkThreadOut = {
+    /**
+     * Success
+     */
+    success?: true;
+    data: TalkThreadOut;
+    /**
+     * Message
+     */
+    message?: string;
+};
+
+/**
  * Envelope[TaskOut]
  */
 export type EnvelopeTaskOut = {
@@ -1766,6 +1959,21 @@ export type EnvelopeTodayWord = {
      */
     success?: true;
     data: TodayWord;
+    /**
+     * Message
+     */
+    message?: string;
+};
+
+/**
+ * Envelope[Understanding]
+ */
+export type EnvelopeUnderstanding = {
+    /**
+     * Success
+     */
+    success?: true;
+    data: Understanding;
     /**
      * Message
      */
@@ -2461,6 +2669,54 @@ export type KnowledgeSource = {
 };
 
 /**
+ * Learning
+ */
+export type Learning = {
+    /**
+     * Items
+     */
+    items: Array<LearningItem>;
+    /**
+     * Nextcursor
+     */
+    nextCursor: string | null;
+    /**
+     * Streakdays
+     */
+    streakDays: number;
+};
+
+/**
+ * LearningItem
+ */
+export type LearningItem = {
+    /**
+     * Followupid
+     */
+    followUpId: string;
+    /**
+     * Termja
+     */
+    termJa: string;
+    /**
+     * Status
+     */
+    status: 'open' | 'clarified' | 'understood';
+    /**
+     * Missedat
+     */
+    missedAt: string;
+    /**
+     * Clarifiedat
+     */
+    clarifiedAt: string | null;
+    /**
+     * Understoodat
+     */
+    understoodAt: string | null;
+};
+
+/**
  * LoginIn
  */
 export type LoginIn = {
@@ -2619,7 +2875,7 @@ export type MeetupOut = {
 /**
  * MessageForSender
  *
- * The Foreman's view: the answer key, and the Task drafts on the response to POST (they are not stored).
+ * The Foreman's view: the answer key, and the Task drafts of an unsent message (empty once it is sent).
  */
 export type MessageForSender = {
     /**
@@ -2781,6 +3037,10 @@ export type NearMissOut = {
      */
     workerId: string;
     /**
+     * Workername
+     */
+    workerName: string;
+    /**
      * Machineid
      */
     machineId: string;
@@ -2791,9 +3051,26 @@ export type NearMissOut = {
         [key: string]: string;
     };
     /**
+     * Textja
+     */
+    textJa: string;
+    /**
+     * Lang
+     */
+    lang: string | null;
+    /**
+     * Severity
+     */
+    severity: 'low' | 'mid' | 'high' | null;
+    /**
      * Photo
      */
     photo: string | null;
+    photoMark: PhotoMark | null;
+    /**
+     * Taskid
+     */
+    taskId: string | null;
     /**
      * Createdat
      */
@@ -2802,6 +3079,18 @@ export type NearMissOut = {
      * Acknowledgedat
      */
     acknowledgedAt: string | null;
+};
+
+/**
+ * NearMissTaskIn
+ *
+ * PUT /near-misses/{id}/task: the Task the Foreman made from the report.
+ */
+export type NearMissTaskIn = {
+    /**
+     * Taskid
+     */
+    taskId: string;
 };
 
 /**
@@ -3377,6 +3666,34 @@ export type PageSignOffOut = {
 };
 
 /**
+ * Page[TalkEntryOut]
+ */
+export type PageTalkEntryOut = {
+    /**
+     * Items
+     */
+    items: Array<TalkEntryOut>;
+    /**
+     * Nextcursor
+     */
+    nextCursor: string | null;
+};
+
+/**
+ * Page[TalkThreadOut]
+ */
+export type PageTalkThreadOut = {
+    /**
+     * Items
+     */
+    items: Array<TalkThreadOut>;
+    /**
+     * Nextcursor
+     */
+    nextCursor: string | null;
+};
+
+/**
  * Page[TaskOut]
  */
 export type PageTaskOut = {
@@ -3414,6 +3731,10 @@ export type PanelOut = {
  * PanelOverrideOut
  */
 export type PanelOverrideOut = {
+    /**
+     * Id
+     */
+    id: string;
     /**
      * By
      */
@@ -3478,6 +3799,22 @@ export type Passport = {
      * Cells
      */
     cells: Array<SkillCell>;
+};
+
+/**
+ * PhotoMark
+ *
+ * Where the danger is on the photo: fractions of its width and height (0 to 1).
+ */
+export type PhotoMark = {
+    /**
+     * X
+     */
+    x: number;
+    /**
+     * Y
+     */
+    y: number;
 };
 
 /**
@@ -3574,7 +3911,26 @@ export type ReceiptWorker = {
 };
 
 /**
+ * ReexplainDraft
+ *
+ * POST /messages/{id}/reexplain/draft (XREQ-022): the simpler version to read and edit before sending.
+ * `text.ja` is the easy Japanese; the other languages are the explanation. Nothing is stored.
+ */
+export type ReexplainDraft = {
+    /**
+     * Text
+     */
+    text: {
+        [key: string]: string;
+    };
+    question: CheckQuestion;
+};
+
+/**
  * ReexplainIn
+ *
+ * POST /messages/{id}/reexplain. With `text` and `question` (the Foreman's edited draft from
+ * /reexplain/draft) it is sent as written and no model is called; without them the AI writes it (XREQ-022).
  */
 export type ReexplainIn = {
     /**
@@ -3585,6 +3941,42 @@ export type ReexplainIn = {
      * Termja
      */
     termJa: string;
+    /**
+     * Text
+     */
+    text?: {
+        [key: string]: string;
+    } | null;
+    question?: CheckQuestion | null;
+};
+
+/**
+ * RemindIn
+ *
+ * POST /machines/{id}/remind: the Worker who should take the Machine's Check.
+ */
+export type RemindIn = {
+    /**
+     * Workerid
+     */
+    workerId: string;
+};
+
+/**
+ * ReplyOptionOut
+ *
+ * A reply the Worker can show or read aloud. Proposed `replyOptions: ["…"]` became objects: the Worker also needs
+ * to know what the Japanese reply says (`meaning`, in their language).
+ */
+export type ReplyOptionOut = {
+    /**
+     * Ja
+     */
+    ja: string;
+    /**
+     * Meaning
+     */
+    meaning: string;
 };
 
 /**
@@ -3887,6 +4279,117 @@ export type StepEdit = {
 };
 
 /**
+ * TalkEntryOut
+ */
+export type TalkEntryOut = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Transcript
+     */
+    transcript: string;
+    /**
+     * Plainja
+     */
+    plainJa: string | null;
+    /**
+     * Meaning
+     */
+    meaning: string | null;
+    /**
+     * Terms
+     */
+    terms: Array<DialectTermOut>;
+    /**
+     * Needsstaff
+     */
+    needsStaff: boolean;
+    /**
+     * Needsedit
+     */
+    needsEdit: boolean;
+    /**
+     * Owntext
+     */
+    ownText: string | null;
+    /**
+     * Grade
+     */
+    grade: 'green' | 'orange' | 'red' | null;
+    /**
+     * Replyoptions
+     */
+    replyOptions: Array<ReplyOptionOut>;
+    /**
+     * Replyja
+     */
+    replyJa: string | null;
+    /**
+     * Confirmed
+     */
+    confirmed: boolean | null;
+    /**
+     * Createdat
+     */
+    createdAt: string;
+};
+
+/**
+ * TalkEntryUpdate
+ *
+ * PATCH an entry with exactly one of: ownText (graded again), replyJa (the reply shown), confirmed (it got
+ * through or not).
+ */
+export type TalkEntryUpdate = {
+    /**
+     * Owntext
+     */
+    ownText?: string | null;
+    /**
+     * Replyja
+     */
+    replyJa?: string | null;
+    /**
+     * Confirmed
+     */
+    confirmed?: boolean | null;
+};
+
+/**
+ * TalkThreadIn
+ */
+export type TalkThreadIn = {
+    /**
+     * Title
+     */
+    title: string;
+};
+
+/**
+ * TalkThreadOut
+ */
+export type TalkThreadOut = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Updatedat
+     */
+    updatedAt: string;
+    /**
+     * Entrycount
+     */
+    entryCount: number;
+};
+
+/**
  * TaskCreate
  */
 export type TaskCreate = {
@@ -4001,6 +4504,20 @@ export type TaskUpdate = {
 };
 
 /**
+ * TermCount
+ */
+export type TermCount = {
+    /**
+     * Termja
+     */
+    termJa: string;
+    /**
+     * Count
+     */
+    count: number;
+};
+
+/**
  * ThreadOut
  */
 export type ThreadOut = {
@@ -4054,6 +4571,28 @@ export type TodayWord = {
      * Meaningja
      */
     meaningJa: string;
+};
+
+/**
+ * Understanding
+ */
+export type Understanding = {
+    /**
+     * Days
+     */
+    days: number;
+    /**
+     * Trend
+     */
+    trend: Array<DayCounts>;
+    /**
+     * Perworker
+     */
+    perWorker: Array<WorkerCounts>;
+    /**
+     * Topterms
+     */
+    topTerms: Array<TermCount>;
 };
 
 /**
@@ -4112,6 +4651,32 @@ export type ValidationError = {
     ctx?: {
         [key: string]: unknown;
     };
+};
+
+/**
+ * WorkerCounts
+ */
+export type WorkerCounts = {
+    /**
+     * Workerid
+     */
+    workerId: string;
+    /**
+     * Displayname
+     */
+    displayName: string;
+    /**
+     * Green
+     */
+    green: number;
+    /**
+     * Orange
+     */
+    orange: number;
+    /**
+     * Red
+     */
+    red: number;
 };
 
 /**
@@ -4798,6 +5363,12 @@ export type SubmitCheckApiChecksPostResponse = SubmitCheckApiChecksPostResponses
 
 export type StartOverrideApiMachinesMachineIdOverridesPostData = {
     body: OverrideIn;
+    headers?: {
+        /**
+         * Idempotency-Key
+         */
+        'Idempotency-Key'?: string | null;
+    };
     path: {
         /**
          * Machine Id
@@ -4825,6 +5396,36 @@ export type StartOverrideApiMachinesMachineIdOverridesPostResponses = {
 };
 
 export type StartOverrideApiMachinesMachineIdOverridesPostResponse = StartOverrideApiMachinesMachineIdOverridesPostResponses[keyof StartOverrideApiMachinesMachineIdOverridesPostResponses];
+
+export type RemindApiMachinesMachineIdRemindPostData = {
+    body: RemindIn;
+    path: {
+        /**
+         * Machine Id
+         */
+        machine_id: string;
+    };
+    query?: never;
+    url: '/api/machines/{machine_id}/remind';
+};
+
+export type RemindApiMachinesMachineIdRemindPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type RemindApiMachinesMachineIdRemindPostError = RemindApiMachinesMachineIdRemindPostErrors[keyof RemindApiMachinesMachineIdRemindPostErrors];
+
+export type RemindApiMachinesMachineIdRemindPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeNoneType;
+};
+
+export type RemindApiMachinesMachineIdRemindPostResponse = RemindApiMachinesMachineIdRemindPostResponses[keyof RemindApiMachinesMachineIdRemindPostResponses];
 
 export type EndOverrideApiMachinesMachineIdOverridesOverrideIdDeleteData = {
     body?: never;
@@ -5904,6 +6505,70 @@ export type HeatmapApiHeatmapGetResponses = {
 
 export type HeatmapApiHeatmapGetResponse = HeatmapApiHeatmapGetResponses[keyof HeatmapApiHeatmapGetResponses];
 
+export type MyLearningApiWorkersMeLearningGetData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Limit
+         */
+        limit?: number;
+        /**
+         * Cursor
+         */
+        cursor?: string | null;
+    };
+    url: '/api/workers/me/learning';
+};
+
+export type MyLearningApiWorkersMeLearningGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type MyLearningApiWorkersMeLearningGetError = MyLearningApiWorkersMeLearningGetErrors[keyof MyLearningApiWorkersMeLearningGetErrors];
+
+export type MyLearningApiWorkersMeLearningGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeLearning;
+};
+
+export type MyLearningApiWorkersMeLearningGetResponse = MyLearningApiWorkersMeLearningGetResponses[keyof MyLearningApiWorkersMeLearningGetResponses];
+
+export type UnderstandingApiAnalyticsUnderstandingGetData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Days
+         */
+        days?: number;
+    };
+    url: '/api/analytics/understanding';
+};
+
+export type UnderstandingApiAnalyticsUnderstandingGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UnderstandingApiAnalyticsUnderstandingGetError = UnderstandingApiAnalyticsUnderstandingGetErrors[keyof UnderstandingApiAnalyticsUnderstandingGetErrors];
+
+export type UnderstandingApiAnalyticsUnderstandingGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeUnderstanding;
+};
+
+export type UnderstandingApiAnalyticsUnderstandingGetResponse = UnderstandingApiAnalyticsUnderstandingGetResponses[keyof UnderstandingApiAnalyticsUnderstandingGetResponses];
+
 export type PassportApiWorkersWorkerIdPassportGetData = {
     body?: never;
     path: {
@@ -6020,6 +6685,36 @@ export type PostMessageApiThreadsThreadIdMessagesPostResponses = {
 };
 
 export type PostMessageApiThreadsThreadIdMessagesPostResponse = PostMessageApiThreadsThreadIdMessagesPostResponses[keyof PostMessageApiThreadsThreadIdMessagesPostResponses];
+
+export type EditDraftApiMessagesMessageIdPatchData = {
+    body: DraftEdit;
+    path: {
+        /**
+         * Message Id
+         */
+        message_id: string;
+    };
+    query?: never;
+    url: '/api/messages/{message_id}';
+};
+
+export type EditDraftApiMessagesMessageIdPatchErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type EditDraftApiMessagesMessageIdPatchError = EditDraftApiMessagesMessageIdPatchErrors[keyof EditDraftApiMessagesMessageIdPatchErrors];
+
+export type EditDraftApiMessagesMessageIdPatchResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeMessageForSender;
+};
+
+export type EditDraftApiMessagesMessageIdPatchResponse = EditDraftApiMessagesMessageIdPatchResponses[keyof EditDraftApiMessagesMessageIdPatchResponses];
 
 export type SendMessageApiMessagesMessageIdSendPostData = {
     body: SendIn;
@@ -6178,6 +6873,66 @@ export type ReexplainApiMessagesMessageIdReexplainPostResponses = {
 };
 
 export type ReexplainApiMessagesMessageIdReexplainPostResponse = ReexplainApiMessagesMessageIdReexplainPostResponses[keyof ReexplainApiMessagesMessageIdReexplainPostResponses];
+
+export type ReexplainDraftApiMessagesMessageIdReexplainDraftPostData = {
+    body: ReexplainIn;
+    path: {
+        /**
+         * Message Id
+         */
+        message_id: string;
+    };
+    query?: never;
+    url: '/api/messages/{message_id}/reexplain/draft';
+};
+
+export type ReexplainDraftApiMessagesMessageIdReexplainDraftPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ReexplainDraftApiMessagesMessageIdReexplainDraftPostError = ReexplainDraftApiMessagesMessageIdReexplainDraftPostErrors[keyof ReexplainDraftApiMessagesMessageIdReexplainDraftPostErrors];
+
+export type ReexplainDraftApiMessagesMessageIdReexplainDraftPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeReexplainDraft;
+};
+
+export type ReexplainDraftApiMessagesMessageIdReexplainDraftPostResponse = ReexplainDraftApiMessagesMessageIdReexplainDraftPostResponses[keyof ReexplainDraftApiMessagesMessageIdReexplainDraftPostResponses];
+
+export type AskForemanApiMessagesMessageIdAskPostData = {
+    body: AskForemanIn;
+    path: {
+        /**
+         * Message Id
+         */
+        message_id: string;
+    };
+    query?: never;
+    url: '/api/messages/{message_id}/ask';
+};
+
+export type AskForemanApiMessagesMessageIdAskPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type AskForemanApiMessagesMessageIdAskPostError = AskForemanApiMessagesMessageIdAskPostErrors[keyof AskForemanApiMessagesMessageIdAskPostErrors];
+
+export type AskForemanApiMessagesMessageIdAskPostResponses = {
+    /**
+     * Successful Response
+     */
+    201: EnvelopeMessageForSender;
+};
+
+export type AskForemanApiMessagesMessageIdAskPostResponse = AskForemanApiMessagesMessageIdAskPostResponses[keyof AskForemanApiMessagesMessageIdAskPostResponses];
 
 export type NudgeApiMessagesMessageIdNudgePostData = {
     body: NudgeIn;
@@ -6504,6 +7259,66 @@ export type ReportApiNearMissesPostResponses = {
 };
 
 export type ReportApiNearMissesPostResponse = ReportApiNearMissesPostResponses[keyof ReportApiNearMissesPostResponses];
+
+export type GetReportApiNearMissesReportIdGetData = {
+    body?: never;
+    path: {
+        /**
+         * Report Id
+         */
+        report_id: string;
+    };
+    query?: never;
+    url: '/api/near-misses/{report_id}';
+};
+
+export type GetReportApiNearMissesReportIdGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetReportApiNearMissesReportIdGetError = GetReportApiNearMissesReportIdGetErrors[keyof GetReportApiNearMissesReportIdGetErrors];
+
+export type GetReportApiNearMissesReportIdGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeNearMissOut;
+};
+
+export type GetReportApiNearMissesReportIdGetResponse = GetReportApiNearMissesReportIdGetResponses[keyof GetReportApiNearMissesReportIdGetResponses];
+
+export type LinkTaskApiNearMissesReportIdTaskPutData = {
+    body: NearMissTaskIn;
+    path: {
+        /**
+         * Report Id
+         */
+        report_id: string;
+    };
+    query?: never;
+    url: '/api/near-misses/{report_id}/task';
+};
+
+export type LinkTaskApiNearMissesReportIdTaskPutErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type LinkTaskApiNearMissesReportIdTaskPutError = LinkTaskApiNearMissesReportIdTaskPutErrors[keyof LinkTaskApiNearMissesReportIdTaskPutErrors];
+
+export type LinkTaskApiNearMissesReportIdTaskPutResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeNearMissOut;
+};
+
+export type LinkTaskApiNearMissesReportIdTaskPutResponse = LinkTaskApiNearMissesReportIdTaskPutResponses[keyof LinkTaskApiNearMissesReportIdTaskPutResponses];
 
 export type AcknowledgeApiNearMissesReportIdAckPostData = {
     body?: never;
@@ -7026,3 +7841,271 @@ export type SendMessageApiContactsContactIdMessagesPostResponses = {
 };
 
 export type SendMessageApiContactsContactIdMessagesPostResponse = SendMessageApiContactsContactIdMessagesPostResponses[keyof SendMessageApiContactsContactIdMessagesPostResponses];
+
+export type ListThreadsApiTalkThreadsGetData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Limit
+         */
+        limit?: number;
+        /**
+         * Cursor
+         */
+        cursor?: string | null;
+    };
+    url: '/api/talk-threads';
+};
+
+export type ListThreadsApiTalkThreadsGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ListThreadsApiTalkThreadsGetError = ListThreadsApiTalkThreadsGetErrors[keyof ListThreadsApiTalkThreadsGetErrors];
+
+export type ListThreadsApiTalkThreadsGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopePageTalkThreadOut;
+};
+
+export type ListThreadsApiTalkThreadsGetResponse = ListThreadsApiTalkThreadsGetResponses[keyof ListThreadsApiTalkThreadsGetResponses];
+
+export type CreateThreadApiTalkThreadsPostData = {
+    body: TalkThreadIn;
+    headers?: {
+        /**
+         * Idempotency-Key
+         */
+        'Idempotency-Key'?: string | null;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/talk-threads';
+};
+
+export type CreateThreadApiTalkThreadsPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateThreadApiTalkThreadsPostError = CreateThreadApiTalkThreadsPostErrors[keyof CreateThreadApiTalkThreadsPostErrors];
+
+export type CreateThreadApiTalkThreadsPostResponses = {
+    /**
+     * Successful Response
+     */
+    201: EnvelopeTalkThreadOut;
+};
+
+export type CreateThreadApiTalkThreadsPostResponse = CreateThreadApiTalkThreadsPostResponses[keyof CreateThreadApiTalkThreadsPostResponses];
+
+export type DeleteThreadApiTalkThreadsThreadIdDeleteData = {
+    body?: never;
+    path: {
+        /**
+         * Thread Id
+         */
+        thread_id: string;
+    };
+    query?: never;
+    url: '/api/talk-threads/{thread_id}';
+};
+
+export type DeleteThreadApiTalkThreadsThreadIdDeleteErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteThreadApiTalkThreadsThreadIdDeleteError = DeleteThreadApiTalkThreadsThreadIdDeleteErrors[keyof DeleteThreadApiTalkThreadsThreadIdDeleteErrors];
+
+export type DeleteThreadApiTalkThreadsThreadIdDeleteResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeNoneType;
+};
+
+export type DeleteThreadApiTalkThreadsThreadIdDeleteResponse = DeleteThreadApiTalkThreadsThreadIdDeleteResponses[keyof DeleteThreadApiTalkThreadsThreadIdDeleteResponses];
+
+export type RenameThreadApiTalkThreadsThreadIdPatchData = {
+    body: TalkThreadIn;
+    path: {
+        /**
+         * Thread Id
+         */
+        thread_id: string;
+    };
+    query?: never;
+    url: '/api/talk-threads/{thread_id}';
+};
+
+export type RenameThreadApiTalkThreadsThreadIdPatchErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type RenameThreadApiTalkThreadsThreadIdPatchError = RenameThreadApiTalkThreadsThreadIdPatchErrors[keyof RenameThreadApiTalkThreadsThreadIdPatchErrors];
+
+export type RenameThreadApiTalkThreadsThreadIdPatchResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeTalkThreadOut;
+};
+
+export type RenameThreadApiTalkThreadsThreadIdPatchResponse = RenameThreadApiTalkThreadsThreadIdPatchResponses[keyof RenameThreadApiTalkThreadsThreadIdPatchResponses];
+
+export type ListEntriesApiTalkThreadsThreadIdEntriesGetData = {
+    body?: never;
+    path: {
+        /**
+         * Thread Id
+         */
+        thread_id: string;
+    };
+    query?: {
+        /**
+         * Limit
+         */
+        limit?: number;
+        /**
+         * Cursor
+         */
+        cursor?: string | null;
+    };
+    url: '/api/talk-threads/{thread_id}/entries';
+};
+
+export type ListEntriesApiTalkThreadsThreadIdEntriesGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type ListEntriesApiTalkThreadsThreadIdEntriesGetError = ListEntriesApiTalkThreadsThreadIdEntriesGetErrors[keyof ListEntriesApiTalkThreadsThreadIdEntriesGetErrors];
+
+export type ListEntriesApiTalkThreadsThreadIdEntriesGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopePageTalkEntryOut;
+};
+
+export type ListEntriesApiTalkThreadsThreadIdEntriesGetResponse = ListEntriesApiTalkThreadsThreadIdEntriesGetResponses[keyof ListEntriesApiTalkThreadsThreadIdEntriesGetResponses];
+
+export type AddEntryApiTalkThreadsThreadIdEntriesPostData = {
+    body?: BodyAddEntryApiTalkThreadsThreadIdEntriesPost;
+    headers?: {
+        /**
+         * Idempotency-Key
+         */
+        'Idempotency-Key'?: string | null;
+    };
+    path: {
+        /**
+         * Thread Id
+         */
+        thread_id: string;
+    };
+    query?: never;
+    url: '/api/talk-threads/{thread_id}/entries';
+};
+
+export type AddEntryApiTalkThreadsThreadIdEntriesPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type AddEntryApiTalkThreadsThreadIdEntriesPostError = AddEntryApiTalkThreadsThreadIdEntriesPostErrors[keyof AddEntryApiTalkThreadsThreadIdEntriesPostErrors];
+
+export type AddEntryApiTalkThreadsThreadIdEntriesPostResponses = {
+    /**
+     * Successful Response
+     */
+    201: EnvelopeTalkEntryOut;
+};
+
+export type AddEntryApiTalkThreadsThreadIdEntriesPostResponse = AddEntryApiTalkThreadsThreadIdEntriesPostResponses[keyof AddEntryApiTalkThreadsThreadIdEntriesPostResponses];
+
+export type DeleteEntryApiTalkThreadsThreadIdEntriesEntryIdDeleteData = {
+    body?: never;
+    path: {
+        /**
+         * Thread Id
+         */
+        thread_id: string;
+        /**
+         * Entry Id
+         */
+        entry_id: string;
+    };
+    query?: never;
+    url: '/api/talk-threads/{thread_id}/entries/{entry_id}';
+};
+
+export type DeleteEntryApiTalkThreadsThreadIdEntriesEntryIdDeleteErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type DeleteEntryApiTalkThreadsThreadIdEntriesEntryIdDeleteError = DeleteEntryApiTalkThreadsThreadIdEntriesEntryIdDeleteErrors[keyof DeleteEntryApiTalkThreadsThreadIdEntriesEntryIdDeleteErrors];
+
+export type DeleteEntryApiTalkThreadsThreadIdEntriesEntryIdDeleteResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeNoneType;
+};
+
+export type DeleteEntryApiTalkThreadsThreadIdEntriesEntryIdDeleteResponse = DeleteEntryApiTalkThreadsThreadIdEntriesEntryIdDeleteResponses[keyof DeleteEntryApiTalkThreadsThreadIdEntriesEntryIdDeleteResponses];
+
+export type UpdateEntryApiTalkThreadsThreadIdEntriesEntryIdPatchData = {
+    body: TalkEntryUpdate;
+    path: {
+        /**
+         * Thread Id
+         */
+        thread_id: string;
+        /**
+         * Entry Id
+         */
+        entry_id: string;
+    };
+    query?: never;
+    url: '/api/talk-threads/{thread_id}/entries/{entry_id}';
+};
+
+export type UpdateEntryApiTalkThreadsThreadIdEntriesEntryIdPatchErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UpdateEntryApiTalkThreadsThreadIdEntriesEntryIdPatchError = UpdateEntryApiTalkThreadsThreadIdEntriesEntryIdPatchErrors[keyof UpdateEntryApiTalkThreadsThreadIdEntriesEntryIdPatchErrors];
+
+export type UpdateEntryApiTalkThreadsThreadIdEntriesEntryIdPatchResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeTalkEntryOut;
+};
+
+export type UpdateEntryApiTalkThreadsThreadIdEntriesEntryIdPatchResponse = UpdateEntryApiTalkThreadsThreadIdEntriesEntryIdPatchResponses[keyof UpdateEntryApiTalkThreadsThreadIdEntriesEntryIdPatchResponses];

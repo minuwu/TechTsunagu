@@ -341,6 +341,7 @@ def test_a_foreman_override_unlocks_the_panel_until_ended(
     panel = _panel(client, shop)
     assert panel["state"] == "override"
     assert panel["override"]["reason"] == "trainer stands beside him"  # type: ignore[index]
+    assert panel["override"]["id"] == ov["id"]  # type: ignore[index]
 
     ended = client.delete(f"/api/machines/{shop.machine.id}/overrides/{ov['id']}", headers=_auth(shop.foreman))
     assert ended.status_code == 200
@@ -369,6 +370,30 @@ def test_an_override_cannot_name_another_shops_worker_or_be_set_by_a_worker(
         json={"workerId": None, "minutes": 30, "reason": "no reason at all"},
     )
     assert res.status_code == 403
+
+
+def test_a_retried_override_starts_once(client: TestClient, db: Session, shop: Shop) -> None:
+    path, headers = f"/api/machines/{shop.machine.id}/overrides", _auth(shop.foreman)
+    headers = headers | {"Idempotency-Key": str(uuid.uuid4())}
+    body = {"workerId": str(shop.worker_id), "minutes": 30, "reason": "trainer stands beside him"}
+
+    first, again = (client.post(path, headers=headers, json=body) for _ in range(2))
+
+    assert first.status_code == again.status_code == 201
+    assert first.json()["data"]["id"] == again.json()["data"]["id"]
+    other = f.machine(db, db.get_one(ShopRow, shop.machine.shop_id), code="lathe-9")
+    reused = client.post(f"/api/machines/{other.id}/overrides", headers=headers, json=body)
+    assert reused.status_code == 409
+
+
+def test_the_foreman_reminds_a_worker_once_per_ten_minutes(client: TestClient, db: Session, shop: Shop) -> None:
+    path, body = f"/api/machines/{shop.machine.id}/remind", {"workerId": str(shop.worker_id)}
+    outsider = f.user(db, f.shop(db))
+
+    assert client.post(path, headers=_auth(shop.worker), json=body).status_code == 403
+    assert client.post(path, headers=_auth(shop.foreman), json={"workerId": str(outsider.id)}).status_code == 404
+    assert client.post(path, headers=_auth(shop.foreman), json=body).status_code == 200
+    assert client.post(path, headers=_auth(shop.foreman), json=body).status_code == 429
 
 
 def test_ending_another_machines_override_is_not_found(client: TestClient, db: Session, shop: Shop) -> None:

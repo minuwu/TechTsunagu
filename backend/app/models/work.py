@@ -8,6 +8,7 @@ from sqlalchemy import (
     Boolean,
     CheckConstraint,
     Date,
+    Double,
     ForeignKey,
     ForeignKeyConstraint,
     Index,
@@ -250,6 +251,7 @@ class PanelOverride(Base):
         shop_fk("machine_id", "machines"),
         shop_fk("worker_id", "users"),
         shop_fk("created_by", "users"),
+        UniqueConstraint("shop_id", "idempotency_key"),
         Index("ix_panel_overrides_machine_ends", "shop_id", "machine_id", sql_text("ends_at DESC")),
     )
 
@@ -262,6 +264,8 @@ class PanelOverride(Base):
     starts_at: Mapped[CreatedAt]
     ends_at: Mapped[Timestamp]
     revoked_at: Mapped[TimestampOrNone]
+    # A retry on a bad network must not start two overrides (XREQ-021); optional so the web app needs no change.
+    idempotency_key: Mapped[uuid.UUID | None] = mapped_column(Uuid)
 
 
 class Receipt(Base):
@@ -299,10 +303,17 @@ class NearMissReport(Base):
     __tablename__ = "near_miss_reports"
     __table_args__ = (
         CheckConstraint("source_kind IN ('voice','text')", name="source_kind"),
+        CheckConstraint("severity IN ('low','mid','high')", name="severity"),
+        CheckConstraint(
+            "(photo_mark_x IS NULL) = (photo_mark_y IS NULL)"
+            " AND photo_mark_x BETWEEN 0 AND 1 AND photo_mark_y BETWEEN 0 AND 1",
+            name="photo_mark",
+        ),
         UniqueConstraint("shop_id", "idempotency_key"),
         shop_fk("worker_id", "users"),
         shop_fk("machine_id", "machines"),
         shop_fk("acknowledged_by", "users"),
+        shop_fk("task_id", "tasks"),
         Index(
             "ix_near_miss_reports_open",
             "shop_id",
@@ -320,6 +331,11 @@ class NearMissReport(Base):
     text_src: Mapped[str] = mapped_column(Text)
     text: Mapped[Tri] = mapped_column(JSONB)
     photo_blob_id: Mapped[int | None] = mapped_column(BigInteger, ForeignKey("blobs.id"), index=True)
+    # Where the danger is on the photo, as a fraction of its width and height.
+    photo_mark_x: Mapped[float | None] = mapped_column(Double)
+    photo_mark_y: Mapped[float | None] = mapped_column(Double)
+    severity: Mapped[str | None] = mapped_column(Text)  # NULL: an older report, or a client that does not ask for it
+    task_id: Mapped[int | None] = mapped_column(BigInteger)
     idempotency_key: Mapped[uuid.UUID] = mapped_column(Uuid)
     created_at: Mapped[CreatedAt]
     acknowledged_at: Mapped[TimestampOrNone]

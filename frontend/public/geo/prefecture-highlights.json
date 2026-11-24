@@ -6,7 +6,15 @@
   "image": "/media/prefectures/jp-01.webp",
   "license": "CC0",
   "artist": "Ninosan",
-  "page": "https://commons.wikimedia.org/wiki/File:Sapporo_Clock_Tower_130.JPG"
+  "page": "https://commons.wikimedia.org/wiki/File:Sapporo_Clock_Tower_130.JPG",
+  "desc": {
+   "en": "Built in 1878 as the drill hall of Sapporo Agricultural College, this wooden tower is one of the oldest buildings in Sapporo and an Important Cultural Property.",
+   "ja": "1878年に札幌農学校の演武場として建てられた木造の建物で、札幌に残る最も古い建物のひとつ。国の重要文化財です。"
+  },
+  "fact": {
+   "en": "Its clock, made by the E. Howard company of Boston, has kept time since 1881.",
+   "ja": "時計はボストンのハワード社製で、1881年から時を刻み続けています。"
+  }
  },
  {
   "id": "JP-02",
@@ -15,7 +23,15 @@
   "image": "/media/prefectures/jp-02.webp",
   "license": "CC0",
   "artist": "Hiart",
-  "page": "https://commons.wikimedia.org/wiki/File:2025_Aomori_Nebuta_Festival_float_6.jpg"
+  "page": "https://commons.wikimedia.org/wiki/File:2025_Aomori_Nebuta_Festival_float_6.jpg",
+  "desc": {
+   "en": "Every year from 2 to 7 August, giant illuminated floats of painted washi paper on wire frames, showing warriors and gods, parade through Aomori with crowds of haneto dancers.",
+   "ja": "毎年8月2日から7日、和紙に色を塗った巨大な灯籠「ねぶた」が、武者や神々の姿で青森の街を練り歩き、大勢の跳人（はねと）が踊ります。"
+  },
+  "fact": {
+   "en": "The festival was designated an Important Intangible Folk Cultural Property of Japan in 1980.",
+   "ja": "1980年に国の重要無形民俗文化財に指定されました。"
+  }
  },
  {
   "id": "JP-03",
@@ -24,7 +40,15 @@
   "image": "/media/prefectures/jp-03.webp",
   "license": "CC0",
   "artist": "Drivephotographer",
-  "page": "https://commons.wikimedia.org/wiki/File:Chusonji_approach.jpg"
+  "page": "https://commons.wikimedia.org/wiki/File:Chusonji_approach.jpg",
+  "desc": {
+   "en": "A temple in Hiraizumi built up in the 12th century by the Ōshū Fujiwara, rulers of the north. It is part of the Hiraizumi World Heritage site (2011).",
+   "ja": "12世紀、東北を治めた奥州藤原氏が平泉に築いた寺院。2011年に世界遺産「平泉」の一部となりました。"
+  },
+  "fact": {
+   "en": "Its Konjikidō hall, finished in 1124, is covered almost entirely in gold leaf and holds the remains of the four generations of Fujiwara lords.",
+   "ja": "1124年に建てられた金色堂は、ほぼ全体が金箔で覆われ、藤原氏四代の遺体が安置されています。"
+  }
  },
  {
   "id": "JP-04",
@@ -33,7 +57,15 @@
   "image": "/media/prefectures/jp-04.webp",
   "license": "CC0",
   "artist": "lumoplank",
-  "page": "https://commons.wikimedia.org/wiki/File:Matsushima_Bay_-_Matsushima6224.jpg"
+  "page": "https://commons.wikimedia.org/wiki/File:Matsushima_Bay_-_Matsushima6224.jpg",
+  "desc": {
+   "en": "A bay dotted with some 260 small, pine-covered islands, counted for centuries among the Three Views of Japan.",
+   "ja": "松の生えた大小約260の島々が浮かぶ湾で、古くから「日本三景」のひとつに数えられています。"
+  },
+  "fact": {
+   "en": "The poet Matsuo Bashō came here in 1689 on the journey he wrote up as Oku no Hosomichi.",
+   "ja": "俳人・松尾芭蕉は1689年、『おくのほそ道』の旅でこの地を訪れました。"
+  }
  },
  {
   "id": "JP-05",
@@ -42,7 +74,15 @@
   "image": "/media/prefectures/jp-05.webp",
   "license": "CC0",
   "artist": "sayo ts",
-  "page": "https://commons.wikimedia.org/wiki/File:%E7%A7%8B%E7%94%B0%E7%9C%8C_%E8%A7%92%E9%A4%A8%E7%94%BA_(26752244677).jpg"
+  "page": "https://commons.wikimedia.org/wiki/File:%E7%A7%8B%E7%94%B0%E7%9C%8C_%E8%A7%92%E9%A4%A8%E7%94%BA_(26752244677).jpg",
+  "desc": {
+   "en": "A castle town laid out in 1620, whose samurai district keeps its black board fences, old residences and great weeping cherry trees.",
+   "ja": "1620年に町割りされた城下町。武家屋敷通りには黒板塀と屋敷、そして見事なシダレザクラが残ります。"
+  },
+  "fact": {
+   "en": "The district's weeping cherry trees, some more than 300 years old, are a national Natural Monument.",
+   "ja": "樹齢300年を超えるものもある武家屋敷のシダレザクラは、国の天然記念物です。"
+  }
  },
  {
   "id": "JP-06",
@@ -51,16 +91,32 @@
   "image": "/media/prefectures/jp-06.webp",
   "license": "CC0",
   "artist": "lumoplank",
-  "page": "https://commons.wikimedia.org/wiki/File:Yamadera,_Part_I_-_Yamadera7478.jpg"
+  "page": "https://commons.wikimedia.org/wiki/File:Yamadera,_Part_I_-_Yamadera7478.jpg",
+  "desc": {
+   "en": "Risshaku-ji, known as Yamadera, is a mountain temple founded in 860 by the monk Ennin, reached by more than 1,000 stone steps.",
+   "ja": "860年に慈覚大師円仁が開いたとされる立石寺。「山寺」と呼ばれ、千段を超える石段の先に堂が建ちます。"
+  },
+  "fact": {
+   "en": "Bashō wrote one of his best-known haiku here in 1689: “Ah, the stillness / sinking into the rocks / the cicadas’ cry.”",
+   "ja": "1689年、芭蕉はここで「閑さや岩にしみ入る蝉の声」と詠みました。"
+  }
  },
  {
   "id": "JP-07",
-  "ja": "会津の桜",
-  "en": "Aizu cherry blossoms",
+  "ja": "会津若松",
+  "en": "Aizu-Wakamatsu",
   "image": "/media/prefectures/jp-07.webp",
   "license": "CC0",
   "artist": "lando",
-  "page": "https://commons.wikimedia.org/wiki/File:Voja%C4%9Do_al_Aizu_02.jpg"
+  "page": "https://commons.wikimedia.org/wiki/File:Voja%C4%9Do_al_Aizu_02.jpg",
+  "desc": {
+   "en": "The castle town of Tsuruga Castle, seat of the Aizu domain. In the Boshin War of 1868 the castle held out against a siege for about a month.",
+   "ja": "会津藩の居城・鶴ヶ城の城下町。1868年の戊辰戦争では、鶴ヶ城が約1か月にわたる籠城戦に耐えました。"
+  },
+  "fact": {
+   "en": "On Iimoriyama hill, 19 teenage members of the Byakkotai died in 1868, believing the castle had fallen.",
+   "ja": "1868年、飯盛山で白虎隊の少年19人が、城が落ちたと思い自刃しました。"
+  }
  },
  {
   "id": "JP-08",
@@ -69,7 +125,15 @@
   "image": "/media/prefectures/jp-08.webp",
   "license": "CC0",
   "artist": "七巫こ",
-  "page": "https://commons.wikimedia.org/wiki/File:Kairakuen_lake_senba_2021.jpg"
+  "page": "https://commons.wikimedia.org/wiki/File:Kairakuen_lake_senba_2021.jpg",
+  "desc": {
+   "en": "A garden opened in 1842 by Tokugawa Nariaki, lord of Mito, for the people to enjoy, which is what kairaku means. About 3,000 plum trees bloom here in late winter.",
+   "ja": "1842年、水戸藩主・徳川斉昭が「民と偕（とも）に楽しむ」ために開いた庭園。早春には約3,000本の梅が咲きます。"
+  },
+  "fact": {
+   "en": "It is counted among the Three Great Gardens of Japan, with Kenroku-en and Kōraku-en.",
+   "ja": "兼六園・後楽園と並ぶ「日本三名園」のひとつです。"
+  }
  },
  {
   "id": "JP-09",
@@ -78,7 +142,15 @@
   "image": "/media/prefectures/jp-09.webp",
   "license": "CC0",
   "artist": "lumoplank",
-  "page": "https://commons.wikimedia.org/wiki/File:Toshogu_Shrine,_Nikko_-_ToshoguShrine7869.jpg"
+  "page": "https://commons.wikimedia.org/wiki/File:Toshogu_Shrine,_Nikko_-_ToshoguShrine7869.jpg",
+  "desc": {
+   "en": "The richly carved shrine of Tokugawa Ieyasu, founder of the Edo shogunate; his grandson Iemitsu rebuilt it in its present splendour in 1636.",
+   "ja": "江戸幕府を開いた徳川家康を祀る神社。1636年、孫の家光が現在の豪華な社殿に建て替えました。"
+  },
+  "fact": {
+   "en": "The Yōmeimon gate carries more than 500 carvings and is nicknamed Higurashi-mon: you could gaze at it until sunset.",
+   "ja": "陽明門には500を超える彫刻があり、日が暮れるまで見ても飽きないことから「日暮門」とも呼ばれます。"
+  }
  },
  {
   "id": "JP-10",
@@ -87,7 +159,15 @@
   "image": "/media/prefectures/jp-10.webp",
   "license": "CC0",
   "artist": "Aspere",
-  "page": "https://commons.wikimedia.org/wiki/File:251129_Yubatake,_Kusatsu_07.jpg"
+  "page": "https://commons.wikimedia.org/wiki/File:251129_Yubatake,_Kusatsu_07.jpg",
+  "desc": {
+   "en": "One of Japan's best-known hot springs, with the steaming Yubatake, a “field of hot water”, in the middle of town. Its water is strongly acidic.",
+   "ja": "日本を代表する温泉地のひとつ。町の中心で湯畑が湯けむりを上げます。泉質は強い酸性です。"
+  },
+  "fact": {
+   "en": "In yumomi, people stir the hot water with long wooden boards to cool it without adding cold water, often to a work song.",
+   "ja": "「湯もみ」は長い板で湯をかき混ぜ、水を加えずに湯温を下げる伝統で、唄とともに行われます。"
+  }
  },
  {
   "id": "JP-11",
@@ -96,7 +176,15 @@
   "image": "/media/prefectures/jp-11.webp",
   "license": "CC0",
   "artist": "MaedaAkihiko",
-  "page": "https://commons.wikimedia.org/wiki/File:Kawagoe-Castle_Honmaru-Goten.jpg"
+  "page": "https://commons.wikimedia.org/wiki/File:Kawagoe-Castle_Honmaru-Goten.jpg",
+  "desc": {
+   "en": "The palace of Kawagoe Castle, built in 1848, is one of only two honmaru palaces left in Japan; the other is at Kōchi Castle.",
+   "ja": "1848年に建てられた川越城の本丸御殿。本丸御殿が残るのは、高知城とここの全国2か所だけです。"
+  },
+  "fact": {
+   "en": "Kawagoe is nicknamed Little Edo for its streets of clay-walled kurazukuri merchant houses.",
+   "ja": "蔵造りの町並みが残る川越は「小江戸」と呼ばれています。"
+  }
  },
  {
   "id": "JP-12",
@@ -105,7 +193,15 @@
   "image": "/media/prefectures/jp-12.webp",
   "license": "CC0",
   "artist": "Joel Bradshaw",
-  "page": "https://commons.wikimedia.org/wiki/File:Naritasan-Shinshoji-Somon.jpg"
+  "page": "https://commons.wikimedia.org/wiki/File:Naritasan-Shinshoji-Somon.jpg",
+  "desc": {
+   "en": "A great temple of Shingon Buddhism founded in 940, and one of the busiest places in Japan for the first temple visit of the New Year.",
+   "ja": "940年に開かれた真言宗の大本山。初詣の参拝者数は全国有数です。"
+  },
+  "fact": {
+   "en": "Around three million people visit in the first three days of the year.",
+   "ja": "正月三が日だけで約300万人が訪れます。"
+  }
  },
  {
   "id": "JP-13",
@@ -114,7 +210,15 @@
   "image": "/media/prefectures/jp-13.webp",
   "license": "CC0",
   "artist": "Akonnchiroll",
-  "page": "https://commons.wikimedia.org/wiki/File:Sensoji_2023.jpg"
+  "page": "https://commons.wikimedia.org/wiki/File:Sensoji_2023.jpg",
+  "desc": {
+   "en": "Tokyo's oldest temple. Tradition says it was founded in 628 after two fishermen pulled a statue of Kannon from the Sumida River.",
+   "ja": "東京で最も古い寺。628年、隅田川で漁師の兄弟が観音像を網で引き上げたのが始まりと伝わります。"
+  },
+  "fact": {
+   "en": "The giant red lantern of the Kaminarimon gate weighs about 700 kg.",
+   "ja": "雷門の大提灯の重さは約700kgあります。"
+  }
  },
  {
   "id": "JP-14",
@@ -123,7 +227,15 @@
   "image": "/media/prefectures/jp-14.webp",
   "license": "CC0",
   "artist": "Quercus acuta",
-  "page": "https://commons.wikimedia.org/wiki/File:Kamakura_Daibutsu_-_01.jpg"
+  "page": "https://commons.wikimedia.org/wiki/File:Kamakura_Daibutsu_-_01.jpg",
+  "desc": {
+   "en": "A bronze statue of Amida Buddha at Kōtoku-in, cast from 1252. The Buddha alone is about 11 metres tall.",
+   "ja": "高徳院の銅造阿弥陀如来坐像。1252年から造られ始め、像の高さは約11mです。"
+  },
+  "fact": {
+   "en": "It has sat in the open air since the late 15th century, when a tsunami washed away the hall around it.",
+   "ja": "15世紀末に津波で大仏殿が流されて以来、露座のままです。"
+  }
  },
  {
   "id": "JP-15",
@@ -132,7 +244,15 @@
   "image": "/media/prefectures/jp-15.webp",
   "license": "CC0",
   "artist": "番記者",
-  "page": "https://commons.wikimedia.org/wiki/File:Congratulation_World_Heritage_board_in_Sado_Gold_Mines.jpg"
+  "page": "https://commons.wikimedia.org/wiki/File:Congratulation_World_Heritage_board_in_Sado_Gold_Mines.jpg",
+  "desc": {
+   "en": "Gold and silver were mined on Sado from 1601 until 1989, making it one of the world's great gold producers in the Edo period. It became a World Heritage site in 2024.",
+   "ja": "1601年から1989年まで金銀を産出し、江戸時代には世界有数の金山でした。2024年に世界遺産に登録されました。"
+  },
+  "fact": {
+   "en": "Dōyū no Wareto is a mountain split in two by Edo-period miners digging out the gold by hand.",
+   "ja": "「道遊の割戸」は、江戸時代の手掘りで山がまっぷたつに割れた跡です。"
+  }
  },
  {
   "id": "JP-16",
@@ -141,7 +261,15 @@
   "image": "/media/prefectures/jp-16.webp",
   "license": "Public domain",
   "artist": "河川一等兵",
-  "page": "https://commons.wikimedia.org/wiki/File:Kurobe-556-r1.JPG"
+  "page": "https://commons.wikimedia.org/wiki/File:Kurobe-556-r1.JPG",
+  "desc": {
+   "en": "Japan's tallest dam, 186 metres high, built across a deep gorge in the Northern Alps over seven years and finished in 1963.",
+   "ja": "高さ186mの日本一高いダム。北アルプスの峡谷に7年をかけて建設され、1963年に完成しました。"
+  },
+  "fact": {
+   "en": "From late June to mid-October it releases more than 10 tonnes of water a second for visitors to watch.",
+   "ja": "6月下旬から10月中旬には、毎秒10トン以上の観光放水が行われます。"
+  }
  },
  {
   "id": "JP-17",
@@ -150,7 +278,15 @@
   "image": "/media/prefectures/jp-17.webp",
   "license": "CC0",
   "artist": "Balon Greyjoy",
-  "page": "https://commons.wikimedia.org/wiki/File:20190705_Kenroku-en-7.jpg"
+  "page": "https://commons.wikimedia.org/wiki/File:20190705_Kenroku-en-7.jpg",
+  "desc": {
+   "en": "The garden of the Maeda lords of Kaga, shaped over nearly two centuries and one of the Three Great Gardens of Japan.",
+   "ja": "加賀藩前田家が約2世紀かけて造り上げた庭園で、「日本三名園」のひとつです。"
+  },
+  "fact": {
+   "en": "Its name means a garden with six qualities: spaciousness, seclusion, artifice, antiquity, water and views.",
+   "ja": "名前は、宏大・幽邃・人力・蒼古・水泉・眺望の「六勝」を兼ね備えることに由来します。"
+  }
  },
  {
   "id": "JP-18",
@@ -159,7 +295,15 @@
   "image": "/media/prefectures/jp-18.webp",
   "license": "CC0",
   "artist": "Brakeet",
-  "page": "https://commons.wikimedia.org/wiki/File:Tojinbo_2010_08.jpg"
+  "page": "https://commons.wikimedia.org/wiki/File:Tojinbo_2010_08.jpg",
+  "desc": {
+   "en": "Cliffs of columnar rock about 25 metres high, running for roughly a kilometre along the Sea of Japan.",
+   "ja": "日本海に面して約1kmにわたって続く、高さ約25mの柱状の岩壁です。"
+  },
+  "fact": {
+   "en": "Columnar joints of andesite on this scale are rare; the cliffs are a national Natural Monument and Place of Scenic Beauty.",
+   "ja": "これほど大規模な輝石安山岩の柱状節理は珍しく、国の天然記念物・名勝に指定されています。"
+  }
  },
  {
   "id": "JP-19",
@@ -168,7 +312,15 @@
   "image": "/media/prefectures/jp-19.webp",
   "license": "CC0",
   "artist": "Romain Guy from San Francisco, USA",
-  "page": "https://commons.wikimedia.org/wiki/File:Mount_Fuji_at_sunset,_March_2025.jpg"
+  "page": "https://commons.wikimedia.org/wiki/File:Mount_Fuji_at_sunset,_March_2025.jpg",
+  "desc": {
+   "en": "At 3,776 metres, Japan's highest mountain, climbed by pilgrims for centuries and painted again and again.",
+   "ja": "標高3,776mの日本最高峰。古くから信仰の山として登られ、数多くの絵画に描かれてきました。"
+  },
+  "fact": {
+   "en": "It became a World Heritage site in 2013 as a cultural site, “a sacred place and source of artistic inspiration”, not as a natural one.",
+   "ja": "2013年、自然遺産ではなく「信仰の対象と芸術の源泉」として文化遺産に登録されました。"
+  }
  },
  {
   "id": "JP-20",
@@ -177,7 +329,15 @@
   "image": "/media/prefectures/jp-20.webp",
   "license": "CC0",
   "artist": "Syced",
-  "page": "https://commons.wikimedia.org/wiki/File:Matsumoto_castle,_stitched.jpg"
+  "page": "https://commons.wikimedia.org/wiki/File:Matsumoto_castle,_stitched.jpg",
+  "desc": {
+   "en": "The oldest surviving five-tiered, six-storey castle keep in Japan, built in the 1590s, and one of five castles that are National Treasures.",
+   "ja": "1590年代に建てられた、現存する五重六階の天守として最古のもの。国宝の5城のひとつです。"
+  },
+  "fact": {
+   "en": "Its black-lacquered walls earned it the nickname Crow Castle.",
+   "ja": "黒漆塗りの壁から「烏城（からすじょう）」とも呼ばれます。"
+  }
  },
  {
   "id": "JP-21",
@@ -186,7 +346,15 @@
   "image": "/media/prefectures/jp-21.webp",
   "license": "CC0",
   "artist": "lumoplank",
-  "page": "https://commons.wikimedia.org/wiki/File:Shirakawa-go_-_Shirakawa161.jpg"
+  "page": "https://commons.wikimedia.org/wiki/File:Shirakawa-go_-_Shirakawa161.jpg",
+  "desc": {
+   "en": "A mountain village of gasshō-zukuri farmhouses, whose steep thatched roofs look like hands joined in prayer. A World Heritage site since 1995.",
+   "ja": "合掌造りの集落。急な茅葺き屋根が、手を合わせた形に似ています。1995年に世界遺産に登録されました。"
+  },
+  "fact": {
+   "en": "Villagers re-thatch a roof together about every 30 to 40 years, in a mutual-help tradition called yui.",
+   "ja": "屋根は30〜40年ごとに、「結（ゆい）」と呼ばれる助け合いで村人総出で葺き替えます。"
+  }
  },
  {
   "id": "JP-22",
@@ -195,7 +363,15 @@
   "image": "/media/prefectures/jp-22.webp",
   "license": "Public domain",
   "artist": "Utagawa Hiroshige",
-  "page": "https://commons.wikimedia.org/wiki/File:Ejiri_Reisho_Tokaido.jpg"
+  "page": "https://commons.wikimedia.org/wiki/File:Ejiri_Reisho_Tokaido.jpg",
+  "desc": {
+   "en": "About seven kilometres of pine-lined beach looking across the bay to Mount Fuji, the setting of the Hagoromo legend of a celestial robe. Shown here in a print by Hiroshige.",
+   "ja": "富士山を望む約7kmの松原で、天女の羽衣伝説の舞台です。画像は歌川広重の浮世絵です。"
+  },
+  "fact": {
+   "en": "Although about 45 km from the mountain, it is part of the Mount Fuji World Heritage site.",
+   "ja": "富士山から約45km離れていますが、世界遺産「富士山」の構成資産です。"
+  }
  },
  {
   "id": "JP-23",
@@ -204,7 +380,15 @@
   "image": "/media/prefectures/jp-23.webp",
   "license": "Public domain",
   "artist": "Gryffindor",
-  "page": "https://commons.wikimedia.org/wiki/File:Nagoya_Castle_Feb_2011_15.jpg"
+  "page": "https://commons.wikimedia.org/wiki/File:Nagoya_Castle_Feb_2011_15.jpg",
+  "desc": {
+   "en": "The castle Tokugawa Ieyasu had built from 1610. Its keep burned in the air raids of 1945 and was rebuilt in 1959.",
+   "ja": "1610年に徳川家康の命で築城が始まった城。天守は1945年の空襲で焼失し、1959年に再建されました。"
+  },
+  "fact": {
+   "en": "Its emblem is the pair of golden shachihoko, tiger-headed fish, on the roof of the keep.",
+   "ja": "天守の屋根に載る金の鯱（しゃちほこ）が名古屋城の象徴です。"
+  }
  },
  {
   "id": "JP-24",
@@ -213,7 +397,15 @@
   "image": "/media/prefectures/jp-24.webp",
   "license": "CC0",
   "artist": "Brakeet",
-  "page": "https://commons.wikimedia.org/wiki/File:Naiku_Ise_Shrine_29.jpg"
+  "page": "https://commons.wikimedia.org/wiki/File:Naiku_Ise_Shrine_29.jpg",
+  "desc": {
+   "en": "Japan's most sacred Shinto shrine. The Inner Shrine is dedicated to Amaterasu, the sun goddess.",
+   "ja": "日本で最も神聖とされる神社。内宮には太陽の女神・天照大御神が祀られています。"
+  },
+  "fact": {
+   "en": "Its main sanctuaries are rebuilt every 20 years in the Shikinen Sengū; the 62nd rebuilding was in 2013.",
+   "ja": "20年ごとに社殿を建て替える「式年遷宮」が続き、2013年に第62回が行われました。"
+  }
  },
  {
   "id": "JP-25",
@@ -222,7 +414,15 @@
   "image": "/media/prefectures/jp-25.webp",
   "license": "Public domain",
   "artist": "unknown",
-  "page": "https://commons.wikimedia.org/wiki/File:Biwa_Lake,_From_Ishiyama_-_DPLA_-_bbff82d20339e667efc99cb3ba6a3a9f.jpg"
+  "page": "https://commons.wikimedia.org/wiki/File:Biwa_Lake,_From_Ishiyama_-_DPLA_-_bbff82d20339e667efc99cb3ba6a3a9f.jpg",
+  "desc": {
+   "en": "Japan's largest lake, about 670 square kilometres, and a source of water for millions of people in the Kansai region.",
+   "ja": "面積約670km²の日本最大の湖で、関西の数多くの人々の水源です。"
+  },
+  "fact": {
+   "en": "It is one of the world's few ancient lakes, about four million years old.",
+   "ja": "約400万年の歴史をもつ、世界でも数少ない古代湖のひとつです。"
+  }
  },
  {
   "id": "JP-26",
@@ -231,7 +431,15 @@
   "image": "/media/prefectures/jp-26.webp",
   "license": "CC0",
   "artist": "Balon Greyjoy",
-  "page": "https://commons.wikimedia.org/wiki/File:20181110_Fushimi_Inari_shrine_6.jpg"
+  "page": "https://commons.wikimedia.org/wiki/File:20181110_Fushimi_Inari_shrine_6.jpg",
+  "desc": {
+   "en": "The head shrine of Inari, god of rice and business, founded in 711. Paths lined with thousands of vermilion torii climb Mount Inari.",
+   "ja": "711年創建、稲荷神社の総本宮。何千もの朱色の鳥居が稲荷山を登る参道に続きます。"
+  },
+  "fact": {
+   "en": "Each torii is a gift from a person or a company, whose name is written on the back.",
+   "ja": "鳥居は個人や会社が奉納したもので、裏側にその名前が記されています。"
+  }
  },
  {
   "id": "JP-27",
@@ -240,7 +448,15 @@
   "image": "/media/prefectures/jp-27.webp",
   "license": "CC0",
   "artist": "Syced",
-  "page": "https://commons.wikimedia.org/wiki/File:Osaka_castle_7.jpg"
+  "page": "https://commons.wikimedia.org/wiki/File:Osaka_castle_7.jpg",
+  "desc": {
+   "en": "Toyotomi Hideyoshi began the castle in 1583. It was destroyed in 1615 and rebuilt by the Tokugawa; today's keep dates from 1931.",
+   "ja": "1583年に豊臣秀吉が築き始めた城。1615年に落城し徳川氏が再建しました。現在の天守は1931年のものです。"
+  },
+  "fact": {
+   "en": "The 1931 keep was paid for by donations from the people of Osaka.",
+   "ja": "1931年の天守再建は、大阪市民の寄付によって実現しました。"
+  }
  },
  {
   "id": "JP-28",
@@ -249,7 +465,15 @@
   "image": "/media/prefectures/jp-28.webp",
   "license": "Public domain",
   "artist": "Gorgo",
-  "page": "https://commons.wikimedia.org/wiki/File:Himeji_Castle_0804_1.jpg"
+  "page": "https://commons.wikimedia.org/wiki/File:Himeji_Castle_0804_1.jpg",
+  "desc": {
+   "en": "Called White Heron Castle for its white plaster walls. Its keep, finished in 1609, has survived wars and bombing.",
+   "ja": "白漆喰の壁から「白鷺城」と呼ばれます。1609年に完成した天守は、戦乱や空襲を免れて残りました。"
+  },
+  "fact": {
+   "en": "In 1993 it became one of the first two World Heritage sites in Japan, together with Hōryū-ji in Nara.",
+   "ja": "1993年、奈良の法隆寺とともに日本で最初の世界遺産になりました。"
+  }
  },
  {
   "id": "JP-29",
@@ -258,7 +482,15 @@
   "image": "/media/prefectures/jp-29.webp",
   "license": "CC0",
   "artist": "Balon Greyjoy",
-  "page": "https://commons.wikimedia.org/wiki/File:20190121_T%C5%8Ddai-ji_Great_Buddha_Hall-1.jpg"
+  "page": "https://commons.wikimedia.org/wiki/File:20190121_T%C5%8Ddai-ji_Great_Buddha_Hall-1.jpg",
+  "desc": {
+   "en": "The Great Buddha Hall of Tōdai-ji houses a bronze Buddha dedicated in 752. The present hall was rebuilt in 1709.",
+   "ja": "東大寺の大仏殿には752年に開眼された大仏が安置されています。現在の大仏殿は1709年に再建されたものです。"
+  },
+  "fact": {
+   "en": "The rebuilt hall is only about two-thirds as wide as the original, yet it is still one of the largest wooden buildings in the world.",
+   "ja": "再建された大仏殿の幅は創建時の約3分の2ですが、それでも世界最大級の木造建築です。"
+  }
  },
  {
   "id": "JP-30",
@@ -267,7 +499,15 @@
   "image": "/media/prefectures/jp-30.webp",
   "license": "CC0",
   "artist": "Saigen Jiro",
-  "page": "https://commons.wikimedia.org/wiki/File:Koyasan,_Daimon.jpg"
+  "page": "https://commons.wikimedia.org/wiki/File:Koyasan,_Daimon.jpg",
+  "desc": {
+   "en": "The mountain centre of Shingon Buddhism, founded by the monk Kūkai in 816. The great Daimon gate stands at its entrance.",
+   "ja": "816年に空海（弘法大師）が開いた真言密教の聖地。入口には大門がそびえます。"
+  },
+  "fact": {
+   "en": "More than 100 temples stand on the mountain, and many of them take in overnight guests.",
+   "ja": "山上には100を超える寺院があり、その多くが宿坊として参拝者を泊めています。"
+  }
  },
  {
   "id": "JP-31",
@@ -276,7 +516,15 @@
   "image": "/media/prefectures/jp-31.webp",
   "license": "CC0",
   "artist": "Drivephotographer",
-  "page": "https://commons.wikimedia.org/wiki/File:Tottori_Sand_Dunes.jpg"
+  "page": "https://commons.wikimedia.org/wiki/File:Tottori_Sand_Dunes.jpg",
+  "desc": {
+   "en": "Sand dunes stretching about 16 km along the Sea of Japan, with ridges dozens of metres high.",
+   "ja": "日本海沿いに東西約16km広がる砂丘で、高さ数十mの起伏があります。"
+  },
+  "fact": {
+   "en": "Next to the dunes, the Sand Museum shows giant sand sculptures on a different world theme each year.",
+   "ja": "隣接する「砂の美術館」では、毎年テーマを変えて巨大な砂像が展示されます。"
+  }
  },
  {
   "id": "JP-32",
@@ -285,7 +533,15 @@
   "image": "/media/prefectures/jp-32.webp",
   "license": "CC0",
   "artist": "Saigen Jiro",
-  "page": "https://commons.wikimedia.org/wiki/File:Haiden_of_Izumo-taisha-1.JPG"
+  "page": "https://commons.wikimedia.org/wiki/File:Haiden_of_Izumo-taisha-1.JPG",
+  "desc": {
+   "en": "One of Japan's oldest shrines, dedicated to Ōkuninushi, god of good relationships and marriage.",
+   "ja": "日本最古級の神社のひとつで、縁結びの神・大国主大神を祀ります。"
+  },
+  "fact": {
+   "en": "The gods are said to gather here in the tenth month of the old calendar: the rest of Japan calls it the month without gods, Izumo the month with gods.",
+   "ja": "旧暦10月は全国の神々が出雲に集まるとされ、全国では「神無月」、出雲では「神在月」と呼ばれます。"
+  }
  },
  {
   "id": "JP-33",
@@ -294,7 +550,15 @@
   "image": "/media/prefectures/jp-33.webp",
   "license": "Public domain",
   "artist": "osakaosaka",
-  "page": "https://commons.wikimedia.org/wiki/File:Korakuen_Okayama_2009-1-11.jpg"
+  "page": "https://commons.wikimedia.org/wiki/File:Korakuen_Okayama_2009-1-11.jpg",
+  "desc": {
+   "en": "A garden completed in 1700 for Ikeda Tsunamasa, lord of Okayama, and one of the Three Great Gardens of Japan.",
+   "ja": "1700年、岡山藩主・池田綱政によって完成した庭園で、「日本三名園」のひとつです。"
+  },
+  "fact": {
+   "en": "The black keep of Okayama Castle across the river is part of the view, a technique called borrowed scenery.",
+   "ja": "川向こうの岡山城の黒い天守が、借景として庭の眺めに取り込まれています。"
+  }
  },
  {
   "id": "JP-34",
@@ -303,7 +567,15 @@
   "image": "/media/prefectures/jp-34.webp",
   "license": "CC0",
   "artist": "Balon Greyjoy",
-  "page": "https://commons.wikimedia.org/wiki/File:20181111_Itsukushima_Shrine_torii-2.jpg"
+  "page": "https://commons.wikimedia.org/wiki/File:20181111_Itsukushima_Shrine_torii-2.jpg",
+  "desc": {
+   "en": "A shrine on the island of Miyajima, built over the sea so that at high tide its great torii seems to float. A World Heritage site since 1996.",
+   "ja": "宮島に建つ海上の神社。満潮時には大鳥居が海に浮かんで見えます。1996年に世界遺産に登録されました。"
+  },
+  "fact": {
+   "en": "The great torii is not sunk into the seabed: it stands by its own weight.",
+   "ja": "大鳥居は海底に埋め込まれておらず、自らの重さだけで立っています。"
+  }
  },
  {
   "id": "JP-35",
@@ -312,7 +584,15 @@
   "image": "/media/prefectures/jp-35.webp",
   "license": "Public domain",
   "artist": "Kiensvay",
-  "page": "https://commons.wikimedia.org/wiki/File:Kintai_bridge_2.jpg"
+  "page": "https://commons.wikimedia.org/wiki/File:Kintai_bridge_2.jpg",
+  "desc": {
+   "en": "A wooden bridge of five arches over the Nishiki River in Iwakuni, first built in 1673.",
+   "ja": "岩国の錦川に架かる五連の木造アーチ橋で、1673年に創建されました。"
+  },
+  "fact": {
+   "en": "A typhoon washed it away in 1950; it was rebuilt in 1953 with traditional carpentry.",
+   "ja": "1950年の台風で流失し、1953年に伝統の技で再建されました。"
+  }
  },
  {
   "id": "JP-36",
@@ -321,7 +601,15 @@
   "image": "/media/prefectures/jp-36.webp",
   "license": "Public domain",
   "artist": "Utagawa Hiroshige",
-  "page": "https://commons.wikimedia.org/wiki/File:Utagawa_Hiroshige_(1857)_Awa_Naruto_no_fuukei.jpg"
+  "page": "https://commons.wikimedia.org/wiki/File:Utagawa_Hiroshige_(1857)_Awa_Naruto_no_fuukei.jpg",
+  "desc": {
+   "en": "Whirlpools in the Naruto Strait between Shikoku and Awaji Island, formed by fast tidal currents; at spring tides they can reach about 20 metres across.",
+   "ja": "四国と淡路島の間の鳴門海峡で、速い潮流が生む渦潮。大潮の時には直径約20mに達します。"
+  },
+  "fact": {
+   "en": "Utagawa Hiroshige painted them in 1857 in the triptych shown here.",
+   "ja": "歌川広重は1857年、ここに示す三枚続の浮世絵に渦潮を描きました。"
+  }
  },
  {
   "id": "JP-37",
@@ -330,7 +618,15 @@
   "image": "/media/prefectures/jp-37.webp",
   "license": "CC0",
   "artist": "Photos of Japan",
-  "page": "https://commons.wikimedia.org/wiki/File:Ritsurin_pano_956.jpg"
+  "page": "https://commons.wikimedia.org/wiki/File:Ritsurin_pano_956.jpg",
+  "desc": {
+   "en": "A daimyo garden of the Takamatsu lords, completed in 1745 after more than a century of work, with six ponds and thirteen hills.",
+   "ja": "高松藩主の大名庭園。100年以上をかけて1745年に完成し、6つの池と13の築山があります。"
+  },
+  "fact": {
+   "en": "It has three stars, the highest rating, in the Michelin Green Guide Japan.",
+   "ja": "「ミシュラン・グリーンガイド・ジャポン」で最高評価の三つ星を得ています。"
+  }
  },
  {
   "id": "JP-38",
@@ -339,7 +635,15 @@
   "image": "/media/prefectures/jp-38.webp",
   "license": "CC0",
   "artist": "Brakeet",
-  "page": "https://commons.wikimedia.org/wiki/File:Dogo_Onsen_01.jpg"
+  "page": "https://commons.wikimedia.org/wiki/File:Dogo_Onsen_01.jpg",
+  "desc": {
+   "en": "One of Japan's oldest hot springs. Its three-storey wooden main building from 1894 is an Important Cultural Property.",
+   "ja": "日本最古級の温泉。1894年に建てられた木造三層の本館は国の重要文化財です。"
+  },
+  "fact": {
+   "en": "Natsume Sōseki's 1906 novel Botchan made the bath famous across Japan.",
+   "ja": "夏目漱石の小説『坊っちゃん』（1906年）で全国に知られるようになりました。"
+  }
  },
  {
   "id": "JP-39",
@@ -348,7 +652,15 @@
   "image": "/media/prefectures/jp-39.webp",
   "license": "Public domain",
   "artist": "京浜にけ",
-  "page": "https://commons.wikimedia.org/wiki/File:Kochi_Katsurahama_Sakamoto_Ryoma_Statue_2.jpg"
+  "page": "https://commons.wikimedia.org/wiki/File:Kochi_Katsurahama_Sakamoto_Ryoma_Statue_2.jpg",
+  "desc": {
+   "en": "A statue of Sakamoto Ryōma, the Kōchi-born samurai who helped bring about the Satsuma–Chōshū Alliance of 1866, looks out over the Pacific at Katsurahama.",
+   "ja": "1866年の薩長同盟の成立に尽力した土佐出身の志士・坂本龍馬の像が、桂浜から太平洋を見つめます。"
+  },
+  "fact": {
+   "en": "The statue was put up in 1928 with money raised by young people of Kōchi.",
+   "ja": "像は1928年、高知の青年たちが集めた寄付で建てられました。"
+  }
  },
  {
   "id": "JP-40",
@@ -357,7 +669,15 @@
   "image": "/media/prefectures/jp-40.webp",
   "license": "CC0",
   "artist": "Drivephotographer",
-  "page": "https://commons.wikimedia.org/wiki/File:Dazaifu_Tenmangu.jpg"
+  "page": "https://commons.wikimedia.org/wiki/File:Dazaifu_Tenmangu.jpg",
+  "desc": {
+   "en": "The shrine built over the grave of the scholar Sugawara no Michizane, who died in 903 and is honoured as the god of learning. Students come to pray before exams.",
+   "ja": "903年に亡くなった学者・菅原道真の墓所に建つ神社。学問の神として、受験生が合格を祈りに訪れます。"
+  },
+  "fact": {
+   "en": "Legend says its plum tree, the tobiume, flew all the way from Kyoto to be with Michizane.",
+   "ja": "道真を慕った梅が京都から一夜で飛んできたという「飛梅」の伝説があります。"
+  }
  },
  {
   "id": "JP-41",
@@ -366,7 +686,15 @@
   "image": "/media/prefectures/jp-41.webp",
   "license": "CC0",
   "artist": "Saigen Jiro",
-  "page": "https://commons.wikimedia.org/wiki/File:Yoshinogari-iseki_zenkei.JPG"
+  "page": "https://commons.wikimedia.org/wiki/File:Yoshinogari-iseki_zenkei.JPG",
+  "desc": {
+   "en": "The largest moated settlement of the Yayoi period in Japan, about 2,000 years old, now a park with rebuilt watchtowers and houses.",
+   "ja": "約2,000年前、弥生時代の日本最大級の環濠集落跡。物見やぐらや住居が復元されています。"
+  },
+  "fact": {
+   "en": "Some historians link it to Yamatai, the realm of Queen Himiko in Chinese chronicles; the question is still debated.",
+   "ja": "中国の史書にある卑弥呼の邪馬台国と結びつける説もあり、今も議論が続いています。"
+  }
  },
  {
   "id": "JP-42",
@@ -375,7 +703,15 @@
   "image": "/media/megane-bridge-nagasaki-960.webp",
   "license": "CC0",
   "artist": "Yoshi Canopus",
-  "page": "https://commons.wikimedia.org/wiki/File:Megane_Bridge_of_Nagasaki_with_Stepping_Stones.jpg"
+  "page": "https://commons.wikimedia.org/wiki/File:Megane_Bridge_of_Nagasaki_with_Stepping_Stones.jpg",
+  "desc": {
+   "en": "Built in 1634 by the Chinese monk Mokusu Nyojō, it is thought to be the oldest stone arch bridge in Japan. Its two arches and their reflection look like a pair of spectacles.",
+   "ja": "1634年に中国の僧・黙子如定が架けたとされる、日本最古の石造アーチ橋。二つのアーチが川面に映り、眼鏡のように見えます。"
+  },
+  "fact": {
+   "en": "Look for the heart-shaped stone set into the river wall nearby.",
+   "ja": "近くの石垣には、ハート形の石がはめ込まれています。"
+  }
  },
  {
   "id": "JP-43",
@@ -384,7 +720,15 @@
   "image": "/media/prefectures/jp-43.webp",
   "license": "CC0",
   "artist": "先従隗始",
-  "page": "https://commons.wikimedia.org/wiki/File:Kumamoto_Castle_20230227_16.jpg"
+  "page": "https://commons.wikimedia.org/wiki/File:Kumamoto_Castle_20230227_16.jpg",
+  "desc": {
+   "en": "A great castle built by Katō Kiyomasa and finished in 1607, famous for its sweeping stone walls.",
+   "ja": "加藤清正が築き、1607年に完成した名城。反り返った石垣で知られます。"
+  },
+  "fact": {
+   "en": "The 2016 earthquakes badly damaged it; the main keep reopened in 2021, and the walls are still being restored.",
+   "ja": "2016年の熊本地震で大きな被害を受け、天守は2021年に復旧しました。石垣の修復は今も続いています。"
+  }
  },
  {
   "id": "JP-44",
@@ -393,7 +737,15 @@
   "image": "/media/prefectures/jp-44.webp",
   "license": "CC0",
   "artist": "Bpcon98",
-  "page": "https://commons.wikimedia.org/wiki/File:Umi_Jigoku_(Sea_Hell)_in_Beppu.jpg"
+  "page": "https://commons.wikimedia.org/wiki/File:Umi_Jigoku_(Sea_Hell)_in_Beppu.jpg",
+  "desc": {
+   "en": "Beppu's Hells are hot-spring ponds too hot to bathe in; Umi Jigoku, the Sea Hell, is a cobalt-blue pond at about 98 °C.",
+   "ja": "別府の「地獄」は入浴できないほど熱い源泉。海地獄はコバルトブルーの池で、湯温は約98℃です。"
+  },
+  "fact": {
+   "en": "Beppu has more hot-spring sources than anywhere else in Japan.",
+   "ja": "別府の源泉数は日本一です。"
+  }
  },
  {
   "id": "JP-45",
@@ -402,7 +754,15 @@
   "image": "/media/prefectures/jp-45.webp",
   "license": "Public domain",
   "artist": "Max Smith",
-  "page": "https://commons.wikimedia.org/wiki/File:Takachiho_Gorge_by_boat.jpg"
+  "page": "https://commons.wikimedia.org/wiki/File:Takachiho_Gorge_by_boat.jpg",
+  "desc": {
+   "en": "A gorge of basalt columns cut by the Gokase River through old lava from Aso, with the 17-metre Manai Falls.",
+   "ja": "阿蘇の溶岩を五ヶ瀬川が削ってできた柱状節理の峡谷。落差17mの真名井の滝があります。"
+  },
+  "fact": {
+   "en": "In Japanese myth, Takachiho is where the grandson of the sun goddess came down from heaven.",
+   "ja": "高千穂は、天照大御神の孫が天から降り立った天孫降臨の地と伝えられます。"
+  }
  },
  {
   "id": "JP-46",
@@ -411,7 +771,15 @@
   "image": "/media/prefectures/jp-46.webp",
   "license": "CC0",
   "artist": "Drivephotographer",
-  "page": "https://commons.wikimedia.org/wiki/File:Sakurajima-2.jpg"
+  "page": "https://commons.wikimedia.org/wiki/File:Sakurajima-2.jpg",
+  "desc": {
+   "en": "One of Japan's most active volcanoes, rising across the bay from the city of Kagoshima.",
+   "ja": "鹿児島市の対岸にそびえる、日本で最も活発な火山のひとつです。"
+  },
+  "fact": {
+   "en": "Until 1914 it was an island; lava from that year's eruption joined it to the Ōsumi Peninsula.",
+   "ja": "1914年の大正大噴火で流れ出た溶岩により、島だった桜島は大隅半島と陸続きになりました。"
+  }
  },
  {
   "id": "JP-47",
@@ -420,6 +788,14 @@
   "image": "/media/prefectures/jp-47.webp",
   "license": "Public domain",
   "artist": "Abasaa",
-  "page": "https://commons.wikimedia.org/wiki/File:Ryutan_and_Shuri_Castle_01.JPG"
+  "page": "https://commons.wikimedia.org/wiki/File:Ryutan_and_Shuri_Castle_01.JPG",
+  "desc": {
+   "en": "The royal palace of the Ryūkyū Kingdom, which ruled Okinawa for about 450 years. Its main hall burned in 2019 and is being rebuilt.",
+   "ja": "約450年続いた琉球王国の王城。2019年の火災で正殿が焼失し、再建が進められています。"
+  },
+  "fact": {
+   "en": "The World Heritage listing covers the castle's ancient remains underground, not the rebuilt halls.",
+   "ja": "世界遺産に登録されているのは地下の遺構で、復元された建物ではありません。"
+  }
  }
 ]

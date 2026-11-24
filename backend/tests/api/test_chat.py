@@ -326,3 +326,113 @@ def test_a_foreman_outside_the_thread_cannot_see_or_close_its_follow_ups(
     assert client.get("/api/follow-ups", headers=other_foreman).json()["data"]["items"] == []
     res = client.patch(f"/api/follow-ups/{fid}", headers=other_foreman, json={"status": "clarified"})
     assert res.status_code == 403
+
+
+def test_an_edited_draft_is_translated_again_before_sending(
+    client: TestClient, line: Line, fake_ai: FakeAiClient
+) -> None:
+    """XREQ-022: the Foreman fixes the Japanese; translations and questions are made again from the new text."""
+    fake_ai.queue("draft_message", draft_answer(line))
+    res = client.post(
+        f"/api/threads/{line.thread_id}/messages", headers=line.foreman | _key(), data={"text": "金型交換"}
+    )
+    draft = res.json()["data"]
+    edited = draft_answer(line) | {"text": {"ja": "明日9時に金型交換", "bn": "কাল ৯টায় ডাই বদল", "en": "Die change at 9"}}
+    fake_ai.queue("draft_message", edited)
+
+    res = client.patch(f"/api/messages/{draft['id']}", headers=line.foreman, json={"textJa": "明日9時に金型交換"})
+    assert res.status_code == 200, res.text
+    again = res.json()["data"]
+    assert again["id"] == draft["id"] and again["text"]["en"] == "Die change at 9" and again["stage"] == 3
+    assert again["questions"] and again["taskDrafts"]
+    assert client.patch(f"/api/messages/{draft['id']}", headers=line.rahim, json={"textJa": "x"}).status_code == 403
+
+    body = {"text": again["text"], "questions": again["questions"]}
+    client.post(f"/api/messages/{draft['id']}/send", headers=line.foreman, json=body)
+    late = client.patch(f"/api/messages/{draft['id']}", headers=line.foreman, json={"textJa": "遅い"})
+    assert late.status_code == 409  # a sent message is not edited
+
+
+def test_an_edit_without_the_model_keeps_the_foremans_text(client: TestClient, line: Line) -> None:
+    res = client.post(f"/api/threads/{line.thread_id}/messages", headers=line.foreman | _key(), data={"text": "清掃"})
+    draft_id = res.json()["data"]["id"]
+    res = client.patch(f"/api/messages/{draft_id}", headers=line.foreman, json={"textJa": "清掃は10時"})
+    data = res.json()["data"]
+    assert res.status_code == 200 and data["needsEdit"] is True and data["text"] == {"ja": "清掃は10時"}
+
+
+def test_an_edit_that_lost_the_model_is_repaired_by_the_same_edit(
+    client: TestClient, line: Line, fake_ai: FakeAiClient
+) -> None:
+    fake_ai.queue("draft_message", draft_answer(line))
+    res = client.post(
+        f"/api/threads/{line.thread_id}/messages", headers=line.foreman | _key(), data={"text": "金型交換"}
+    )
+    path, edit = f"/api/messages/{res.json()['data']['id']}", {"textJa": "明日9時に金型交換"}
+    degraded = client.patch(path, headers=line.foreman, json=edit).json()["data"]
+    assert degraded["needsEdit"] is True and degraded["taskDrafts"] == []  # not the old text's Tasks
+
+    fake_ai.queue("draft_message", draft_answer(line))
+    again = client.patch(path, headers=line.foreman, json=edit).json()["data"]
+
+    assert again["needsEdit"] is False and again["questions"] and again["taskDrafts"]
+
+
+def test_a_retried_post_returns_the_task_drafts_until_send(
+    client: TestClient, line: Line, fake_ai: FakeAiClient
+) -> None:
+    fake_ai.queue("draft_message", draft_answer(line))
+    path, headers, form = f"/api/threads/{line.thread_id}/messages", line.foreman | _key(), {"text": "金型交換"}
+    first = client.post(path, headers=headers, data=form).json()["data"]
+    again = client.post(path, headers=headers, data=form).json()["data"]
+    assert first["taskDrafts"] and again == first
+
+    body = {"text": first["text"], "questions": first["questions"]}
+    client.post(f"/api/messages/{first['id']}/send", headers=line.foreman, json=body)
+    assert client.post(path, headers=headers, data=form).json()["data"]["taskDrafts"] == []
+
+
+def test_the_foreman_reads_and_edits_a_reexplanation_before_it_is_sent(
+    client: TestClient, line: Line, fake_ai: FakeAiClient
+) -> None:
+    """XREQ-022: /reexplain/draft stores nothing; /reexplain with the edited text and question sends it as written."""
+    sent = _sent(client, line, fake_ai)
+    text = {"ja": "金型は型です", "bn": "ডাই হলো ছাঁচ", "en": "The die is the mould"}
+    fake_ai.queue("reexplain", {"text": text, "question": _q("金型", "金型は?", ["型", "油", "靴"])})
+    ask = {"userId": str(line.rahim_id), "termJa": "金型"}
+
+    res = client.post(f"/api/messages/{sent['id']}/reexplain/draft", headers=line.foreman, json=ask)
+    assert res.status_code == 200, res.text
+    draft = res.json()["data"]
+    assert draft["text"]["en"] == "The die is the mould" and draft["question"]["correctIndex"] == 0
+    assert len(_poll(client, line, line.rahim)) == 1  # nothing sent yet
+
+    edited = draft["text"] | {"en": "A die is the metal mould"}
+    res = client.post(
+        f"/api/messages/{sent['id']}/reexplain",
+        headers=line.foreman,
+        json=ask | {"text": edited, "question": draft["question"]},
+    )
+    assert res.status_code == 201, res.text
+    assert res.json()["data"]["text"]["en"] == "A die is the metal mould"
+    half = client.post(f"/api/messages/{sent['id']}/reexplain", headers=line.foreman, json=ask | {"text": edited})
+    assert half.status_code == 422
+
+
+def test_a_worker_asks_the_foreman_about_a_term(client: TestClient, line: Line, fake_ai: FakeAiClient) -> None:
+    """XREQ-022: a fixed sentence (no AI) in the Thread, and one open Follow-up for the Foreman."""
+    sent = _sent(client, line, fake_ai)
+    res = client.post(f"/api/messages/{sent['id']}/ask", headers=line.rahim, json={"termJa": "金型"})
+    assert res.status_code == 201, res.text
+    asked = res.json()["data"]
+    assert asked["kind"] == "ask" and asked["refMessageId"] == sent["id"] and "金型" in asked["text"]["ja"]
+    client.post(f"/api/messages/{sent['id']}/ask", headers=line.rahim, json={"termJa": "金型"})
+
+    follow_ups = client.get("/api/follow-ups?status=open", headers=line.foreman).json()["data"]["items"]
+    assert [f["termJa"] for f in follow_ups] == ["金型"]  # asking twice opens one Follow-up
+    assert any(m["kind"] == "ask" for m in _poll(client, line, line.foreman))
+    assert (
+        client.post(f"/api/messages/{sent['id']}/ask", headers=line.foreman, json={"termJa": "金型"}).status_code == 403
+    )
+    outsider = client.post(f"/api/messages/{sent['id']}/ask", headers=line.outsider, json={"termJa": "金型"})
+    assert outsider.status_code in (403, 404)

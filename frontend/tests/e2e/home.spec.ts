@@ -120,23 +120,52 @@ test('the Japan map goes to Nagasaki and back to all of Japan', async ({
   await expect(page.getByRole('img', { name: /Megane Bridge/ })).toBeHidden()
 })
 
-// The v4 landing globe (the default kit): choosing a prefecture shows its famous place with a copyright-free
-// photo and credit; All Japan closes it
-test('the globe shows a prefecture’s famous place and goes back to all of Japan', async ({
+// "Journey to Nagasaki" on the v4 landing. Reduced motion (the default in this config) goes straight to the
+// map with Nagasaki chosen; the panel follows the choice from the list and the next button.
+test('the journey map opens on Nagasaki and the panel follows the chosen prefecture', async ({
   page,
 }) => {
   await page.goto('/?ui=v4')
+  const journey = page.getByRole('region', {
+    name: 'From anywhere on Earth to Nagasaki.',
+  })
+  await journey.scrollIntoViewIfNeeded()
   await expect(
-    page.getByRole('img', { name: /Globe zooming into Japan/ }),
+    journey.getByRole('img', { name: /Map of Japan's 47 prefectures/ }),
+  ).toBeVisible()
+  await expect(journey.getByRole('heading', { name: '長崎県' })).toBeVisible()
+  await expect(
+    journey.getByRole('heading', { name: 'Megane Bridge' }),
   ).toBeVisible()
 
-  await page.getByLabel('Choose a prefecture').selectOption('JP-26')
-  const photo = page.getByRole('img', { name: 'Fushimi Inari-taisha' })
-  await expect(photo).toBeVisible()
-  await expect(page.getByText('Photo: Balon Greyjoy (CC0)')).toBeVisible()
+  await journey.getByLabel('Choose a prefecture').selectOption('JP-26')
+  await expect(journey.getByRole('heading', { name: '京都府' })).toBeVisible()
+  await expect(
+    journey.getByRole('img', { name: 'Fushimi Inari-taisha' }),
+  ).toBeVisible()
+  await expect(journey.getByText(/Each torii is a gift/)).toBeVisible()
 
-  const all = page.getByRole('button', { name: 'All Japan' })
-  await all.click()
-  await expect(all).toHaveAttribute('aria-pressed', 'true')
-  await expect(photo).toBeHidden()
+  await journey.getByRole('button', { name: 'Next: Ōsaka' }).click()
+  await expect(journey.getByRole('heading', { name: '大阪府' })).toBeVisible()
+})
+
+test.describe('journey with motion on', () => {
+  test.use({ reducedMotion: 'no-preference' })
+
+  test('the Earth shows first and Skip goes to the map', async ({ page }) => {
+    await page.goto('/?ui=v4')
+    const journey = page.getByRole('region', {
+      name: 'From anywhere on Earth to Nagasaki.',
+    })
+    await journey.scrollIntoViewIfNeeded()
+    await expect(
+      journey.getByRole('img', { name: /The Earth turning toward Japan/ }),
+    ).toBeVisible()
+    await journey.getByRole('button', { name: 'Skip to the map' }).click()
+    await expect(journey.locator('.journey-stage')).toHaveAttribute(
+      'data-phase',
+      'map',
+    )
+    await expect(journey.getByRole('heading', { name: '長崎県' })).toBeVisible()
+  })
 })

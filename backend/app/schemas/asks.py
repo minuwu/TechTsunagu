@@ -24,12 +24,17 @@ class AskForm(CamelModel):
 class AskOut(CamelModel):
     id: str
     worker_id: str
+    worker_name: str
+    """The Worker's display name."""
     text: str
     """What the Worker asked: typed text, or the transcript of their voice question."""
+    text_ja: str | None
+    """The Japanese of a forwarded Ask; null when it was not forwarded or the translation fell back."""
     covered: bool
     answer: Translated | None
     """Null when not covered; the frontend shows its own "no posted notice covers this" text."""
     source_notice_ids: list[str]
     forwarded: bool
     senpai_reply: Translated | None
+    replied_at: AwareDatetime | None
     created_at: AwareDatetime
