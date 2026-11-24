@@ -2369,6 +2369,26 @@ export type EventUpdate = {
 };
 
 /**
+ * FindIn
+ *
+ * POST /api/auth/find: signing in without the shop code. The PIN proves who it is.
+ */
+export type FindIn = {
+    /**
+     * Shopname
+     */
+    shopName: string;
+    /**
+     * Displayname
+     */
+    displayName: string;
+    /**
+     * Pin
+     */
+    pin: string;
+};
+
+/**
  * FollowUpOut
  */
 export type FollowUpOut = {
@@ -4174,6 +4194,10 @@ export type RegisterIn = {
      * Pin
      */
     pin: string;
+    /**
+     * Shopcode
+     */
+    shopCode?: string | null;
 };
 
 /**
@@ -5253,6 +5277,31 @@ export type LoginApiAuthLoginPostResponses = {
 };
 
 export type LoginApiAuthLoginPostResponse = LoginApiAuthLoginPostResponses[keyof LoginApiAuthLoginPostResponses];
+
+export type FindApiAuthFindPostData = {
+    body: FindIn;
+    path?: never;
+    query?: never;
+    url: '/api/auth/find';
+};
+
+export type FindApiAuthFindPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type FindApiAuthFindPostError = FindApiAuthFindPostErrors[keyof FindApiAuthFindPostErrors];
+
+export type FindApiAuthFindPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeLoginOut;
+};
+
+export type FindApiAuthFindPostResponse = FindApiAuthFindPostResponses[keyof FindApiAuthFindPostResponses];
 
 export type RegisterApiAuthRegisterPostData = {
     body: RegisterIn;
