@@ -1,8 +1,11 @@
-/* Kit v4 look: "Poster Modernist". Cream ground, jet-black type, one cobalt accent, hairline grid, 0px corners,
-   no shadows, no gradients, fast linear colour changes. Light only (the theme toggle is gone in this kit).
+/* Kit v4 look: "Poster Modernist" on Fuji at Lake Motosu. Mist ground over the photo, lake-navy type, one
+   steel-blue accent, hairline grid, 0px corners, no shadows, fast linear colour changes. Light only.
+   Palette sampled from art/fuji-motosu.avif: mist = snow and haze, navy = the lake and hills, steel = the
+   upper sky darkened to pass 4.5:1. Every text token was checked against the darkest photo pixel under the
+   scrim in .v4-ground (worst case: label 4.5:1, primary 4.8:1, muted 4.9:1).
    Same variable names as every kit; utilities that read the values are mapped in theme/base.css (A-06).
    Colour carries meaning (JIS Z 9103): red = Lock / Confusion, green = Ready / valid, amber = expiring,
-   cobalt = action. Safety-sign pictograms keep the JIS/ISO colours; everything else stays cream, black, cobalt. */
+   steel = action. Safety-sign pictograms keep the JIS/ISO colours. */
 
 :root {
   --ease-out: linear;
@@ -12,50 +15,63 @@
 
 :root,
 .v4 {
-  --background: #e3e2de; /* cream */
-  --foreground: #141414; /* jet black */
-  --card: #e3e2de;
-  --card-foreground: #141414;
-  --primary: #1351aa; /* cobalt */
-  --primary-foreground: #e3e2de;
-  --secondary: #141414;
-  --secondary-foreground: #e3e2de;
-  --muted: #d8d7d3;
-  --muted-foreground: #444343; /* secondary text */
-  --accent: #d1d0cc;
-  --accent-foreground: #141414;
+  --background: #e4ecf2; /* mist */
+  --foreground: #0a1c26; /* lake navy */
+  --card: #ecf2f6;
+  --card-foreground: #0a1c26;
+  --primary: #214c69; /* steel sky */
+  --primary-foreground: #f3f7fa; /* snow */
+  --secondary: #0a1c26;
+  --secondary-foreground: #f3f7fa;
+  --muted: #d5e0e8;
+  --muted-foreground: #34495a; /* secondary text */
+  --accent: #c9d7e3; /* haze */
+  --accent-foreground: #0a1c26;
   --destructive: #a32219; /* brand red #B3261E, darkened to 4.95:1 on its 10% chip (WCAG 1.4.3) */
   --success: #1a6133; /* brand green #1E6B3A, darkened to 5.0:1 on its 10% chip */
   --warning: #7a4900; /* brand amber #8A5300, darkened to pass 4.5:1 on its tinted chip */
-  --life: #1351aa;
-  --border: #c7c7c7; /* hairline dividers */
-  --input: #141414; /* a control edge has to be seen */
-  --ring: #1351aa;
+  --life: #214c69;
+  --border: #a9bccb; /* hairline dividers */
+  --input: #0a1c26; /* a control edge has to be seen */
+  --ring: #214c69;
 
-  --rule: #c7c7c7;
-  --label: #616161; /* uppercase labels; #7A7A7A was 3.3:1 on cream, this is 4.8:1 (ADR 0012 follow-up) */
-  --shell: #e3e2de;
-  --shell-raised: #d8d7d3;
-  --shell-foreground: #141414;
-  --shell-muted: #444343;
-  --indigo: #1351aa;
-  --glass: #e3e2de;
-  --glass-edge: #c7c7c7;
+  --rule: #a9bccb;
+  --label: #384f60; /* uppercase labels: 4.5:1 on the darkest scrimmed photo pixel, 7.2:1 on mist */
+  --shell: #e4ecf2;
+  --shell-raised: #d5e0e8;
+  --shell-foreground: #0a1c26;
+  --shell-muted: #34495a;
+  --indigo: #214c69;
+  --glass: #ecf2f6;
+  --glass-edge: #a9bccb;
   --shadow-sm: none;
   --shadow-md: none;
   --shadow-lg: none;
-  --tile: #e3e2de;
-  --tile-hover: rgb(255 255 255 / 0.2);
-  --tile-border: #c7c7c7;
-  --tile-border-hover: #141414;
+  --tile: #ecf2f6;
+  --tile-hover: #f6f9fb; /* solid: a see-through hover would show the darker photo and dim the tile */
+  --tile-border: #a9bccb;
+  --tile-border-hover: #0a1c26;
   --aurora-a: transparent;
   --aurora-b: transparent;
   --door-glow: transparent;
 }
 
+/* The whole site sits on the photo. A fixed layer, not background-attachment: fixed, which iOS Safari ignores.
+   The mist scrim is 72% over the light sky and 80% from the ridge line down: the contrast floor in the header. */
 .v4-ground {
+  isolation: isolate;
   background: var(--background);
   color: var(--foreground);
+}
+.v4-ground::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(rgb(228 236 242 / 0.72), rgb(228 236 242 / 0.8) 30%),
+    url('./art/fuji-motosu.avif') center / cover no-repeat;
 }
 
 /* Flat everywhere: no radius, no shadow, whatever a screen asked for (rounded-full keeps its dots round) */
@@ -105,6 +121,12 @@ a {
 }
 .poster-h1 {
   font-size: clamp(2.75rem, 12.5vw, 9rem);
+}
+/* From 48rem the poster sits in 9 of 12 columns: at 12.5vw "Understood" no longer fit and split mid-word */
+@media (min-width: 48rem) {
+  .poster-h1 {
+    font-size: clamp(2.75rem, 11.5vw, 9rem);
+  }
 }
 .poster-h2 {
   font-size: clamp(2.25rem, 8vw, 5.5rem);
@@ -240,7 +262,7 @@ dialog.sheet {
   color: var(--card-foreground);
 }
 dialog.sheet::backdrop {
-  background: rgb(20 20 20 / 0.55);
+  background: rgb(10 28 38 / 0.55);
 }
 dialog.sheet[open] {
   animation: toast-in 200ms linear;
@@ -369,6 +391,100 @@ input[type='file']::file-selector-button:hover {
   }
 }
 
+/* Hero Fuji (components/HeroFuji.tsx): three silhouettes behind the Landing hero, back to front, in the
+   photo's colours at 8 / 10 / 15%. The box stays in the CTA corner: under the grey lead text a dark layer
+   would drop it below 4.5:1 where the hero sits over the lake. Phones: under 7rem, the CTA row plus the
+   padding below the lead (8rem). From 48rem: the right half of the main column (the lead is on the left).
+   The section is `relative isolate`, so z-index -1 sits behind the text and above the page photo.
+   Motion: fade-in and parallax are GSAP; the float is CSS (transform only, on the compositor). */
+.fuji {
+  --fuji-front: #0a1c26; /* lake navy */
+  --fuji-mid: #214c69; /* steel sky */
+  --fuji-back: #4c7b98; /* upper sky */
+  --fuji-float: -1.5px;
+  --fuji-float-time: 3.5s; /* half a wave: alternate makes the full loop 7 s */
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  width: 100%;
+  height: min(15%, 7rem);
+  overflow: hidden;
+  pointer-events: none;
+}
+@media (min-width: 48rem) {
+  .fuji {
+    --fuji-float: -3px;
+    --fuji-float-time: 2.5s; /* a 5 s loop */
+    width: calc(37.5% - 2rem);
+    height: 25%;
+  }
+}
+@media (min-width: 64rem) {
+  .fuji {
+    height: 30%;
+  }
+}
+.fuji-float {
+  position: absolute;
+  inset: 0;
+}
+.fuji-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  transition:
+    fill 300ms ease-in-out,
+    filter 300ms ease-in-out;
+}
+.fuji-back {
+  fill: var(--fuji-back);
+  opacity: 0.08;
+}
+.fuji-mid {
+  fill: var(--fuji-mid);
+  opacity: 0.1;
+}
+.fuji-front {
+  fill: var(--fuji-front);
+  opacity: 0.15;
+}
+@keyframes fuji-float {
+  to {
+    transform: translateY(var(--fuji-float));
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .fuji-float {
+    animation: fuji-float var(--fuji-float-time) ease-in-out infinite alternate;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fuji-layer {
+    transition: none;
+  }
+}
+/* Pointer devices only: the demo button tints every layer toward the action colour and lights the nearest;
+   "How it works" lights the middle one. Fill and filter ease back over 300 ms, so leaving never snaps. */
+@media (hover: hover) and (pointer: fine) {
+  .fuji-scope:has([data-fuji-cta]:is(:hover, :focus-visible)) .fuji-front {
+    fill: color-mix(in oklch, var(--fuji-front) 65%, var(--fuji-mid));
+    filter: drop-shadow(0 0 0.75rem var(--fuji-mid));
+  }
+  .fuji-scope:has([data-fuji-cta]:is(:hover, :focus-visible)) .fuji-mid,
+  .fuji-scope:has([data-fuji-how]:is(:hover, :focus-visible)) .fuji-mid {
+    fill: color-mix(in oklch, var(--fuji-mid) 70%, var(--fuji-back));
+  }
+  .fuji-scope:has([data-fuji-how]:is(:hover, :focus-visible)) .fuji-mid {
+    filter: drop-shadow(0 0 0.75rem var(--fuji-back));
+  }
+  .fuji-scope:has([data-fuji-cta]:is(:hover, :focus-visible)) .fuji-back {
+    fill: color-mix(in oklch, var(--fuji-back) 75%, white);
+  }
+}
+
 /* Typographic list item: hairline above, index left, big title that turns cobalt on hover */
 .poster-row {
   display: flex;
@@ -446,7 +562,6 @@ input[type='file']::file-selector-button:hover {
   --j-muted: #a7b2c5; /* 8.6:1 on --j-bg */
   --j-land: #16233a;
   --j-pref: #1f3050;
-  --j-pref-hover: #2c4675;
   --j-edge: #7f93b5;
   --j-accent: #d9573b; /* shu (vermilion): marks only, never small text */
   --j-serif:
@@ -521,14 +636,12 @@ input[type='file']::file-selector-button:hover {
   .journey-body {
     grid-template-columns: minmax(0, 1fr) 26rem;
   }
+  /* The map stretches to the Nagasaki card beside it, so the whole card shows (no inner scroll box) */
   .journey-stage {
-    height: clamp(34rem, 82svh, 52rem);
+    height: auto;
+    min-height: clamp(34rem, 82svh, 52rem);
     border-bottom: 0;
     border-right: 1px solid var(--j-line);
-  }
-  .journey .jp {
-    max-height: clamp(34rem, 82svh, 52rem);
-    overflow-y: auto;
   }
 }
 .journey-earth,
@@ -562,9 +675,7 @@ input[type='file']::file-selector-button:hover {
   color: var(--j-muted);
 }
 .journey-action,
-.jm-zoom button,
-.jp select,
-.jp-step button {
+.jm-zoom button {
   min-height: 2.75rem;
   border: 1px solid var(--j-line);
   background: rgb(11 20 36 / 0.78);
@@ -619,23 +730,33 @@ input[type='file']::file-selector-button:hover {
   vector-effect: non-scaling-stroke;
   pointer-events: none;
 }
+/* Only Nagasaki is interactive and coloured; the other prefectures are quiet land (one story, one target) */
 .jm-pref {
   fill: var(--j-pref);
   stroke: var(--j-edge);
   stroke-width: 0.6;
   vector-effect: non-scaling-stroke;
-  cursor: pointer;
+  pointer-events: none;
   transition: fill 220ms;
 }
-.jm-pref:hover {
-  fill: var(--j-pref-hover);
-}
 .jm-pref.is-home {
-  fill: color-mix(in srgb, var(--j-accent) 35%, var(--j-pref));
+  fill: color-mix(in srgb, var(--j-accent) 55%, var(--j-pref));
+  stroke: var(--j-ink);
+  pointer-events: auto;
+  cursor: pointer;
 }
+.jm-pref.is-home:hover,
 .jm-pref.is-selected {
   fill: var(--j-accent);
-  stroke: var(--j-ink);
+}
+.jm-pin-name {
+  fill: var(--j-ink);
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  paint-order: stroke;
+  stroke: var(--j-bg);
+  stroke-width: 3px;
 }
 .jm-pin {
   fill: var(--j-ink);
@@ -659,32 +780,6 @@ input[type='file']::file-selector-button:hover {
     opacity: 0;
   }
 }
-.jm-tip,
-.jm-hint {
-  position: absolute;
-  z-index: 5;
-  pointer-events: none;
-  background: var(--j-ink);
-  color: var(--j-bg);
-  font-size: 0.875rem;
-  font-weight: 700;
-  white-space: nowrap;
-}
-.jm-tip {
-  translate: -50% calc(-100% - 10px);
-  padding: 0.2rem 0.5rem;
-}
-.jm-hint {
-  top: 0.75rem;
-  left: 50%;
-  translate: -50% 0;
-  padding: 0.35rem 0.75rem;
-  opacity: 0;
-  transition: opacity 200ms;
-}
-.jm-hint.is-shown {
-  opacity: 1;
-}
 .jm-zoom {
   position: absolute;
   right: 1rem;
@@ -695,29 +790,19 @@ input[type='file']::file-selector-button:hover {
 }
 .jm-zoom button {
   min-width: 2.75rem;
-  padding: 0 0.75rem;
+  min-height: 3rem;
+  padding: 0 1.25rem;
 }
 .jm-zoom button[aria-pressed='true'] {
   background: var(--j-ink);
   color: var(--j-bg);
 }
 
-/* the panel: a museum label for the chosen prefecture */
+/* the panel: a museum label for Nagasaki */
 .jp {
   display: flex;
   flex-direction: column;
   background: var(--j-raise);
-}
-.jp-choose {
-  display: grid;
-  gap: 0.5rem;
-  padding: 1rem 1.25rem;
-  border-bottom: 1px solid var(--j-line);
-}
-.jp select {
-  width: 100%;
-  padding: 0 0.75rem;
-  background: var(--j-bg);
 }
 .jp-card {
   padding: 1.5rem 1.25rem;
@@ -788,31 +873,10 @@ input[type='file']::file-selector-button:hover {
   line-height: 1.7;
   color: var(--j-body);
 }
-.jp-step {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  margin-top: auto;
-  border-top: 1px solid var(--j-line);
-}
-.jp-step button {
-  min-height: 3.25rem;
-  padding: 0.5rem 1rem;
-  border: 0;
-  background: transparent;
-  text-align: left;
-}
-.jp-step button + button {
-  border-left: 1px solid var(--j-line);
-  text-align: right;
-}
-.jp-step button:hover {
-  background: var(--j-pref);
-}
 @media (prefers-reduced-motion: reduce) {
   .journey-earth,
   .journey-map,
-  .jm-pref,
-  .jm-hint {
+  .jm-pref {
     transition: none;
   }
   .jm-pin-pulse,

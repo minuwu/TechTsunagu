@@ -15,6 +15,9 @@ interface SkillMatrixRepository {
 
 interface FollowUpRepository {
     suspend fun getFollowUps(): AppResult<FollowUpsData>
+
+    /** Foreman: the term was explained (PATCH /follow-ups/{id}). Already understood: `AppError.Conflict`. */
+    suspend fun clarify(followUpId: String, note: String = ""): AppResult<Unit>
 }
 
 interface LearningRepository {

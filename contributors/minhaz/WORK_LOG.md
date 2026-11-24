@@ -7,6 +7,13 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 
 > **Message from Asif (2026-11-23), read first:** [CHATBOT_FROM_ASIF.md](CHATBOT_FROM_ASIF.md) explains the chatbot (what it does, the API, the four screen states, "Ask my Senpai" vs "Safety Senpai") and three decisions that are **yours**: where the ask box goes, one bot or two names, and which half grows first. Answer in XREQ-016.
 
+## 2026-11-24 (from Arjun: App Links, B8)
+
+- B8 (web side of App Links): `assetlinks.json` and the fallback page are live on the API host (Anim, XREQ-026), so the web app has nothing to serve for now.
+- **Done for you (with your OK):** the App Links filter in `android/app/src/main/AndroidManifest.xml` is enabled on the API host with the `/m/ /c/ /t/ /n/ /b/ /nm/ /i/` prefixes; `MainActivity.openFromAppLink` parses `intent.dataString` with `parseAppLink` against the host of `ApiConfig.BASE_URL` and opens `toDestination()` once signed in (same wait as notifications); new `AppLinkHostTest` keeps the two hosts equal. **Not compiled or run here (no JDK or SDK on my machine): please run `testDebugUnitTest` and `:app:assembleDebug`.**
+- **Still yours:** send Anim the SHA-256 fingerprints of the debug and release keys (`keytool -list -v -keystore …`); `assetlinks.json` is `[]` until then, so links do not verify yet. The Machine scanner (`QrPayload.parse`) still accepts any host and requires `?s=`; the contract wants it on `UriDeepLinkMatcher` too (2.10 check 8).
+- `?s={shopCode}` on the web QR stickers waits on XREQ-001: the web app gets `shopCode` only from real sign-in. When you do XREQ-001, tell me and I add it, or add it in the same change. We also need to agree which host stickers print: the web `VITE_PUBLIC_URL` opens the web Machine page, the API host opens the app (or its "open in the app" page).
+
 ## 2026-11-24 (Shop Registration, Members screen, bilingual sign-in and intro)
 
 - Backend: `POST /api/auth/register` opens a new shop with its first Foreman, a 「全員」 group Thread and a copy of the standard Glossary (ADR 0017). New accounts join every group Thread. `UserOut` carries `shopCode`. Re-explain no longer fails with 503 for a term outside the Glossary.
@@ -227,3 +234,53 @@ Minhaz mapped the prototype (`prototypes/wakatta/`) and the frontend against `ma
 - Worker Wakatta card restyled to the prototype (header with dots, 52dp option rows, result banner, board chips).
 - Bubbles show the original; Workers open "Show translation".
 - Chats top bar: QR button opens Connect.
+
+## 2026-11-24 (crash guard for the submission build)
+
+- Release builds no longer crash in a judge's hands: an unexpected error in a screen's coroutine shows "Something went wrong" and the app keeps running (`CrashGuard`, `MviViewModel` shadows `viewModelScope`). Debug builds and tests still throw.
+- A crash outside screens reopens the app on Home silently; a second crash within 10 s falls back to the system, so it never loops.
+- `safeApiCall` turns any unexpected exception into `AppError.Unknown`.
+- Added the 7 path constants teammates' new routes were missing (`OpenApiContractTest` was red).
+- Voice layer 3: offline or server down keeps the recording, says so, and retries with backoff (about 10 min); the text joins the composer when it lands. Fixed backend CI (API_SPEC endpoint index lacked `/api/transcriptions`), which had blocked the deploy.
+- Chat readability pass on the Redmi: sender name and a per-person avatar colour (the poll's `fromDisplayName`, which the app ignored), the original in the sender's language (`language`), glossary words inline (one Text with link spans), runs by one sender grouped, own bubbles filled primary on the right and wrapped to content (prototype), no "Show translation" on your own words, and the keyboard keeps the newest message in view.
+- Backend CI now runs on `docs/API_SPEC.md` changes; `/api/transcriptions` is live.
+- Share on My QR sends a PNG of the QR (QrPng, plain-JVM writer) instead of a wk: text file, so chat apps show a scannable image.
+- Chat device pass: a poll no longer closes an open translation or fold; Chats list shows 13:38 instead of a raw ISO time for contact/talk threads; "You: " keeps its space (Android trims unquoted trailing spaces). Checked on the Redmi: send, keyboard, glossary dialog, back, no crashes.
+- Foreman avatar in chat gets a thin primary ring (1.5dp, 60% alpha, 2.5dp gap); the poll now carries `fromRole` (backend + openapi).
+
+## 2026-11-24 14:15: My QR opens the app; captioned share card; replaced QR said plainly
+
+- My QR (on screen and shared) is the App Link `https://<API host>/c/{token}`. The scanner and deep-link matcher accept it (the matcher now takes the server's 43-char token). The link opens Me > Connect > Scan with the token, which resolves at once. Checked on the phone with `am start -d`.
+- The shared PNG is a card: Wakatta? title, the QR, "Scan to chat with <name>", a Japanese line, what scanning does, what is shared.
+- Rotating My QR keeps the old hash in `retired_qr_tokens`; resolve/add on it answer 410 `QR_REPLACED`, and the app says the QR was replaced and to ask for the new one (`AppError.Gone`).
+- "Make a new QR" button is now "New QR" / 「新しいQR」 (fits one line).
+- Fingerprints for `ANDROID_CERT_SHA256` written in AGENTS.md XREQ-026 for Anim (no az CLI here).
+
+## 2026-11-24 14:20: voice waits for a long pause; check verdict only; offline voice packs prompt
+
+- Chat dictation uses `continuous()` with one silent round: a pause restarts the recognizer and the send countdown starts only when a whole listen hears nothing (also asks the recognizer for a 3 s end-of-speech silence). Chat VM tests' fake recognizer now ends a round on Final or Error.
+- Worker check result banner shows only the verdict (Understood / Partly understood / Not understood); the "all answers correct" clause and "k of n correct" line are gone; missed questions still listed.
+- One-time prompt after sign-in to download the Japanese and English offline speech packs (`SpeechPackPrompt`): Android 13+ checks the on-device recognizer and triggers the download of missing packs; older phones open Google's Offline Speech Recognition screen. Checked on the Redmi (API 29).
+
+## 2026-11-24 — QR scan fixes, exact scan errors
+
+- Camera analyses at 1280x720 (was 640x480), so a link QR shown on another phone reads.
+- Scan a QR from a photo or file (system document picker, ML Kit on the image).
+- My QR shows its code under the QR and on the share card; the screen goes full brightness while it shows.
+- Share sends the link as text with the image, so chat apps make it tappable.
+- Scan errors say what is wrong: not a Wakatta? QR, QR replaced by a new one, no one has this QR, your own QR, no QR in the photo.
+- Backend: your own QR is 409 `OWN_QR` on resolve and add (was a 403 the app showed as "blocked").
+
+## 2026-11-24 — My QR short code
+
+- My QR code is now `WK-7KQ4M2` (WK- plus 6 characters, no 0/O/1/I/L; about 887 million values, resolve is rate-limited). Stored hashed; older long codes keep working until New QR.
+- Server normalizes typed codes (`wk 7kq4m2` is `WK-7KQ4M2`). The app checks the shape before asking.
+- Copy icon next to My QR code; paste icon in the scan field. The card prints the code large and bold; share text includes it.
+- Needs the backend deploy; until then the live server rejects short codes, and the scan shows "no one has this QR".
+
+## 2026-11-24 — Getting back into a new shop
+
+- Verified new-shop register and sign-in end to end on the Redmi (live API): roster, PIN, home, chat, empty board all load.
+- Fixed the lock-out: the app remembers the last shop code and role; the owner can choose a memorable shop code (6 to 12 letters or digits, 409 SHOP_CODE_TAKEN); new `POST /api/auth/find` signs in with shop name + name + PIN.
+- Register-done screen: copy and share the shop code.
+- Migration 8e3b5d0a2f41 widens `shops.code` to 6 to 12 characters. Needs a backend deploy for find and chosen codes.

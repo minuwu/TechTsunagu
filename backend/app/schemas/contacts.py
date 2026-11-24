@@ -6,7 +6,8 @@ from pydantic import AwareDatetime, StringConstraints
 
 from app.schemas.common import CamelModel, IdIn, Lang
 
-QrToken = Annotated[str, StringConstraints(min_length=16, max_length=64, pattern=r"^[A-Za-z0-9_-]+$")]
+# WK-7KQ4M2 (typed with any case, spaces or dashes) or an older 43-character token
+QrToken = Annotated[str, StringConstraints(min_length=8, max_length=64, pattern=r"^[A-Za-z0-9_ -]+$")]
 
 
 class QrIn(CamelModel):

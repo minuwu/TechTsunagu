@@ -79,7 +79,7 @@ One task, one commit, one push. Do not start the next task before the push is th
 
 **Files:** in `android/feature/chat`: `ChatViewModel.kt`, `data/*`, `model/*`. Also `android/core/network/**`, and the ViewModel parts of `NearMissNewScreen.kt` and `PChatScreen.kt` (no layout changes there).
 
-- [ ] **R1 (P0, live) The app gives up before the AI answers.** Read timeout is 30 s (`core/network/.../ApiClientFactory.kt:21`); 4 of 14 live AI drafts took 51–61 s. Set it to 60 s (above the server's 45 s from G1).
+- [x] **R1 (P0, live) The app gives up before the AI answers.** *Done (Arjun): `ApiClientFactory.READ_TIMEOUT_SECONDS = 60`, test `ReadTimeoutTest`; not run locally (no JDK on Arjun's PC), Minhaz's Gradle run checks it.* Read timeout is 30 s (`core/network/.../ApiClientFactory.kt:21`); 4 of 14 live AI drafts took 51–61 s. Set it to 60 s (above the server's 45 s from G1).
   *Done when:* a MockWebServer answer after 40 s arrives in the app.
 - [ ] **R2 (P0, code) A voice message is cut short or sent twice.** `doSend` (`ChatViewModel.kt:409`) does not stop dictation, so a late result refills the box and sends again. Cancel `dictationJob` before sending. The button half is M1.
   *Done when:* a test sends during recording, then emits a late `Final`, and exactly one message goes out.
@@ -94,11 +94,11 @@ One task, one commit, one push. Do not start the next task before the push is th
 
 **Files:** `backend/app/ai/**`, `backend/app/prompts/**`, `backend/app/domain/ai_checks.py`, `backend/app/services/ai_runner.py`, the AI settings in `backend/app/config.py`, and new data and ViewModel files for the chatbot in `android/feature/asks`.
 
-- [ ] **G1 (P0, live) AI answers are too slow.** Healthy calls take 2–6 s; 4 of 14 took 51–61 s. Probable cause: each model may take 45 s (`config.py:48`) before the next is tried; check the logs with Anim first. Target: about 12 s a model and 45 s for the whole request, then degrade.
+- [x] **G1 (P0, live) AI answers are too slow.** *Done `a585352` (Galib): 15 s a model (`AI_TIMEOUT_SECONDS`), 25 s for the whole request (`AI_CHAIN_SECONDS`), then degraded; tests in `tests/ai/test_runner.py`. The server now always answers within ~25 s, so R1's 60 s app timeout is safe. Still to do after filming: the 10 live drafts.* Healthy calls take 2–6 s; 4 of 14 took 51–61 s. Probable cause: each model may take 45 s (`config.py:48`) before the next is tried; check the logs with Anim first. Target: about 12 s a model and 45 s for the whole request, then degrade.
   *Done when:* a test with a hanging first model answers from the second, and 10 live drafts are all under 45 s.
-- [ ] **G2 (P0, live) `draft_message` changes what the Foreman said.** An insult became "Please provide work-related instructions", sent as the Foreman's words; 「機能あめでしたぁ」 became "it was raining yesterday"; "machine 3" became the crane's full name (it is Machine 3 in that shop, but the Foreman did not say crane). Translate faithfully, never answer or moderate, keep the Machine as said, and allow **no** question for a greeting ("hello" got a quiz). New prompt version, plus eval cases for these.
+- [x] **G2 (P0, live) `draft_message` changes what the Foreman said.** *Done `a585352` (Galib): `draft_message.v3`, a code check rejects a Machine name the Foreman did not say, greetings may have no question; live on Gemini and Groq the insult, "machine 3" and "hello" cases were right. Eval: 10 cases in `tests/fixtures/ai/eval/messages.json` (`uv run python -m app.ai.eval --pipelines messages`), to run after filming.* An insult became "Please provide work-related instructions", sent as the Foreman's words; 「機能あめでしたぁ」 became "it was raining yesterday"; "machine 3" became the crane's full name (it is Machine 3 in that shop, but the Foreman did not say crane). Translate faithfully, never answer or moderate, keep the Machine as said, and allow **no** question for a greeting ("hello" got a quiz). New prompt version, plus eval cases for these.
 - [ ] **G3 (P1) AI capacity for filming** (task 1 of your 11-24 note): still open, and it decides whether G1 is enough.
-- [ ] **G4 (P1) Chatbot data layer for Android** (XREQ-016): API call, repository, ViewModel with the four states, tests. No screen: that is M7, which this unblocks.
+- [x] **G4 (P1) Chatbot data layer for Android** (XREQ-016): *Done (Galib). `feature/asks`: `model/KnowledgeDtos.kt` (answer, sources, practice question, `kind`), `data/ChatbotRepository.kt` (`ChatbotRepository`; Real = `POST /api/knowledge/asks` with `text` or `audio` and `machineId`; Fake = the filmed answers offline; wired in `AsksDataModule`), `ChatbotViewModel.kt` (events `SetMachine`, `InputChanged`, `Send`, `SendRecording`, `PickOption`, `AskSenpai`, `OpenSource`, `DismissError`; effect `OpenUrl`; per turn COVERED / NOT_COVERED / EMERGENCY, `sending`, `error`). Tests: `ChatbotViewModelTest` (6), `RealChatbotRepositoryTest` (2); `testDebugUnitTest checkModuleGraph :app:assembleDebug` green. **Minhaz (M7):** send `SetMachine(id)` from the Machine screen.* API call, repository, ViewModel with the four states, tests. No screen: that is M7, which this unblocks.
 
 ## Anim: demo data, operations, CI
 
@@ -107,9 +107,9 @@ One task, one commit, one push. Do not start the next task before the push is th
 - [ ] **N1 (P0, live) Reset the demo data.** The live shops and Rahim still have Bengali, so his English message is stored as `bn` and shows back to him in Japanese; `SASEBO01` has 12 unsent drafts. Run `backend/deploy/reset-demo.ps1` (**it wipes the test data: ask the team first**), once now and once more after the last backend deploy. Then `set-ai-key.ps1 -Chain demo` and the warmup.
   *Done when:* Rahim's language is `en`, no message has `bn`, smoke is green.
 - [ ] **N2 (P1, live; after S3) Opening Home marks every chat as read.** `getPendingChecks` polls all messages (`HomeBoardSource.kt:190`). Use `GET /messages/unanswered`.
-- [ ] **N3 (P1) Android tests in CI. PR.** Nothing runs them today. A workflow on `android/**`: unit tests, `checkModuleGraph`, `:app:assembleDebug`.
-- [ ] **N4 (P2, code) The outbox may send nothing when the app is closed.** `OutboxDrain.kt:31` reads the session before it is loaded and reports success. Wait for the session to load.
-- [ ] **N5 (P2, code) Follow-up "clarified" data call:** `PATCH /follow-ups/{id}` in `feature/insights/data`. Unblocks M10.
+- [x] **N3 (P1) Android tests in CI. PR.** Nothing runs them today. A workflow on `android/**`: unit tests, `checkModuleGraph`, `:app:assembleDebug`. *Anim, `172c890`: `.github/workflows/android-ci.yml`, merged to `main` on Anim's call (no PR approval yet; please review it). Its first run on GitHub is the proof.*
+- [x] **N4 (P2, code) The outbox may send nothing when the app is closed.** `OutboxDrain.kt:31` reads the session before it is loaded and reports success. Wait for the session to load. *Anim, `74bb8e3`: waits up to 5 s for the session; the new test fails on the old code.*
+- [x] **N5 (P2, code) Follow-up "clarified" data call:** `PATCH /follow-ups/{id}` in `feature/insights/data`. Unblocks M10. *Anim, `74bb8e3`: `FollowUpRepository.clarify(id, note)` (409 → `AppError.Conflict`); the demo Fake keeps it for the run. Minhaz: `domain/InsightsRepositories.kt` gained that one method.*
 
 ## Asif: backend gaps, device voice, final test
 

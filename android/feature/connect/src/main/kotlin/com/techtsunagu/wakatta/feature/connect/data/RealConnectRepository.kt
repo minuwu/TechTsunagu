@@ -141,8 +141,7 @@ internal class RealConnectRepository(
         }
         return try {
             val dir = context?.cacheDir ?: File(System.getProperty("java.io.tmpdir") ?: ".")
-            val file = File(dir, "wakatta-my-qr.txt")
-            file.writeText("wk:$token")
+            val file = writeInviteImage(context, token, session.session.value?.user?.displayName, dir)
             AppResult.Success(file)
         } catch (e: Exception) {
             AppResult.Failure(AppError.Unknown(e.message))

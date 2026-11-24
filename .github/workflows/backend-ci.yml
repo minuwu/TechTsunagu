@@ -5,10 +5,10 @@ name: backend-ci
 
 on:
   pull_request:
-    paths: ["backend/**", "docs/openapi.yaml", ".github/workflows/backend-ci.yml"]
+    paths: ["backend/**", "docs/openapi.yaml", "docs/API_SPEC.md", ".github/workflows/backend-ci.yml"]
   push:
     branches: [main]
-    paths: ["backend/**", "docs/openapi.yaml", ".github/workflows/backend-ci.yml"]
+    paths: ["backend/**", "docs/openapi.yaml", "docs/API_SPEC.md", ".github/workflows/backend-ci.yml"]
 
 permissions:
   contents: read

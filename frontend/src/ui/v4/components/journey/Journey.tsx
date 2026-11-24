@@ -21,6 +21,7 @@ type Phase = 'earth' | 'flying' | 'map'
 
 const OKINAWA = 'JP-47' // far south-west: fitting it would shrink the main islands
 const START_DELAY = 1200 // let the Earth turn a moment before the flight
+const LAND_DELAY = 500 // a beat on all of Japan before gliding into Nagasaki
 
 const CALM = '(prefers-reduced-motion: reduce)'
 function useReducedMotion() {
@@ -36,8 +37,8 @@ function useReducedMotion() {
 }
 
 /** "Journey to Nagasaki" (landing section): a 3D Earth turns toward Japan and stops on Nagasaki, then
- *  hands over to a map of the 47 prefectures; choosing one shows its famous place in the panel.
- *  Reduced motion, no WebGL or a failed texture skip straight to the map. */
+ *  hands over to a map of Japan that glides into Nagasaki, the story's peak (peak-end rule); the panel
+ *  is Nagasaki's card. Reduced motion, no WebGL or a failed texture skip straight to the map. */
 export function Journey() {
   const { prefectures, neighbours, highlights, ready, failed } = useJourneyMap()
   const calm = useReducedMotion()
@@ -52,10 +53,16 @@ export function Journey() {
   const [earthState, setEarthState] = useState<'loading' | 'ready' | 'failed'>(
     'loading',
   )
-  const [selected, setSelected] = useState(HOME_PREFECTURE)
-  const [focus, setFocus] = useState<string | null>(null)
+  const [zoomed, setZoomed] = useState(false)
 
   const shown: Phase = calm || earthState === 'failed' ? 'map' : phase
+
+  // Once the map is up, glide into Nagasaki; "All Japan" afterwards stays where the reader put it
+  useEffect(() => {
+    if (shown !== 'map') return
+    const t = window.setTimeout(() => setZoomed(true), calm ? 0 : LAND_DELAY)
+    return () => window.clearTimeout(t)
+  }, [shown, calm])
 
   useEffect(() => {
     const el = stageRef.current
@@ -161,26 +168,17 @@ export function Journey() {
     earth.current?.reset()
     setPhase('map')
   }
-  const choose = (id: string) => {
-    if (shown !== 'map') toMap()
-    setSelected(id)
-    setFocus(id)
-  }
   const replay = () => {
-    setFocus(null)
-    setSelected(HOME_PREFECTURE)
+    setZoomed(false)
     earth.current?.reset()
     setPhase('earth')
   }
 
-  const sorted = useMemo(
-    () =>
-      [...prefectures].sort((a, b) =>
-        a.properties.id.localeCompare(b.properties.id),
-      ),
-    [prefectures],
-  )
-  const highlight = highlights.find((h) => h.id === selected)
+  const homePref = prefectures.find(
+    (p) => p.properties.id === HOME_PREFECTURE,
+  )?.properties
+  const highlight = highlights.find((h) => h.id === HOME_PREFECTURE)
+  const homeName = homePref ? (lang === 'ja' ? homePref.ja : homePref.en) : ''
 
   return (
     <section
@@ -218,11 +216,9 @@ export function Journey() {
                 neighbours={neighbours}
                 view={view}
                 size={size}
-                selected={selected}
-                focus={focus}
-                onSelect={choose}
-                onAll={() => setFocus(null)}
-                name={(p) => (lang === 'ja' ? p.ja : p.en)}
+                zoomed={zoomed}
+                onZoom={setZoomed}
+                homeName={homeName}
               />
             </div>
           )}
@@ -258,14 +254,8 @@ export function Journey() {
           )}
         </div>
 
-        {ready && (
-          <PrefecturePanel
-            sorted={sorted}
-            selected={selected}
-            highlight={highlight}
-            lang={lang}
-            onSelect={choose}
-          />
+        {ready && homePref && highlight && (
+          <PrefecturePanel pref={homePref} highlight={highlight} lang={lang} />
         )}
       </div>
     </section>

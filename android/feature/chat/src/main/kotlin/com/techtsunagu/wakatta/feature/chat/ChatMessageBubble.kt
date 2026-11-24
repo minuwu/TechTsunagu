@@ -1,5 +1,16 @@
 package com.techtsunagu.wakatta.feature.chat
 
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.ui.text.withLink
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.graphics.Color
+import androidx.compose.runtime.remember
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -44,15 +55,16 @@ internal fun ChatMessageBubble(
     glossaryTerms: List<GlossaryTerm>,
     onEvent: (ChatEvent) -> Unit,
     modifier: Modifier = Modifier,
+    showSender: Boolean = true,
 ) {
     val isMine = message.isMine
     val bubbleColor = if (isMine) {
-        MaterialTheme.colorScheme.primaryContainer
+        MaterialTheme.colorScheme.primary
     } else {
         MaterialTheme.colorScheme.surfaceContainerHigh
     }
     val textColor = if (isMine) {
-        MaterialTheme.colorScheme.onPrimaryContainer
+        MaterialTheme.colorScheme.onPrimary
     } else {
         MaterialTheme.colorScheme.onSurface
     }
@@ -61,19 +73,32 @@ internal fun ChatMessageBubble(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = if (isMine) Arrangement.End else Arrangement.Start,
     ) {
-        if (!isMine) {
+        if (!isMine && showSender) {
             Avatar(
-                name = message.fromUserName,
-                size = 36.dp,
-                modifier = Modifier.padding(end = 8.dp, top = 4.dp),
+                name = message.fromUserName.ifEmpty { "?" },
+                containerColor = personColor(message.fromUserId),
+                contentColor = Color.White,
+                modifier = Modifier
+                    .padding(end = 8.dp, top = 18.dp)
+                    // the Foreman: a thin primary ring with a gap, easy to find, never pulling the eye
+                    .then(
+                        if (message.fromForeman) {
+                            Modifier.border(1.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.6f), CircleShape).padding(2.5.dp)
+                        } else {
+                            Modifier
+                        },
+                    ),
+                size = if (message.fromForeman) 31.dp else 36.dp,
             )
+        } else if (!isMine) {
+            Spacer(Modifier.width(44.dp))
         }
 
         Column(
             modifier = Modifier.widthIn(max = 320.dp),
             horizontalAlignment = if (isMine) Alignment.End else Alignment.Start,
         ) {
-            if (!isMine) {
+            if (!isMine && showSender && message.fromUserName.isNotEmpty()) {
                 Text(
                     text = message.fromUserName,
                     style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
@@ -85,16 +110,15 @@ internal fun ChatMessageBubble(
             // Message Bubble
             Surface(
                 shape = RoundedCornerShape(
-                    topStart = 16.dp,
-                    topEnd = 16.dp,
-                    bottomStart = if (isMine) 16.dp else 4.dp,
-                    bottomEnd = if (isMine) 4.dp else 16.dp,
+                    topStart = if (isMine) 20.dp else 6.dp,
+                    topEnd = 20.dp,
+                    bottomStart = 20.dp,
+                    bottomEnd = if (isMine) 6.dp else 20.dp,
                 ),
                 color = bubbleColor,
                 contentColor = textColor,
-                modifier = Modifier.fillMaxWidth(),
             ) {
-                Column(modifier = Modifier.padding(12.dp)) {
+                Column(modifier = Modifier.width(IntrinsicSize.Max).padding(horizontal = 14.dp, vertical = 10.dp)) {
                     // Voice playback bar
                     if (message.isVoice) {
                         Row(
@@ -106,7 +130,7 @@ internal fun ChatMessageBubble(
                             Icon(
                                 imageVector = Icons.Default.Mic,
                                 contentDescription = stringResource(R.string.chat_voice_message),
-                                tint = MaterialTheme.colorScheme.primary,
+                                tint = LocalContentColor.current,
                                 modifier = Modifier.size(20.dp),
                             )
                             Spacer(modifier = Modifier.width(6.dp))
@@ -122,7 +146,7 @@ internal fun ChatMessageBubble(
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.VolumeUp,
                                     contentDescription = stringResource(R.string.chat_read_aloud),
-                                    tint = MaterialTheme.colorScheme.primary,
+                                    tint = LocalContentColor.current,
                                 )
                             }
                         }
@@ -135,10 +159,11 @@ internal fun ChatMessageBubble(
                         text = displayText,
                         terms = glossaryTerms,
                         onTermClick = { onEvent(ChatEvent.SelectGlossaryTerm(it)) },
+                        linkColor = if (isMine) textColor else MaterialTheme.colorScheme.primary,
                     )
 
                     // Translation toggle for Workers
-                    if (!isForeman && message.originalText.isNotEmpty() && message.originalText != message.translatedText) {
+                    if (!isForeman && !isMine && message.originalText.isNotEmpty() && message.originalText != message.translatedText) {
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = if (message.showOriginal) {
@@ -177,7 +202,7 @@ internal fun ChatMessageBubble(
                     Text(
                         text = message.time,
                         style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                        color = LocalContentColor.current.copy(alpha = 0.7f),
                         modifier = Modifier.align(Alignment.End),
                     )
                 }
@@ -239,40 +264,38 @@ internal fun GlossaryHighlightedText(
     terms: List<GlossaryTerm>,
     onTermClick: (GlossaryTerm) -> Unit,
     modifier: Modifier = Modifier,
+    linkColor: Color = MaterialTheme.colorScheme.primary,
 ) {
-    // If text contains a glossary term, render interactive text
-    val matchedTerm = terms.firstOrNull { text.contains(it.ja) }
-    if (matchedTerm != null) {
-        val parts = text.split(matchedTerm.ja)
-        FlowRow(modifier = modifier) {
-            parts.forEachIndexed { index, part ->
-                if (part.isNotEmpty()) {
-                    Text(
-                        text = part,
-                        style = MaterialTheme.typography.bodyMedium.copy(fontSize = 15.sp),
-                    )
-                }
-                if (index < parts.size - 1) {
-                    Text(
-                        text = matchedTerm.ja,
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary,
-                            textDecoration = TextDecoration.Underline,
-                            fontSize = 15.sp,
-                        ),
-                        modifier = Modifier
-                            .clickable { onTermClick(matchedTerm) }
-                            .padding(horizontal = 2.dp),
-                    )
-                }
-            }
-        }
-    } else {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodyMedium.copy(fontSize = 15.sp),
-            modifier = modifier,
-        )
+    val style = MaterialTheme.typography.bodyMedium.copy(fontSize = 15.sp)
+    val link = TextLinkStyles(
+        SpanStyle(color = linkColor, fontWeight = FontWeight.Bold, textDecoration = TextDecoration.Underline),
+    )
+    val found = remember(text, terms) {
+        terms.filter { it.ja.isNotEmpty() }.flatMap { term ->
+            Regex(Regex.escape(term.ja)).findAll(text).map { it.range to term }.toList()
+        }.sortedBy { it.first.first }
     }
+    if (found.isEmpty()) {
+        Text(text = text, style = style, modifier = modifier)
+        return
+    }
+    val annotated = buildAnnotatedString {
+        var at = 0
+        found.forEach { (range, term) ->
+            if (range.first < at) return@forEach // overlapping terms: the first one wins
+            append(text.substring(at, range.first))
+            withLink(LinkAnnotation.Clickable(term.ja, link) { onTermClick(term) }) { append(text.substring(range)) }
+            at = range.last + 1
+        }
+        append(text.substring(at))
+    }
+    Text(text = annotated, style = style, modifier = modifier)
 }
+
+/** Eight calm tones; one person keeps one tone in every chat so faces are told apart at a glance. */
+private val PersonTones = listOf(
+    Color(0xFF1E6FB8), Color(0xFF2E7D5B), Color(0xFFB4543A), Color(0xFF7A5AA6),
+    Color(0xFF0E7C86), Color(0xFF9A6B12), Color(0xFFB03A6E), Color(0xFF4F6A2E),
+)
+
+internal fun personColor(userId: String): Color = PersonTones[Math.floorMod(userId.hashCode(), PersonTones.size)]

@@ -14,6 +14,23 @@ def shop_by_code(db: Session, code: str) -> Shop | None:
     return db.scalar(select(Shop).where(Shop.code == code))
 
 
+def users_by_shop_and_name(db: Session, shop_name: str, display_name: str) -> list[User]:
+    """Active Foremen and Workers named so in a shop named so (both ignoring case); a few at most."""
+    stmt = (
+        select(User)
+        .join(Shop, Shop.id == User.shop_id)
+        .where(
+            func.lower(Shop.name) == shop_name.lower(),
+            func.lower(User.display_name) == display_name.lower(),
+            User.role.in_(("foreman", "worker")),
+            User.active,
+        )
+        .order_by(User.id)
+        .limit(5)
+    )
+    return list(db.scalars(stmt))
+
+
 def district_by_code(db: Session, code: str) -> District | None:
     return db.scalar(select(District).where(District.code == code))
 

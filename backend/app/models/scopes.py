@@ -24,6 +24,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from app.models.base import Base, CreatedAt, IdPk, Timestamp, TimestampOrNone
 
 SCOPE_CODE = "~ '^[A-Z0-9]{8}$'"
+SHOP_CODE = "~ '^[A-Z0-9]{6,12}$'"  # random 8, or one the owner chose (ADR 0017)
 LANGS = "('ja','bn','en','vi','id','ne','my','tl','zh')"
 
 
@@ -42,7 +43,7 @@ class District(Base):
 class Shop(Base):
     __tablename__ = "shops"
     __table_args__ = (
-        CheckConstraint(f"code {SCOPE_CODE}", name="code_format"),
+        CheckConstraint(f"code {SHOP_CODE}", name="code_format"),
         CheckConstraint(
             "languages <@ ARRAY['bn','en','vi','id','ne','my','tl','zh']::text[] "
             "AND cardinality(languages) BETWEEN 1 AND 4",

@@ -107,7 +107,8 @@ class ChatViewModelTest {
 
     private class FakeDictationSource : DictationSource {
         var isAvailableResult = true
-        val events = MutableSharedFlow<DictationEvent>(extraBufferCapacity = 16)
+        // one listen round ends on Final or Error, as the device recognizer's does
+        val events = kotlinx.coroutines.channels.Channel<DictationEvent>(kotlinx.coroutines.channels.Channel.UNLIMITED)
         var lastTag: String? = null
         var startCount = 0
         var stopCount = 0
@@ -117,7 +118,12 @@ class ChatViewModelTest {
         override fun start(languageTag: String): Flow<DictationEvent> {
             startCount++
             lastTag = languageTag
-            return events.asSharedFlow()
+            return kotlinx.coroutines.flow.flow {
+                for (e in events) {
+                    emit(e)
+                    if (e is DictationEvent.Final || e is DictationEvent.Error) break
+                }
+            }
         }
 
         override fun stop() {
@@ -147,14 +153,15 @@ class ChatViewModelTest {
         session: Session? = foreman,
         debug: Boolean = false,
         dictation: DictationSource = fakeDictation,
-    ) = ChatViewModel(
-        chatRepository = repository,
-        dictation = dictation,
-        recorder = object : com.techtsunagu.wakatta.core.media.VoiceRecorder {
+        recorder: com.techtsunagu.wakatta.core.media.VoiceRecorder = object : com.techtsunagu.wakatta.core.media.VoiceRecorder {
             override fun start() = false
             override fun stop(): java.io.File? = null
             override fun cancel() {}
         },
+    ) = ChatViewModel(
+        chatRepository = repository,
+        dictation = dictation,
+        recorder = recorder,
         speaker = FakeSpeaker(),
         sessionStore = TestSessionStore(session),
         appConfig = AppConfig(true, "", "", "1", 1, isDebug = debug),
@@ -235,6 +242,20 @@ class ChatViewModelTest {
     }
 
     @Test
+    fun anOpenTranslation_staysOpen_whenNewMessagesArrive() = runTest {
+        val vm = viewModel()
+        vm.init()
+        vm.onEvent(ChatEvent.ToggleShowOriginal("m1"))
+
+        vm.onEvent(ChatEvent.OnInputTextChanged("new one"))
+        vm.onEvent(ChatEvent.SendNow)
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertTrue(vm.state.value.messages.any { it.originalText == "new one" })
+        assertTrue(vm.state.value.messages.first { it.id == "m1" }.showOriginal)
+    }
+
+    @Test
     fun onInputTextChangedUpdatesComposerState() = runTest {
         val vm = viewModel()
         vm.onEvent(ChatEvent.OnInputTextChanged("Hello team"))
@@ -259,6 +280,32 @@ class ChatViewModelTest {
     }
 
     @Test
+    fun offline_voiceIsKept_andBecomesTextWhenBackOnline() = runTest {
+        fakeDictation.isAvailableResult = false
+        val audio = File.createTempFile("dictation", ".m4a").apply { writeBytes(ByteArray(64)) }
+        val recorder = object : com.techtsunagu.wakatta.core.media.VoiceRecorder {
+            override fun start() = true
+            override fun stop(): File? = audio
+            override fun cancel() {}
+        }
+        repository.failTranscribe = AppError.Offline
+        val vm = viewModel(recorder = recorder)
+        vm.init()
+
+        vm.onEvent(ChatEvent.StartRecording)
+        testDispatcher.scheduler.advanceUntilIdle()
+        vm.onEvent(ChatEvent.StopRecording)
+        testDispatcher.scheduler.runCurrent()
+        assertEquals(ChatEffect.ShowHint(R.string.chat_dictation_saved), vm.effects.first())
+        assertEquals(ComposerStatus.EDITING, vm.state.value.composerStatus)
+
+        repository.failTranscribe = null // the network is back
+        testDispatcher.scheduler.advanceUntilIdle()
+        assertEquals(repository.transcript, vm.state.value.inputText)
+        assertEquals(ChatEffect.ShowHint(R.string.chat_dictation_recovered), vm.effects.first())
+    }
+
+    @Test
     fun dictationPartial_updatesInputTextLive_andSetsStatusRecording() = runTest {
         val vm = viewModel()
         vm.init()
@@ -268,7 +315,7 @@ class ChatViewModelTest {
         assertEquals(ComposerStatus.RECORDING, vm.state.value.composerStatus)
         assertTrue(vm.state.value.isListening)
 
-        fakeDictation.events.emit(DictationEvent.Partial("明日の朝"))
+        fakeDictation.events.send(DictationEvent.Partial("明日の朝"))
         testDispatcher.scheduler.advanceUntilIdle()
         assertEquals("明日の朝", vm.state.value.inputText)
         assertEquals(ComposerStatus.RECORDING, vm.state.value.composerStatus)
@@ -282,7 +329,8 @@ class ChatViewModelTest {
 
         vm.onEvent(ChatEvent.StartRecording)
         testDispatcher.scheduler.advanceUntilIdle()
-        fakeDictation.events.emit(DictationEvent.Final("明日の朝8時集合"))
+        fakeDictation.events.send(DictationEvent.Final("明日の朝8時集合"))
+        fakeDictation.events.send(DictationEvent.Error(DictationErrorKind.NO_SPEECH)) // the long pause
         testDispatcher.scheduler.advanceTimeBy(50)
 
         assertEquals("明日の朝8時集合", vm.state.value.inputText)
@@ -302,7 +350,7 @@ class ChatViewModelTest {
         vm.onEvent(ChatEvent.OnInputTextChanged("Existing typed note"))
         vm.onEvent(ChatEvent.StartRecording)
         testDispatcher.scheduler.advanceUntilIdle()
-        fakeDictation.events.emit(DictationEvent.Error(DictationErrorKind.NO_SPEECH))
+        fakeDictation.events.send(DictationEvent.Error(DictationErrorKind.NO_SPEECH))
         testDispatcher.scheduler.advanceUntilIdle()
 
         assertEquals(ComposerStatus.IDLE, vm.state.value.composerStatus)
@@ -319,7 +367,7 @@ class ChatViewModelTest {
         vm.onEvent(ChatEvent.OnInputTextChanged("Draft to keep"))
         vm.onEvent(ChatEvent.StartRecording)
         testDispatcher.scheduler.advanceUntilIdle()
-        fakeDictation.events.emit(DictationEvent.Error(DictationErrorKind.NETWORK))
+        fakeDictation.events.send(DictationEvent.Error(DictationErrorKind.NETWORK))
         testDispatcher.scheduler.advanceUntilIdle()
 
         assertEquals(ComposerStatus.EDITING, vm.state.value.composerStatus)
@@ -347,7 +395,8 @@ class ChatViewModelTest {
         vm.init()
         vm.onEvent(ChatEvent.StartRecording)
         testDispatcher.scheduler.advanceUntilIdle()
-        fakeDictation.events.emit(DictationEvent.Final("テスト"))
+        fakeDictation.events.send(DictationEvent.Final("テスト"))
+        fakeDictation.events.send(DictationEvent.Error(DictationErrorKind.NO_SPEECH)) // the long pause
         testDispatcher.scheduler.advanceUntilIdle()
         val before = vm.state.value
 
@@ -364,7 +413,8 @@ class ChatViewModelTest {
 
         vm.onEvent(ChatEvent.StartRecording)
         testDispatcher.scheduler.advanceUntilIdle()
-        fakeDictation.events.emit(DictationEvent.Final("金型交換の件"))
+        fakeDictation.events.send(DictationEvent.Final("金型交換の件"))
+        fakeDictation.events.send(DictationEvent.Error(DictationErrorKind.NO_SPEECH)) // the long pause
         testDispatcher.scheduler.advanceUntilIdle()
         vm.onEvent(ChatEvent.SendNow)
         testDispatcher.scheduler.advanceUntilIdle()

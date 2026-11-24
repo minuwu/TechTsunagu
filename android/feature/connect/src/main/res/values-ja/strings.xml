@@ -19,7 +19,7 @@
     <string name="connect_my_qr_note">相手がこのQRを読み取ると、チャットでつながれます。相手に見えるのは、名前と言語だけです。仕事以外でも使えます。</string>
     <string name="connect_scan">QRをスキャン</string>
     <string name="connect_share">QRを共有</string>
-    <string name="connect_rotate">QRを作り直す</string>
+    <string name="connect_rotate">新しいQR</string>
     <string name="connect_rotated">新しいQRができました。古いQRは使えなくなりました。</string>
     <string name="connect_contacts_title">連絡先</string>
     <string name="connect_contacts_empty">まだ連絡先がありません。相手のQRを読み取ってつながりましょう。</string>
@@ -34,9 +34,12 @@
 
     <!-- Scan screen -->
     <string name="connect_scan_screen_title">QRをスキャン</string>
-    <string name="connect_scan_hint">相手のQRのコードを入力するか、下の人をタップしてスキャンを試してください。</string>
-    <string name="connect_scan_code_label">コード</string>
+    <string name="connect_scan_hint">相手のQRにカメラを向けてください。画像で届いたときは写真を選びます。リンクやコードを貼り付けることもできます。</string>
+    <string name="connect_scan_code_label">リンクまたはコード</string>
     <string name="connect_scan_read">コードを読み取る</string>
+    <string name="connect_scan_photo">写真・ファイルから読み取る</string>
+    <string name="connect_copy_code">コードをコピー</string>
+    <string name="connect_paste_code">貼り付け</string>
     <string name="connect_scan_samples">スキャンを試す（デモ）</string>
     <string name="connect_scan_confirm_title">%1$sさんとつながりますか？</string>
     <string name="connect_scan_confirm_lang">言語: %1$s</string>
@@ -90,8 +93,12 @@
     <string name="connect_err_timeout">サーバーの返事が遅れています。少し待ってから、もう一度お試しください。</string>
     <string name="connect_err_server">サーバーに問題があり、処理できませんでした。しばらくしてからもう一度お試しください。</string>
     <string name="connect_err_not_found">見つかりませんでした。QRまたはコードを確認して、もう一度お試しください。</string>
+    <string name="connect_err_qr_replaced">このQRはもう使えません。持ち主が新しいQRを作ったため、古いQRは無効になりました。新しいQRを見せるか送ってもらってください。</string>
+    <string name="connect_err_qr_unknown">このWakatta?のQRを持っている人はいません。コードの入力やコピーが間違っている可能性があります。もう一度My QRを見せてもらってください。</string>
+    <string name="connect_err_own_qr">これはあなた自身のQRです。相手のQRを読み取ってください。</string>
     <string name="connect_err_blocked">この人はブロック中です。</string>
-    <string name="connect_err_bad_code">Wakatta?のQRコードではありません。コードを確認して、もう一度お試しください。</string>
+    <string name="connect_err_bad_code">これはWakatta?のQRではありません（ウェブサイトやWi-Fi、ほかのアプリのQRです）。相手に「Me」→「Connect」でMy QRを見せてもらってください。</string>
+    <string name="connect_err_no_qr_in_photo">その写真にQRコードが見つかりません。QRがはっきり写った写真を選んでください。</string>
     <string name="connect_err_no_speech">このスマホでは読み上げができません。代わりに、相手に画面を見せてください。</string>
     <string name="connect_err_rate_limited">リクエストが多すぎます。しばらく待ってから再試行してください。</string>
     <string name="connect_err_already_connected">この連絡先はすでに追加されています。</string>

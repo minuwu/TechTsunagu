@@ -17,7 +17,7 @@
     <string name="chat_filter_unread">Unread</string>
     <string name="chat_empty_threads">No chats yet</string>
     <string name="chat_members_count">%1$d members</string>
-    <string name="chat_you_prefix">You: </string>
+    <string name="chat_you_prefix">"You: "</string>
     <string name="chat_role_foreman">Foreman</string>
     <string name="chat_role_worker">Worker</string>
     <string name="chat_switch_role">Switch role</string>
@@ -56,9 +56,9 @@
 
     <string name="chat_question_progress">Question %1$d of %2$d</string>
     <string name="chat_option_not_sure">Not sure</string>
-    <string name="chat_result_green">Understood! All answers correct</string>
-    <string name="chat_result_orange">Some answers need review</string>
-    <string name="chat_result_red">Not understood. Foreman will explain again</string>
+    <string name="chat_result_green">Understood</string>
+    <string name="chat_result_orange">Partly understood</string>
+    <string name="chat_result_red">Not understood</string>
     <string name="chat_added_to_board">Added to your Task Board</string>
     <string name="chat_ask_again">Ask Foreman to explain again</string>
 
@@ -79,7 +79,6 @@
     <string name="chat_mic_rationale">Wakatta? needs the microphone to turn your voice into text. The audio is not saved.</string>
     <string name="chat_type_instead">Type instead</string>
     <string name="chat_question_n_of">Question %1$d of %2$d</string>
-    <string name="chat_correct_count">%1$d of %2$d correct</string>
     <string name="chat_your_answer">Your answer: %1$s</string>
     <string name="chat_right_answer">Answer: %1$s</string>
     <string name="chat_asked">Asked the Foreman to explain again</string>
@@ -108,4 +107,6 @@
     <string name="chat_show_translation">Show translation</string>
     <string name="chat_hide_translation">Hide translation</string>
     <string name="chat_qr_connect">My QR code and scan</string>
+    <string name="chat_dictation_saved">No connection. Your voice is saved and will turn into text when you are back online.</string>
+    <string name="chat_dictation_recovered">Your saved voice is now text. Check it, then send.</string>
 </resources>

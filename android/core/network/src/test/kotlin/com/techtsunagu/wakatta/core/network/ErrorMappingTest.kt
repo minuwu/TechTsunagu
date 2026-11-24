@@ -32,6 +32,7 @@ class ErrorMappingTest {
     @Test fun pinChangeRequired() = assertEquals(AppError.PinChangeRequired, errorFor(403, "PIN_CHANGE_REQUIRED"))
 
     @Test fun notFound() = assertEquals(AppError.NotFound, errorFor(404, "NOT_FOUND"))
+    @Test fun gone() = assertEquals(AppError.Gone, errorFor(410, "QR_REPLACED"))
 
     @Test fun methodNotAllowedIsUnknown() = assertTrue(errorFor(405, "METHOD_NOT_ALLOWED") is AppError.Unknown)
 

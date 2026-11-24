@@ -53,7 +53,8 @@ class ChatViewModelsTest {
         vm.onEvent(ConnectScanEvent.ReadCode)
         assertEquals(ConnectError.BAD_CODE, vm.state.value.error)
 
-        vm.onEvent(ConnectScanEvent.SetCode(repo.tokenOf("Nguyen Van An")))
+        // typed the way people read it out: lower case, a space for the dash
+        vm.onEvent(ConnectScanEvent.SetCode(repo.tokenOf("Nguyen Van An").lowercase().replace('-', ' ')))
         assertNull(vm.state.value.error)
         vm.onEvent(ConnectScanEvent.ReadCode)
         assertEquals("Nguyen Van An", vm.state.value.pending?.name)
@@ -63,7 +64,7 @@ class ChatViewModelsTest {
     fun scannerResultResolvesAndUnknownOrBlockedShowErrors() = runTest {
         val token = repo.tokenOf("Siti Rahma")
         val vm = ConnectScanViewModel(repo, StubScanner(flowOf("wk:unknowntoken")))
-        assertEquals(ConnectError.NOT_FOUND, vm.state.value.error)
+        assertEquals(ConnectError.QR_UNKNOWN, vm.state.value.error)
 
         val contact = repo.addContact(token).value()
         repo.block(contact.id)

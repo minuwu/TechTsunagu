@@ -12,6 +12,9 @@ sealed interface AppError {
     data object SessionExpired : AppError
     data object Forbidden : AppError
     data object NotFound : AppError
+
+    /** 410: it existed and was replaced or withdrawn (a My QR its owner made new). */
+    data object Gone : AppError
     data class Conflict(val code: String) : AppError
     data object PreconditionFailed : AppError
     data class Validation(val fields: List<String> = emptyList()) : AppError

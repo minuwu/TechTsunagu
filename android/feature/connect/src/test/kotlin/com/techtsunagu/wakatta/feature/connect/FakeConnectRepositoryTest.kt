@@ -22,10 +22,12 @@ class FakeConnectRepositoryTest {
     @Test
     fun myQrIsAnOpaqueTokenAndRotationChangesIt() = runTest {
         val first = repo.getMyQr().value().token
-        assertTrue(Regex("[0-9a-f]{32}").matches(first))
+        assertTrue(Regex("WK-[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{6}").matches(first))
         assertFalse(first.contains("u_"))
         assertNotEquals(first, repo.rotateMyQr().value().token)
         assertEquals(repo.getMyQr().value().token, repo.getMyQr().value().token)
+        // someone scanning the replaced QR is told it was replaced, not that it was never there
+        assertEquals(AppResult.Failure(com.techtsunagu.wakatta.core.model.AppError.Gone), repo.resolve(first))
     }
 
     @Test
@@ -156,10 +158,20 @@ class FakeConnectRepositoryTest {
     }
 
     @Test
-    fun inviteFileHoldsTheWkTokenOnly() = runTest {
+    fun inviteFileIsAQrImage() = runTest {
         val file = repo.createInviteFile().value()
-        val text = file.readText()
+        val bytes = file.readBytes()
         file.delete()
-        assertEquals("wk:${repo.getMyQr().value().token}", text)
+        assertEquals("wakatta-my-qr.png", file.name)
+        assertEquals("PNG", String(bytes, 1, 3))
+        assertTrue(bytes.size > 100)
+    }
+
+    @Test
+    fun myQrIsTheAppLinkAPhoneCameraOpens() = runTest {
+        val token = repo.getMyQr().value().token
+        val link = com.techtsunagu.wakatta.feature.connect.data.inviteLink(token)
+        assertEquals("https://wakatta-api.agreeablestone-840cfb57.japaneast.azurecontainerapps.io/c/$token", link)
+        assertEquals(com.techtsunagu.wakatta.core.media.QrPayload.MyQr(token), com.techtsunagu.wakatta.core.media.QrPayload.parse(link))
     }
 }

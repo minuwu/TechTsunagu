@@ -493,6 +493,20 @@ export type BodyReportApiNearMissesPost = {
 };
 
 /**
+ * Body_transcribe_api_transcriptions_post
+ */
+export type BodyTranscribeApiTranscriptionsPost = {
+    /**
+     * Language
+     */
+    language: string;
+    /**
+     * Audio
+     */
+    audio?: Blob | File | null;
+};
+
+/**
  * BriefingForForeman
  */
 export type BriefingForForeman = {
@@ -2004,6 +2018,21 @@ export type EnvelopeTodayWord = {
 };
 
 /**
+ * Envelope[Transcription]
+ */
+export type EnvelopeTranscription = {
+    /**
+     * Success
+     */
+    success?: true;
+    data: Transcription;
+    /**
+     * Message
+     */
+    message?: string;
+};
+
+/**
  * Envelope[Understanding]
  */
 export type EnvelopeUnderstanding = {
@@ -2337,6 +2366,26 @@ export type EventUpdate = {
      * Rrule
      */
     rrule?: string | null;
+};
+
+/**
+ * FindIn
+ *
+ * POST /api/auth/find: signing in without the shop code. The PIN proves who it is.
+ */
+export type FindIn = {
+    /**
+     * Shopname
+     */
+    shopName: string;
+    /**
+     * Displayname
+     */
+    displayName: string;
+    /**
+     * Pin
+     */
+    pin: string;
 };
 
 /**
@@ -2725,6 +2774,29 @@ export type KnowledgeSource = {
 };
 
 /**
+ * LastMessage
+ *
+ * The newest message the caller can see, for the Chats list row.
+ */
+export type LastMessage = {
+    /**
+     * Fromuserid
+     */
+    fromUserId: string;
+    /**
+     * Kind
+     */
+    kind: 'voice' | 'text' | 'ask' | 'reexplain' | 'system';
+    /**
+     * Text
+     */
+    text: {
+        [key: string]: string;
+    };
+    event?: SystemEvent | null;
+};
+
+/**
  * Learning
  */
 export type Learning = {
@@ -3026,6 +3098,10 @@ export type MessageForSender = {
      */
     fromDisplayName?: string | null;
     /**
+     * Fromrole
+     */
+    fromRole?: string | null;
+    /**
      * Questions
      */
     questions: Array<CheckQuestion>;
@@ -3102,6 +3178,10 @@ export type MessageForWorker = {
      * Fromdisplayname
      */
     fromDisplayName?: string | null;
+    /**
+     * Fromrole
+     */
+    fromRole?: string | null;
     /**
      * Questions
      */
@@ -4114,6 +4194,10 @@ export type RegisterIn = {
      * Pin
      */
     pin: string;
+    /**
+     * Shopcode
+     */
+    shopCode?: string | null;
 };
 
 /**
@@ -4856,6 +4940,11 @@ export type ThreadOut = {
      * Archived
      */
     archived?: boolean;
+    lastMessage?: LastMessage | null;
+    /**
+     * Wkstatus
+     */
+    wkStatus?: 'green' | 'orange' | 'red' | 'wait' | null;
     /**
      * Displaytitle
      */
@@ -4904,6 +4993,16 @@ export type TodayWord = {
      * Meaningja
      */
     meaningJa: string;
+};
+
+/**
+ * Transcription
+ */
+export type Transcription = {
+    /**
+     * Text
+     */
+    text: string;
 };
 
 /**
@@ -5178,6 +5277,31 @@ export type LoginApiAuthLoginPostResponses = {
 };
 
 export type LoginApiAuthLoginPostResponse = LoginApiAuthLoginPostResponses[keyof LoginApiAuthLoginPostResponses];
+
+export type FindApiAuthFindPostData = {
+    body: FindIn;
+    path?: never;
+    query?: never;
+    url: '/api/auth/find';
+};
+
+export type FindApiAuthFindPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type FindApiAuthFindPostError = FindApiAuthFindPostErrors[keyof FindApiAuthFindPostErrors];
+
+export type FindApiAuthFindPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeLoginOut;
+};
+
+export type FindApiAuthFindPostResponse = FindApiAuthFindPostResponses[keyof FindApiAuthFindPostResponses];
 
 export type RegisterApiAuthRegisterPostData = {
     body: RegisterIn;
@@ -7130,6 +7254,31 @@ export type PostMessageApiThreadsThreadIdMessagesPostResponses = {
 };
 
 export type PostMessageApiThreadsThreadIdMessagesPostResponse = PostMessageApiThreadsThreadIdMessagesPostResponses[keyof PostMessageApiThreadsThreadIdMessagesPostResponses];
+
+export type TranscribeApiTranscriptionsPostData = {
+    body: BodyTranscribeApiTranscriptionsPost;
+    path?: never;
+    query?: never;
+    url: '/api/transcriptions';
+};
+
+export type TranscribeApiTranscriptionsPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type TranscribeApiTranscriptionsPostError = TranscribeApiTranscriptionsPostErrors[keyof TranscribeApiTranscriptionsPostErrors];
+
+export type TranscribeApiTranscriptionsPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeTranscription;
+};
+
+export type TranscribeApiTranscriptionsPostResponse = TranscribeApiTranscriptionsPostResponses[keyof TranscribeApiTranscriptionsPostResponses];
 
 export type EditDraftApiMessagesMessageIdPatchData = {
     body: DraftEdit;

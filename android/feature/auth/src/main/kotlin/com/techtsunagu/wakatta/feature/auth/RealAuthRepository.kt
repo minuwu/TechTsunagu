@@ -1,5 +1,6 @@
 package com.techtsunagu.wakatta.feature.auth
 
+import com.techtsunagu.wakatta.core.network.FindRequest
 import com.techtsunagu.wakatta.core.model.AppResult
 import com.techtsunagu.wakatta.core.model.Role
 import com.techtsunagu.wakatta.core.model.Session
@@ -46,8 +47,18 @@ class RealAuthRepository(
         return result
     }
 
-    override suspend fun register(shopName: String, displayName: String, pin: String): AppResult<String> =
-        when (val result = safeApiCall { api().register(RegisterRequest(shopName, displayName, pin)) }) {
+    override suspend fun find(shopName: String, displayName: String, pin: String): AppResult<Session> =
+        when (val result = safeApiCall { api().find(FindRequest(shopName, displayName, pin)) }) {
+            is AppResult.Success -> {
+                val session = result.value.toSession()
+                store.save(session)
+                AppResult.Success(session)
+            }
+            is AppResult.Failure -> result
+        }
+
+    override suspend fun register(shopName: String, displayName: String, pin: String, shopCode: String?): AppResult<String> =
+        when (val result = safeApiCall { api().register(RegisterRequest(shopName, displayName, pin, shopCode)) }) {
             is AppResult.Success -> {
                 val r = result.value
                 store.save(Session(token = r.token, expiresAt = r.expiresAt, user = r.user.toUser()))

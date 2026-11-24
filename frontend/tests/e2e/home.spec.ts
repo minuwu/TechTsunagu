@@ -84,6 +84,55 @@ test.describe('phone', () => {
     )
     expect(overflow).toBeLessThanOrEqual(0)
   })
+
+  // The fixed bars (tab bar, "Ask Wakatta", the presenter's demo bar) once covered the end of the page
+  test('the last control on the page is not covered by a fixed bar', async ({
+    page,
+  }) => {
+    await page.goto('/me/w-rahim')
+    const send = page.getByRole('button', { name: 'Send report' })
+    await send.waitFor()
+    await page.evaluate(() =>
+      window.scrollTo(0, document.documentElement.scrollHeight),
+    )
+    await expect
+      .poll(() =>
+        page.evaluate(
+          () =>
+            window.scrollY + window.innerHeight >=
+            document.documentElement.scrollHeight - 1,
+        ),
+      )
+      .toBe(true)
+    await expect(send).toBeInViewport()
+    // Geometry, not a hit test: the empty form's button is disabled and lets the pointer through.
+    // Polled, because the brand splash covers the whole page for its first moment by design.
+    await expect
+      .poll(() =>
+        send.evaluate((button) => {
+          const r = button.getBoundingClientRect()
+          return [...document.querySelectorAll('body *')].some((el) => {
+            const s = getComputedStyle(el)
+            // the finished splash stays as a transparent, click-through layer under reduced motion
+            if (s.position !== 'fixed' || s.visibility === 'hidden')
+              return false
+            if (Number(s.opacity) < 0.01) return false
+            const f = el.getBoundingClientRect()
+            return (
+              f.width > 0 &&
+              f.left < r.right &&
+              f.right > r.left &&
+              f.top < r.bottom &&
+              f.bottom > r.top
+            )
+          })
+        }),
+      )
+      .toBe(false)
+    await expect(
+      page.getByRole('complementary', { name: 'Demo state' }),
+    ).toBeHidden()
+  })
 })
 
 test.describe('unknown URL in a Japanese browser', () => {
@@ -142,8 +191,8 @@ test('the Japan map goes to Nagasaki and back to all of Japan', async ({
 })
 
 // "Journey to Nagasaki" on the v4 landing. Reduced motion (the default in this config) goes straight to the
-// map with Nagasaki chosen; the panel follows the choice from the list and the next button.
-test('the journey map opens on Nagasaki and the panel follows the chosen prefecture', async ({
+// map, zoomed into Nagasaki. One story: no prefecture picker, just all of Japan or Nagasaki.
+test('the journey map zooms into Nagasaki and back out to all of Japan', async ({
   page,
 }) => {
   await page.goto('/?ui=v4')
@@ -152,22 +201,21 @@ test('the journey map opens on Nagasaki and the panel follows the chosen prefect
   })
   await journey.scrollIntoViewIfNeeded()
   await expect(
-    journey.getByRole('img', { name: /Map of Japan's 47 prefectures/ }),
+    journey.getByRole('img', { name: /Map of Japan with Nagasaki/ }),
   ).toBeVisible()
   await expect(journey.getByRole('heading', { name: '長崎県' })).toBeVisible()
   await expect(
     journey.getByRole('heading', { name: 'Megane Bridge' }),
   ).toBeVisible()
+  await expect(journey.getByRole('combobox')).toHaveCount(0)
 
-  await journey.getByLabel('Choose a prefecture').selectOption('JP-26')
-  await expect(journey.getByRole('heading', { name: '京都府' })).toBeVisible()
-  await expect(
-    journey.getByRole('img', { name: 'Fushimi Inari-taisha' }),
-  ).toBeVisible()
-  await expect(journey.getByText(/Each torii is a gift/)).toBeVisible()
-
-  await journey.getByRole('button', { name: 'Next: Ōsaka' }).click()
-  await expect(journey.getByRole('heading', { name: '大阪府' })).toBeVisible()
+  const nagasaki = journey.getByRole('button', { name: /^Nagasaki/ })
+  const all = journey.getByRole('button', { name: 'All Japan' })
+  await expect(nagasaki).toHaveAttribute('aria-pressed', 'true')
+  await all.click()
+  await expect(all).toHaveAttribute('aria-pressed', 'true')
+  await nagasaki.click()
+  await expect(nagasaki).toHaveAttribute('aria-pressed', 'true')
 })
 
 test.describe('journey with motion on', () => {

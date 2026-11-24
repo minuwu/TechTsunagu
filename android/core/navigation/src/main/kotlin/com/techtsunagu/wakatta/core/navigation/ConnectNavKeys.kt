@@ -6,8 +6,9 @@ import kotlinx.serialization.Serializable
 @Serializable
 data object ConnectKey : NavKey
 
+/** [token] is set when an App Link `/c/{token}` opened the app: the screen asks to add that person at once. */
 @Serializable
-data object ConnectScanKey : NavKey
+data class ConnectScanKey(val token: String? = null) : NavKey
 
 @Serializable
 data class PChatKey(val threadId: String) : NavKey

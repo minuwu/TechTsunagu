@@ -11,12 +11,17 @@ import javax.inject.Inject
 
 /** System share sheet. The file must be under the app cache or files directory (`media_file_paths.xml`). */
 class AndroidShareFile @Inject constructor(@ApplicationContext private val context: Context) : ShareFile {
-    override fun share(file: File, mimeType: String) {
+    override fun share(file: File, mimeType: String) = send(file, mimeType, null)
+
+    override fun share(file: File, mimeType: String, text: String) = send(file, mimeType, text)
+
+    private fun send(file: File, mimeType: String, text: String?) {
         val uri = FileProvider.getUriForFile(context, "${context.packageName}.media.fileprovider", file)
         val send = Intent(Intent.ACTION_SEND)
             .setType(mimeType)
             .putExtra(Intent.EXTRA_STREAM, uri)
             .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        text?.let { send.putExtra(Intent.EXTRA_TEXT, it) }
         send.clipData = ClipData.newRawUri(file.name, uri)
         context.startActivity(Intent.createChooser(send, null).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
     }

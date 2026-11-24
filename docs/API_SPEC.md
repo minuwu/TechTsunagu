@@ -60,7 +60,7 @@ Foremen and Workers also own personal data that no employer route reads ([ADR 00
 Generated from the code: `cd backend; uv run python -m app.openapi index` (CI fails when it is stale).
 
 <!-- endpoint index: generated -->
-129 operations on 102 paths, all live.
+131 operations on 104 paths, all live.
 
 | Method | Path | Who | What |
 | :--- | :--- | :--- | :--- |
@@ -68,6 +68,7 @@ Generated from the code: `cd backend; uv run python -m app.openapi index` (CI fa
 | `GET` | `/api/health/ready` | **public** | Readiness: the database answers |
 | `GET` | `/api/auth/roster` | **public** | Names to pick from, for a shop or district code (public, rate-limited) |
 | `POST` | `/api/auth/login` | **public** | Name + PIN → Bearer token |
+| `POST` | `/api/auth/find` | **public** | Forgot the shop code: shop name + your name + PIN → Bearer token (rate-limited) |
 | `POST` | `/api/auth/register` | **public** | Open a new shop; you become its first Foreman (rate-limited) |
 | `GET` | `/api/auth/me` | foreman, worker, poster | The signed-in user |
 | `PUT` | `/api/auth/me/pin` | foreman, worker, poster | Change your own PIN; your other sessions are signed out |
@@ -136,6 +137,7 @@ Generated from the code: `cd backend; uv run python -m app.openapi index` (CI fa
 | `POST` | `/api/threads` | foreman | Create a group Thread; you are its admin |
 | `POST` | `/api/threads/{thread_id}/messages` | foreman, worker | Foreman: voice/text → AI draft. Worker: sent |
 | `GET` | `/api/threads/{thread_id}/messages` | foreman, worker | Poll messages after a cursor; send If-None-Match to get 304 when nothing changed |
+| `POST` | `/api/transcriptions` | foreman, worker | Dictation fallback: a recording in, its text out (personal, never stored) |
 | `PATCH` | `/api/messages/{message_id}` | foreman | Edit an unsent draft's Japanese; the AI translates it again (XREQ-022) |
 | `POST` | `/api/messages/{message_id}/send` | foreman | Send the edited draft; the Tasks kept go on the Task Board |
 | `GET` | `/api/messages/unanswered` | worker | Your unanswered Checks across your Threads, newest first (at most 100) |

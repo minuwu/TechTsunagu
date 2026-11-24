@@ -155,6 +155,11 @@ internal interface WireMessage {
     val threadId: String
     val fromUserId: String
     val kind: String
+    /** The language the sender wrote or spoke in; `text[language]` is the original. */
+    val language: String
+    /** The sender's name from the poll; Workers cannot read GET /workers. */
+    val fromDisplayName: String?
+    val fromRole: String?
     val stage: Int
     val transcriptJa: String?
     val text: Tri
@@ -168,6 +173,9 @@ internal data class WireSenderMessage(
     override val threadId: String = "",
     override val fromUserId: String = "",
     override val kind: String = "text",
+    override val language: String = "ja",
+    override val fromDisplayName: String? = null,
+    override val fromRole: String? = null,
     override val stage: Int = 5,
     val needsEdit: Boolean = false,
     override val transcriptJa: String? = null,
@@ -195,6 +203,9 @@ internal data class WireWorkerMessage(
     override val threadId: String = "",
     override val fromUserId: String = "",
     override val kind: String = "text",
+    override val language: String = "ja",
+    override val fromDisplayName: String? = null,
+    override val fromRole: String? = null,
     override val stage: Int = 5,
     override val transcriptJa: String? = null,
     override val text: Tri = emptyMap(),

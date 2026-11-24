@@ -1,5 +1,6 @@
 package com.techtsunagu.wakatta.feature.chat
 
+import com.techtsunagu.wakatta.core.media.continuous
 import androidx.annotation.StringRes
 import androidx.lifecycle.viewModelScope
 import com.techtsunagu.wakatta.core.common.AppConfig
@@ -135,7 +136,11 @@ class ChatViewModel @Inject constructor(
 
     private fun shown(): List<ChatMessageUiModel> {
         pending = pending.filter { p -> server.none { it.id == p.id } }
-        return server + pending
+        // a poll must not close a translation or fold the reader opened
+        val open = state.value.messages.associateBy { it.id }
+        return (server + pending).map { m ->
+            open[m.id]?.let { m.copy(showOriginal = it.showOriginal, isWkFoldExpanded = it.isWkFoldExpanded) } ?: m
+        }
     }
     private var currentUserLang: String = ""
     private val accumulator = DictationAccumulator()
@@ -330,7 +335,9 @@ class ChatViewModel @Inject constructor(
 
         val tag = currentDictationTag()
         dictationJob = viewModelScope.launch {
-            dictation.start(tag).collect { event ->
+            // each pause restarts the recognizer; the message ends only when a whole listen hears nothing
+            var said = ""
+            dictation.continuous(tag, "", maxSilentRounds = 1).collect { event ->
                 when (event) {
                     is DictationEvent.Listening -> {
                         updateState { it.copy(isListening = true, composerStatus = ComposerStatus.RECORDING) }
@@ -346,7 +353,11 @@ class ChatViewModel @Inject constructor(
                         }
                     }
                     is DictationEvent.Final -> {
-                        val text = accumulator.onFinal(event.text)
+                        said = event.text
+                        updateState { it.copy(inputText = accumulator.onPartial(event.text)) }
+                    }
+                    is DictationEvent.Error -> if (event.kind == DictationErrorKind.NO_SPEECH && said.isNotBlank()) {
+                        val text = accumulator.onFinal(said)
                         inputIsVoice = true
                         updateState {
                             it.copy(
@@ -356,8 +367,7 @@ class ChatViewModel @Inject constructor(
                             )
                         }
                         startCountdownTimer()
-                    }
-                    is DictationEvent.Error -> {
+                    } else {
                         handleDictationError(event.kind)
                     }
                 }
@@ -409,8 +419,9 @@ class ChatViewModel @Inject constructor(
             return
         }
         updateState { it.copy(composerStatus = ComposerStatus.SENDING, isListening = false) }
+        val lang = currentDictationTag().substringBefore('-')
         dictationJob = viewModelScope.launch {
-            when (val r = chatRepository.transcribe(file, currentDictationTag().substringBefore('-'))) {
+            when (val r = chatRepository.transcribe(file, lang)) {
                 is AppResult.Success -> {
                     val text = accumulator.onFinal(r.value)
                     inputIsVoice = true
@@ -419,11 +430,45 @@ class ChatViewModel @Inject constructor(
                 }
                 is AppResult.Failure -> {
                     updateState { it.copy(composerStatus = ComposerStatus.EDITING) }
-                    sendEffect(ChatEffect.ShowHint(R.string.chat_dictation_type_instead))
+                    if (!retryable(r.error)) {
+                        sendEffect(ChatEffect.ShowHint(R.string.chat_dictation_type_instead))
+                        return@launch
+                    }
+                    // Layer 3: offline or the server is down. Keep the recording; the next tap must not overwrite it.
+                    val kept = File(file.parentFile, "dictation-${System.nanoTime()}.m4a").takeIf { file.renameTo(it) } ?: file
+                    sendEffect(ChatEffect.ShowHint(R.string.chat_dictation_saved))
+                    viewModelScope.launch { transcribeLater(kept, lang) }
                 }
             }
         }
     }
+
+    /** Retries a kept recording with backoff (about 10 minutes); the text joins whatever is typed by then. */
+    private suspend fun transcribeLater(file: File, lang: String) {
+        var wait = 2_000L
+        for (attempt in 1..RETRY_ATTEMPTS) {
+            delay(wait)
+            wait = (wait * 2).coerceAtMost(30_000L)
+            when (val r = chatRepository.transcribe(file, lang)) {
+                is AppResult.Success -> {
+                    file.delete()
+                    if (r.value.isBlank()) return
+                    val typed = state.value.inputText.trim()
+                    updateState { it.copy(inputText = if (typed.isEmpty()) r.value else "$typed ${r.value}") }
+                    if (typed.isEmpty()) inputIsVoice = true
+                    sendEffect(ChatEffect.ShowHint(R.string.chat_dictation_recovered))
+                    return
+                }
+                is AppResult.Failure -> if (!retryable(r.error)) break
+            }
+        }
+        file.delete()
+        sendEffect(ChatEffect.ShowHint(R.string.chat_dictation_type_instead))
+    }
+
+    private fun retryable(e: AppError) = e !is AppError.Validation && e !is AppError.PayloadTooLarge &&
+        e !is AppError.UnsupportedMedia && e !is AppError.SessionExpired && e !is AppError.Forbidden &&
+        e !is AppError.UpgradeRequired
 
     /** Set once the phone's recognizer failed: later taps go straight to the server. */
     private var serverDictation = false
@@ -602,3 +647,5 @@ class ChatViewModel @Inject constructor(
         correctOptionIndex = newQuestionCorrectIndex,
     )
 }
+
+private const val RETRY_ATTEMPTS = 24

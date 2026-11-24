@@ -112,6 +112,20 @@ def login(db: Session, user_id: int, pin: str, ip: str, pepper: str, now: dateti
     return _open_session(db, user, "login", now)
 
 
+def find(
+    db: Session, shop_name: str, display_name: str, pin: str, ip: str, pepper: str, now: datetime
+) -> tuple[str, datetime, User]:
+    """Forgot the shop code: shop name + own name + PIN signs in, and the session carries the code. Nothing is
+    returned without the right PIN, so a shop name never reveals its code or its roster."""
+    users = repo.users_by_shop_and_name(db, shop_name.strip(), display_name.strip())
+    if not users:
+        _rate_limit(db, f"login:{ip}", LOGINS_PER_IP, now)
+        raise _unauthorized()
+    # shortcut: with namesakes and a wrong PIN, the failure counts against the first; fine while namesakes are rare.
+    match = next((u for u in users if verify_pin(pepper, u.pin_hash, pin)), users[0])
+    return login(db, match.id, pin, ip, pepper, now)
+
+
 def _open_session(db: Session, user: User, event: str, now: datetime) -> tuple[str, datetime, User]:
     token, digest = new_token()
     expires_at = now + SESSION_TTL[user.role]
@@ -133,7 +147,9 @@ def register(db: Session, body: RegisterIn, ip: str, pepper: str, now: datetime)
     district_id = db.scalar(select(District.id).order_by(District.id).limit(1))
     if district_id is None:
         raise ApiError(503, "UNAVAILABLE", "No district to join yet")
-    code = _new_shop_code(db)
+    code = body.shop_code.upper() if body.shop_code else _new_shop_code(db)
+    if body.shop_code and repo.shop_by_code(db, code) is not None:
+        raise ApiError(409, "SHOP_CODE_TAKEN", "That shop code is taken; choose another")
     shop = Shop(code=code, name=body.shop_name, default_district_id=district_id, languages=["en"])
     db.add(shop)
     db.flush()

@@ -384,9 +384,7 @@ function Glossary({ course }: { course: CourseData }) {
                 {g.reading}
               </span>
             </dt>
-            <dd className="text-muted-foreground">
-              {g.en}
-            </dd>
+            <dd className="text-muted-foreground">{g.en}</dd>
           </div>
         ))}
       </dl>

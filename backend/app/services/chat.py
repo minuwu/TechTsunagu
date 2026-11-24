@@ -258,8 +258,15 @@ def messages(db: Session, who: Principal, thread_id: int, after_id: int | None, 
         mine = {a.message_id: a for a in repo.answers_of(db, shop_id, ids, user_id)}
         nudged, asked = repo.nudged_messages(db, shop_id, user_id, ids), repo.asked_messages(db, shop_id, user_id, ids)
         items = [_for_worker(m, questions.get(m.id, []), mine.get(m.id), m.id in nudged, m.id in asked) for m in rows]
-    senders = work_repo.display_names(db, shop_id, sorted({m.from_user_id for m in rows}))
-    items = [i.model_copy(update={"from_display_name": senders.get(int(i.from_user_id))}) for i in items]
+    sender_ids = sorted({m.from_user_id for m in rows})
+    senders = work_repo.display_names(db, shop_id, sender_ids)
+    roles = work_repo.roles(db, shop_id, sender_ids)
+    items = [
+        i.model_copy(
+            update={"from_display_name": senders.get(int(i.from_user_id)), "from_role": roles.get(int(i.from_user_id))}
+        )
+        for i in items
+    ]
     newest = max((m.sent_at for m in rows if m.sent_at is not None and m.from_user_id != user_id), default=None)
     if member is not None and newest is not None and (member.last_read_at is None or member.last_read_at < newest):
         member.last_read_at = now

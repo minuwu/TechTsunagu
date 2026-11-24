@@ -6,6 +6,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { DOORS, type Door } from '@/domain/course'
 import { m } from '@/i18n/paraglide/messages'
 import { HeroArt } from '@/ui/v4/components/HeroArt'
+import { HeroFuji } from '@/ui/v4/components/HeroFuji'
 import { Journey } from '@/ui/v4/components/journey/Journey'
 import {
   PosterIndex,
@@ -13,7 +14,7 @@ import {
   PosterSection,
 } from '@/ui/v4/components/Poster'
 import { buttonVariants } from '@/ui/v4/components/ui/button'
-import { MOTION_OK, scrollToSection } from '@/ui/v4/lib/motion'
+import { MOTION_OK, scrollToSection, splashDelay } from '@/ui/v4/lib/motion'
 
 const DOOR_NAME: Record<Door, () => string> = {
   read: m.course_door_read,
@@ -58,7 +59,7 @@ function useLandingMotion() {
       const mm = gsap.matchMedia()
       mm.add(MOTION_OK, () => {
         const q = gsap.utils.selector(root)
-        const afterSplash = document.querySelector('.splash') ? 1.05 : 0.1
+        const afterSplash = splashDelay()
         gsap.from(q('[data-hero]'), {
           y: 24,
           opacity: 0,
@@ -130,7 +131,8 @@ export function Landing() {
   const [lead, accent] = splitHeadline(m.lp_h1())
   return (
     <div ref={scope}>
-      <section className="poster-grid min-h-[85vh] md:min-h-[85vh]">
+      <section className="poster-grid fuji-scope relative isolate min-h-[85vh] md:min-h-[85vh]">
+        <HeroFuji />
         <div className="poster-side flex flex-col justify-between gap-8">
           <div className="space-y-4">
             <p className="poster-label">{m.lp_manifesto()}</p>
@@ -157,6 +159,7 @@ export function Landing() {
               <a
                 href="#demo"
                 onClick={glide('demo')}
+                data-fuji-cta
                 className={buttonVariants({ variant: 'default', size: 'lg' })}
               >
                 {m.lp_cta_demo()}
@@ -164,6 +167,7 @@ export function Landing() {
               <a
                 href="#how"
                 onClick={glide('how')}
+                data-fuji-how
                 className="min-h-11 content-center font-bold underline hover:text-primary"
               >
                 {m.lp_cta_how()}

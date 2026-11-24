@@ -17,6 +17,15 @@ class FakeFollowUpRepository(private val delayMs: Long) : FollowUpRepository {
     @Inject
     constructor() : this(300L)
 
+    /** The demo has no server: what the Foreman clarified is kept for this run of the app. */
+    private val clarified = mutableSetOf<String>()
+
+    override suspend fun clarify(followUpId: String, note: String): AppResult<Unit> {
+        delay(delayMs)
+        clarified += followUpId
+        return AppResult.Success(Unit)
+    }
+
     override suspend fun getFollowUps(): AppResult<FollowUpsData> {
         delay(delayMs)
         val items = InsightsSeed.followUps.map { s ->
@@ -28,7 +37,7 @@ class FakeFollowUpRepository(private val delayMs: Long) : FollowUpRepository {
                 termEn = InsightsSeed.termEn[s.term].orEmpty(),
                 question = s.question,
                 wrong = s.wrong,
-                status = s.status,
+                status = if (s.id in clarified && s.status == FollowUpStatus.OPEN) FollowUpStatus.CLARIFIED else s.status,
                 ageMinutes = s.ageMinutes,
             )
         }

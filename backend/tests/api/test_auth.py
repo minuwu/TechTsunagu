@@ -237,3 +237,33 @@ def test_opening_a_shop_needs_a_safe_six_digit_pin(client: TestClient, db: Sessi
     f.district(db)
     res = client.post("/api/auth/register", json={"shopName": "X", "displayName": "Y", "pin": "123456"})
     assert res.status_code == 422
+
+
+def test_an_owner_can_choose_a_memorable_shop_code(client: TestClient, db: Session) -> None:
+    f.district(db)
+    body = {"shopName": "TechTsunagu", "displayName": "Mina", "pin": "739215", "shopCode": "techtsunagu"}
+
+    first = client.post("/api/auth/register", json=body)
+    again = client.post("/api/auth/register", json=body | {"displayName": "Other"})
+
+    assert first.status_code == 201 and first.json()["data"]["shopCode"] == "TECHTSUNAGU"
+    assert again.status_code == 409 and again.json()["error"]["code"] == "SHOP_CODE_TAKEN"
+    roster = client.get("/api/auth/roster", params={"code": "TECHTSUNAGU", "role": "foreman"})
+    assert [r["displayName"] for r in roster.json()["data"]] == ["Mina"]
+
+
+def test_a_forgotten_shop_code_signs_in_with_shop_name_name_and_pin(client: TestClient, db: Session) -> None:
+    f.district(db)
+    made = client.post(
+        "/api/auth/register", json={"shopName": "Minato Works", "displayName": "森 太郎", "pin": "739215"}
+    )
+    code = made.json()["data"]["shopCode"]
+
+    found = client.post("/api/auth/find", json={"shopName": " minato works", "displayName": "森 太郎", "pin": "739215"})
+    wrong = client.post("/api/auth/find", json={"shopName": "Minato Works", "displayName": "森 太郎", "pin": "739216"})
+    nobody = client.post("/api/auth/find", json={"shopName": "No Such", "displayName": "森 太郎", "pin": "739215"})
+
+    assert found.status_code == 200, found.text
+    assert found.json()["data"]["user"]["shopCode"] == code and found.json()["data"]["token"]
+    assert wrong.status_code == nobody.status_code == 401
+    assert "shopCode" not in wrong.text and code not in nobody.text

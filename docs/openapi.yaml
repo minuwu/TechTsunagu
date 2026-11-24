@@ -61,7 +61,7 @@
             "required": true,
             "schema": {
               "type": "string",
-              "pattern": "^[A-Z0-9]{8}$",
+              "pattern": "^[A-Z0-9]{6,12}$",
               "title": "Code"
             }
           },
@@ -116,6 +116,47 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/LoginIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_LoginOut_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/find": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Forgot the shop code: shop name + your name + PIN → Bearer token (rate-limited)",
+        "operationId": "find_api_auth_find_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FindIn"
               }
             }
           },
@@ -6158,9 +6199,9 @@
             "required": true,
             "schema": {
               "type": "string",
-              "minLength": 16,
+              "minLength": 8,
               "maxLength": 64,
-              "pattern": "^[A-Za-z0-9_-]+$",
+              "pattern": "^[A-Za-z0-9_ -]+$",
               "title": "Token"
             }
           }
@@ -8917,8 +8958,8 @@
           "token": {
             "type": "string",
             "maxLength": 64,
-            "minLength": 16,
-            "pattern": "^[A-Za-z0-9_-]+$",
+            "minLength": 8,
+            "pattern": "^[A-Za-z0-9_ -]+$",
             "title": "Token"
           }
         },
@@ -11458,6 +11499,37 @@
         "title": "EventUpdate",
         "description": "PATCH /notices/{id}/events/{eventId}. A field left out keeps its value; `rrule: null` makes the Event\none-off (the service tells them apart with `model_fields_set`). Invalid dates are a 422 with the reason\nfrom app.domain.recurrence."
       },
+      "FindIn": {
+        "properties": {
+          "shopName": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Shopname"
+          },
+          "displayName": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Displayname"
+          },
+          "pin": {
+            "type": "string",
+            "maxLength": 6,
+            "minLength": 4,
+            "title": "Pin"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "shopName",
+          "displayName",
+          "pin"
+        ],
+        "title": "FindIn",
+        "description": "POST /api/auth/find: signing in without the shop code. The PIN proves who it is."
+      },
       "FollowUpOut": {
         "properties": {
           "id": {
@@ -12743,6 +12815,17 @@
             ],
             "title": "Fromdisplayname"
           },
+          "fromRole": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fromrole"
+          },
           "questions": {
             "items": {
               "$ref": "#/components/schemas/CheckQuestion"
@@ -12902,6 +12985,17 @@
               }
             ],
             "title": "Fromdisplayname"
+          },
+          "fromRole": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fromrole"
           },
           "questions": {
             "items": {
@@ -14953,6 +15047,18 @@
             "maxLength": 6,
             "minLength": 4,
             "title": "Pin"
+          },
+          "shopCode": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9]{6,12}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shopcode"
           }
         },
         "additionalProperties": false,

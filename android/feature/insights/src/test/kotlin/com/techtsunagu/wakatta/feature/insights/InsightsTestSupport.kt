@@ -107,7 +107,12 @@ class StubAnalytics(
 }
 
 class StubFollowUps(var result: AppResult<FollowUpsData> = AppResult.Success(sampleFollowUps())) : FollowUpRepository {
+    val clarified = mutableListOf<String>()
     override suspend fun getFollowUps(): AppResult<FollowUpsData> = result
+    override suspend fun clarify(followUpId: String, note: String): AppResult<Unit> {
+        clarified += followUpId
+        return AppResult.Success(Unit)
+    }
 }
 
 class StubSkills(var result: AppResult<SkillMatrix> = AppResult.Success(sampleMatrix())) : SkillMatrixRepository {

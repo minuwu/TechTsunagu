@@ -13,4 +13,9 @@
     <string name="app_demo_signin_prompt">デモ クイックログイン:</string>
     <string name="app_demo_signout">ログアウト</string>
     <string name="app_offline">通信できません。前に読み込んだ内容を表示しています。</string>
+    <string name="app_unexpected_error">問題が発生しました。もう一度お試しください。</string>
+    <string name="app_speech_packs_title">電波がなくても音声入力</string>
+    <string name="app_speech_packs_body">この端末に日本語と英語の音声データをダウンロードすると、電波が弱くても、どちらの言語でも話して入力できます。次の画面で両方の言語を追加してください。</string>
+    <string name="app_speech_packs_download">ダウンロード</string>
+    <string name="app_speech_packs_later">あとで</string>
 </resources>

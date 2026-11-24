@@ -39,7 +39,7 @@ Scheme `https` only, host equal to the configured host. No custom scheme. Ids ar
 Role guards, the Worker-only `POST /machines/{id}/scan`, the "another shop" screen, `pendingLink` storage and resume after sign-in (contract 2.4). Contact `token`, Machine `shopCode`, Thread `messageId` and Notice `eventId` stay on the `AppLink`: no route key carries them yet.
 
 ## Manifest intent filter (in `:app`)
-Contract 2.3. Replace `[HOST]` with the decided host (open item O-12). The filter belongs on `MainActivity`. A library manifest merging into a same-name activity is UNVERIFIED (ANDROID_ARCHITECTURE WP-DL), so put it in `app/src/main/AndroidManifest.xml`.
+Contract 2.3. The host is decided: the API host (XREQ-026), the host of `ApiConfig.BASE_URL`; the filter is live in `app/src/main/AndroidManifest.xml` and `MainActivity.openFromAppLink` matches against the same host (`AppLinkHostTest` keeps them equal). The filter belongs on `MainActivity`. A library manifest merging into a same-name activity is UNVERIFIED (ANDROID_ARCHITECTURE WP-DL), so put it in `app/src/main/AndroidManifest.xml`.
 
 ```xml
 <intent-filter android:autoVerify="true">

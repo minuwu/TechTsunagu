@@ -9,7 +9,7 @@ import kotlinx.serialization.json.contentOrNull
 import retrofit2.Response
 
 /** Routes where a 401 means "wrong PIN", not "session over" (contract 2.9). */
-internal val wrongPinRoutes = setOf(ApiPaths.LOGIN, ApiPaths.ME_PIN)
+internal val wrongPinRoutes = setOf(ApiPaths.LOGIN, ApiPaths.FIND, ApiPaths.ME_PIN)
 
 /** Maps one failed response to an [AppError]. Status first, `error.code` where one status has several meanings. */
 internal fun mapError(
@@ -24,6 +24,7 @@ internal fun mapError(
     status == 403 -> if (code == "PIN_CHANGE_REQUIRED") AppError.PinChangeRequired else AppError.Forbidden
     status == 404 -> AppError.NotFound
     status == 409 -> AppError.Conflict(code ?: "CONFLICT")
+    status == 410 -> AppError.Gone
     status == 412 -> AppError.PreconditionFailed
     status == 413 -> AppError.PayloadTooLarge
     status == 415 -> AppError.UnsupportedMedia

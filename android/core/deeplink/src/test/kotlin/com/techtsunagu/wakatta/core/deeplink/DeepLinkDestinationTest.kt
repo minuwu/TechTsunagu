@@ -1,5 +1,6 @@
 package com.techtsunagu.wakatta.core.deeplink
 
+import com.techtsunagu.wakatta.core.navigation.ConnectScanKey
 import com.techtsunagu.wakatta.core.model.TopLevelTab
 import com.techtsunagu.wakatta.core.navigation.BriefingCardKey
 import com.techtsunagu.wakatta.core.navigation.ChatKey
@@ -21,7 +22,7 @@ class DeepLinkDestinationTest {
     fun everyLinkGetsATabRootThenTheTarget() {
         val cases = listOf(
             AppLink.Machine("12", "ABCD1234") to DeepLinkDestination(TopLevelTab.MACHINES, listOf(MachinesKey, MachineKey("12"))),
-            AppLink.Contact("AbCdEfGhIjKlMnOpQrSt-_") to DeepLinkDestination(TopLevelTab.ME, listOf(MeKey, ConnectKey)),
+            AppLink.Contact("AbCdEfGhIjKlMnOpQrSt-_") to DeepLinkDestination(TopLevelTab.ME, listOf(MeKey, ConnectKey, ConnectScanKey("AbCdEfGhIjKlMnOpQrSt-_"))),
             AppLink.Thread("7", "9") to DeepLinkDestination(TopLevelTab.CHATS, listOf(ChatsKey, ChatKey("7"))),
             AppLink.Notice("5", "3") to DeepLinkDestination(TopLevelTab.HOME, listOf(HomeKey, NoticeKey("5"))),
             AppLink.Briefing("8") to DeepLinkDestination(TopLevelTab.HOME, listOf(HomeKey, BriefingCardKey("8"))),

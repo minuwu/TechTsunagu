@@ -599,6 +599,7 @@ def test_workers_see_names_next_to_ids_and_the_tasks_thread(
     [task] = client.get("/api/tasks", headers=line.rahim).json()["data"]["items"]
 
     assert polled["fromDisplayName"] == names[polled["fromUserId"]]
+    assert polled["fromRole"] == "foreman"
     assert task["assignees"] == [{"userId": str(line.rahim_id), "displayName": names[str(line.rahim_id)]}]
     assert task["fromThreadId"] == str(line.thread_id)
 

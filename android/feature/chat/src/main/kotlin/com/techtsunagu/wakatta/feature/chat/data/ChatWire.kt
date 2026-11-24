@@ -95,12 +95,14 @@ internal fun ThreadDto.toSummary(me: User? = null): ThreadSummary {
 
 private fun WireMessage.base(ctx: MessageContext): ChatMessageUiModel {
     val kind = wireEnum(kind, MessageKind.UNKNOWN)
-    val original = text["ja"].orEmpty().ifEmpty { transcriptJa.orEmpty() }
+    // the sender's own words; Japanese (or the transcript) when that language has no text yet
+    val original = text[language].orEmpty().ifEmpty { text["ja"].orEmpty() }.ifEmpty { transcriptJa.orEmpty() }
     return ChatMessageUiModel(
         id = id,
         threadId = threadId,
         fromUserId = fromUserId,
-        fromUserName = ctx.names[fromUserId].orEmpty(),
+        fromUserName = fromDisplayName ?: ctx.names[fromUserId].orEmpty(),
+        fromForeman = fromRole == "foreman",
         isMine = fromUserId == ctx.myId,
         kind = kind,
         text = text,

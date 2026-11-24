@@ -62,4 +62,10 @@ internal class RealFollowUpRepository(
 
         return AppResult.Success(FollowUpsData(items, stats))
     }
+
+    override suspend fun clarify(followUpId: String, note: String): AppResult<Unit> =
+        when (val r = safeApiCall { api().updateFollowUp(followUpId, FollowUpUpdateDto(status = "clarified", note = note)) }) {
+            is AppResult.Success -> AppResult.Success(Unit)
+            is AppResult.Failure -> r
+        }
 }

@@ -25,6 +25,7 @@ object ApiConfig {
         const val ROSTER = "/api/auth/roster"
         const val LOGIN = "/api/auth/login"
         const val REGISTER = "/api/auth/register"
+        const val FIND = "/api/auth/find"
         const val ME = "/api/auth/me"
         const val ME_PIN = "/api/auth/me/pin"
         const val LOGOUT = "/api/auth/logout"
@@ -116,5 +117,12 @@ object ApiConfig {
         const val TALK_THREAD = "/api/talk-threads/{thread_id}"
         const val TALK_ENTRIES = "/api/talk-threads/{thread_id}/entries"
         const val TALK_ENTRY = "/api/talk-threads/{thread_id}/entries/{entry_id}"
+        const val CONTACT_MESSAGE = "/api/contacts/{contact_id}/messages/{message_id}"
+        const val MESSAGES_UNANSWERED = "/api/messages/unanswered"
+        const val THREAD = "/api/threads/{thread_id}"
+        const val THREAD_LEAVE = "/api/threads/{thread_id}/leave"
+        const val THREAD_ME = "/api/threads/{thread_id}/me"
+        const val THREAD_MEMBERS = "/api/threads/{thread_id}/members"
+        const val THREAD_MEMBER = "/api/threads/{thread_id}/members/{user_id}"
     }
 }

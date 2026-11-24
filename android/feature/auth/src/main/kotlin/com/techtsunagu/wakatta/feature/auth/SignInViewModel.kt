@@ -28,6 +28,10 @@ data class SignInUiState(
     val shopName: String = "",
     val ownerName: String = "",
     val ownerPin: String = "",
+    /** The code the owner wants (TECHTSUNAGU); empty means a random one. */
+    val wantedCode: String = "",
+    /** The "forgot the shop code" form is showing: shop name, own name and PIN. */
+    val finding: Boolean = false,
     /** Set once the new shop exists; the screen shows it before going home. */
     val newShopCode: String? = null,
 )
@@ -47,6 +51,9 @@ sealed interface SignInEvent {
     data class OnOwnerPinChanged(val pin: String) : SignInEvent
     data object SubmitRegister : SignInEvent
     data object FinishRegister : SignInEvent
+    data class OnWantedCodeChanged(val code: String) : SignInEvent
+    data class ShowFind(val show: Boolean) : SignInEvent
+    data object SubmitFind : SignInEvent
 }
 
 /** The seeded demo accounts (backend `seed_data/work.json`; fictional people, demo PINs). */
@@ -62,7 +69,11 @@ val DEMO_ACCOUNTS = listOf(
 private const val OWNER_PIN_LENGTH = 6
 
 val SignInUiState.canRegister: Boolean
-    get() = shopName.isNotBlank() && ownerName.isNotBlank() && ownerPin.length == OWNER_PIN_LENGTH
+    get() = shopName.isNotBlank() && ownerName.isNotBlank() && ownerPin.length == OWNER_PIN_LENGTH &&
+        (wantedCode.isEmpty() || AuthRules.validateShopCode(wantedCode))
+
+val SignInUiState.canFind: Boolean
+    get() = shopName.isNotBlank() && ownerName.isNotBlank() && AuthRules.validatePin(ownerPin)
 
 sealed interface SignInEffect {
     data object NavigateToHome : SignInEffect
@@ -114,7 +125,14 @@ class SignInViewModel @Inject constructor(
             is SignInEvent.OnOwnerPinChanged ->
                 updateState { it.copy(ownerPin = event.pin.filter(Char::isDigit).take(OWNER_PIN_LENGTH)) }
             SignInEvent.SubmitRegister -> register()
-            SignInEvent.FinishRegister -> sendEffect(SignInEffect.NavigateToHome)
+            SignInEvent.FinishRegister -> {
+                updateState { it.copy(shopCode = it.newShopCode.orEmpty(), role = Role.FOREMAN) }
+                sendEffect(SignInEffect.NavigateToHome)
+            }
+            is SignInEvent.OnWantedCodeChanged ->
+                updateState { it.copy(wantedCode = event.code.filter(Char::isLetterOrDigit).uppercase().take(12)) }
+            is SignInEvent.ShowFind -> updateState { it.copy(finding = event.show, error = null, errorArg = "") }
+            SignInEvent.SubmitFind -> find()
             SignInEvent.Retry -> {
                 updateState { it.copy(error = null, errorArg = "", isLoading = false) }
                 loadRoster()
@@ -159,11 +177,34 @@ class SignInViewModel @Inject constructor(
         if (!s.canRegister || s.isLoading) return
         updateState { it.copy(isLoading = true, error = null, errorArg = "") }
         viewModelScope.launch {
-            when (val result = repository.register(s.shopName.trim(), s.ownerName.trim(), s.ownerPin)) {
+            when (val result = repository.register(s.shopName.trim(), s.ownerName.trim(), s.ownerPin, s.wantedCode.ifEmpty { null })) {
                 is AppResult.Success -> updateState { it.copy(isLoading = false, newShopCode = result.value, ownerPin = "") }
                 is AppResult.Failure -> {
                     val (kind, arg) = result.error.toAuthError()
                     updateState { it.copy(isLoading = false, error = kind, errorArg = arg) }
+                }
+            }
+        }
+    }
+
+    private fun find() {
+        val s = state.value
+        if (!s.canFind || s.isLoading) return
+        updateState { it.copy(isLoading = true, error = null, errorArg = "") }
+        viewModelScope.launch {
+            when (val result = repository.find(s.shopName.trim(), s.ownerName.trim(), s.ownerPin)) {
+                is AppResult.Success -> {
+                    val user = result.value.user
+                    updateState {
+                        it.copy(isLoading = false, isSuccess = true, ownerPin = "", shopCode = user.shopCode.orEmpty(), role = user.role)
+                    }
+                    sendEffect(if (result.value.mustChangePin) SignInEffect.NavigateToChangePin else SignInEffect.NavigateToHome)
+                }
+                is AppResult.Failure -> {
+                    val (kind, arg) = result.error.toAuthError()
+                    // a 401 here means no one has that shop name, name and PIN, not only a wrong PIN
+                    val shown = if (kind == AuthErrorKind.WRONG_PIN) AuthErrorKind.NO_MATCH else kind
+                    updateState { it.copy(isLoading = false, error = shown, errorArg = arg, ownerPin = "") }
                 }
             }
         }

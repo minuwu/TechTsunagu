@@ -37,6 +37,7 @@ PUBLIC = {
     "GET /api/auth/roster",
     "POST /api/auth/login",
     "POST /api/auth/register",
+    "POST /api/auth/find",
     "GET /api/senpai/{token}",
     "POST /api/senpai/{token}/asks/{ask_id}/reply",
     "POST /api/senpai/{token}/meetups",

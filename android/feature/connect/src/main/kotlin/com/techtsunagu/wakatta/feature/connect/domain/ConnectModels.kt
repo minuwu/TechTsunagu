@@ -98,7 +98,7 @@ interface ContactRepository {
     /** Makes a new token; the old one stops resolving. */
     suspend fun rotateMyQr(): AppResult<MyQrDto>
 
-    /** Writes My QR as a small file for the share sheet. */
+    /** Writes My QR as a PNG image for the share sheet. */
     suspend fun createInviteFile(): AppResult<File>
 
     /** Name and language for a token. Forbidden when you blocked that person, NotFound when unknown. */

@@ -29,6 +29,8 @@
     <string name="auth_error_upgrade">Please update the app to continue.</string>
     <string name="auth_error_unknown_shop">This shop code was not found.</string>
     <string name="auth_error_pin_rejected">That PIN is not allowed. Use digits only, and not a repeat or a run.</string>
+    <string name="auth_error_code_taken">That shop code is taken. Choose another, or leave it empty.</string>
+    <string name="auth_error_no_match">No one with that shop name, name and PIN. Check them and try again.</string>
     <string name="auth_error_unknown">Something went wrong. Try again.</string>
 
     <string name="auth_intro_skip_ja" translatable="false" formatted="false">スキップ</string>
@@ -88,8 +90,8 @@
     <string name="auth_si_foreman_en" translatable="false" formatted="false">Foreman</string>
     <string name="auth_si_code_ja" translatable="false" formatted="false">ショップコード</string>
     <string name="auth_si_code_en" translatable="false" formatted="false">Shop code</string>
-    <string name="auth_si_code_hint_ja" translatable="false" formatted="false">8文字（例: SASEBO01）</string>
-    <string name="auth_si_code_hint_en" translatable="false" formatted="false">8 characters, e.g. SASEBO01</string>
+    <string name="auth_si_code_hint_ja" translatable="false" formatted="false">6〜12文字の英数字（例: SASEBO01）</string>
+    <string name="auth_si_code_hint_en" translatable="false" formatted="false">6 to 12 letters or digits, e.g. SASEBO01</string>
     <string name="auth_si_name_ja" translatable="false" formatted="false">名前を選ぶ</string>
     <string name="auth_si_name_en" translatable="false" formatted="false">Pick your name</string>
     <string name="auth_si_no_names_ja" translatable="false" formatted="false">この役割の人はまだいません</string>
@@ -120,6 +122,19 @@
     <string name="auth_rg_submit_en" translatable="false" formatted="false">Register and start</string>
     <string name="auth_rg_back_ja" translatable="false" formatted="false">サインインに戻る</string>
     <string name="auth_rg_back_en" translatable="false" formatted="false">Back to sign in</string>
+    <string name="auth_rg_code_ja" translatable="false" formatted="false">ショップコード（任意）</string>
+    <string name="auth_rg_code_en" translatable="false" formatted="false">Shop code (optional)</string>
+    <string name="auth_rg_code_hint_ja" translatable="false" formatted="false">6〜12文字の英数字。空なら自動で作ります</string>
+    <string name="auth_rg_code_hint_en" translatable="false" formatted="false">6 to 12 letters or digits. Leave empty for a random one</string>
+    <string name="auth_rg_copy_en" translatable="false" formatted="false">Copy the shop code</string>
+    <string name="auth_rg_share_en" translatable="false" formatted="false">Share the shop code</string>
+    <string name="auth_fd_link_ja" translatable="false" formatted="false">ショップコードを忘れた</string>
+    <string name="auth_fd_link_en" translatable="false" formatted="false">Forgot the shop code?</string>
+    <string name="auth_fd_title_ja" translatable="false" formatted="false">ショップコードを忘れた</string>
+    <string name="auth_fd_title_en" translatable="false" formatted="false">Forgot the shop code</string>
+    <string name="auth_fd_note_ja" translatable="false" formatted="false">ショップ名・あなたの名前・PINでサインインできます。</string>
+    <string name="auth_fd_note_en" translatable="false" formatted="false">Sign in with the shop name, your name and your PIN.</string>
+    <string name="auth_rg_share_text" translatable="false">Wakatta? shop code: %1$s / ショップコード: %1$s</string>
     <string name="auth_rg_done_ja" translatable="false" formatted="false">ショップができました</string>
     <string name="auth_rg_done_en" translatable="false" formatted="false">Your shop is ready</string>
     <string name="auth_rg_done_note_ja" translatable="false" formatted="false">このコードを作業員に伝えてください。</string>

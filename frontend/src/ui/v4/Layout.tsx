@@ -151,7 +151,8 @@ function DemoSwitcher() {
   return (
     <aside
       aria-label={m.demo_state()}
-      className="fixed bottom-20 left-3 z-40 flex items-center border border-foreground bg-background text-sm md:bottom-4"
+      // Presenter tool, tablet and up: on a phone it sat over the content; phones switch with ?demo=
+      className="fixed bottom-4 left-3 z-40 hidden items-center border border-foreground bg-background text-sm md:flex"
     >
       <span className="px-3 text-xs font-bold tracking-wider uppercase">
         {m.demo_state()}
@@ -284,7 +285,9 @@ export function Layout({ children }: { children: ReactNode }) {
       </header>
       <main
         id="main"
-        className="mx-auto w-full max-w-[90rem] flex-1 px-4 pt-8 pb-28 sm:px-6 md:pt-12 md:pb-16"
+        // Room to scroll the last content clear of the fixed bars: tab bar + "Ask Wakatta" (8.5rem) on
+        // phones, the demo bar or "Ask Wakatta" (5rem) from md
+        className="mx-auto w-full max-w-[90rem] flex-1 px-4 pt-8 pb-40 sm:px-6 md:pt-12 md:pb-24"
       >
         <div key={path} className="page-enter">
           {children}

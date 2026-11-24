@@ -4,6 +4,19 @@ Owner: Galib (`Ga-lib`) — Role: AI / LLM
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-24 (Android audit and fix plan)
+
+- **G1 / audit A1** (`a585352`): one model call stops at 15 s, the whole request at 25 s, then degraded (needsEdit).
+- **G2 / audit A4** (`a585352`): `draft_message.v3` keeps the Foreman's words; a Machine name he did not say is
+  rejected in code; a greeting may have no questions. Live: "machine 3", the insult and "hello" all right.
+- **Eval** for G2 and XREQ-006 item 5: 10 Chat messages in `tests/fixtures/ai/eval/messages.json`, scored by
+  `eval_messages` (kept words, nothing added, questions or none, Tasks: people, due time, Machine). Run after filming.
+- Asif's task 3 (`5879499`): two identical Talk entry retries at once return one entry, not a 500.
+- **G4** Android chatbot data layer in `feature/asks` (models, Real/Fake repository, `ChatbotViewModel`), 8 tests;
+  `testDebugUnitTest checkModuleGraph :app:assembleDebug` green. Run Gradle from PowerShell on this PC (Git Bash
+  breaks the test JVM on the PATH's spaces).
+- CI was red after the voice-fallback route: regenerated the API index and frontend types (`c28c264`).
+
 ## 2026-11-23 night (Asif's chatbot review)
 
 - **Bengali removed from AI output** (team decision): demo shops `languages = {en}`, workers Rahim/Sadia/Tanvir `en`,
