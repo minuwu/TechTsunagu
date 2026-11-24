@@ -21,6 +21,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.lifecycle.viewModelScope
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
@@ -940,13 +943,24 @@ private fun WorkerHomeLayout(
 
         // Ask Wakatta, pinned (XREQ-016)
         item(key = "worker_chatbot", contentType = "actions") {
-            Button(
+            Surface(
                 onClick = { onEvent(HomeEvent.ChatbotClick) },
                 modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+                shape = RoundedCornerShape(20.dp),
+                color = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(text = stringResource(R.string.home_ask_wakatta), fontWeight = FontWeight.Bold)
-                    Text(text = stringResource(R.string.home_ask_wakatta_sub), style = MaterialTheme.typography.bodySmall)
+                Row(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(imageVector = Icons.AutoMirrored.Filled.Chat, contentDescription = null)
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(text = stringResource(R.string.home_ask_wakatta), fontWeight = FontWeight.Bold)
+                        Text(text = stringResource(R.string.home_ask_wakatta_sub), style = MaterialTheme.typography.bodySmall)
+                    }
+                    Icon(imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
                 }
             }
         }

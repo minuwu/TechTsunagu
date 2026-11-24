@@ -2,9 +2,12 @@ package com.techtsunagu.wakatta.feature.insights
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -25,6 +28,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.techtsunagu.wakatta.core.design.component.StatusChip
@@ -80,10 +84,10 @@ private fun LearningList(history: LearningHistory, isForeman: Boolean) {
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         item(key = "stats", contentType = "stats") {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                StatCard(Icons.Filled.Verified, history.mastered, R.string.insights_learning_mastered, Modifier.weight(1f))
-                StatCard(Icons.AutoMirrored.Filled.HelpOutline, history.gaps, R.string.insights_learning_gaps, Modifier.weight(1f))
-                StatCard(Icons.Filled.LocalFireDepartment, history.streak, R.string.insights_learning_streak, Modifier.weight(1f))
+            Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                StatCard(Icons.Filled.Verified, history.mastered, R.string.insights_learning_mastered, Modifier.weight(1f).fillMaxHeight())
+                StatCard(Icons.AutoMirrored.Filled.HelpOutline, history.gaps, R.string.insights_learning_gaps, Modifier.weight(1f).fillMaxHeight())
+                StatCard(Icons.Filled.LocalFireDepartment, history.streak, R.string.insights_learning_streak, Modifier.weight(1f).fillMaxHeight())
             }
         }
         item(key = "gaps-header", contentType = "header") { SectionHeader(stringResource(R.string.insights_learning_gaps)) }
@@ -101,7 +105,11 @@ private fun LearningList(history: LearningHistory, isForeman: Boolean) {
 @Composable
 private fun StatCard(icon: ImageVector, number: Int, label: Int, modifier: Modifier) {
     WakattaCard(modifier = modifier) {
-        Column(Modifier.fillMaxWidth().padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            Modifier.fillMaxWidth().fillMaxHeight().padding(12.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
             Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
             Text("$number", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
             Text(
@@ -109,6 +117,8 @@ private fun StatCard(icon: ImageVector, number: Int, label: Int, modifier: Modif
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
+                lineHeight = 14.sp,
+                maxLines = 2,
             )
         }
     }

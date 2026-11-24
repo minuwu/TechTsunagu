@@ -23,8 +23,9 @@ import javax.inject.Singleton
 class ConnectEntries @Inject constructor() : FeatureEntries {
     override fun EntryProviderScope<NavKey>.install(navigator: Navigator) {
         // Screen id: connect
-        entry<ConnectKey> {
+        entry<ConnectKey> { key ->
             ConnectScreen(
+                openNewTalk = key.newTalk,
                 onScanClick = { navigator.push(ConnectScanKey()) },
                 onOpenThread = { navigator.push(PChatKey(it)) },
             )

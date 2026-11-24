@@ -35,6 +35,7 @@ import com.techtsunagu.wakatta.core.design.component.WakattaCard
 import com.techtsunagu.wakatta.core.design.theme.StatusColors
 import com.techtsunagu.wakatta.feature.insights.domain.AnalyticsData
 import com.techtsunagu.wakatta.feature.insights.domain.WorkerBar
+import kotlin.math.roundToInt
 
 private val WEEK_LABELS = listOf(
     R.string.insights_week_3_ago, R.string.insights_week_2_ago, R.string.insights_week_last, R.string.insights_week_this,
@@ -44,14 +45,16 @@ private const val CHART_MAX = 100f
 private val GRID_LINES = listOf(50f, 70f, 90f)
 
 @Composable
-internal fun KpiRow(timeSavedHours: Double, reworkAvoided: Int) {
+internal fun KpiRow(cleanAiShare: Double?, firstTryPassShare: Double?) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        val timeText = if (timeSavedHours >= 0.0) stringResource(R.string.insights_kpi_hours, timeSavedHours) else "—"
-        val reworkText = if (reworkAvoided >= 0) stringResource(R.string.insights_kpi_cases, reworkAvoided) else "—"
-        Kpi(R.string.insights_kpi_time, timeText, Modifier.weight(1f))
-        Kpi(R.string.insights_kpi_rework, reworkText, Modifier.weight(1f))
+        Kpi(R.string.insights_kpi_clean_ai, percentText(cleanAiShare), Modifier.weight(1f))
+        Kpi(R.string.insights_kpi_first_try, percentText(firstTryPassShare), Modifier.weight(1f))
     }
 }
+
+@Composable
+private fun percentText(share: Double?): String =
+    share?.let { stringResource(R.string.insights_kpi_percent, (it * 100).roundToInt()) } ?: "—"
 
 @Composable
 private fun Kpi(@StringRes label: Int, value: String, modifier: Modifier) {

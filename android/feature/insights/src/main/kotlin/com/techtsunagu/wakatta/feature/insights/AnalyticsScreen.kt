@@ -57,7 +57,7 @@ private fun AnalyticsList(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        item(key = "kpis", contentType = "kpis") { KpiRow(data.timeSavedHours, data.reworkAvoided) }
+        item(key = "kpis", contentType = "kpis") { KpiRow(data.cleanAiShare, data.firstTryPassShare) }
         item(key = "trend-h", contentType = "header") { SectionHeader(stringResource(R.string.insights_trend_title)) }
         item(key = "trend", contentType = "trend") {
             TrendCard(data.trend, state.selectedPoint) { onEvent(AnalyticsEvent.SelectPoint(it)) }

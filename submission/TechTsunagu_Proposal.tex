@@ -1,0 +1,140 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage{xeCJK}
+\setCJKmainfont{Yu Mincho}[BoldFont=Yu Gothic]
+\setCJKsansfont{Yu Gothic}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{microtype}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage[hidelinks]{hyperref}
+\usepackage{url}
+
+\definecolor{accent}{HTML}{1F4E79}
+\hypersetup{colorlinks=true,linkcolor=accent,urlcolor=accent}
+
+\titleformat{\section}{\large\bfseries\color{accent}}{\thesection.}{0.5em}{}
+\titlespacing*{\section}{0pt}{1.4ex}{0.8ex}
+\setlist{itemsep=2pt,topsep=4pt}
+\setlength{\parskip}{0.5ex}
+\setlength{\parindent}{0pt}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\small Wakatta? --- Team TechTsunagu}
+\rhead{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\title{\textbf{Wakatta? --- Turning ``understood'' into understanding}}
+\author{\textbf{Team TechTsunagu}\\[2pt]
+\small Theme: TSUNAGU, update the way we connect \textperiodcentered{} Android app + web app}
+\date{}
+
+\begin{document}
+\maketitle
+\thispagestyle{fancy}
+
+\section{The problem: the most dangerous word on the shop floor}
+
+\textit{A typical day (scenario).} Nagasaki is reinventing itself. Beside the new Nagasaki Stadium City, Mr.~Tanaka runs a small metal factory. To keep up with orders he hired skilled, hardworking people from Vietnam, Nepal and Bangladesh. Most of them hold JLPT N3 or N2 certificates.
+
+One morning he asks Rahim-san to change the die on Press \#2. Rahim nods: \textit{``Wakarimashita.''} By the afternoon, Rahim is injured. He had misread a single word, and neither of them knew until it was too late.
+
+Nobody here was careless. A worker new to a country and a language can feel hesitant to ask again: he does not want to slow the team down, or be embarrassed in front of colleagues. So ``understood'' feels like the easiest answer. Mr.~Tanaka heard it and, reasonably, trusted it. A JLPT certificate proves someone can pass a test. It cannot prove that one specific instruction, given in fast factory Japanese full of shop words, landed correctly. \textbf{The failure is in the connection between the two people, so the fix belongs in that connection too.}
+
+\section{The evidence: a growing, measurable gap}
+
+\begin{itemize}
+  \item \textbf{2,571,037} foreign workers in Japan (October 2025), a record high (MHLW).
+  \item \textbf{12,807} in Nagasaki Prefecture, up \textbf{15.4\%} in a single year. \textbf{Manufacturing} is the largest employer, with 3,481 workers across 2,338 workplaces (Nagasaki Labour Bureau).
+  \item \textbf{6,244} foreign workers killed or injured at work in 2024, more than \textbf{four times} the 1,443 recorded in 2008 (Sompo Risk Management, from MHLW data).
+  \item In manufacturing, foreign workers are injured at \textbf{6.5 per 1,000}, against \textbf{2.6} for all workers: \textbf{over twice the risk} (2021 rates, same report).
+  \item The same report examines a technical intern killed at a press machine whose work instructions existed \textbf{only in Japanese}, and warns that managers too often assume ``the Japanese instruction got through.''
+\end{itemize}
+
+The government's own 14th Accident Prevention Plan sets a target to bring the foreign-worker injury rate down to the national average by 2027. For a small factory, a single misunderstood instruction can cost an injured colleague, medical bills, lost workdays, an insurance claim and a stopped line.
+
+\section{Today's workaround: translation without confirmation}
+
+Today a worker copies the message, switches to a translation app, pastes it, reads the result and switches back. Every step adds friction, and at the end there is still \textbf{no proof}: the translation may be wrong, the key word may still be missed, and the employer never finds out. The mistake surfaces only when the work is already wrong, or someone is already hurt.
+
+\section{Our answer: Wakatta closes the loop}
+
+Wakatta carries the conversation back and forth between both sides until understanding is confirmed, so nobody has to say ``I don't understand'' out loud.
+
+\begin{center}
+\fcolorbox{accent}{accent!6}{\parbox{0.92\linewidth}{\centering\small
+\textbf{Foreman speaks $\rightarrow$ AI transcribes $\rightarrow$ translates into each worker's language $\rightarrow$ writes short Check Questions $\rightarrow$ extracts Tasks $\rightarrow$ workers answer $\rightarrow$ the foreman sees, at a glance, who truly understood.}}}
+\end{center}
+
+\begin{itemize}
+  \item \textbf{Understanding is confirmed.} Each worker answers 1--3 quick questions. Green means understood. Orange or red opens a \textbf{Follow-up}, and the AI sends that one worker a simpler \textbf{Re-explanation} of the exact word they missed.
+  \item \textbf{Shop words never drift.} A shop Glossary locks terms such as 段取り or 金型交換, so the AI cannot paraphrase them away.
+  \item \textbf{People stay in control.} The AI prepares a draft; nothing is sent until the foreman approves it.
+  \item \textbf{Conversation becomes work.} Tasks found in a message go straight to a shared \textbf{Task Board}, with assignees, deadline and machine.
+  \item \textbf{Safety is built in.} At a machine, the worker scans its QR code, reads the instructions and passes a Check. Only then does the machine show \textbf{Ready}; until then it stays \textbf{Locked}.
+  \item \textbf{The whole day is covered.} A \textbf{Daily Briefing} shows who understood, who only opened it and who has not seen it. \textbf{Push notifications} alert workers to new messages. Workers report \textbf{Near-misses} with a photo, and \textbf{Ask Wakatta} answers questions from the shop's own notes and flags emergencies.
+\end{itemize}
+
+The name is the promise: \textit{``Wakatta?''} means \textit{``Understood?''}, and the app makes sure the answer is true.
+
+\section{What we built, and how far it is}
+
+\begin{itemize}
+  \item \textbf{Android app:} Kotlin and Jetpack Compose, 15 feature modules, signed APK 1.0.3.
+  \item \textbf{Web app:} React and TypeScript, for the foreman's PC and our landing page.
+  \item \textbf{Backend:} Python, FastAPI and PostgreSQL, live on Microsoft Azure.
+  \item \textbf{AI:} Groq Whisper turns real speech into text; Gemini handles translation, questions and task extraction. Every AI step has a fallback, so the app keeps working when a model is busy.
+\end{itemize}
+
+\textbf{Working now:} voice and text chat with translation; Check Questions, Wakatta status, Follow-ups and Re-explanations; Task Board; Daily Briefing with read receipts; machine Lock/Ready by QR; push notifications; Near-miss reports; the Ask Wakatta assistant; Japanese, English and Bengali.
+
+\textbf{Measured quality:} on our evaluation set, the AI passed \textbf{30 of 30} cases for machine notes, notices and worker questions. For chat messages it produced a valid draft in \textbf{10 of 10} cases and a fully correct one in \textbf{7 of 10}. That is exactly why the foreman reviews every draft before it is sent.
+
+\textbf{Next:} more worker languages, a larger test set recorded on real shop floors, and a dedicated AI model for each task.
+
+\section{What makes Wakatta different}
+
+\begin{enumerate}
+  \item \textbf{It confirms, then follows up.} Translation tools stop at translating. Wakatta checks the answer and repairs the gap.
+  \item \textbf{It ties understanding to safety.} A machine unlocks only after its Check is passed.
+  \item \textbf{It turns speech into action.} One spoken message becomes clear text, questions and tasks.
+  \item \textbf{It protects dignity.} Workers never have to admit confusion in front of others; the app asks on their behalf, privately.
+\end{enumerate}
+
+\section{The team: TechTsunagu}
+
+{\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\linewidth}{@{}l >{\raggedright\arraybackslash}X l l@{}}
+\toprule
+\textbf{Member} & \textbf{Role} & \textbf{Email} & \textbf{GitHub} \\
+\midrule
+Mohammad Minhazul Abedin & Architecture, Android app & \href{mailto:minhazulab3din@gmail.com}{minhazulab3din@gmail.com} & \href{https://github.com/minuwu}{minuwu} \\
+Md.~Asif Hossain & Backend, database & \href{mailto:asifhossain8612@gmail.com}{asifhossain8612@gmail.com} & \href{https://github.com/MdAsif-Hossain}{MdAsif-Hossain} \\
+Md Zahidul Hoque Anim & Backend services, cloud deploy & \href{mailto:anim3654@gmail.com}{anim3654@gmail.com} & \href{https://github.com/anim710}{anim710} \\
+Wakib Jahan Galib & AI and prompts, evaluation & \href{mailto:xahangalib19@gmail.com}{xahangalib19@gmail.com} & \href{https://github.com/Ga-lib}{Ga-lib} \\
+Arjun Saha & Web app, design and brand & \href{mailto:arjun144948@gmail.com}{arjun144948@gmail.com} & \href{https://github.com/sillyfellow21}{sillyfellow21} \\
+\bottomrule
+\end{tabularx}
+}
+
+In three days, five of us made \textbf{474 commits}. We worked in parallel through a shared board of \textbf{27 cross-team requests}, so frontend, backend and AI moved together instead of waiting on one another.
+
+\section{Links}
+
+\begin{itemize}
+  \item \textbf{Demo video (YouTube, unlisted):} [YOUTUBE\_UNLISTED\_LINK]
+  \item \textbf{GitHub repository:} \url{https://github.com/minuwu/TechTsunagu}
+  \item \textbf{Web app / landing page:} \url{https://mango-beach-001af4300.4.azurestaticapps.net}
+  \item \textbf{Android app (APK 1.0.3):} \url{https://wakattaapk71923.blob.core.windows.net/apk/wakatta-1.0.3.apk}
+\end{itemize}
+
+\vspace{1ex}
+{\footnotesize\textbf{Sources:} MHLW, 「外国人雇用状況」の届出状況まとめ（令和7年10月末時点）, 2026-01-30 \textperiodcentered{} Nagasaki Labour Bureau, 長崎県における「外国人雇用状況」の集計結果まとめ（令和7年10月末時点）, 2026-01-30 \textperiodcentered{} Sompo Risk Management, Report 277, 外国人労働者の労働災害の現状とその対策, 2025-09-17 \textperiodcentered{} MHLW, 第14次労働災害防止計画.\par}
+
+\end{document}

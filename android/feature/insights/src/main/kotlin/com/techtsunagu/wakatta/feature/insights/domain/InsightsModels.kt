@@ -46,8 +46,10 @@ data class AnalyticsData(
     val sent: Int,
     val understood: Int,
     val stats: LoopStats,
-    val timeSavedHours: Double,
-    val reworkAvoided: Int,
+    /** Approved AI drafts with no Foreman edit, 0..1; null when there is no data yet. */
+    val cleanAiShare: Double?,
+    /** Checks passed on the first try, 0..1; null when there is no data yet. */
+    val firstTryPassShare: Double?,
     val bars: List<WorkerBar>,
     val terms: List<TermStat>,
     val heatWorkers: List<WorkerRef>,

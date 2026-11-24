@@ -19,6 +19,7 @@
 
     <string name="chat_filter_all">All</string>
     <string name="chat_filter_unread">Unread</string>
+    <string name="chat_new_talk">New talk</string>
     <string name="chat_empty_threads">No chats yet</string>
     <string name="chat_members_count">%1$d members</string>
     <string name="chat_you_prefix">"You: "</string>

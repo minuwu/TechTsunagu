@@ -38,10 +38,9 @@
 
     <!-- Analytics -->
     <string name="insights_analytics_empty">Nothing to analyse yet. Numbers appear after Workers answer their first Checks.</string>
-    <string name="insights_kpi_time">Time saved (demo value)</string>
-    <string name="insights_kpi_rework">Rework avoided (demo value)</string>
-    <string name="insights_kpi_hours">%1$.1f h/week</string>
-    <string name="insights_kpi_cases">%1$d cases</string>
+    <string name="insights_kpi_clean_ai">AI drafts approved without edits</string>
+    <string name="insights_kpi_first_try">Checks passed first try</string>
+    <string name="insights_kpi_percent">%1$d%%</string>
     <string name="insights_trend_title">Understanding rate, 4 weeks</string>
     <string name="insights_trend_cd">Understanding rate trend over 4 weeks. This week: %1$d percent.</string>
     <string name="insights_week_3_ago">3 wk ago</string>

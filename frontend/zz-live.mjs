@@ -1,0 +1,15 @@
+import { chromium } from '@playwright/test'
+const b = await chromium.launch()
+const p = await b.newPage({ viewport: { width: 1440, height: 900 } })
+const errs = []
+p.on('pageerror', e => errs.push('PAGEERR ' + e.message.slice(0, 300)))
+p.on('console', m => ['error','warning'].includes(m.type()) && errs.push(m.type()+' '+m.text().slice(0, 300)))
+p.on('requestfailed', r => errs.push('FAIL ' + r.url().slice(0,120) + ' ' + r.failure()?.errorText))
+p.on('response', r => r.status() >= 400 && errs.push(r.status() + ' ' + r.url().slice(0, 120)))
+await p.goto('https://wakatta.web.app/foreman', { waitUntil: 'networkidle' })
+await p.waitForTimeout(4000)
+await p.getByLabel('Shop code').pressSequentially('SASEBO01', { delay: 50 })
+await p.waitForTimeout(500)
+console.log('disabled?', await p.getByRole('button', { name: 'Next' }).isDisabled())
+console.log(errs)
+await b.close()

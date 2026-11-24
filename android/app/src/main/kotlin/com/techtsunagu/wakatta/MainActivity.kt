@@ -4,6 +4,7 @@ import android.util.Log
 import android.widget.Toast
 import com.techtsunagu.wakatta.core.common.CrashGuard
 import android.content.Intent
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -85,6 +86,8 @@ class MainActivity : AppCompatActivity() {
             val dark = darkSetting ?: isSystemInDarkTheme()
             val density = LocalDensity.current
             SideEffect {
+                // Recreate (sign-in/out, locale) shows the window behind the UI for a frame: keep it the app colour, not black.
+                window.setBackgroundDrawable(ColorDrawable(if (dark) 0xFF0C1626.toInt() else 0xFFE4EFFB.toInt()))
                 WindowCompat.getInsetsController(window, window.decorView).run {
                     isAppearanceLightStatusBars = !dark
                     isAppearanceLightNavigationBars = !dark

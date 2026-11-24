@@ -65,7 +65,9 @@ test.describe('phone', () => {
     page,
   }) => {
     await page.goto('/demo')
-    await expect(page.getByText('Open this page on a computer')).toBeVisible()
+    await expect(
+      page.getByText('It works best on a computer', { exact: false }),
+    ).toBeVisible()
     await expect(page.locator('iframe')).toHaveCount(0)
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth - window.innerWidth,

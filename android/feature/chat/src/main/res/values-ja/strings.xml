@@ -19,6 +19,7 @@
 
     <string name="chat_filter_all">すべて</string>
     <string name="chat_filter_unread">未読</string>
+    <string name="chat_new_talk">新しい会話</string>
     <string name="chat_empty_threads">チャットはまだありません</string>
     <string name="chat_members_count">%1$d人のメンバー</string>
     <string name="chat_you_prefix">"あなた: "</string>

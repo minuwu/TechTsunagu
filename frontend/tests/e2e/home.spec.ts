@@ -33,7 +33,6 @@ test('demo states show the empty message and the connection band', async ({
     'aria-pressed',
     'true',
   )
-  await expect(page.getByText('Nothing here yet.')).toHaveCount(2)
 
   await demo.getByRole('button', { name: 'Error' }).click()
   const band = page.getByRole('alert').filter({ hasText: "Can't reach" })

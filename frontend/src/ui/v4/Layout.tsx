@@ -42,7 +42,12 @@ const ICONS = {
   home: 'M4 11.5 12 5l8 6.5V20h-5v-5h-6v5H4z',
   course: 'M5 4h9a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM9 8h5M9 12h5',
   demo: 'M3 5h18v12H3zM8 21h8M12 17v4M10 8.5v5l4-2.5z',
+  app: 'M7 3h10v18H7zM12 7v7M9 11l3 3 3-3M10 18h4',
 } as const
+
+// shortcut: the 1.0.3 release APK (GET /api/app/config downloadUrl), bump it when a new release ships
+const APK_URL =
+  'https://wakattaapk71923.blob.core.windows.net/apk/wakatta-1.0.3.apk'
 
 const TABS = [
   { to: '/', icon: 'home', label: m.tab_home, match: (p: string) => p === '/' },
@@ -65,7 +70,7 @@ function TabBar({ path, sound }: { path: string; sound: boolean }) {
   const active = TABS.findIndex((t) => t.match(path))
   return (
     <nav aria-label={m.tabs_label()} className="tabbar">
-      <ul className="grid grid-cols-3">
+      <ul className="grid grid-cols-4">
         {TABS.map((t, i) => (
           <li
             key={t.to}
@@ -76,7 +81,7 @@ function TabBar({ path, sound }: { path: string; sound: boolean }) {
               aria-current={i === active ? 'page' : undefined}
               onClick={() => sound && ping(i >= active)}
               className={cn(
-                'flex min-h-16 flex-col items-center justify-center gap-0.5 text-xs font-bold tracking-wider uppercase',
+                'flex min-h-16 flex-col items-center justify-center gap-0.5 text-center text-xs font-bold tracking-wider uppercase',
                 i === active
                   ? 'bg-primary text-primary-foreground'
                   : 'text-foreground hover:bg-foreground hover:text-background',
@@ -98,12 +103,33 @@ function TabBar({ path, sound }: { path: string; sound: boolean }) {
             </Link>
           </li>
         ))}
+        <li>
+          <a
+            href={APK_URL}
+            download
+            className="flex min-h-16 flex-col items-center justify-center gap-0.5 text-center text-xs font-bold tracking-wider text-foreground uppercase hover:bg-foreground hover:text-background"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              className="size-6"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.75"
+              strokeLinecap="square"
+              strokeLinejoin="miter"
+            >
+              <path d={ICONS.app} />
+            </svg>
+            {m.tab_app()}
+          </a>
+        </li>
       </ul>
     </nav>
   )
 }
 
-/** Desktop: the same three destinations as text links in the header. */
+/** Desktop: the same destinations as text links in the header, then the app download. */
 function HeaderLinks({ path, sound }: { path: string; sound: boolean }) {
   const active = TABS.findIndex((t) => t.match(path))
   return (
@@ -126,6 +152,15 @@ function HeaderLinks({ path, sound }: { path: string; sound: boolean }) {
             </Link>
           </li>
         ))}
+        <li>
+          <a
+            href={APK_URL}
+            download
+            className="flex min-h-11 items-center border-b-2 border-transparent text-sm font-semibold text-foreground transition-colors duration-300 hover:text-primary"
+          >
+            {m.tab_app()}
+          </a>
+        </li>
       </ul>
     </nav>
   )

@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material3.FilterChip
@@ -58,6 +59,7 @@ import com.techtsunagu.wakatta.feature.chat.model.ThreadUiModel
 fun ChatsScreen(
     onThreadClick: (String) -> Unit = {},
     onQrClick: () -> Unit = {},
+    onNewTalkClick: () -> Unit = {},
     viewModel: ChatsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -67,6 +69,7 @@ fun ChatsScreen(
         onEvent = viewModel::onEvent,
         onThreadClick = onThreadClick,
         onQrClick = onQrClick,
+        onNewTalkClick = onNewTalkClick,
     )
 }
 
@@ -77,6 +80,7 @@ fun ChatsContent(
     modifier: Modifier = Modifier,
     onThreadClick: (String) -> Unit = {},
     onQrClick: () -> Unit = {},
+    onNewTalkClick: () -> Unit = {},
 ) {
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -123,6 +127,14 @@ fun ChatsContent(
                         selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                         selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
                     ),
+                )
+                // action, not a filter: opens the Connect talk threads where "New talk" lives
+                FilterChip(
+                    selected = false,
+                    onClick = onNewTalkClick,
+                    label = { Text(text = stringResource(R.string.chat_new_talk)) },
+                    leadingIcon = { Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(FilterChipDefaults.IconSize)) },
+                    modifier = Modifier.sizeIn(minHeight = 48.dp),
                 )
             }
 

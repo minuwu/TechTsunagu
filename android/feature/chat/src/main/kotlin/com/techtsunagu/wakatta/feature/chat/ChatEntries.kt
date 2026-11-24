@@ -32,7 +32,8 @@ class ChatEntries @Inject constructor() : FeatureEntries {
         entry<ChatsKey> {
             ChatsScreen(
                 onThreadClick = { threadId -> navigator.push(threadKey(threadId)) },
-                onQrClick = { navigator.push(ConnectKey) },
+                onQrClick = { navigator.push(ConnectKey()) },
+                onNewTalkClick = { navigator.push(ConnectKey(newTalk = true)) },
             )
         }
         // Screen id: chat

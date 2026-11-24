@@ -51,9 +51,8 @@ class FakeAnalyticsRepository(
                 sent = sent,
                 understood = InsightsSeed.BASE_OK,
                 stats = stats,
-                // demo values from the prototype formulas; no endpoint yet (contract B-05)
-                timeSavedHours = Math.round((2.4 + 0.4 * stats.explained) * 10) / 10.0,
-                reworkAvoided = 3 + 2 * stats.understood + (stats.explained - stats.understood),
+                cleanAiShare = InsightsSeed.CLEAN_AI_SHARE,
+                firstTryPassShare = InsightsSeed.FIRST_TRY_PASS_SHARE,
                 bars = workers.map { w ->
                     val (g, o, r) = InsightsSeed.baseBars[w.id] ?: Triple(0, 0, 0)
                     WorkerBar(w.id, w.displayName, g, o, r)

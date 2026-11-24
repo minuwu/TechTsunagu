@@ -7,6 +7,10 @@ internal object InsightsSeed {
     const val MINUTES_PER_DAY = 1440L
     const val MILLIS_PER_DAY = MINUTES_PER_DAY * 60_000L
 
+    // Mock-mode values for the effort KPIs (GET /api/metrics/effort in live mode).
+    const val CLEAN_AI_SHARE = 0.72
+    const val FIRST_TRY_PASS_SHARE = 0.85
+
     class Confusion(val workerId: String, val term: String, val daysAgo: Int)
 
     class FollowUpSeed(

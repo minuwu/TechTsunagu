@@ -7,6 +7,18 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 
 > **Message from Asif (2026-11-23), read first:** [CHATBOT_FROM_ASIF.md](CHATBOT_FROM_ASIF.md) explains the chatbot (what it does, the API, the four screen states, "Ask my Senpai" vs "Safety Senpai") and three decisions that are **yours**: where the ask box goes, one bot or two names, and which half grows first. Answer in XREQ-016.
 
+## 2026-11-24 (Android 1.0.4: UI polish, release build)
+
+- Sign-in demo chips: the blue fill follows the picked account, not the Foreman role.
+- Home "Ask Wakatta" is a rounded card row (icon, left-aligned text, chevron) instead of a full pill.
+- Learning stats: the three cards share width and height.
+- Bottom bar: 68dp instead of M3's forced 80dp, so less empty space under the labels.
+- Chats: a "+ New talk" chip next to All / Unread opens the New talk dialog (`ConnectKey(newTalk = true)`).
+- Ask Wakatta chatbot: suggested questions above the input again (lost when the Home card moved to `ChatbotScreen` in `939dc9b`); the input rail now rises with the keyboard (`imePadding`).
+- Sign-in / sign-out no longer flash black during the activity recreate: `Theme.Wakatta` has a window background matching the surface.
+- Release **1.0.4** (versionCode 5) built in `android/release/`. **Anim:** please publish it with `backend/deploy/release-apk.ps1 wakatta-1.0.4.apk 1.0.4` and redeploy the web app from this `main` (frontend changes included).
+- Known: `SenpaiViewModelTest.saveMeetupLogsNewMeetup` fails; not touched by this work.
+
 ## 2026-11-24 (prototype demo: interactive story beside the two phones)
 
 - `prototypes/wakatta/index.html` is now a guided journey: a story rail on the left (Nekko as guide, 5 chapters, choices) and a "behind the scenes" rail on the right (AI pipeline, Wakatta Status, live feed). Logic is in `story.js`.

@@ -1,10 +1,9 @@
-import { useRef, type MouseEvent } from 'react'
+import { useRef } from 'react'
 import { Link } from '@tanstack/react-router'
 import { useGSAP } from '@gsap/react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { m } from '@/i18n/paraglide/messages'
-import { HeroArt } from '@/ui/v4/components/HeroArt'
 import { HeroFuji } from '@/ui/v4/components/HeroFuji'
 import { Journey } from '@/ui/v4/components/journey/Journey'
 import {
@@ -14,28 +13,13 @@ import {
 } from '@/ui/v4/components/Poster'
 import { buttonVariants } from '@/ui/v4/components/ui/button'
 import { uiLang } from '@/ui/v4/lib/format'
-import { MOTION_OK, scrollToSection, splashDelay } from '@/ui/v4/lib/motion'
-
-// The team as named in the proposal; the names are not translated, the roles are
-const TEAM = [
-  ['Mohammad Minhazul Abedin', m.home_role_minhaz],
-  ['Md. Asif Hossain', m.home_role_asif],
-  ['Md Zahidul Hoque Anim', m.home_role_anim],
-  ['Wakib Jahan Galib', m.home_role_galib],
-  ['Arjun Saha', m.home_role_arjun],
-] as const
+import { MOTION_OK, splashDelay } from '@/ui/v4/lib/motion'
 
 /** The headline splits at its first sentence break; the second half is the cobalt word group. */
 function splitHeadline(h: string): [string, string] {
   // the space after the break stays with the first half: English keeps it, Japanese has none
   const hit = /^(.+?[.。、，]\s*)(.+)$/.exec(h)
   return hit ? [hit[1]!, hit[2]!] : [h, '']
-}
-
-// An in-page link that glides with Lenis and hands focus to the section (href kept for no-JS)
-const glide = (id: string) => (e: MouseEvent<HTMLAnchorElement>) => {
-  e.preventDefault()
-  scrollToSection(id)
 }
 
 /** Landing motion (GSAP, only when motion is welcome, F-38): the hero settles in after the splash, blocks
@@ -171,32 +155,6 @@ export function Landing() {
               {lead}
               <span className="text-primary">{accent}</span>
             </h1>
-          </div>
-          <div data-hero>
-            <HeroArt className="max-h-72 border border-[var(--rule)] md:max-h-80" />
-          </div>
-          <div data-hero className="grid items-end gap-8 md:grid-cols-2">
-            <p className="max-w-[26rem] text-lg leading-relaxed text-pretty text-muted-foreground [word-break:auto-phrase]">
-              {m.home_lead()}
-            </p>
-            <div className="flex flex-wrap items-center gap-6">
-              <a
-                href="#demo"
-                onClick={glide('demo')}
-                data-fuji-cta
-                className={buttonVariants({ variant: 'default', size: 'lg' })}
-              >
-                {m.lp_cta_demo()}
-              </a>
-              <a
-                href="#how"
-                onClick={glide('how')}
-                data-fuji-how
-                className="min-h-11 content-center font-bold underline hover:text-primary"
-              >
-                {m.lp_cta_how()}
-              </a>
-            </div>
           </div>
         </div>
       </section>
@@ -356,20 +314,6 @@ export function Landing() {
         </div>
       </PosterSection>
 
-      <PosterSection label={m.home_label_team()}>
-        <div data-reveal>
-          <h2 className="poster-h2 mb-4 max-w-[14ch]">{m.home_team_h()}</h2>
-          <p className="mb-10 max-w-[40em] text-lg text-pretty text-muted-foreground">
-            {m.home_team_lead()}
-          </p>
-        </div>
-        <div data-reveal>
-          {TEAM.map(([name, role], i) => (
-            <PosterRow key={name} n={i + 1} title={name} sub={role()} />
-          ))}
-        </div>
-      </PosterSection>
-
       <section className="poster-grid min-h-[50vh]">
         <div className="poster-side">
           <p className="poster-label">{m.lp_label_access()}</p>
@@ -381,27 +325,18 @@ export function Landing() {
           <h2 className="poster-h1">{m.lp_demo_h()}</h2>
           <div className="flex flex-wrap items-end justify-between gap-6">
             <p className="max-w-[32rem] text-lg text-muted-foreground">
-              {m.hub_sub()}
+              {m.lp_demo_sub()}
             </p>
-            <div className="flex flex-wrap items-center gap-6">
-              <Link
-                to="/demo"
-                className="min-h-11 content-center font-bold underline hover:text-primary"
-              >
-                {m.tab_demo()}
-              </Link>
-              <a
-                href="#demo"
-                onClick={glide('demo')}
-                className={buttonVariants({
-                  variant: 'secondary',
-                  size: 'lg',
-                  className: '!px-10 !py-5',
-                })}
-              >
-                {m.lp_cta_demo()}
-              </a>
-            </div>
+            <Link
+              to="/demo"
+              className={buttonVariants({
+                variant: 'secondary',
+                size: 'lg',
+                className: '!px-10 !py-5',
+              })}
+            >
+              {m.lp_cta_demo()}
+            </Link>
           </div>
         </div>
       </section>

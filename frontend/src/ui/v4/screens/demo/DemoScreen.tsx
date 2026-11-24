@@ -1,5 +1,4 @@
 import { useSyncExternalStore } from 'react'
-import { Link } from '@tanstack/react-router'
 import { m } from '@/i18n/paraglide/messages'
 
 // The two-phone prototype, copied from prototypes/wakatta into public/
@@ -43,13 +42,13 @@ export function DemoScreen() {
       <div className="card-surface space-y-3 p-5 lg:hidden">
         <h2 className="font-bold">{m.demo_narrow_h()}</h2>
         <p className="text-muted-foreground">{m.demo_narrow()}</p>
-        <Link
-          to="/"
-          hash="demo"
+        {/* the prototype stacks the story above the phones on narrow screens */}
+        <a
+          href={PROTOTYPE}
           className="inline-block min-h-11 content-center font-bold text-primary underline"
         >
           {m.demo_narrow_link()}
-        </Link>
+        </a>
       </div>
     </section>
   )

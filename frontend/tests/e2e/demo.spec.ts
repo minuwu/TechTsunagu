@@ -17,20 +17,12 @@ async function unlock(page: Page, path: string, pin: string) {
   ).toBeVisible()
 }
 
-// Reset the demo store from the home page. A click before hydration does nothing, so retry until the
-// confirm dialog (kits that confirm a destructive action, F-30) or the done message appears.
+// Reset the demo store: the mock database lives in localStorage (services/mocks/store.ts), so drop it
+// and reload, and the next read seeds it again
 async function resetDemo(page: Page) {
   await page.goto('/')
-  const confirm = page
-    .getByRole('dialog')
-    .getByRole('button', { name: 'Reset demo' })
-  const done = page.getByText('Demo data reset.')
-  await expect(async () => {
-    await page.getByRole('button', { name: 'Reset demo' }).first().click()
-    await expect(confirm.or(done)).toBeVisible({ timeout: 1000 })
-  }).toPass()
-  if (await confirm.isVisible()) await confirm.click()
-  await expect(done).toBeVisible()
+  await page.evaluate(() => localStorage.removeItem('wakatta.demo.v1'))
+  await page.reload()
 }
 
 // Core loop from the plan: expired Worker is locked, passes the Check, Panel turns READY

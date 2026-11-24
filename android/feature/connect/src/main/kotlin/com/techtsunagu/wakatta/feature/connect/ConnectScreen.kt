@@ -51,6 +51,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -245,6 +248,7 @@ internal class ConnectViewModel @Inject constructor(
 
 @Composable
 internal fun ConnectScreen(
+    openNewTalk: Boolean = false,
     onScanClick: () -> Unit = {},
     onOpenThread: (String) -> Unit = {},
     viewModel: ConnectViewModel = hiltViewModel(),
@@ -254,6 +258,14 @@ internal fun ConnectScreen(
     val context = LocalContext.current
 
     LaunchedEffect(Unit) { viewModel.onEvent(ConnectEvent.Load) }
+    // from the Chats "New talk" chip: open the dialog once, after load so the notice flag is known
+    var newTalkHandled by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(openNewTalk, state.isLoading) {
+        if (openNewTalk && !newTalkHandled && !state.isLoading) {
+            newTalkHandled = true
+            viewModel.onEvent(ConnectEvent.NewTalk)
+        }
+    }
     LaunchedEffect(viewModel) {
         viewModel.effects.collectLatest { effect ->
             when (effect) {

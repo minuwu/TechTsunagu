@@ -102,14 +102,16 @@ internal class RealAnalyticsRepository(
             )
         } ?: emptyList()
 
+        val effort = (safeApiCall { api().effort() } as? AppResult.Success)?.value
+
         return AppResult.Success(
             AnalyticsData(
                 trend = weeklyTrend,
                 sent = sent,
                 understood = understood,
                 stats = fuStats,
-                timeSavedHours = -1.0, // Server does not provide hours saved; -1 renders as dash in KPI card
-                reworkAvoided = -1, // Server does not provide rework avoided; -1 renders as dash in KPI card
+                cleanAiShare = effort?.cleanAiShare,
+                firstTryPassShare = effort?.firstTryPassShare,
                 bars = bars,
                 terms = terms,
                 heatWorkers = heatWorkers,

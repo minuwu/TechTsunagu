@@ -181,7 +181,7 @@ private fun SignInForm(
     onUseLastShop: () -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        DemoAccounts(onPick = { onEvent(SignInEvent.PrefillDemo(it)) })
+        DemoAccounts(picked = state.selectedUser?.displayName, onPick = { onEvent(SignInEvent.PrefillDemo(it)) })
 
         Section {
             BiHeading(R.string.auth_si_title_ja, R.string.auth_si_title_en)
@@ -576,7 +576,7 @@ private fun NameRow(name: String, selected: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
-private fun DemoAccounts(onPick: (DemoAccount) -> Unit) {
+private fun DemoAccounts(picked: String?, onPick: (DemoAccount) -> Unit) {
     // Demo accounts stay folded away so picking one is a deliberate tap, not an accident.
     var open by rememberSaveable { mutableStateOf(false) }
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -606,14 +606,14 @@ private fun DemoAccounts(onPick: (DemoAccount) -> Unit) {
             )
         }
         AnimatedVisibility(open) {
-            DemoAccountChips(onPick)
+            DemoAccountChips(picked, onPick)
         }
         HorizontalDivider(Modifier.padding(top = 6.dp), color = MaterialTheme.colorScheme.outlineVariant)
     }
 }
 
 @Composable
-private fun DemoAccountChips(onPick: (DemoAccount) -> Unit) {
+private fun DemoAccountChips(picked: String?, onPick: (DemoAccount) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(
             stringResource(R.string.auth_si_demo_hint_ja) + " · " + stringResource(R.string.auth_si_demo_hint_en),
@@ -624,17 +624,19 @@ private fun DemoAccountChips(onPick: (DemoAccount) -> Unit) {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 pair.forEach { a ->
                     val foreman = a.role == Role.FOREMAN
+                    // Blue follows the account picked, not the role.
+                    val on = a.name == picked
                     Column(
                         Modifier
                             .weight(1f)
                             .background(
-                                if (foreman) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerLowest,
+                                if (on) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerLowest,
                                 RoundedCornerShape(20.dp),
                             )
                             .clickable { onPick(a) }
                             .padding(horizontal = 14.dp, vertical = 12.dp),
                     ) {
-                        val fg = if (foreman) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
+                        val fg = if (on) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
                         Text(
                             stringResource(if (foreman) R.string.auth_si_foreman_ja else R.string.auth_si_worker_ja) + " " +
                                 stringResource(if (foreman) R.string.auth_si_foreman_en else R.string.auth_si_worker_en),

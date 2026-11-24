@@ -38,10 +38,9 @@
 
     <!-- Analytics -->
     <string name="insights_analytics_empty">まだ分析するデータがありません。作業者が最初のチェックに答えると、数字が表示されます。</string>
-    <string name="insights_kpi_time">節約した時間（デモ値）</string>
-    <string name="insights_kpi_rework">手戻り防止（デモ値）</string>
-    <string name="insights_kpi_hours">%1$.1f 時間/週</string>
-    <string name="insights_kpi_cases">%1$d 件</string>
+    <string name="insights_kpi_clean_ai">修正なしで承認したAI下書き</string>
+    <string name="insights_kpi_first_try">チェック一発合格</string>
+    <string name="insights_kpi_percent">%1$d%%</string>
     <string name="insights_trend_title">理解度の推移（4週間）</string>
     <string name="insights_trend_cd">4週間の理解度の推移。今週は%1$dパーセントです。</string>
     <string name="insights_week_3_ago">3週前</string>
