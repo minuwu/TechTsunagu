@@ -319,3 +319,7 @@ Minhaz mapped the prototype (`prototypes/wakatta/`) and the frontend against `ma
 - Machines tab (Foreman): "Add machine" button (code + ja/en name), menu per card to rename or archive.
 - Backend (by me, with tests): `PATCH /api/machines/{id}` rename, `DELETE /api/machines/{id}` archive (soft delete, migration `9a4c6e2b8d13`), Worker may `POST /api/tasks` for themself only. Task Board FAB now shows for Workers too (no assignee picker).
 - **Anim:** deploy and run the migrations, XREQ-027. Until then rename, archive and the Worker FAB fail against the live API.
+
+## 2026-11-24: hackathon proposal draft
+
+- Added `submission/TechTsunagu_Proposal.md`, the proposal draft for the submission (problem, evidence, solution). Review and edit it there.
