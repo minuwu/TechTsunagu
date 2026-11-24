@@ -49,7 +49,7 @@ flowchart LR
 ```
 
 - One API process, one database, one AI provider. No queue, no Redis, no object storage: all state is in Postgres, so a restart loses nothing except in-memory rate-limit buckets.
-- Synchronous `def` endpoints on a sync SQLModel session ([ADR 0007](adr/0007-sync-fastapi-sqlmodel.md)). FastAPI runs them in AnyIO's thread pool (40 threads), so a slow AI call blocks its own thread, not the server.
+- Synchronous `def` endpoints on a sync SQLAlchemy session ([ADR 0007](adr/0007-sync-fastapi-sqlmodel.md)). FastAPI runs them in AnyIO's thread pool (40 threads), so a slow AI call blocks its own thread, not the server.
 - Real-time screens poll: Machine Panel every 2 s, Foreman board every 5 s. Both are single indexed reads (§6.6).
 - How it grows past one replica is in §15.3; nothing in this design blocks it.
 
@@ -156,8 +156,7 @@ Rules: display names are unique per shop among active users (the roster shows na
 ```
 backend/
   pyproject.toml, uv.lock          uv-managed, versions pinned at WS0
-  Dockerfile, .dockerignore        multi-stage, non-root, python:3.12-slim pinned by digest
-  docker-compose.yml               postgres 16 for dev (db) and tests (db_test)
+  Dockerfile, .dockerignore        multi-stage, non-root, python:3.12-slim-bookworm
   alembic.ini, migrations/         Alembic only (G-45)
   .env.example
   app/
@@ -169,15 +168,15 @@ backend/
     services/                      one file per area: rules, transactions, orchestration
     repositories/                  one file per area: every SQL query, always scoped
     domain/                        pure functions, stdlib only, no I/O
-    models/                        SQLModel table classes (never returned to clients)
+    models/                        SQLAlchemy table classes (never returned to clients)
     schemas/                       request/response models (the contract, camelCase)
-    ai/                            client.py (seam), gemini.py, fake.py, limiter.py, cache.py, pipelines
+    ai/                            client.py (seam), chains.py, gemini.py, groq.py, fake.py, schemas.py, evals (the runner with its cache and limits is services/ai_runner.py)
     prompts/                       <name>.v<N>.md, versioned in git (G-34)
     media.py                       upload validation, image re-encode
     cli.py                         operator commands: reset-pin
     seed.py                        demo data, `python -m app.seed --reset`
   tests/
-    domain/  repositories/  api/  ai/
+    domain/  db/  api/  ai/  schemas/  seed/
 ```
 
 Areas (router + service + repository each): `auth`, `users`, `machines` (incl. Presence and Panel), `notes`, `checks`, `board`, `shifts`, `skills` (Matrix, Passport, Heatmap), `glossary`, `briefings`, `receipts`, `near_misses`, `library`, `notices`, `events`, `asks`, `senpai`, `meetups`, `support_log`, `blobs`, `demo`.
@@ -201,16 +200,16 @@ Why: the rules the demo depends on (Sign-off validity, Lock, grading, Glossary l
 | Concern | Choice | Why |
 | :--- | :--- | :--- |
 | Runtime | Python 3.12, FastAPI, Uvicorn | ADR 0002 |
-| ORM | SQLModel (SQLAlchemy 2) sync sessions, psycopg 3 | ADR 0007 |
+| ORM | SQLAlchemy 2 (declarative, sync sessions), psycopg 3 | ADR 0007 |
 | Migrations | Alembic, autogenerate reviewed by hand | G-45 |
 | Settings | pydantic-settings | fail fast on missing env |
 | PIN hashing | **argon2id** via `argon2-cffi`, with a server-side pepper (HMAC-SHA256 of the PIN with `PIN_PEPPER` before hashing) | Engineering manual requires Argon2id or bcrypt; the standard library has no Argon2. **New dependency, needs team OK**; fallback is stdlib `hashlib.scrypt`. The pepper matters more than the hash: a 4–6 digit PIN space is small, so a leaked table without the pepper is useless. |
 | AI | `google-genai` SDK, structured output with Pydantic schemas | ADR 0001 |
 | Recurrence | `python-dateutil` (`rrulestr`) | RRULE parsing and expansion |
 | Calendar export | `icalendar` | correct escaping and folding for `.ics` |
-| Images | Pillow | re-encode uploads, strip EXIF (GPS) |
+| Images | standard library (`app/media.py`) | JPEG only, APP1 (EXIF, GPS) removed; no Pillow |
 | Multipart | `python-multipart` | FastAPI uploads |
-| Tooling | uv, ruff (`E,F,I,B,UP,S,ASYNC,T20,ERA`), pyright strict, import-linter, pytest, pytest-cov, httpx, Hypothesis | G-11, G-12 |
+| Tooling | uv, ruff (`E,F,I,B,UP,S,ASYNC,T20,ERA`), pyright strict, import-linter, pytest, pytest-cov, httpx2 | G-11, G-12 |
 
 Exact versions are pinned in `uv.lock` at WS0 after checking each package's current release; this file does not guess them.
 
@@ -528,7 +527,7 @@ Roles: F Foreman · W Worker · P Poster · D Panel device · S Senpai link · p
 
 | Method | Path | Role | Body → `data` |
 | :--- | :--- | :--- | :--- |
-| POST | `/demo/reset` | F, only when `DEMO_MODE=true` | re-runs the seed for the caller's shop only; audited |
+| — | not an endpoint | operator | the demo reset is `backend/deploy/reset-demo.ps1` (`SEED_ON_START=reset`), never a route |
 
 ### 9.4 Contract flow ([ADR 0006](adr/0006-code-first-openapi.md))
 FastAPI generates `docs/openapi.yaml` (`uv run python -m app.openapi > ../docs/openapi.yaml`) and the endpoint index of `docs/API_SPEC.md` (`uv run python -m app.openapi index`); a test fails when either is stale. WS0 lands every route above as a typed stub, so the frontend can generate types on day one. The stub has its real request and response models and returns a 501 `NOT_IMPLEMENTED` envelope. CI regenerates the file and fails on a diff.
@@ -618,7 +617,7 @@ The models and every budget live in one table, [`app/ai/chains.py`](../backend/a
 | Flyer photo | **JPEG only** (anything else → 415 "use JPEG") | **2 MB** in | the client re-encodes to JPEG; the server removes APP1 (EXIF, GPS) and stores ≤ 2 MB (`app/media.py`; decided 2026-11-23, XREQ-009 item 5: no Pillow) |
 | Near-miss photo | JPEG only | 2 MB in | same |
 
-A 10 MB body limit applies before multipart parsing. Pillow's decompression-bomb guard stays on (`Image.MAX_IMAGE_PIXELS`).
+A 10 MB body limit applies before multipart parsing. Photos are never decoded on the server, so there is no decompression bomb.
 
 ---
 
@@ -632,7 +631,7 @@ A 10 MB body limit applies before multipart parsing. Pillow's decompression-bomb
 | Answer leak | Worker response models have no `correctIndex`; a test asserts that the field is absent in every Worker-facing schema. |
 | Senpai links | 128-bit, hashed, expiring, revocable, one active per Worker; `Referrer-Policy: no-referrer`; a wrong token is 404. |
 | CORS | only the origins in `FRONTEND_ORIGIN` (exact, comma-separated: local dev and the hosted frontend); methods `GET, POST, PUT, PATCH, DELETE`; headers `Authorization, Content-Type, Idempotency-Key, If-Match, If-None-Match, X-Request-ID` (a test checks that every header in the contract is allowed); no credentials. |
-| Headers | `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`, `Cache-Control: no-store` on authenticated JSON. |
+| Headers | `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`, `Cache-Control: no-store` on every signed-in response; ETag routes answer `no-cache`, photos `private, max-age=3600`. |
 | Database role | the app connects as `wakatta_app`. It has DML on the app tables, no DDL, and only `insert, select` on `audit_events`. Migrations run as `wakatta_owner`. The `public` schema is revoked from `PUBLIC`. |
 | Secrets | env only (`DATABASE_URL`, `MIGRATION_DATABASE_URL`, `PIN_PEPPER`, `GEMINI_API_KEY`); `.env.example` lists every variable with a dummy value; gitleaks in CI (G-37). |
 | Personal data (APPI) | names, language, Check results, Asks. Audio is never stored. Photos have EXIF removed. No PII, Ask text, prompts or answers in logs. Deactivating a Worker keeps their Sign-off history (safety record) but ends their sessions. **Retention:** support records (Asks forwarded, Senpai replies, Meet-ups, Notice receipts) must be kept at least 1 year after the Worker's 特定技能 employment contract ends (特定技能基準省令 第2条第2項第3号, [research.md §1.2](../contributors/asif/founder/research.md)), so nothing tied to a Worker is deleted before that; a deletion job after that is post-hackathon. |
@@ -642,8 +641,8 @@ A 10 MB body limit applies before multipart parsing. Pillow's decompression-bomb
 
 ## 13. Observability
 
-- JSON logs to stdout: one line per request (method, route template, status, latency, request id, user id, role, shop id). `X-Request-ID` is generated if absent and returned.
-- One line per AI call: pipeline, prompt version, model, latency, cache hit, outcome (`ok`, `retried`, `fallback_seed`, `degraded`, `budget_exhausted`), daily calls used. No prompt, answer or user text.
+- JSON logs to stdout: one line per request (method, route template, status, latency, request id; no user data). `X-Request-ID` is generated if absent and returned.
+- AI trouble is logged per pipeline: `ai limiter busy`, `ai budget exhausted`, `ai unavailable`, `ai answered by backup`, `ai user limit reached`, `ai degraded`. No prompt, answer or user text. Daily calls per model are in `ai_usage`.
 - Login events go to `audit_events` (success and failure, never the PIN).
 - `GET /api/health` liveness (no DB); `GET /api/health/ready` runs `select 1` (readiness probe).
 - Exceptions are logged once with the request id and re-raised to the handler; nothing is swallowed.
@@ -655,12 +654,12 @@ A 10 MB body limit applies before multipart parsing. Pillow's decompression-bomb
 | Suite | What | How |
 | :--- | :--- | :--- |
 | `tests/domain` | §7: validity windows (89/90/91 days, the 14-day edge), new version invalidates, grading (length, range, all-correct), Glossary lock (passing, missing term, Bengali suffix, term found only by `reading`), RRULE (Mon/Thu weekly, invalid, past), Ask grounding | plain pytest; Hypothesis for grading and validity |
-| `tests/repositories` | **isolation**: with two seeded shops and two districts, every repository read and write with shop A's principal never returns or touches shop B's rows; composite FKs reject cross-shop references | real Postgres |
+| `tests/api/test_route_guard.py`, `tests/db` | **isolation**: with two seeded shops and two districts, every repository read and write with shop A's principal never returns or touches shop B's rows; composite FKs reject cross-shop references | real Postgres |
 | `tests/api` | every route: success, 422, the 401/403/404 guard matrix (§3.3), idempotent repeat returns the same row; Review focus 1–8 from the plan as named tests; `VERSION_CHANGED` race; approval by two Foremen at once | real Postgres (`db_test` locally, service container in CI), each test in a rolled-back transaction, `FakeAiClient` |
 | `tests/ai` | each pipeline: valid; invalid then fixed; invalid twice → degraded; timeout → seed; cache hit skips the client; daily budget exhausted → no call; daily-quota 429 → no retry | `FakeAiClient` scripted per test |
 | contract | `docs/openapi.yaml` equals the generated schema; no Worker schema has `correctIndex` | CI |
 | `tests/domain` additions | wording change keeps Sign-offs valid, safety change expires them; an active Override turns the Panel `override` and ends on time; Glossary lock for a `vi` shop | plain pytest |
-| `tests/load/poll.py` | §8.5 budgets: 30 Panels + 5 boards polling, 2 AI drafts (fake AI with a 10 s delay); prints p50/p95 per path | `httpx` (already a test dependency) with threads; run against the Azure server before demo day |
+| `tests/load/poll.py` (**not built**) | §8.5 budgets: 30 Panels + 5 boards polling, 2 AI drafts (fake AI with a 10 s delay); prints p50/p95 per path | `httpx` (already a test dependency) with threads; run against the Azure server before demo day |
 | `app.ai.eval` | §10.6 quality numbers | live model, manual run, not in CI |
 
 Coverage target 80% on `domain`, `services`, `repositories`, `ai` (G-22). CI `backend-ci.yml`: ruff → pyright → import-linter → pytest with a coverage floor of 80% (which also diffs `docs/openapi.yaml`). `secret-scan.yml` runs gitleaks over the whole history on every PR and push to `main`.
