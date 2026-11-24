@@ -27,10 +27,10 @@
     <string name="chat_voice_message">Voice message</string>
     <string name="chat_read_aloud">Read aloud</string>
 
-    <string name="chat_auto_send_countdown">%1$d s to send · Tap to send now</string>
+    <string name="chat_auto_send_countdown">Sending in %1$d s · Tap to edit</string>
     <string name="chat_cancel">Cancel</string>
     <string name="chat_editing">Editing message</string>
-    <string name="chat_listening">Listening… speak now</string>
+    <string name="chat_listening">Listening…</string>
     <string name="chat_input_placeholder">Type a message…</string>
     <string name="chat_send">Send</string>
     <string name="chat_mic">Voice input</string>
@@ -91,4 +91,12 @@
     <string name="chat_wk_read">Read</string>
     <string name="chat_wk_unread">Unread</string>
     <string name="chat_wk_questions">Check questions (%1$d)</string>
+    <string name="chat_wk_ing_1">Transcribing</string>
+    <string name="chat_wk_ing_2">Translating to English</string>
+    <string name="chat_wk_ing_3">Writing check questions</string>
+    <string name="chat_wk_ing_4">Extracting tasks</string>
+    <string name="chat_wk_ing_5">Sending to workers</string>
+    <string name="chat_wk_ing_6">Waiting for answers</string>
+    <string name="chat_wk_answers">Worker answers</string>
+    <string name="chat_sending">Sending…</string>
 </resources>
