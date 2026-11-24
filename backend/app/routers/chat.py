@@ -29,6 +29,7 @@ from app.schemas.chat import (
     TaskOut,
     TaskUpdate,
     ThreadOut,
+    UnansweredCheck,
 )
 from app.schemas.common import IdIn
 from app.services import chat
@@ -117,6 +118,11 @@ def send_message(
     who: Foreman, message_id: IdIn, body: SendIn, db: DbSession, request: Request, later: BackgroundTasks
 ) -> Envelope[MessageForSender]:
     return Envelope(data=_pushed(request, later, db, who, chat.send(db, who, int(message_id), body, now_utc())))
+
+
+@router.get("/messages/unanswered", summary="Your unanswered Checks across your Threads, newest first (at most 100)")
+def unanswered(who: Worker, db: DbSession) -> Envelope[list[UnansweredCheck]]:
+    return Envelope(data=chat.unanswered(db, who))
 
 
 @router.post("/messages/{message_id}/answers", summary="Answer a message's questions (-1 = not sure) → Wakatta Status")

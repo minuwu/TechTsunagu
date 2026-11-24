@@ -2244,6 +2244,24 @@ export type EnvelopeListThreadOut = {
 };
 
 /**
+ * Envelope[list[UnansweredCheck]]
+ */
+export type EnvelopeListUnansweredCheck = {
+    /**
+     * Success
+     */
+    success?: true;
+    /**
+     * Data
+     */
+    data: Array<UnansweredCheck>;
+    /**
+     * Message
+     */
+    message?: string;
+};
+
+/**
  * EventOccurrence
  */
 export type EventOccurrence = {
@@ -3004,6 +3022,10 @@ export type MessageForSender = {
     sentAt: string | null;
     event?: SystemEvent | null;
     /**
+     * Fromdisplayname
+     */
+    fromDisplayName?: string | null;
+    /**
      * Questions
      */
     questions: Array<CheckQuestion>;
@@ -3076,6 +3098,10 @@ export type MessageForWorker = {
      */
     sentAt: string | null;
     event?: SystemEvent | null;
+    /**
+     * Fromdisplayname
+     */
+    fromDisplayName?: string | null;
     /**
      * Questions
      */
@@ -3908,6 +3934,20 @@ export type Passport = {
 };
 
 /**
+ * PersonOut
+ */
+export type PersonOut = {
+    /**
+     * Userid
+     */
+    userId: string;
+    /**
+     * Displayname
+     */
+    displayName: string;
+};
+
+/**
  * PhotoMark
  *
  * Where the danger is on the photo: fractions of its width and height (0 to 1).
@@ -4653,6 +4693,14 @@ export type TaskOut = {
      */
     fromMessageId: string | null;
     /**
+     * Fromthreadid
+     */
+    fromThreadId?: string | null;
+    /**
+     * Assignees
+     */
+    assignees?: Array<PersonOut>;
+    /**
      * Version
      */
     version: number;
@@ -4808,6 +4856,10 @@ export type ThreadOut = {
      * Archived
      */
     archived?: boolean;
+    /**
+     * Displaytitle
+     */
+    displayTitle?: string;
 };
 
 /**
@@ -4852,6 +4904,30 @@ export type TodayWord = {
      * Meaningja
      */
     meaningJa: string;
+};
+
+/**
+ * UnansweredCheck
+ *
+ * GET /messages/unanswered: a sent message whose Check the caller has not answered yet.
+ */
+export type UnansweredCheck = {
+    /**
+     * Messageid
+     */
+    messageId: string;
+    /**
+     * Threadid
+     */
+    threadId: string;
+    /**
+     * Sentat
+     */
+    sentAt: string;
+    /**
+     * Deadline
+     */
+    deadline: string | null;
 };
 
 /**
@@ -7114,6 +7190,22 @@ export type SendMessageApiMessagesMessageIdSendPostResponses = {
 };
 
 export type SendMessageApiMessagesMessageIdSendPostResponse = SendMessageApiMessagesMessageIdSendPostResponses[keyof SendMessageApiMessagesMessageIdSendPostResponses];
+
+export type UnansweredApiMessagesUnansweredGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/messages/unanswered';
+};
+
+export type UnansweredApiMessagesUnansweredGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeListUnansweredCheck;
+};
+
+export type UnansweredApiMessagesUnansweredGetResponse = UnansweredApiMessagesUnansweredGetResponses[keyof UnansweredApiMessagesUnansweredGetResponses];
 
 export type AnswerMessageApiMessagesMessageIdAnswersPostData = {
     body: AnswersIn;
