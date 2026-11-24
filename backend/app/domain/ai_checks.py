@@ -54,6 +54,24 @@ def glossary_problems(
     return problems
 
 
+def _mentions(text: str, word: str, lang: str) -> bool:
+    if lang in LATIN:  # whole words: "burr" is not in "burry"
+        return re.search(rf"\b{re.escape(word)}\b", text, re.IGNORECASE) is not None
+    return _contains(text, word, lang)
+
+
+def translation_problems(source: str, ja: str, glossary: Sequence[GlossaryTerm], lang: str) -> list[str]:
+    """A Worker's message translated into Japanese (XREQ-007): when the source names a shop word by its fixed
+    translation or its romaji (「set-up (dandori)」 → "set-up" or "dandori"), the Japanese uses the shop's own word."""
+    problems: list[str] = []
+    for term in glossary:
+        fixed = term.translations.get(lang, "")
+        words = [w.strip(" )") for w in fixed.split(" (")] if fixed else []
+        if any(w and _mentions(source, w, lang) for w in words) and _nfkc(term.ja) not in _nfkc(ja):
+            problems.append(f"Translate 「{fixed}」 as the shop word 「{term.ja}」.")
+    return problems
+
+
 def language_problems(texts: Sequence[AiTri], languages: Collection[str]) -> list[str]:
     """Every text is written in ja and in each of the shop's languages (shops.languages, XREQ-011 item 5)."""
     missing = sorted({lang for t in texts for lang in languages if not (getattr(t, lang) or "").strip()})

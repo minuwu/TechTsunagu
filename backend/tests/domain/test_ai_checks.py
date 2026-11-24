@@ -25,6 +25,7 @@ from app.domain.ai_checks import (
     reexplain_problems,
     task_problems,
     terms_in_scope,
+    translation_problems,
 )
 
 FIXTURES = Path(__file__).parents[1] / "fixtures" / "ai"
@@ -226,3 +227,18 @@ def test_question_options_are_compared_only_in_the_languages_they_are_written_in
     q = AiQuestion(term_ja=None, prompt=AiTri(ja="何か所?", en="How many?"), options=en_only, correct_index=1)
 
     assert question_problems([q], GLOSSARY) == []
+
+
+@pytest.mark.parametrize(
+    ("source", "ja", "ok"),
+    [
+        ("The set-up of press 2 is done", "2号プレスの準備が終わりました", False),  # 「段取り」 lost
+        ("The set-up of press 2 is done", "2号プレスの段取りが終わりました", True),
+        ("dandori finished", "終わりました", False),  # the romaji counts too
+        ("My burry glove", "手袋", True),  # whole words only in Latin script
+        ("আমার মাপ ভুল", "寸法が違います", True),
+    ],
+)
+def test_a_translation_into_japanese_keeps_the_shop_word(source: str, ja: str, ok: bool) -> None:
+    lang = "bn" if "মাপ" in source else "en"
+    assert (translation_problems(source, ja, GLOSSARY, lang) == []) is ok

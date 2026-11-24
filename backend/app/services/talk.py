@@ -127,7 +127,7 @@ def _limit(db: Session, me: int, now: datetime) -> None:
 def _explain(
     ai: AiRunner, me: int, text: str | None, audio: bytes | None, mime: str | None, lang: str, now: datetime
 ) -> UtteranceExplanation | None:
-    part = Part.blob(audio, mime) if audio and mime else Part.text(f"<what_was_said>{text}</what_was_said>")
+    part = Part.blob(audio, mime, lang) if audio and mime else Part.text(f"<what_was_said>{text}</what_was_said>")
     request = AiRequest(
         pipeline="explain_utterance",
         prompt=render("explain_utterance", EXPLAIN_PROMPT_VERSION, language=LANGUAGE_NAMES.get(lang, "English")),

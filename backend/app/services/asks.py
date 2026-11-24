@@ -131,7 +131,9 @@ def create(
         prompt=render(
             "answer_ask", ASK_PROMPT_VERSION, notices=block or "(none)", glossary="[]", languages=", ".join(languages)
         ),
-        parts=[Part.blob(audio, mime)] if audio and mime else [Part.text(f"<worker_question>{text}</worker_question>")],
+        parts=[Part.blob(audio, mime, language)]
+        if audio and mime
+        else [Part.text(f"<worker_question>{text}</worker_question>")],
         schema=AskDraft,
         scope=f"shop:{shop_id}",
         cache_input=(audio or (text or "").encode()) + hashlib.sha256((block + ",".join(languages)).encode()).digest(),

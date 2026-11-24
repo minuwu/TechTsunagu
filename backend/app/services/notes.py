@@ -91,7 +91,7 @@ def create_draft(
     db.commit()  # end the read transaction: nothing is held open during the model call (§8.3)
 
     glossary = _glossary_block(terms)
-    parts = [Part.blob(audio, mime)] if audio and mime else [Part.text(f"<foreman_input>{text}</foreman_input>")]
+    parts = [Part.blob(audio, mime, "ja")] if audio and mime else [Part.text(f"<foreman_input>{text}</foreman_input>")]
     request = AiRequest(
         pipeline="build_note",
         prompt=render(

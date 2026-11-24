@@ -27,14 +27,16 @@ class Part:
     text_value: str | None = None
     data: bytes | None = None
     mime: str | None = None
+    # The language spoken in a recording, for a separate transcriber (Whisper); None = let it detect.
+    language: str | None = None
 
     @classmethod
     def text(cls, value: str) -> Self:
         return cls(text_value=value)
 
     @classmethod
-    def blob(cls, data: bytes, mime: str) -> Self:
-        return cls(data=data, mime=mime)
+    def blob(cls, data: bytes, mime: str, language: str | None = None) -> Self:
+        return cls(data=data, mime=mime, language=language)
 
 
 class AiClient(Protocol):

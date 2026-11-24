@@ -48,6 +48,22 @@ def test_audio_is_transcribed_first_and_the_model_gets_the_transcript() -> None:
     assert seen[0].headers["Authorization"] == "Bearer test-key"
 
 
+@pytest.mark.parametrize(("language", "sent"), [("bn", b'name="language"\r\n\r\nbn'), (None, None)])
+def test_whisper_hears_the_speakers_language_or_detects_it(language: str | None, sent: bytes | None) -> None:
+    """A Worker's Bengali recording must not be transcribed as Japanese (XREQ-007 seam)."""
+
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        if request.url.path.endswith("/audio/transcriptions"):
+            return httpx2.Response(200, text="আমার ফ্যান নষ্ট")
+        return _chat('{"word": "ok"}')
+
+    client, seen = _client(handler)
+    client.generate(PROMPT, [Part.blob(b"OggS...", "audio/ogg", language)], Echo)
+
+    form = seen[0].content
+    assert (sent in form) if sent else (b'name="language"' not in form)
+
+
 def test_text_goes_straight_to_the_model() -> None:
     client, seen = _client(lambda _: _chat('{"word": "hi"}'))
 

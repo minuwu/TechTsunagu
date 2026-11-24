@@ -7,6 +7,7 @@ not in is a 403. Workers never get `correctIndex`."""
 import hashlib
 import json
 import uuid
+from collections.abc import Sequence
 from datetime import datetime, timedelta
 from typing import Literal
 
@@ -18,7 +19,7 @@ from app.ai.schemas import AiQuestion, MessageDraft, Reexplanation, Translation
 from app.api.errors import ApiError
 from app.api.pagination import Page, PageParams, encode_cursor
 from app.domain.ai_checks import GlossaryTerm as AiTerm
-from app.domain.ai_checks import message_problems, reexplain_problems
+from app.domain.ai_checks import message_problems, reexplain_problems, translation_problems
 from app.domain.chat import can_move, missed, wakatta_status
 from app.domain.recurrence import TOKYO
 from app.media import audio_mime
@@ -265,7 +266,12 @@ def to_japanese(
     caller: str,
     now: datetime,
     over_limit: Literal["refuse", "degrade"] = "degrade",
+    *,
+    terms: Sequence[AiTerm] = (),
+    text: str | None = None,
 ) -> str | None:
+    """With the shop glossary, a typed message keeps its shop words in Japanese (one retry when it does not)."""
+    glossary = _glossary_block(list(terms)) if terms else "[]"
     request = AiRequest(
         pipeline="translate",
         prompt=render(
@@ -273,16 +279,16 @@ def to_japanese(
             PROMPT_VERSION,
             source_lang=LANGUAGE_NAMES.get(source, source),
             target_lang="Japanese",
-            glossary="[]",
+            glossary=glossary,
         ),
         parts=parts,
         schema=Translation,
         scope=scope,
-        cache_input=key,
+        cache_input=key + glossary.encode(),
         caller=caller,
         over_limit=over_limit,
     )
-    result = ai.run(request, lambda _: [], now)
+    result = ai.run(request, lambda r: translation_problems(text, r.text, terms, source) if text else [], now)
     return result.value.text if result.value else None
 
 
@@ -307,20 +313,24 @@ def post_message(
     if bool(text) == bool(audio):
         raise ApiError(422, "VALIDATION_ERROR", "Send text or a recording, not both", {"fields": [{"loc": ["body"]}]})
     mime = audio_mime(audio) if audio else None
-    source = [Part.blob(audio, mime)] if audio and mime else []
+    own = next((u.language for u in repo.members(db, shop_id, t.id) if u.id == user_id), "en")
+    language = "ja" if who.role == "foreman" else own
+    source = [Part.blob(audio, mime, language)] if audio and mime else []
     if who.role == "foreman":
         return _draft(db, who, t, text, source, audio, key, ai, now)
 
-    language = next((u.language for u in repo.members(db, shop_id, t.id) if u.id == user_id), "en")
+    terms = _glossary(db, shop_id)
     db.commit()  # no transaction is held during the model call (§8.3)
-    if language == "ja":
+    if language == "ja" and not audio:  # typed Japanese needs no model; a Japanese recording still needs its words
         text_ja = text
     else:
         parts = source or [Part.text(f"<source_text>{text}</source_text>")]
         source_bytes, caller = audio or (text or "").encode(), f"user:{user_id}"
         # A typed message is sent untranslated over the limit; a recording would arrive empty, so it is refused (429).
         over_limit = "refuse" if audio else "degrade"
-        text_ja = to_japanese(ai, parts, language, f"shop:{shop_id}", source_bytes, caller, now, over_limit)
+        text_ja = to_japanese(
+            ai, parts, language, f"shop:{shop_id}", source_bytes, caller, now, over_limit, terms=terms, text=text
+        )
     row = Message(
         shop_id=shop_id,
         thread_id=t.id,
