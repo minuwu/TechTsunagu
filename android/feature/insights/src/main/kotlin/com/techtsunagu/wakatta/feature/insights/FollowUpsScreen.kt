@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -55,12 +56,18 @@ fun FollowUpsContent(
         onRetry = { onEvent(FollowUpsEvent.Retry) },
         modifier = modifier,
     ) {
-        state.data?.let { FollowUpsList(it, state.filter, onEvent) }
+        state.data?.let { FollowUpsList(it, state.filter, onEvent, state.clarifying, state.clarifyError != null) }
     }
 }
 
 @Composable
-private fun FollowUpsList(data: FollowUpsData, filter: FollowUpStatus, onEvent: (FollowUpsEvent) -> Unit) {
+private fun FollowUpsList(
+    data: FollowUpsData,
+    filter: FollowUpStatus,
+    onEvent: (FollowUpsEvent) -> Unit,
+    clarifying: Set<String> = emptySet(),
+    clarifyFailed: Boolean = false,
+) {
     val shown = data.items.filter { it.status == filter }
     LazyColumn(
         modifier = Modifier.fillMaxWidth(),
@@ -80,6 +87,15 @@ private fun FollowUpsList(data: FollowUpsData, filter: FollowUpStatus, onEvent: 
                 }
             }
         }
+        if (clarifyFailed) {
+            item(key = "clarify_error", contentType = "error") {
+                Text(
+                    text = stringResource(R.string.insights_followup_clarify_failed),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
+        }
         if (shown.isEmpty()) {
             item(key = "none", contentType = "none") {
                 Text(
@@ -91,13 +107,15 @@ private fun FollowUpsList(data: FollowUpsData, filter: FollowUpStatus, onEvent: 
                 )
             }
         }
-        items(shown, key = { it.id }, contentType = { "followup" }) { FollowUpRow(it) }
+        items(shown, key = { it.id }, contentType = { "followup" }) {
+            FollowUpRow(it, clarifying = it.id in clarifying, onClarify = { onEvent(FollowUpsEvent.Clarify(it.id)) })
+        }
         item(key = "value", contentType = "value") { ValueCard(data.stats) }
     }
 }
 
 @Composable
-private fun FollowUpRow(item: FollowUp) {
+private fun FollowUpRow(item: FollowUp, clarifying: Boolean = false, onClarify: () -> Unit = {}) {
     WakattaCard(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.padding(12.dp),
@@ -117,6 +135,12 @@ private fun FollowUpRow(item: FollowUp) {
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.error,
                     )
+                }
+                // M10: the Foreman explained it; the Worker's next right answer makes it understood
+                if (item.status == FollowUpStatus.OPEN) {
+                    OutlinedButton(onClick = onClarify, enabled = !clarifying, modifier = Modifier.padding(top = 4.dp)) {
+                        Text(stringResource(R.string.insights_followup_clarified_button))
+                    }
                 }
             }
             Column(horizontalAlignment = Alignment.End) {
