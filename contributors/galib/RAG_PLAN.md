@@ -29,6 +29,19 @@ One bot for Work and Life: `POST /api/knowledge/asks` (Worker; text or voice; op
 - Also fixed on the way: the Gemini SDK's own retries cost ~10 s per busy model, so `gemini.py` now makes one attempt
   and lets `AiRunner` fail over (a busy model fails in ~2 s).
 
+**Since then (2026-11-23 night to 11-24):**
+- **Screens:** web (v4) floating "Ask Wakatta" button on the Worker Work and Life tabs and the Machine screen
+  (`frontend/src/ui/v4/components/Chatbot.tsx`); Android data layer `ChatbotViewModel` in `feature/asks` (G4); the
+  Android screen is Minhaz's (M7).
+- **Japanese + English only** (team decision): the demo shops are `{en}`, so answers carry no Bengali.
+- **Search:** Japanese questions are searched with their English translation only (Japanese character pairs such as
+  「ください」 matched unrelated guide pages).
+- **Eval:** `app/ai/eval_chatbot.py`, 18 cases through the real route (`docs/ai-eval-chatbot.md`). Every answer a model
+  gave was correct and cited; 0 wrong or made-up answers; the injection, off-topic and typhoon questions (the guide's
+  text has no typhoon section) stayed not covered; both emergencies got the fixed card. Gemini 503s left some rows
+  unanswered, so a clean table needs a rerun on a calm Gemini.
+- **Speed:** every AI request now ends within ~25 s (15 s a model), then answers "not covered" rather than hang.
+
 The sections below are the full plan this v1 came from; phases 2–3 (pgvector, OCR of the manga materials, history)
 remain for after the hackathon.
 
