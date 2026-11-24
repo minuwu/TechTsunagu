@@ -279,6 +279,17 @@ internal class RealConnectRepository(
         }
     }
 
+    // A poll with `after=` does not report a deletion, so the cached page is dropped and the next read is whole
+    override suspend fun deleteMessage(contactId: String, messageId: String): AppResult<Unit> {
+        val realId = contactId.removePrefix(PersonalThreadIds.CONTACT_PREFIX)
+        return safeApiCallUnit { api().deleteMessage(realId, messageId) }.also { cache.evict(messagesKey(realId)) }
+    }
+
+    override suspend fun clearMessages(contactId: String): AppResult<Unit> {
+        val realId = contactId.removePrefix(PersonalThreadIds.CONTACT_PREFIX)
+        return safeApiCallUnit { api().clearMessages(realId) }.also { cache.evict(messagesKey(realId)) }
+    }
+
     override suspend fun sendMessage(contactId: String, text: String, srcLang: String): AppResult<ContactMessageDto> {
         if (text.isBlank()) return AppResult.Failure(AppError.Validation(listOf("text")))
         val realId = contactId.removePrefix(PersonalThreadIds.CONTACT_PREFIX)

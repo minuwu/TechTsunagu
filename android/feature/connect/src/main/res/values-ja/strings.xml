@@ -103,4 +103,9 @@
     <string name="connect_err_rate_limited">リクエストが多すぎます。しばらく待ってから再試行してください。</string>
     <string name="connect_err_already_connected">この連絡先はすでに追加されています。</string>
     <string name="connect_err_unknown">問題が起きました。もう一度お試しください。何度も起きるときは親方に伝えてください。</string>
+    <string name="connect_clear_chat">このチャットを削除</string>
+    <string name="connect_msg_delete_title">このメッセージを削除しますか？</string>
+    <string name="connect_msg_delete_body">送ったメッセージは相手からも消えます。受け取ったメッセージは自分の画面からだけ消えます。</string>
+    <string name="connect_clear_title">このチャットを削除しますか？</string>
+    <string name="connect_clear_body">送ったものはすべて相手からも消えます。受け取ったものは自分の画面からだけ消えます。</string>
 </resources>

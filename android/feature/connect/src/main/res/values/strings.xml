@@ -103,4 +103,9 @@
     <string name="connect_err_rate_limited">Too many requests. Please wait a moment and try again.</string>
     <string name="connect_err_already_connected">This person is already in your contacts.</string>
     <string name="connect_err_unknown">Something went wrong. Try again. If it keeps happening, tell your Foreman.</string>
+    <string name="connect_clear_chat">Delete this chat</string>
+    <string name="connect_msg_delete_title">Delete this message?</string>
+    <string name="connect_msg_delete_body">A message you sent is deleted for both of you. One you received is deleted only on your phone.</string>
+    <string name="connect_clear_title">Delete this chat?</string>
+    <string name="connect_clear_body">Everything you sent is deleted for both of you. What you received is deleted only on your phone.</string>
 </resources>

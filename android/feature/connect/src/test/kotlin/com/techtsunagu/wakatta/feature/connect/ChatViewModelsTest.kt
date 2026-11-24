@@ -123,6 +123,26 @@ class ChatViewModelsTest {
     }
 
     @Test
+    fun contactChatDeletesAMessageThenTheWholeChat() = runTest { // ADR 0014
+        val vm = PChatViewModel(repo, repo)
+        vm.onEvent(PChatEvent.Init(contactId(), "en"))
+        val first = vm.state.value.messages.first().id
+
+        vm.onEvent(PChatEvent.AskDelete(first))
+        assertEquals(first, vm.state.value.confirmDelete)
+        vm.onEvent(PChatEvent.ConfirmDelete)
+        assertTrue(vm.state.value.messages.none { it.id == first })
+        assertTrue(repo.getMessages(contactId()).value().none { it.id == first })
+
+        vm.onEvent(PChatEvent.SetInput("Thank you"))
+        vm.onEvent(PChatEvent.Send)
+        vm.onEvent(PChatEvent.AskClear)
+        vm.onEvent(PChatEvent.ConfirmClear)
+        assertTrue(vm.state.value.messages.isEmpty())
+        assertFalse(vm.state.value.confirmClear)
+    }
+
+    @Test
     fun contactChatBlockEmitsBlockedAndRemovesTheContact() = runTest {
         val vm = PChatViewModel(repo, repo)
         vm.onEvent(PChatEvent.Init(contactId(), "en"))
