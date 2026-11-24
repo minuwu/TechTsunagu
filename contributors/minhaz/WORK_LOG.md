@@ -277,3 +277,10 @@ Minhaz mapped the prototype (`prototypes/wakatta/`) and the frontend against `ma
 - Server normalizes typed codes (`wk 7kq4m2` is `WK-7KQ4M2`). The app checks the shape before asking.
 - Copy icon next to My QR code; paste icon in the scan field. The card prints the code large and bold; share text includes it.
 - Needs the backend deploy; until then the live server rejects short codes, and the scan shows "no one has this QR".
+
+## 2026-11-24 — Getting back into a new shop
+
+- Verified new-shop register and sign-in end to end on the Redmi (live API): roster, PIN, home, chat, empty board all load.
+- Fixed the lock-out: the app remembers the last shop code and role; the owner can choose a memorable shop code (6 to 12 letters or digits, 409 SHOP_CODE_TAKEN); new `POST /api/auth/find` signs in with shop name + name + PIN.
+- Register-done screen: copy and share the shop code.
+- Migration 8e3b5d0a2f41 widens `shops.code` to 6 to 12 characters. Needs a backend deploy for find and chosen codes.

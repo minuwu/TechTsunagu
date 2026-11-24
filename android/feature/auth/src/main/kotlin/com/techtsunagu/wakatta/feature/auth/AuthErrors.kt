@@ -16,6 +16,8 @@ enum class AuthErrorKind {
     UPGRADE_REQUIRED,
     UNKNOWN_SHOP,
     PIN_REJECTED,
+    CODE_TAKEN,
+    NO_MATCH,
     UNKNOWN,
 }
 
@@ -30,6 +32,7 @@ internal fun AppError.toAuthError(): Pair<AuthErrorKind, String> = when (this) {
     AppError.UpgradeRequired -> AuthErrorKind.UPGRADE_REQUIRED to ""
     AppError.NotFound -> AuthErrorKind.UNKNOWN_SHOP to ""
     is AppError.Validation -> AuthErrorKind.PIN_REJECTED to ""
+    is AppError.Conflict -> (if (code == "SHOP_CODE_TAKEN") AuthErrorKind.CODE_TAKEN else AuthErrorKind.UNKNOWN) to ""
     else -> AuthErrorKind.UNKNOWN to ""
 }
 
