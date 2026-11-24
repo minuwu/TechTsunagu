@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useEffect, type ReactNode } from 'react'
 import type { QueryClient } from '@tanstack/react-query'
 import {
   HeadContent,
@@ -79,6 +79,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 )
 
 function RootDocument({ children }: { children: ReactNode }) {
+  // The server renders before it knows the saved language (cookie), and hydration never patches <html> attributes,
+  // so the browser sets lang itself: screen readers and the Japanese font fallback read it (F-01)
+  useEffect(() => {
+    document.documentElement.lang = getLocale()
+  }, [])
   return (
     <html lang={getLocale()}>
       <head>
