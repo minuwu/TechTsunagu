@@ -135,6 +135,39 @@ test.describe('phone', () => {
   })
 })
 
+// Dark mode: the device setting decides until the header button pins a theme, which survives a reload.
+// The night colours pass axe on the landing page and a worker screen.
+test.describe('dark mode', () => {
+  test.use({ colorScheme: 'dark' })
+
+  test('follows a dark device and passes axe', async ({ page }) => {
+    for (const path of ['/', '/me/w-rahim']) {
+      await page.goto(path)
+      await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+      const kit = page.locator('.v4')
+      await expect(kit).not.toHaveAttribute('data-theme')
+      await expect(kit).toHaveCSS('background-color', 'rgb(8, 21, 30)')
+      const { violations } = await new AxeBuilder({ page }).analyze()
+      expect(violations, path).toEqual([])
+    }
+  })
+
+  test('the header button pins light and keeps it after a reload', async ({
+    page,
+  }) => {
+    await page.goto('/')
+    await page.getByRole('button', { name: 'Switch to light theme' }).click()
+    const kit = page.locator('.v4')
+    await expect(kit).toHaveAttribute('data-theme', 'light')
+    await expect(kit).toHaveCSS('background-color', 'rgb(228, 236, 242)')
+    await page.reload()
+    await expect(kit).toHaveAttribute('data-theme', 'light')
+    await expect(
+      page.getByRole('button', { name: 'Switch to dark theme' }),
+    ).toBeVisible()
+  })
+})
+
 test.describe('unknown URL in a Japanese browser', () => {
   test.use({ locale: 'ja-JP' })
 

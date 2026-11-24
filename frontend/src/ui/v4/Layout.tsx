@@ -9,6 +9,7 @@ import { useDataStatus, useWriteFailure } from '@/features/health'
 import { useDemoScenario } from '@/features/hub'
 import { usePersisted } from '@/lib/persisted'
 import { startSmoothScroll } from '@/ui/v4/lib/motion'
+import { useTheme } from '@/ui/v4/lib/theme'
 import { toast } from '@/ui/v4/lib/toast'
 import { cn } from '@/ui/v4/lib/utils'
 import { BridgeMark } from './components/Brand'
@@ -232,10 +233,14 @@ export function Layout({ children }: { children: ReactNode }) {
   const path = useLocation({ select: (l) => l.pathname })
   const [soundPref, setSound] = usePersisted('wakatta.sound', 'on')
   const sound = soundPref === 'on'
+  const theme = useTheme()
   // Lenis smooth wheel scroll for the whole kit (touch stays native; no smoothing under reduced motion)
   useEffect(() => startSmoothScroll(), [])
   return (
-    <div className="v4 v4-ground flex min-h-dvh flex-col">
+    <div
+      className="v4 v4-ground flex min-h-dvh flex-col"
+      data-theme={theme.pinned ?? undefined}
+    >
       <Splash />
       <a
         href="#main"
@@ -244,17 +249,21 @@ export function Layout({ children }: { children: ReactNode }) {
         {m.skip_to_main()}
       </a>
       <header className="sticky top-0 z-30 h-20 border-b border-[var(--rule)] bg-background/95 backdrop-blur-md">
-        <div className="mx-auto flex h-full max-w-[90rem] items-center justify-between gap-4 px-4 sm:px-6">
-          <Link to="/" className="flex min-w-0 items-center gap-3 py-1">
+        {/* Phones: tighter gaps and a smaller wordmark so sound, theme and language fit beside the name */}
+        <div className="mx-auto flex h-full max-w-[90rem] items-center justify-between gap-3 px-4 sm:gap-4 sm:px-6">
+          <Link
+            to="/"
+            className="flex min-w-0 items-center gap-2 py-1 sm:gap-3"
+          >
             <span
               aria-hidden="true"
               className="size-4 shrink-0 bg-foreground"
             />
-            <span className="display truncate text-lg font-extrabold tracking-tight uppercase">
+            <span className="display truncate text-base font-extrabold tracking-tight uppercase sm:text-lg">
               {m.app_name()}
             </span>
           </Link>
-          <div className="flex items-center gap-4 sm:gap-6">
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-6">
             <HeaderLinks path={path} sound={sound} />
             <button
               type="button"
@@ -276,6 +285,28 @@ export function Layout({ children }: { children: ReactNode }) {
               </svg>
               <span className="sr-only">
                 {sound ? m.sound_on() : m.sound_off()}
+              </span>
+            </button>
+            <button type="button" className={toggle} onClick={theme.toggle}>
+              <svg
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                className="size-5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.75"
+                strokeLinecap="square"
+              >
+                {theme.theme === 'dark' ? (
+                  <path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6 7 7M17 17l1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" />
+                ) : (
+                  <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" />
+                )}
+              </svg>
+              <span className="sr-only">
+                {theme.theme === 'dark'
+                  ? m.theme_to_light()
+                  : m.theme_to_dark()}
               </span>
             </button>
             <LocaleSwitcher />
