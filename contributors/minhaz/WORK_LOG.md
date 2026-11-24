@@ -49,6 +49,13 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 - **Still yours:** send Anim the SHA-256 fingerprints of the debug and release keys (`keytool -list -v -keystore …`); `assetlinks.json` is `[]` until then, so links do not verify yet. The Machine scanner (`QrPayload.parse`) still accepts any host and requires `?s=`; the contract wants it on `UriDeepLinkMatcher` too (2.10 check 8).
 - `?s={shopCode}` on the web QR stickers waits on XREQ-001: the web app gets `shopCode` only from real sign-in. When you do XREQ-001, tell me and I add it, or add it in the same change. We also need to agree which host stickers print: the web `VITE_PUBLIC_URL` opens the web Machine page, the API host opens the app (or its "open in the app" page).
 
+## 2026-11-24 (web: Senpai link calls are safe to open while signed in)
+
+- `frontend/src/services/wakatta.ts`: `senpaiView`, `senpaiReply` and `logMeetup` (Senpai side) build their path with `senpaiPath(token)`, which encodes the link token; `senpaiReply` also encodes `askId`. A crafted link such as `../../tasks/x` can no longer reach another API route.
+- `api.ts`: `request(path, init, false)` leaves out the `Authorization` header. The Senpai calls use it, so the signed-in account's Bearer is not sent with a link token, and a 401 there no longer signs that person out.
+- New test in `api.test.ts`. The frontend tests need Node 22 or 24 (`engines`); under Node 23.7 `msw`/`undici` fails to load.
+- Not checked: that the live backend accepts Senpai routes with no Bearer (they are link-token only by contract).
+
 ## 2026-11-24 (Shop Registration, Members screen, bilingual sign-in and intro)
 
 - Backend: `POST /api/auth/register` opens a new shop with its first Foreman, a 「全員」 group Thread and a copy of the standard Glossary (ADR 0017). New accounts join every group Thread. `UserOut` carries `shopCode`. Re-explain no longer fails with 503 for a term outside the Glossary.
