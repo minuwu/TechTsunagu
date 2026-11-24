@@ -33,9 +33,7 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 
-/**
- * Chat over the live routes. A Foreman's `sendMessage` is the two server steps in one call (draft, then Send).
- */
+/** Chat over the live routes. */
 internal class RealChatRepository(
     private val api: () -> ChatApi,
     private val session: SessionStore,
@@ -55,6 +53,9 @@ internal class RealChatRepository(
     private val user: User? get() = session.session.value?.user
 
     private val askingInFlight = ConcurrentHashMap.newKeySet<String>()
+
+    // The unsent drafts as the server gave them: Send must echo their questions and Tasks.
+    private val drafts = ConcurrentHashMap<String, WireSenderMessage>()
 
     override fun getThreads(): Flow<List<ThreadDto>> = flow {
         when (val result = safeApiCall { api().threads() }) {
@@ -107,7 +108,7 @@ internal class RealChatRepository(
         val ctx = MessageContext(me.id, me.language, names(me))
         return if (me.role == Role.FOREMAN) {
             conditional.get(key, WirePage.serializer(WireSenderMessage.serializer())) { api().messages(threadId, it) }
-                .mapOk { page -> page.items.map { it.toUi(ctx) } }
+                .mapOk { page -> page.items.map { it.toUiKeepingDraft(ctx) } }
         } else {
             conditional.get(key, WirePage.serializer(WireWorkerMessage.serializer())) { api().messages(threadId, it) }
                 .mapOk { page -> page.items.map { it.toUi(ctx) } }
@@ -156,15 +157,29 @@ internal class RealChatRepository(
             is AppResult.Success -> r.value
             is AppResult.Failure -> return r
         }
+        return done(draft.toUiKeepingDraft(MessageContext(me.id, me.language, names(me))))
+    }
+
+    override suspend fun sendDraft(messageId: String): AppResult<ChatMessageUiModel> {
+        val me = user ?: return AppResult.Failure(AppError.SessionExpired)
+        val draft = drafts[messageId] ?: return AppResult.Failure(AppError.NotFound)
+        val body = draft.toSendBody()
+        if (body.text["ja"].isNullOrBlank()) return AppResult.Failure(AppError.Validation(listOf("text")))
         val ctx = MessageContext(me.id, me.language, names(me))
-        // A Worker's message is sent at once; a Foreman's is a draft until Send. ALREADY_SENT on a retry means done.
-        if (me.role != Role.FOREMAN || draft.sentAt != null) return done(draft.toUi(ctx))
-        val fallbackText = text ?: draft.transcriptJa.orEmpty()
-        return when (val sent = safeApiCall { api().send(draft.id, draft.toSendBody(fallbackText)) }) {
-            is AppResult.Success -> done(sent.value.toUi(ctx))
-            is AppResult.Failure ->
-                if ((sent.error as? AppError.Conflict)?.code == "ALREADY_SENT") done(draft.toUi(ctx)) else sent
+        return when (val sent = safeApiCall { api().send(messageId, body) }) {
+            is AppResult.Success -> done(sent.value.toUiKeepingDraft(ctx))
+            is AppResult.Failure -> {
+                // a retry of a Send that did arrive
+                if ((sent.error as? AppError.Conflict)?.code != "ALREADY_SENT") return sent
+                drafts.remove(messageId)
+                done(draft.toUi(ctx).copy(isDraft = false, needsEdit = false))
+            }
         }
+    }
+
+    private fun WireSenderMessage.toUiKeepingDraft(ctx: MessageContext): ChatMessageUiModel {
+        if (sentAt == null) drafts[id] = this else drafts.remove(id)
+        return toUi(ctx)
     }
 
     private fun done(message: ChatMessageUiModel): AppResult<ChatMessageUiModel> {
@@ -193,7 +208,7 @@ internal class RealChatRepository(
         return when (val r = safeApiCall { api().editDraft(messageId, DraftEditDto(textJa)) }) {
             is AppResult.Success -> {
                 kick.tryEmit(Unit)
-                AppResult.Success(r.value.toUi(ctx))
+                AppResult.Success(r.value.toUiKeepingDraft(ctx))
             }
             is AppResult.Failure -> {
                 if ((r.error as? AppError.Conflict)?.code == "ALREADY_SENT") {

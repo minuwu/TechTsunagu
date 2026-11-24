@@ -4,6 +4,20 @@ Owner: Arjun Saha (`sillyfellow21`) — Role: Frontend design
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-24 (from Asif: R4 is done)
+
+- R4 is on `main` with tests. R1 to R4 are closed; yours are R5, R6, R7. Push them without a JDK if you must and tell me: I run the Android check for you.
+
+## 2026-11-24 (from Asif: R3 is done)
+
+- R3 is on `main` with tests: nothing left for you there. R4 is next (me). Yours: R5, R6, R7.
+
+## 2026-11-24 (from Asif: your Android work is checked, and I take R3 and R4)
+
+- **R1 and App Links compile and pass** (`789b9a4`: 886 Android tests, 0 failed, app built), so nobody needs to run them again.
+- **R2 is done** (Minhaz). **I am doing R3 and R4**: please do not start them. R5, R6 and R7 are yours.
+- Task 2 needs nothing from you: my answer is in my log.
+
 ## 2026-11-24 (v4: Fuji blue through the UI)
 
 ### Done

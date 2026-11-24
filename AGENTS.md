@@ -59,7 +59,7 @@ This file is:
 | `XREQ-003` | P1 | AI (Galib) | Backend (Asif) | Review the free-AI plan: model chain, budgets, Groq Whisper, settings; Briefing receipts route ([AI_PLAN.md](contributors/galib/AI_PLAN.md)) | `[DONE]` | 2026-11-22 22:40 |
 | `XREQ-004` | P2 | AI (Galib) | Frontend (Minhaz, Arjun) | "Dictate instead" fallback, degraded-draft message, provenance line ([AI_PLAN.md](contributors/galib/AI_PLAN.md) §2, §8) | `[PENDING]` | 2026-11-22 22:40 |
 | `XREQ-005` | P1 | Frontend (Minhaz) | Backend (Anim, Asif) | Chat API: Threads, Messages (voice/text), Wakatta Status answers, Follow-ups, Re-explanation, Nudge, Tasks + Task Board | `[DONE]` | 2026-11-22 17:55 |
-| `XREQ-006` | P1 | Frontend (Minhaz) | AI (Galib) | Chat AI: voice → transcript → translation → Check Questions → Task extraction (`build_message`), Worker reply translation, Re-explanation | `[IN_PROGRESS]` | 2026-11-22 17:55 |
+| `XREQ-006` | P1 | Frontend (Minhaz) | AI (Galib) | Chat AI: voice → transcript → translation → Check Questions → Task extraction (`build_message`), Worker reply translation, Re-explanation | `[DONE]` | 2026-11-24 17:10 |
 | `XREQ-007` | P1 | Frontend (Minhaz) | AI (Galib), Backend (Asif, Anim) | Pick the Japanese ⇄ English transcription and translation models by a bake-off on our own audio, not on free-tier quota | `[DONE]` | 2026-11-23 03:48 |
 
 | `XREQ-008` | P0 | Frontend (Minhaz, Android app) | Backend (Asif) | Hosted API: public base URL, test shop and accounts, health check, Bearer scheme in `openapi.yaml` | `[DONE]` | 2026-11-23 08:25 |
@@ -68,7 +68,7 @@ This file is:
 | `XREQ-011` | P2 | Frontend (Minhaz, Android app) | Backend (Anim), AI (Galib) | Gaps in live routes: Worker reads, ETag and Idempotency-Key, get-one Notice, Glossary PATCH, analytics, per-shop AI languages, XREQ status upkeep | `[DONE]` | 2026-11-24 11:20 |
 | `XREQ-012` | P1 | Backend (Anim, database) | Backend (Asif, deploy) | Point the Azure API at the Supabase database (`backend/deploy/SUPABASE.md`), reseed, smoke, then delete Azure PostgreSQL | `[DONE]` | 2026-11-23 17:30 |
 
-| `XREQ-013` | P1 | Frontend (Arjun) | Backend (Asif, deploy) | Host the frontend demo on Azure Static Web Apps (static build, `npm run build:static`) and reply with the live URL | `[PENDING]` | 2026-11-23 18:30 |
+| `XREQ-013` | P1 | Frontend (Arjun) | Backend (Asif, deploy) | Host the frontend demo on Azure Static Web Apps (static build, `npm run build:static`) and reply with the live URL | `[DONE]` | 2026-11-24 17:17 |
 | `XREQ-014` | P1 | Backend (Anim) | Frontend (Minhaz, Android + Firebase) | Firebase for push: project, Android app, FCM token upload to `PUT /api/devices/me`, service-account key to Anim privately | `[PENDING]` | 2026-11-23 19:30 |
 | `XREQ-015` | P0 | Backend (Anim) | Backend (Asif, Azure owner) | Give Anim's Azure account Contributor on the Wakatta resource group (Asif is off the project; Anim runs deploy now) | `[RESOLVED]` | 2026-11-23 19:30 |
 | `XREQ-016` | P0 | AI (Galib) | Frontend (Minhaz, Arjun; Android: Minhaz) | Chatbot screen on the Worker home and the Machine screen: `POST /api/knowledge/asks` (cited answer + self-check; emergency card; not covered → forward to Senpai) | `[IN_PROGRESS]` (web done; Android open) | 2026-11-23 23:00 |
@@ -313,7 +313,7 @@ Fallback outcome `degraded`: `{ "transcriptJa": "…" , "needsEdit": true }` (`t
 
 **Fulfillment & Proof (filled by recipient on completion):**
 - **Branch / Commit**: `main`: Anim's Chat AI `e702961` (schemas, `draft_message` and `reexplain` prompts, service); Galib's checks `10ed785` (PR #9); per-shop languages `0fe468f`; demo cache `b8b51df`
-- **Status / Notes**: 2026-11-23 Galib: items 1, 2, 4 done (Anim's pipelines + `message_problems`, `task_problems`, `reexplain_problems`: glossary lock, assignees and Machines checked, a due time only when one was said, the Re-explanation question on the missed term; the draft cache key includes the Tokyo date). Item 3: the chain ends with the Groq backup (Whisper → gpt-oss-120b); the bake-off (XREQ-007) recommends Whisper turbo as its own first step, still to build. Item 6: `app/ai/demo_warmup.py` warms the die-change message with the other filmed takes. **Left:** item 5, the 10 Chat eval messages scoring Task extraction.
+- **Status / Notes**: 2026-11-23 Galib: items 1, 2, 4 done (Anim's pipelines + `message_problems`, `task_problems`, `reexplain_problems`: glossary lock, assignees and Machines checked, a due time only when one was said, the Re-explanation question on the missed term; the draft cache key includes the Tokyo date). Item 3: the chain ends with the Groq backup (Whisper → gpt-oss-120b); the bake-off (XREQ-007) recommends Whisper turbo as its own first step, still to build. Item 6: `app/ai/demo_warmup.py` warms the die-change message with the other filmed takes. **Left:** item 5, the 10 Chat eval messages scoring Task extraction. 2026-11-24 Galib: **item 5 done, card closed.** 10 Chat eval messages in `tests/fixtures/ai/eval/messages.json` (Task extraction scored: people, due time said or not, Machine), results in `docs/ai-eval.md` §Chat messages. The run found a real bug: both free Gemini models put the Machine code in `machine_id`, so a message naming a Machine had no draft; fixed by `draft_message.v4` (Machines listed as `id | ja | en`). On v4, 3.1-flash-lite: 10/10 valid, 7/10 passed.
 - **Verification Proof**: `tests/domain/test_ai_checks.py` (Chat cases), `tests/api/test_chat.py`; local rehearsal with real AI: the die-change message drafted in 7.9 s, then 0.0 s from the cache, also after `app.seed --reset`.
 
 #### `[XREQ-007]` Pick the Japanese ⇄ English transcription and translation models by a bake-off
@@ -543,7 +543,7 @@ scripts/smoke.py → "13/13 passed" (with --origin)
 - **Priority**: `P1 (High)`
 - **From**: Frontend (Arjun)
 - **To**: Backend (Asif, deploy)
-- **Status**: `[PENDING]`
+- **Status**: `[DONE]`
 - **Created**: `2026-11-23 18:30 (UTC+6)`
 - **Target Interface / Endpoint**: a public HTTPS URL for the web demo (landing with the Japan map, the Check → Panel loop, Foreman and Poster screens)
 
@@ -570,8 +570,8 @@ GET https://<name>.azurestaticapps.net/panel/m-press → 200, the Machine Panel
 
 **Fulfillment & Proof (filled by recipient on completion):**
 - **Branch / Commit**:
-- **Status / Notes**: 2026-11-23 Asif (off the project): handed to **Anim**, who runs Azure now; needs XREQ-015 first. The `Microsoft.Web` provider is already registered (Contributor on a resource group could not do it). Ops notes: `contributors/asif/WORK_LOG.md` (HANDOVER section).
-- **Verification Proof**:
+- **Status / Notes**: 2026-11-23 Asif (off the project): handed to **Anim**, who runs Azure now; needs XREQ-015 first. The `Microsoft.Web` provider is already registered (Contributor on a resource group could not do it). Ops notes: `contributors/asif/WORK_LOG.md` (HANDOVER section). 2026-11-24 Anim: **live at https://mango-beach-001af4300.4.azurestaticapps.net** (Static Web App `wakatta-web`, Free, East Asia, in `wakatta-rg`). Built from `main` with `npm ci && npm run build:static` and `VITE_PUBLIC_URL=https://mango-beach-001af4300.4.azurestaticapps.net` (QR stickers, Senpai links and the share card use it); 43 pre-rendered pages, 19 MB, on the in-browser demo data. Deployed once by hand with the Static Web Apps CLI (`swa deploy .output/public --env production`, deployment token from `az staticwebapp secrets list`, never printed). **To update it:** the same build and deploy; no CI yet (card item 4 is optional). The API's CORS is unchanged: the demo does not call the API (step 5 is for later).
+- **Verification Proof**: `/`, `/foreman`, `/foreman/skills` answer 200 `text/html`; an unknown URL falls back to the app (200); the page's JS asset loads; the address is in the built JS. **Arjun:** please check every page and tell Anim anything to fix.
 
 #### `[XREQ-014]` Firebase for push notifications (Android)
 - **Priority**: `P1 (High)`

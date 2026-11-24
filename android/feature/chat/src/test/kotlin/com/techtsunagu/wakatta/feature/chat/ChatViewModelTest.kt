@@ -61,6 +61,9 @@ class ChatViewModelTest {
     /** Wraps the Fake repository; can fail calls and records what the ViewModel passed. */
     private class SpyRepository(private val inner: ChatRepository) : ChatRepository by inner {
         var failSend: AppError? = null
+        var failSendDraft: AppError? = null
+        var needsEdit = false
+        val sentDrafts = mutableListOf<String>()
         var failAnswers: AppError? = null
         var failTranscribe: AppError? = null
         var transcript = "TRANSCRIPT"
@@ -90,7 +93,16 @@ class ChatViewModelTest {
             sendAudios += audio
             sendTexts += text
             failSend?.let { return AppResult.Failure(it) }
-            return inner.sendMessage(threadId, text, audio, isVoice, fromUserId, idempotencyKey)
+            return when (val r = inner.sendMessage(threadId, text, audio, isVoice, fromUserId, idempotencyKey)) {
+                is AppResult.Success -> AppResult.Success(r.value.copy(needsEdit = needsEdit))
+                is AppResult.Failure -> r
+            }
+        }
+
+        override suspend fun sendDraft(messageId: String): AppResult<ChatMessageUiModel> {
+            sentDrafts += messageId
+            failSendDraft?.let { return AppResult.Failure(it) }
+            return inner.sendDraft(messageId)
         }
 
         override suspend fun submitAnswers(
@@ -478,6 +490,93 @@ class ChatViewModelTest {
         assertEquals("", vm.state.value.inputText)
         assertEquals(ComposerStatus.IDLE, vm.state.value.composerStatus)
         assertEquals(2, repository.sendKeys.size)
+        assertEquals(repository.sendKeys[0], repository.sendKeys[1])
+    }
+
+    private fun ChatViewModel.write(text: String) {
+        onEvent(ChatEvent.OnInputTextChanged(text))
+        onEvent(ChatEvent.SendNow)
+        testDispatcher.scheduler.advanceUntilIdle()
+    }
+
+    @Test
+    fun untilTheReviewCardExistsEveryDraftIsSentAtOnce() = runTest {
+        val vm = viewModel()
+        vm.init()
+
+        vm.write("good one")
+        repository.needsEdit = true
+        vm.write("untranslated one")
+
+        assertEquals(2, repository.sentDrafts.size)
+        assertTrue(vm.state.value.messages.filter { it.originalText.endsWith(" one") }.none { it.isDraft })
+    }
+
+    @Test
+    fun aGoodDraftWaitsForTheForemanAndGoesOutOnSendDraft() = runTest {
+        val vm = viewModel().apply { reviewDrafts = true }
+        vm.init()
+
+        vm.write("good one")
+        val draft = vm.state.value.messages.single { it.originalText == "good one" }
+        assertTrue(draft.isDraft)
+        assertEquals("", vm.state.value.inputText)
+        assertTrue(repository.sentDrafts.isEmpty())
+
+        vm.onEvent(ChatEvent.SendDraft(draft.id))
+        vm.onEvent(ChatEvent.SendDraft(draft.id)) // a double tap sends once
+        testDispatcher.scheduler.advanceUntilIdle()
+        assertEquals(listOf(draft.id), repository.sentDrafts)
+        assertFalse(vm.state.value.messages.single { it.originalText == "good one" }.isDraft)
+    }
+
+    @Test
+    fun anUntranslatedDraftIsNeverSentByItselfButTheForemanMaySendIt() = runTest {
+        repository.needsEdit = true
+        val vm = viewModel().apply { reviewDrafts = true }
+        vm.init()
+
+        vm.write("untranslated one")
+        assertTrue(repository.sentDrafts.isEmpty())
+        val draft = vm.state.value.messages.single { it.originalText == "untranslated one" }
+
+        vm.onEvent(ChatEvent.SendDraft(draft.id))
+        testDispatcher.scheduler.advanceUntilIdle()
+        assertEquals(listOf(draft.id), repository.sentDrafts)
+    }
+
+    @Test
+    fun aDraftThatCouldNotBeSentStaysAndCanBeSentAgain() = runTest {
+        repository.failSendDraft = AppError.Timeout
+        val vm = viewModel().apply { reviewDrafts = true }
+        vm.init()
+        vm.write("good one")
+        val id = vm.state.value.messages.single { it.originalText == "good one" }.id
+
+        vm.onEvent(ChatEvent.SendDraft(id))
+        testDispatcher.scheduler.advanceUntilIdle()
+        assertEquals(ChatEffect.ShowError(AppError.Timeout), vm.effects.first())
+        assertTrue(vm.state.value.messages.single { it.id == id }.isDraft)
+
+        repository.failSendDraft = null
+        vm.onEvent(ChatEvent.SendDraft(id))
+        testDispatcher.scheduler.advanceUntilIdle()
+        assertFalse(vm.state.value.messages.single { it.id == id }.isDraft)
+    }
+
+    @Test
+    fun whenTheSendAfterTheDraftFailsTheWordsComeBackAndTheRetryUsesTheSameKey() = runTest {
+        repository.failSendDraft = AppError.Offline
+        val vm = viewModel()
+        vm.init()
+        vm.write("good one")
+
+        assertEquals("good one", vm.state.value.inputText)
+        assertEquals(ChatEffect.ShowError(AppError.Offline), vm.effects.first())
+
+        repository.failSendDraft = null
+        vm.onEvent(ChatEvent.SendNow)
+        testDispatcher.scheduler.advanceUntilIdle()
         assertEquals(repository.sendKeys[0], repository.sendKeys[1])
     }
 

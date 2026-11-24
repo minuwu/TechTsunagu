@@ -4,6 +4,43 @@ Owner: Asif (`MdAsif-Hossain`) — Role: Backend (lead) / Services / Database
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-24 — R4: a direct Thread has the other person's name (for Arjun)
+
+### Changed
+- `displayTitle` is mapped and used for every Thread name; the guess that replaced a Worker's own name with 職長 is gone from `ChatWire.kt` (`ChatsViewModel` still has its own).
+- The empty bubble and `fromDisplayName` were already fixed by Minhaz; both now have a test.
+
+### Verified (local; not run on a phone)
+- The new title test failed first, then passed. `testDebugUnitTest checkModuleGraph :app:assembleDebug`: BUILD SUCCESSFUL, 896 tests, 0 failed.
+
+### Waiting for Minhaz and Anim
+- Open registration and the AI allowance (ADR 0017): my proposal is in both of your logs. I change nothing until you answer.
+
+## 2026-11-24 — R3: the AI draft can wait for the Foreman (for Arjun)
+
+### Changed
+- `sendMessage` only posts: a Foreman's message comes back as a draft (`isDraft`, `needsEdit` in `ChatMessageUiModel`). New `ChatRepository.sendDraft(id)` and `ChatEvent.SendDraft(id)`; a double tap sends once; `ALREADY_SENT` counts as sent.
+- A draft left from an earlier timeout arrives with the poll and can be sent or edited, with its questions and Tasks.
+- **Nothing changes for the Foreman yet:** without a Send button on screen, the app still sends at once. M2 sets `reviewDrafts` in `ChatViewModel` to true; from then on no draft, good or `needsEdit`, goes out without `SendDraft`.
+
+### Verified (local; not run on a phone)
+- `testDebugUnitTest checkModuleGraph :app:assembleDebug`: BUILD SUCCESSFUL, 894 tests (85 in chat), 0 failed. 8 new tests; two of them fail when the review guard is removed.
+
+## 2026-11-24 — Both mobile contract docs match the API again (for Minhaz)
+
+- `MOBILE_API_CONTRACT.md`: 133 live operations on 104 paths (it said 76 on 64). 32 entries became live, 25 routes were missing (E-115 to E-139), three paths corrected.
+- `MOBILE_PLATFORM_CONTRACT.md`: the 429 rows give the AI limit (10 a minute, 100 a day, 500 paid; `Retry-After` 60 or 3600).
+- Verified with two separate scripts against `docs/openapi.yaml`: 0 missing, 0 extra. Not checked: the roles written on the Contacts and Talk rows (F W P) were left as they were.
+
+## 2026-11-24 — Full Android check on `main`
+
+### Verified (`789b9a4`, local, JDK 17; not run on a phone)
+- `testDebugUnitTest checkModuleGraph :app:assembleDebug`: BUILD SUCCESSFUL, 886 tests, 0 failed, 0 skipped, debug APK built.
+- This covers S4's missing app build, Arjun's R1 (`ReadTimeoutTest`) and App Links (`AppLinkHostTest`), and Minhaz's `444b71d`.
+
+### Taken from Arjun
+- R3 and R4 (marked in the plan). R2 was already done by Minhaz.
+
 ## 2026-11-24 — S4: dictation says what went wrong; Talk keeps words it could not save
 
 ### Changed (`eae8254`, on `main`)

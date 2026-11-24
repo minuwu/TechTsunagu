@@ -6,6 +6,7 @@ import com.techtsunagu.wakatta.core.model.Session
 import com.techtsunagu.wakatta.core.network.ApiClientFactory
 import com.techtsunagu.wakatta.feature.home.data.HomeApi
 import com.techtsunagu.wakatta.feature.home.data.HomeFollowUp
+import com.techtsunagu.wakatta.feature.home.data.HomePendingCheck
 import com.techtsunagu.wakatta.feature.home.data.HomeTeamMember
 import com.techtsunagu.wakatta.feature.home.data.RealHomeBoardSource
 import kotlinx.coroutines.runBlocking
@@ -56,14 +57,24 @@ class RealHomeBoardSourceTest {
     }
 
     @Test
-    fun pendingChecksAreSentUnansweredMessagesWithAQuestion() = runBlocking {
-        data("""[{"id":"5","titleJa":"班","kind":"group","memberIds":[],"unread":1,"lastMessageAt":"x"},{"id":"6","titleJa":"空","kind":"group","memberIds":[],"unread":0,"lastMessageAt":null}]""")
-        fun m(id: String, sent: String?, questions: String, status: String?) =
-            """{"id":"$id","text":{"ja":"t$id"},"sentAt":${sent?.let { "\"$it\"" }},"questions":$questions,"myStatus":${status?.let { "\"$it\"" }}}"""
-        val q = """[{"id":"q","prompt":{},"options":[]}]"""
-        data("""{"items":[${m("1", "2026-11-24T01:00:00Z", q, null)},${m("2", "2026-11-24T01:00:00Z", q, "green")},${m("3", "2026-11-24T01:00:00Z", "[]", null)},${m("4", null, q, null)}]}""")
-        assertEquals(listOf("1" to "5"), source.getPendingChecks().ok().map { it.id to it.threadId })
-        assertEquals(2, server.requestCount)
+    fun pendingChecksComeFromOneCallThatMarksNothingRead() = runBlocking {
+        data(
+            """[{"messageId":"1","threadId":"5","threadTitle":"班","text":{"ja":"t1"},"sentAt":"2026-11-24T02:00:00Z","deadline":null},""" +
+                """{"messageId":"2","threadId":"6","threadTitle":"山口 隆","text":{"ja":"t2"},"sentAt":"2026-11-24T01:00:00Z","deadline":"2026-11-24T09:00:00Z"}]""",
+        )
+
+        val pending = source.getPendingChecks().ok()
+
+        assertEquals(
+            listOf(
+                HomePendingCheck("1", "5", "班", mapOf("ja" to "t1"), "2026-11-24T02:00:00Z"),
+                HomePendingCheck("2", "6", "山口 隆", mapOf("ja" to "t2"), "2026-11-24T01:00:00Z"),
+            ),
+            pending,
+        )
+        // N2: no Thread poll, so opening Home no longer marks every chat as read.
+        assertEquals(1, server.requestCount)
+        assertEquals("/api/messages/unanswered", server.takeRequest().url.encodedPath)
     }
 
     @Test

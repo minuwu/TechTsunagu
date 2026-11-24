@@ -79,8 +79,12 @@ class RealChatRepositoryTest {
     fun foremanSendMakesTheDraftWithTheKeyThenSendsItWithTheAnswerKey() = runBlocking {
         ok(draft(null))
         ok(draft("2026-11-23T08:00:05Z"))
-        val result = repo(foreman).sendMessage("7", "hello", false, "1", "key-1") as AppResult.Success
+        val repo = repo(foreman)
+        val result = repo.sendMessage("7", "hello", false, "1", "key-1") as AppResult.Success
         assertEquals("91", result.value.id)
+        assertTrue(result.value.isDraft)
+        assertEquals(1, server.requestCount)
+        assertFalse((repo.sendDraft("91") as AppResult.Success).value.isDraft)
         val post = server.takeRequest()
         assertEquals("key-1", post.headers["Idempotency-Key"])
         assertTrue(post.headers["Content-Type"]!!.startsWith("multipart/form-data"))
@@ -93,7 +97,6 @@ class RealChatRepositoryTest {
     @Test
     fun voiceMessageSendsOnlyAudioPartWithIdempotencyKey() = runBlocking {
         ok(draft(null))
-        ok(draft("2026-11-23T08:00:05Z"))
         val audioFile = File.createTempFile("test_voice_", ".m4a").apply {
             writeBytes("test audio bytes".toByteArray())
         }
@@ -182,7 +185,49 @@ class RealChatRepositoryTest {
             MockResponse.Builder().code(409)
                 .body("""{"success":false,"error":{"code":"ALREADY_SENT","message":"sent"}}""").build(),
         )
-        assertTrue(repo(foreman).sendMessage("7", "hello", false, "1", "key-1").isSuccess)
+        val repo = repo(foreman)
+        repo.sendMessage("7", "hello", false, "1", "key-1")
+        assertFalse((repo.sendDraft("91") as AppResult.Success).value.isDraft)
+    }
+
+    @Test
+    fun aDraftLeftFromAnEarlierTimeoutIsSentFromThePoll() = runBlocking {
+        ok("""{"items":[${draft(null, needsEdit = true)}]}""", etag = "e1")
+        ok(draft("2026-11-23T08:00:05Z"))
+        val repo = repo(foreman, pollMs = 60_000L)
+        val shown = repo.getMessages("7").first().single()
+        assertTrue(shown.isDraft)
+        assertTrue(shown.needsEdit)
+        assertTrue(repo.sendDraft("91").isSuccess)
+        server.takeRequest()
+        val send = server.takeRequest()
+        assertEquals("/api/messages/91/send", send.url.encodedPath)
+        val body = send.body!!.utf8()
+        assertTrue(body.contains(""""text":{"ja":"hello","en":"hi"}"""))
+        assertTrue(body.contains(""""tasks":[{"title":{"ja":"t"}"""))
+    }
+
+    @Test
+    fun anEditedDraftIsSentWithItsNewText() = runBlocking {
+        ok(draft(null))
+        ok(draft(null, textJa = "edited"))
+        ok(draft("2026-11-23T08:00:05Z", textJa = "edited"))
+        val repo = repo(foreman)
+        repo.sendMessage("7", "hello", false, "1", "key-1")
+        repo.editDraft("91", "edited")
+        repo.sendDraft("91")
+        repeat(2) { server.takeRequest() }
+        assertTrue(server.takeRequest().body!!.utf8().contains(""""ja":"edited""""))
+    }
+
+    @Test
+    fun aDraftWithoutWordsOrAnUnknownOneIsNotSent() = runBlocking {
+        ok(draft(null, needsEdit = true, textJa = ""))
+        val repo = repo(foreman)
+        repo.sendMessage("7", "hello", false, "1", "key-1")
+        assertEquals(AppError.Validation(listOf("text")), (repo.sendDraft("91") as AppResult.Failure).error)
+        assertEquals(AppError.NotFound, (repo.sendDraft("92") as AppResult.Failure).error)
+        assertEquals(1, server.requestCount)
     }
 
     @Test
@@ -369,6 +414,28 @@ class RealChatRepositoryTest {
         assertEquals(AppResult.Failure(AppError.RateLimited(600)), repo(foreman).nudge("91", "12"))
         assertTrue((repo(worker).getFollowUps() as AppResult.Success).value.isEmpty())
         assertEquals(1, server.requestCount)
+    }
+
+    @Test
+    fun aDirectThreadIsCalledByTheNameTheServerGives() = runBlocking {
+        val rows = """[{"id":"7","titleJa":"Rahim","displayTitle":"Yamaguchi","kind":"direct"},{"id":"8","titleJa":"Line 2","displayTitle":"Line 2"}]"""
+        ok(rows)
+        ok(rows)
+        assertEquals(listOf("Yamaguchi", "Line 2"), repo(worker).getThreads().first().map { it.titleJa })
+        assertEquals(listOf("Yamaguchi", "Line 2"), repo(worker).getThreadSummaries().first().map { it.title["ja"] })
+    }
+
+    @Test
+    fun aWorkersMessageWithoutJapaneseShowsTheWorkersOwnWordsAndName() = runBlocking {
+        ok(
+            """{"items":[{"id":"92","threadId":"7","fromUserId":"13","fromDisplayName":"Siti","fromRole":"worker","kind":"text",""" +
+                """"language":"en","text":{"en":"It is hot"},"createdAt":"2026-11-23T08:00:00Z","sentAt":"2026-11-23T08:00:00Z"}]}""",
+            etag = "e1",
+        )
+        val message = repo(foreman).getMessages("7").first().single()
+        assertEquals("It is hot", message.originalText)
+        assertEquals("Siti", message.fromUserName)
+        assertFalse(message.isDraft)
     }
 
     @Test

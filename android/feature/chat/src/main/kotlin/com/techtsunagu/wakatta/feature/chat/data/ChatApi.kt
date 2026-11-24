@@ -107,6 +107,8 @@ internal data class WireTranscription(val text: String = "")
 internal data class WireThread(
     val id: String,
     val titleJa: String = "",
+    /** What to call the Thread for this caller: a direct one by the other person's name. */
+    val displayTitle: String = "",
     val kind: String = "group",
     val memberIds: List<String> = emptyList(),
     val unread: Int = 0,

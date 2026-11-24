@@ -12,7 +12,6 @@ import kotlinx.serialization.Serializable
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.POST
-import retrofit2.http.Path
 import retrofit2.http.Query
 
 /** A Machine with a Worker assigned without a valid Sign-off (`GET /board`). */
@@ -100,11 +99,9 @@ internal interface HomeApi {
     @GET(ApiPaths.BRIEFINGS)
     suspend fun briefings(@Query("limit") limit: Int): Response<ApiEnvelope<WireItems<WireBriefing>>>
 
-    @GET(ApiPaths.THREADS)
-    suspend fun threads(): Response<ApiEnvelope<List<WireHomeThread>>>
-
-    @GET(ApiPaths.THREAD_MESSAGES)
-    suspend fun messages(@Path("thread_id") threadId: String): Response<ApiEnvelope<WireItems<WireHomeMessage>>>
+    /** Worker: open Checks across every Thread in one call; listing them marks nothing as read (S3). */
+    @GET(ApiPaths.MESSAGES_UNANSWERED)
+    suspend fun unanswered(): Response<ApiEnvelope<List<WireUnanswered>>>
 }
 
 @Serializable
@@ -144,21 +141,16 @@ internal data class WireCell(val status: String)
 @Serializable
 internal data class WireBriefing(val id: String, val text: Tri = emptyMap(), val status: String)
 
+/** `GET /messages/unanswered`: the Worker's view only, with no answer key (rule R-3). */
 @Serializable
-internal data class WireHomeThread(val id: String, val titleJa: String = "", val lastMessageAt: String? = null)
-
-/** The Worker's view only. It has no answer-key field (rule R-3). */
-@Serializable
-internal data class WireHomeMessage(
-    val id: String,
+internal data class WireUnanswered(
+    val messageId: String,
+    val threadId: String,
+    val threadTitle: String = "",
     val text: Tri = emptyMap(),
-    val sentAt: String? = null,
-    val questions: List<WireQuestionId> = emptyList(),
-    val myStatus: String? = null,
+    val sentAt: String,
+    val deadline: String? = null,
 )
-
-@Serializable
-internal data class WireQuestionId(val id: String)
 
 internal class RealHomeBoardSource(private val api: () -> HomeApi) : HomeBoardSource {
     override suspend fun getLockedMachines(): AppResult<List<BoardLocked>> = safeApiCall { api().board() }.map { board ->
@@ -187,22 +179,10 @@ internal class RealHomeBoardSource(private val api: () -> HomeApi) : HomeBoardSo
 
     override suspend fun signOut(): AppResult<Unit> = safeApiCallUnit { api().logout() }
 
-    override suspend fun getPendingChecks(): AppResult<List<HomePendingCheck>> {
-        val threads = when (val r = safeApiCall { api().threads() }) {
-            is AppResult.Success -> r.value
-            is AppResult.Failure -> return r
+    override suspend fun getPendingChecks(): AppResult<List<HomePendingCheck>> =
+        safeApiCall { api().unanswered() }.map { items ->
+            items.map { HomePendingCheck(it.messageId, it.threadId, it.threadTitle, it.text, it.sentAt) }
         }
-        val pending = threads.filter { it.lastMessageAt != null }.flatMap { thread ->
-            val page = when (val r = safeApiCall { api().messages(thread.id) }) {
-                is AppResult.Success -> r.value
-                is AppResult.Failure -> return r
-            }
-            page.items
-                .filter { it.sentAt != null && it.questions.isNotEmpty() && it.myStatus == null }
-                .map { HomePendingCheck(it.id, thread.id, thread.titleJa, it.text, it.sentAt.orEmpty()) }
-        }
-        return AppResult.Success(pending.sortedByDescending { it.sentAt })
-    }
 
     private fun <T, R> AppResult<T>.map(transform: (T) -> R): AppResult<R> = when (this) {
         is AppResult.Success -> AppResult.Success(transform(value))

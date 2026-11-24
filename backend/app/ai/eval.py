@@ -232,13 +232,11 @@ def eval_messages(client: AiClient, model: str) -> list[Row]:
     names = [(m["name"]["ja"], m["name"]["en"]) for m in machines]
     prompt = render(
         "draft_message",
-        3,
+        4,
         glossary=glossary,
         languages=", ".join(LANGUAGES),
         members="\n".join(f"{i} | {n}" for i, n in MEMBERS.items()),
-        machines="\n".join(
-            f"{i} | {m['code']} | {m['name']['ja']} | {m['name']['en']}" for i, m in enumerate(machines, start=1)
-        ),
+        machines="\n".join(f"{i} | {m['name']['ja']} | {m['name']['en']}" for i, m in enumerate(machines, start=1)),
         now="2026-11-24T13:00+09:00",
     )
     rows: list[Row] = []

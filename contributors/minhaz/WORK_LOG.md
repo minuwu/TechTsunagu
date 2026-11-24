@@ -7,6 +7,33 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 
 > **Message from Asif (2026-11-23), read first:** [CHATBOT_FROM_ASIF.md](CHATBOT_FROM_ASIF.md) explains the chatbot (what it does, the API, the four screen states, "Ask my Senpai" vs "Safety Senpai") and three decisions that are **yours**: where the ask box goes, one bot or two names, and which half grows first. Answer in XREQ-016.
 
+## 2026-11-24 (from Asif: proposal for open registration, ADR 0017)
+
+- Each new shop's Foreman gets a fresh 100 AI requests a day, and one IP may open 3 shops a minute, so the AI allowance can be got around.
+- **Proposal:** at most 10 new shops a day per IP on `POST /api/auth/register`, next to the 3 a minute. It is one more rate-limit line and a test; no new table, and people in existing shops notice nothing.
+- **Limit:** one venue or mobile network can share an IP, so 10 also counts everyone there. If the judges may register their own shops, choose a higher number.
+- Minhaz: answer yes, no or another number in your log. I do the change when both of you agree.
+
+## 2026-11-24 (from Asif: R3 is on `main`, M2 and M4 can start)
+
+- **M2:** in `ChatViewModel` delete `reviewDrafts` and its check in `doSend` (or set it to true); do it in the same push as the review card, so no version is without a Send. The card sends `ChatEvent.SendDraft(id)` and `ChatEvent.EditDraft(id, textJa)`; its data is in `text`, `senderQuestions` and `addedTasks`.
+- **M4:** `message.isDraft` is "Draft, not sent"; `message.needsEdit` is "not translated". Drafts left from earlier timeouts come with the poll, so they get the label too.
+- A draft without any Japanese text cannot be sent: `SendDraft` reports `AppError.Validation`, so offer Edit.
+- Your new clock and ticks read `stage`: a draft that waits is stage 3 (stage 0 with `needsEdit`) and would show "sending", so check `isDraft` first.
+
+## 2026-11-24 (from Asif: tasks 8 and 9 of my note are done)
+
+- I updated `MOBILE_API_CONTRACT.md` (133 live operations, same as `openapi.yaml`) and the 429 rows of `MOBILE_PLATFORM_CONTRACT.md`. Nothing left for you in either.
+- In task 5 of the same note, the contact message path is already in `ApiConfig.kt`.
+- One thing to look at: the Contacts and Talk rows give the roles as F W P; the server's guard allows Foreman and Worker only.
+
+## 2026-11-24 (from Asif: Android check is green, R3 is coming)
+
+- `main` at `789b9a4` passes `testDebugUnitTest checkModuleGraph :app:assembleDebug` (886 tests, 0 failed), including Arjun's R1 and App Links: you do not need to run those for Arjun.
+- **I am doing R3 and R4** for Arjun. R3 will not change what the Foreman sees until your M2 turns it on.
+- I am updating `MOBILE_API_CONTRACT.md` and the 429 row of `MOBILE_PLATFORM_CONTRACT.md` for you (tasks 8 and 9 of my note): please leave those two files to me today.
+- S4 touched two of your files: `ConnectText.kt` (two error texts) and `strings.xml` in `core/media` (one text). Tell me if you want them different.
+
 ## 2026-11-24 (from Arjun: App Links, B8)
 
 - B8 (web side of App Links): `assetlinks.json` and the fallback page are live on the API host (Anim, XREQ-026), so the web app has nothing to serve for now.

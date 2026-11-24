@@ -181,7 +181,8 @@ class FakeChatRepository @Inject constructor() : ChatRepository {
             originalText = jaText,
             translatedText = enText,
             time = "08:40",
-            stage = 5,
+            stage = if (isForeman) 3 else 5,
+            isDraft = isForeman,
             isVoice = actualIsVoice,
             voiceDuration = if (actualIsVoice) "0:12" else null,
             hasCheck = questionsForSender.isNotEmpty(),
@@ -201,6 +202,14 @@ class FakeChatRepository @Inject constructor() : ChatRepository {
         updateThreadLastMessage(threadId, if (actualIsVoice) "明日の朝8時から、2号プレスの金型交換をします..." else safeText, actualIsVoice)
 
         return AppResult.Success(newMsg)
+    }
+
+    override suspend fun sendDraft(messageId: String): AppResult<ChatMessageUiModel> {
+        val (threadId, list) = messagesFlow.value.entries.firstOrNull { (_, l) -> l.any { it.id == messageId } }
+            ?: return AppResult.Failure(AppError.NotFound)
+        val sent = list.first { it.id == messageId }.copy(stage = 5, isDraft = false, needsEdit = false)
+        messagesFlow.value = messagesFlow.value + (threadId to list.map { if (it.id == messageId) sent else it })
+        return AppResult.Success(sent)
     }
 
     override suspend fun submitAnswers(
