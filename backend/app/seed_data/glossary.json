@@ -6,7 +6,6 @@
       "ja": "寸法",
       "reading": "すんぽう",
       "translations": {
-        "bn": "মাপ (সুনপো)",
         "en": "dimensions (sunpō)"
       }
     },
@@ -15,7 +14,6 @@
       "ja": "段取り",
       "reading": "だんどり",
       "translations": {
-        "bn": "প্রস্তুতি (দানদোরি)",
         "en": "set-up (dandori)"
       }
     },
@@ -24,7 +22,6 @@
       "ja": "玉掛け",
       "reading": "たまかけ",
       "translations": {
-        "bn": "স্লিং বাঁধা (তামাকাকে)",
         "en": "slinging (tamakake)"
       }
     },
@@ -33,7 +30,6 @@
       "ja": "バリ",
       "reading": "ばり",
       "translations": {
-        "bn": "ধারালো কিনারা (বারি)",
         "en": "burr (bari)"
       }
     },
@@ -42,7 +38,6 @@
       "ja": "保護メガネ",
       "reading": "ほごめがね",
       "translations": {
-        "bn": "সুরক্ষা চশমা",
         "en": "safety glasses"
       }
     },
@@ -51,7 +46,6 @@
       "ja": "非常停止",
       "reading": "ひじょうていし",
       "translations": {
-        "bn": "জরুরি বন্ধ বোতাম",
         "en": "emergency stop"
       }
     },
@@ -60,7 +54,6 @@
       "ja": "高温注意",
       "reading": "こうおんちゅうい",
       "translations": {
-        "bn": "গরম — সাবধান",
         "en": "hot — caution"
       }
     },
@@ -69,7 +62,6 @@
       "ja": "換気",
       "reading": "かんき",
       "translations": {
-        "bn": "বাতাস চলাচল",
         "en": "ventilation"
       }
     },
@@ -78,7 +70,6 @@
       "ja": "指差し確認",
       "reading": "ゆびさしかくにん",
       "translations": {
-        "bn": "আঙুল দিয়ে দেখিয়ে যাচাই",
         "en": "point-and-call check"
       }
     },
@@ -87,7 +78,6 @@
       "ja": "吊り荷",
       "reading": "つりに",
       "translations": {
-        "bn": "ঝুলন্ত মাল",
         "en": "suspended load"
       }
     },
@@ -96,7 +86,6 @@
       "ja": "可燃ごみ",
       "reading": "かねんごみ",
       "translations": {
-        "bn": "পোড়ানো যায় এমন ময়লা",
         "en": "burnable garbage"
       }
     },
@@ -105,7 +94,6 @@
       "ja": "指定袋",
       "reading": "していぶくろ",
       "translations": {
-        "bn": "সিটির নির্দিষ্ট ব্যাগ",
         "en": "city's designated bag"
       }
     },
@@ -114,7 +102,6 @@
       "ja": "粗大ごみ",
       "reading": "そだいごみ",
       "translations": {
-        "bn": "বড় আকারের ময়লা",
         "en": "oversized garbage"
       }
     },
@@ -123,7 +110,6 @@
       "ja": "避難所",
       "reading": "ひなんじょ",
       "translations": {
-        "bn": "আশ্রয়কেন্দ্র",
         "en": "evacuation shelter"
       }
     },
@@ -132,7 +118,6 @@
       "ja": "自治会",
       "reading": "じちかい",
       "translations": {
-        "bn": "পাড়ার সমিতি (জিচিকাই)",
         "en": "neighbourhood association"
       }
     }

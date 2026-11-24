@@ -137,6 +137,32 @@ describe('services/api (session)', () => {
     expect(getSession()).toBeNull()
   })
 
+  it('Senpai link calls encode the token and never send the Bearer', async () => {
+    let auth: string | null = 'unset'
+    let path = ''
+    server.use(
+      http.post(`${API}/api/senpai/:token/asks/:askId/reply`, ({ request }) => {
+        auth = request.headers.get('Authorization')
+        path = new URL(request.url).pathname
+        return HttpResponse.json(
+          { success: false, error: { code: 'UNAUTHORIZED', message: 'no' } },
+          { status: 401 },
+        )
+      }),
+    )
+    const { getSession, setSession } = await liveApi()
+    const { senpaiReply } = await import('./wakatta')
+    setSession(session)
+    const reply = { ja: 'はい', en: 'yes', native: 'yes' }
+    await expect(senpaiReply('../x', 'a/1', reply)).rejects.toMatchObject({
+      status: 401,
+    })
+    expect(path).toBe('/api/senpai/..%2Fx/asks/a%2F1/reply')
+    expect(auth).toBeNull()
+    // A bad link must not sign out whoever is using this browser
+    expect(getSession()).not.toBeNull()
+  })
+
   it('treats an expired session as signed out', async () => {
     const { getSession, setSession } = await liveApi()
     setSession({ ...session, expiresAt: '2000-01-01T00:00:00Z' })

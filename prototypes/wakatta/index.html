@@ -5,32 +5,177 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Wakatta? — Foreman ↔ Worker demo</title>
 <style>
-  body{margin:0;min-height:100vh;display:grid;place-items:center;background:linear-gradient(180deg,#d6e8f8 0,#f2f7fc 60%) fixed;font:14px/1.4 Roboto,system-ui,sans-serif;color:#14213d}
-  .stage{display:flex;gap:56px;align-items:flex-start}
-  .side{display:flex;flex-direction:column;align-items:center;gap:12px}
+  :root{--ink:#14213d;--ink-2:#4a5a78;--line:#c9d8ea;--card:#fff;--brand:#1f5fbf;--hint:#f59e0b;--ok:#1e8e3e;--warn:#e37400;--bad:#c5221f;--wait:#9aa7bd}
+  *{box-sizing:border-box}
+  [hidden]{display:none!important}
+  body{margin:0;min-height:100vh;display:grid;place-items:center;background:linear-gradient(180deg,#d6e8f8 0,#f2f7fc 60%) fixed;font:14px/1.45 Roboto,system-ui,sans-serif;color:var(--ink)}
+  .stage{display:flex;gap:40px;align-items:stretch}
+  .phones{display:flex;gap:56px;align-items:flex-start;position:relative}
+  .side{display:flex;flex-direction:column;align-items:center;gap:12px;position:relative}
   .side b{font-size:15px}
-  .side span{color:#4a5a78}
-  .phone{width:412px;height:892px;border:12px solid #111;border-radius:48px;overflow:hidden;background:#111;box-shadow:0 30px 80px rgba(0,0,0,.22)}
+  .side span{color:var(--ink-2)}
+  .phone{width:412px;height:892px;border:12px solid #111;border-radius:48px;overflow:hidden;background:#111;box-shadow:0 30px 80px rgba(0,0,0,.22);transition:box-shadow .3s,filter .4s,opacity .4s}
+  .phone.act{box-shadow:0 0 0 6px var(--hint),0 30px 80px rgba(0,0,0,.22)}
   iframe{width:100%;height:100%;border:0;display:block;border-radius:36px}
+  button{font:inherit;cursor:pointer}
+  :focus-visible{outline:3px solid var(--brand);outline-offset:2px}
+
+  /* rails */
+  .rail{width:320px;height:930px;display:flex;flex-direction:column;gap:14px}
+  .card{background:var(--card);border-radius:20px;padding:18px 20px;box-shadow:0 8px 30px rgba(20,33,61,.08)}
+  .eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);font-weight:600;margin:0 0 6px}
+  .guide{display:flex;align-items:flex-end;gap:12px;margin-bottom:8px}
+  .guide img{flex:none;transition:transform .3s}
+  .guide img.pop{animation:nk .4s ease-out}
+  .guide .eyebrow{margin:0}
+  .guide .eyebrow span{text-transform:none;letter-spacing:0;font-weight:400}
+  @keyframes nk{40%{transform:translateY(-6px) rotate(-4deg)}}
+  .prog{display:flex;gap:6px;margin:4px 0 2px}
+  .prog button{flex:1;height:6px;border:0;border-radius:3px;background:var(--line);padding:0}
+  .prog button.done{background:var(--brand)}
+  .prog button.now{background:var(--hint)}
+  .prog button:disabled{cursor:default}
+  .chap{font-size:12px;color:var(--ink-2)}
+  #story{flex:1;display:flex;flex-direction:column;gap:14px;overflow:auto}
+  #story h2{font-size:22px;line-height:1.25;margin:0}
+  #story h2:focus{outline:none}
+  #story p{margin:0;font-size:16px}
+  .jp{font-weight:600}
+  .jp small{font-weight:400;color:var(--ink-2)}
+  .todo{display:flex;gap:10px;align-items:center;background:#fff7e6;border:1px solid #f9d58c;border-radius:14px;padding:12px 14px;font-size:15px}
+  .todo i{flex:none;width:28px;height:28px;border-radius:50%;background:var(--hint);color:#fff;display:grid;place-items:center;font-style:normal;font-weight:700}
+  .todo.right i::after{content:"→"} .todo.left i::after{content:"←"}
+  .choices{display:flex;flex-direction:column;gap:10px}
+  .choice{display:block;width:100%;text-align:left;border:2px solid var(--line);background:#fff;border-radius:16px;padding:12px 14px;min-height:48px;transition:border-color .15s,transform .15s}
+  .choice:hover{border-color:var(--brand);transform:translateY(-1px)}
+  .choice b{display:block;font-size:15px}
+  .choice small{color:var(--ink-2)}
+  .choice.on{border-color:var(--hint);background:#fff7e6}
+  .cta{border:0;border-radius:999px;background:var(--brand);color:#fff;padding:12px 20px;min-height:48px;font-weight:600;align-self:flex-start}
+  .ghost{border:0;background:none;color:var(--brand);padding:10px 4px;min-height:44px;font-weight:600}
+  .tools{display:flex;gap:4px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:8px}
+  .fine{font-size:12px;color:var(--ink-2)}
+
+  /* right rail */
+  .facts{display:grid;gap:10px}
+  .fact b{display:block;font-size:26px;line-height:1.1}
+  .fact span{font-size:13px;color:var(--ink-2)}
+  .pipe{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+  .pipe li{display:flex;gap:10px;align-items:center;color:var(--wait);transition:color .3s}
+  .pipe li::before{content:"";width:12px;height:12px;border-radius:50%;border:2px solid currentColor;flex:none}
+  .pipe li.on{color:var(--ink)}
+  .pipe li.on::before{background:var(--ok);border-color:var(--ok)}
+  .lock{margin-top:10px;font-size:13px;background:#eef4fb;border-radius:10px;padding:8px 10px}
+  .who{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+  .who li{display:flex;align-items:center;gap:10px}
+  .who .dot{width:14px;height:14px;border-radius:50%;background:var(--wait);flex:none;transition:background .3s}
+  .who .dot.green{background:var(--ok)} .who .dot.orange{background:var(--warn)} .who .dot.red{background:var(--bad)}
+  .who em{margin-left:auto;font-style:normal;font-size:12px;color:var(--ink-2)}
+  #feedCard{flex:1;min-height:0;display:flex;flex-direction:column}
+  #feed{list-style:none;margin:0;padding:0;overflow:auto;display:flex;flex-direction:column-reverse;gap:6px;font-size:13px}
+  #feed li{animation:in .3s ease-out}
+  #feed li span{color:var(--ink-2);margin-right:6px}
+  @keyframes in{from{opacity:0;transform:translateY(6px)}}
+
+  /* prologue: phones step back, the scene plays in speech bubbles */
+  .pro .phone{filter:grayscale(1);opacity:.35;pointer-events:none}
+  .bub{display:none;position:absolute;top:38%;left:50%;transform:translateX(-50%);width:300px;background:#fff;border-radius:22px;padding:18px 20px;font-size:18px;z-index:2;
+    /* soft glowing edge: thin brand ring + slow breathing halo */
+    --glow:31,95,191;border:1.5px solid rgba(var(--glow),.6);
+    box-shadow:0 0 0 4px rgba(var(--glow),.12),0 0 28px rgba(var(--glow),.35),0 12px 40px rgba(20,33,61,.18);
+    animation:in .4s ease-out,glow 3.2s ease-in-out .4s infinite}
+  @keyframes glow{50%{box-shadow:0 0 0 6px rgba(var(--glow),.18),0 0 40px rgba(var(--glow),.5),0 12px 40px rgba(20,33,61,.18)}}
+  .bub small{display:block;font-size:13px;color:var(--ink-2);margin-top:6px}
+  .bub .who-s{font-size:12px;font-weight:600;color:var(--ink-2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em}
+  .pro .bub.show{display:block}
+  .bub.hurt{background:#fdecea;--glow:197,34,31}
+
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
   /* real phone: show one side only (?role=worker for the other) */
-  @media (max-width:900px){ body{display:block} .stage{display:block} .side{display:none} }
+  /* narrow or portrait screens: story on top, the two phones side by side, insights below */
+  body.stacked{display:block}
+  .stacked .stage{flex-direction:column;align-items:center;gap:16px;padding:12px}
+  .stacked .rail{width:100%;max-width:720px;height:auto}
+  .stacked #story{flex:none;overflow:visible}
+  .stacked #feedCard{flex:none;max-height:320px}
+  #wide{border:0;border-radius:24px;padding:24px;max-width:340px;text-align:center;color:var(--ink);box-shadow:0 20px 60px rgba(20,33,61,.3)}
+  #wide::backdrop{background:rgba(20,33,61,.45)}
+  #wide h2{font-size:20px;margin:8px 0}
+  #wide p{margin:0 0 16px;font-size:15px;color:var(--ink-2)}
+  #wide .cta{align-self:auto;width:100%}
 </style>
 </head>
 <body>
 <div class="stage" id="stage">
-  <div class="side"><div><b>田中 健一</b> <span>· Foreman · 日本語</span></div><div class="phone"><iframe id="foreman" src="" title="Foreman phone"></iframe></div></div>
-  <div class="side"><div><b>Rahim Uddin</b> <span>· Worker · English</span></div><div class="phone"><iframe id="worker" src="" title="Worker phone"></iframe></div></div>
+  <aside class="rail" aria-label="Story">
+    <div class="card">
+      <div class="guide"><img id="nekko" src="nekko/nekko-neutral.svg" alt="" width="72" height="63"><p class="eyebrow">Wakatta? · a story<br><span>with Nekko, your guide</span></p></div>
+      <div class="prog" id="prog"></div>
+      <div class="chap" id="chap"></div>
+    </div>
+    <div class="card" id="story" aria-live="polite"></div>
+    <div class="tools">
+      <button class="ghost" id="doIt" hidden>Do this step for me</button>
+      <button class="ghost" id="restart">Restart story</button>
+    </div>
+  </aside>
+
+  <div class="phones">
+    <div class="side"><div><b>田中 健一</b> <span>· Foreman · 日本語</span></div><div class="phone" id="pF"><iframe id="foreman" src="" title="Foreman phone"></iframe></div>
+      <div class="bub" id="bF"></div></div>
+    <div class="side"><div><b>Rahim Uddin</b> <span>· Worker · English</span></div><div class="phone" id="pW"><iframe id="worker" src="" title="Worker phone"></iframe></div>
+      <div class="bub" id="bW"></div></div>
+  </div>
+
+  <aside class="rail" aria-label="Behind the scenes">
+    <div class="card" id="factsCard">
+      <p class="eyebrow">Why it matters</p>
+      <div class="facts">
+        <div class="fact"><b>2,571,037</b><span>foreign workers in Japan, a record high (MHLW, Oct 2025)</span></div>
+        <div class="fact"><b>6.5 vs 2.6</b><span>injuries per 1,000 in manufacturing: foreign workers vs all workers (2021, Sompo RM from MHLW)</span></div>
+        <div class="fact"><b>6,244</b><span>foreign workers killed or injured at work in 2024, over 4× 2008</span></div>
+      </div>
+    </div>
+    <div class="card" id="pipeCard" hidden>
+      <p class="eyebrow">Behind the scenes · AI pipeline</p>
+      <ol class="pipe" id="pipe"></ol>
+      <div class="lock">Glossary lock: <b>金型交換</b> always means <b>die change</b>. The AI cannot paraphrase it away.</div>
+    </div>
+    <div class="card" id="whoCard" hidden>
+      <p class="eyebrow">Wakatta Status · what Tanaka sees</p>
+      <ul class="who" id="who"></ul>
+    </div>
+    <div class="card" id="feedCard" hidden>
+      <p class="eyebrow">Live · what just happened</p>
+      <ul id="feed"></ul>
+    </div>
+  </aside>
 </div>
+<dialog id="wide" aria-labelledby="wideT">
+  <img src="nekko/nekko-neutral.svg" alt="" width="88" height="77">
+  <h2 id="wideT">Best on a wide screen</h2>
+  <p>This demo shows two phones and the story side by side. Open it on a laptop or desktop for the best experience. You can still try it here.</p>
+  <form method="dialog"><button class="cta">Continue anyway</button></form>
+</dialog>
 <script>
   // ?app=parts/preview-X.html loads a preview build instead of app.html
   const APP = new URLSearchParams(location.search).get('app') || 'app.html';
-  foreman.src = APP + '?role=foreman&embed=1#chats';
-  worker.src = APP + '?role=worker&embed=1#chats';
-  // Narrow screens: open one role full screen instead of two phones.
-  if (matchMedia('(max-width:900px)').matches) location.replace(APP + '?role=' + (new URLSearchParams(location.search).get('role') || 'foreman'));
-  // Zoom both phones to fit the window height.
-  const fit = () => { document.getElementById('stage').style.zoom = Math.min(1, (innerHeight - 24) / 950, (innerWidth - 24) / 940); };
+  // Zoom the stage (story rail + phones + insight rail) to fit the window.
+  // Wide: zoom the whole stage to fit. Narrow or portrait: stack, and zoom only the phones to the width.
+  // clientWidth, not innerWidth: on phones innerWidth grows with any overflow and the zoom would feed it
+  const vw = () => document.documentElement.clientWidth, vh = () => document.documentElement.clientHeight;
+  const fit = () => {
+    const innerWidth = vw(), innerHeight = vh();
+    const stacked = innerWidth < 1100 || innerWidth < innerHeight, stage = document.getElementById('stage');
+    document.body.classList.toggle('stacked', stacked);
+    stage.style.zoom = stacked ? 1 : Math.min(1, (innerHeight - 24) / 950, (innerWidth - 24) / 1660);
+    stage.querySelector('.phones').style.zoom = stacked ? Math.min(1, (innerWidth - 24) / 930) : 1;
+  };
   fit(); addEventListener('resize', fit);
+  // Small screens: suggest a wide screen once per session; Esc or the button dismisses it.
+  if (Math.min(vw(), vh()) < 600 || vw() < 900) {
+    try { if (!sessionStorage.getItem('wk-wide')) { document.getElementById('wide').showModal(); sessionStorage.setItem('wk-wide', '1'); } } catch (e) { document.getElementById('wide').showModal(); }
+  }
   // Relay Bus events between the two phones.
   const frames = [foreman, worker];
   addEventListener('message', e => {
@@ -38,5 +183,6 @@
     frames.forEach(f => { if (f.contentWindow !== e.source) f.contentWindow.postMessage(e.data, '*'); });
   });
 </script>
+<script src="story.js"></script>
 </body>
 </html>

@@ -4,6 +4,14 @@ Owner: Anim (`anim710`) — Role: Backend (WS10 Notices + Events, WS11 Asks + Se
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-24 21:30 (from Asif: your step 3, the demo reset, is done)
+
+- With Minhaz's OK: reset, `AI_CHAIN=demo`, warmup (all takes warm), final reset. The seed has no Bangla now (`daae1f8`). Details in my log. Your open items are all done.
+
+## 2026-11-24 20:45 (from Asif: I did your steps 1 and 2)
+
+- App Links fingerprints are set (live `assetlinks.json` lists both) and 1.0.3 is published (`/api/app/config`). The demo reset (step 3) waits for the team. BACKEND_WORK rows 2 and 3 were already done.
+
 ## 2026-11-24 19:50 (from Arjun: three Azure steps left, in this order)
 
 I have no Azure access, so these are yours. Checked from my PC at 19:47.

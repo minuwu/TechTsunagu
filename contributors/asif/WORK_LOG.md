@@ -4,6 +4,48 @@ Owner: Asif (`MdAsif-Hossain`) — Role: Backend (lead) / Services / Database
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-24 21:30 — No Bangla anywhere in the live demo; demo reset done (N1)
+
+### Changed
+- `daae1f8`: every Bangla entry removed from `backend/app/seed_data/*.json` (only those lines; checked against the parsed JSON). Four tests that expected Bangla in the seed updated. Full suite green (90.46%), ruff, format, pyright clean; deployed by CI.
+- **Demo reset (N1), confirmed by Minhaz:** `reset-demo.ps1`, `AI_CHAIN=demo` (keys were already on Azure), warmup until every take was warm, then one last reset to clear the warmup's drafts (the AI cache stays).
+
+### Verified on the live API
+- Rahim, Sadia, Tanvir `en`, 田中 `ja`. Threads, messages, Glossary, Machines, Tasks, Today's Word: 0 Bengali characters, 0 unsent drafts. Warmup: all 7 takes warm, 0.3 s each. Smoke 13/13 (CORS with the allowed origin).
+
+### Left
+- S5 on 1.0.3 (both phones sign in again: the reset removed every session and registered phone).
+- Bangla still in code, not in data: the API keeps an optional-looking `bn` Glossary field (required today; Android and the web send it), Android Fake repositories (offline mode only), one prompt example. Removing those is an app change; see the final report.
+
+## 2026-11-24 21:25 — Submission README and repo cleanup
+
+### Done
+- **README.md rewritten** for the judges: the story, the numbers with sources, the loop, why people need it, how to try it, the stack, the team. A Japanese 概要 sits at the top; the demo video has a marked spot ("coming soon").
+- **Screenshots** `docs/media/01–04*.png`, taken from Minhaz's interactive two-phone story (`prototypes/wakatta/index.html`); the README links that demo.
+- **Removed** only files nothing points to: the stray `photo-*.avif`, `research_notes/` and `reports/` (the shelved Nagasaki tourism idea), `HACKATHON_PRESETUP.md` (template playbook), `contributors/asif/MATTE_EVALUATION_AND_PLAN.md` (shelved idea). Everyone's WORK_LOG stays. Plans cited by code or CI stay.
+- Proposal and README now point at APK 1.0.3 (`53ae1e1`).
+
+### For the team
+- Paste the demo video link into README.md (the "Demo video" line) and `submission/TechTsunagu_Proposal.md` §8 when it is up.
+
+## 2026-11-24 20:45 — Anim's Azure steps done; every part checked together
+
+### Done on Azure (with my OK)
+- **App Links (XREQ-026):** `ANDROID_CERT_SHA256` set; the live `assetlinks.json` lists the release key (same as the 1.0.3 APK's signing certificate, checked with `apksigner`) and Minhaz's debug key.
+- **1.0.3 published:** `release-apk.ps1`; `GET /api/app/config` offers 1.0.3 with SHA-256 `8f2e2ab5…e81a`.
+
+### Checked on `main` (`18d5a17`)
+- Backend: ruff, pyright 0, lint-imports 4 kept, OpenAPI in sync with the routes. Frontend: generated types in sync, typecheck, lint, 116 tests. Android: `testDebugUnitTest checkModuleGraph :app:assembleDebug` green. Live API ready, 133 operations, same as the spec.
+- The hosted web demo runs on in-browser demo data by design (`build:static`), so it does not call the API and needs no CORS.
+
+### Left
+- N1 demo reset (waiting for the team), then S5 on 1.0.3.
+
+## 2026-11-24 — Anim's open items, taken over by Asif
+
+- PATCH draft keeps a good draft (BACKEND_WORK row 2) and Task drafts on a retried POST (row 3) were already done (`de6b82a`); the three tests pass. Table updated.
+- My duplicate pyright fix was reverted: Anim's fix on `main` is the same line.
+
 ## 2026-11-24 19:50 (from Arjun: S5 is on 1.0.3, after Anim's three steps)
 
 - Minhaz released **1.0.3** (`80d58fc`, with the push fix `5425566`), not 1.0.2: test that build for S5. Its SHA-256 matches the committed `.sha256` (checked).

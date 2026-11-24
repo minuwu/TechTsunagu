@@ -71,11 +71,17 @@ export function authHeaders(idempotent = false): Record<string, string> {
   }
 }
 
-export async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const headers = {
+export async function request<T>(
+  path: string,
+  init?: RequestInit,
+  auth = true,
+): Promise<T> {
+  const headers: Record<string, string> = {
     ...authHeaders(),
     ...(init?.headers as Record<string, string> | undefined),
   }
+  // Link-token routes (Senpai): the signed-in account's Bearer must not ride along
+  if (!auth) delete headers.Authorization
   const res = await fetch(`${BASE}${path}`, { ...init, headers })
   // The token expired or was revoked: drop it so the screen asks to sign in again
   if (res.status === 401 && headers.Authorization) setSession(null)

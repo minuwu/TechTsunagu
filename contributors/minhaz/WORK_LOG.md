@@ -7,6 +7,14 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 
 > **Message from Asif (2026-11-23), read first:** [CHATBOT_FROM_ASIF.md](CHATBOT_FROM_ASIF.md) explains the chatbot (what it does, the API, the four screen states, "Ask my Senpai" vs "Safety Senpai") and three decisions that are **yours**: where the ask box goes, one bot or two names, and which half grows first. Answer in XREQ-016.
 
+## 2026-11-24 (prototype demo: interactive story beside the two phones)
+
+- `prototypes/wakatta/index.html` is now a guided journey: a story rail on the left (Nekko as guide, 5 chapters, choices) and a "behind the scenes" rail on the right (AI pipeline, Wakatta Status, live feed). Logic is in `story.js`.
+- Chapters: the nod (trust it or ask again, then the injury), Tanaka speaks, Rahim answers (understood or misread 金型交換), close the gap (Follow-up, Re-explanation), what changed.
+- The story follows the real Bus events, so visitors can tap freely; off-script answers take their own branch. "Do this step for me" drives the phones for passive visitors.
+- Phone splash now shows the Nekko icon instead of the bridge mark (`parts/skeleton.html`, `app.html` rebuilt with `merge.py`). Nekko expressions copied to `prototypes/wakatta/nekko/`.
+- Limits: under 900px it still opens one phone without the story; on `file://` the in-phone highlights do not show.
+
 ## 2026-11-24 (from Asif: proposal for open registration, ADR 0017)
 
 - Each new shop's Foreman gets a fresh 100 AI requests a day, and one IP may open 3 shops a minute, so the AI allowance can be got around.
@@ -40,6 +48,13 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 - **Done for you (with your OK):** the App Links filter in `android/app/src/main/AndroidManifest.xml` is enabled on the API host with the `/m/ /c/ /t/ /n/ /b/ /nm/ /i/` prefixes; `MainActivity.openFromAppLink` parses `intent.dataString` with `parseAppLink` against the host of `ApiConfig.BASE_URL` and opens `toDestination()` once signed in (same wait as notifications); new `AppLinkHostTest` keeps the two hosts equal. **Not compiled or run here (no JDK or SDK on my machine): please run `testDebugUnitTest` and `:app:assembleDebug`.**
 - **Still yours:** send Anim the SHA-256 fingerprints of the debug and release keys (`keytool -list -v -keystore …`); `assetlinks.json` is `[]` until then, so links do not verify yet. The Machine scanner (`QrPayload.parse`) still accepts any host and requires `?s=`; the contract wants it on `UriDeepLinkMatcher` too (2.10 check 8).
 - `?s={shopCode}` on the web QR stickers waits on XREQ-001: the web app gets `shopCode` only from real sign-in. When you do XREQ-001, tell me and I add it, or add it in the same change. We also need to agree which host stickers print: the web `VITE_PUBLIC_URL` opens the web Machine page, the API host opens the app (or its "open in the app" page).
+
+## 2026-11-24 (web: Senpai link calls are safe to open while signed in)
+
+- `frontend/src/services/wakatta.ts`: `senpaiView`, `senpaiReply` and `logMeetup` (Senpai side) build their path with `senpaiPath(token)`, which encodes the link token; `senpaiReply` also encodes `askId`. A crafted link such as `../../tasks/x` can no longer reach another API route.
+- `api.ts`: `request(path, init, false)` leaves out the `Authorization` header. The Senpai calls use it, so the signed-in account's Bearer is not sent with a link token, and a 401 there no longer signs that person out.
+- New test in `api.test.ts`. The frontend tests need Node 22 or 24 (`engines`); under Node 23.7 `msw`/`undici` fails to load.
+- Not checked: that the live backend accepts Senpai routes with no Bearer (they are link-token only by contract).
 
 ## 2026-11-24 (Shop Registration, Members screen, bilingual sign-in and intro)
 

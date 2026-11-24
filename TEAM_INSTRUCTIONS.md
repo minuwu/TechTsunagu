@@ -52,7 +52,7 @@ Add a column when a teammate joins (AGENTS.md §5.6).
 1. Problem statement + the one demo moment judges will remember (10 min).
 2. Screens on paper/Excalidraw (10 min).
 3. Endpoints + JSON into [docs/API_SPEC.md](docs/API_SPEC.md) (15 min). Use the envelope in §1 of that file.
-4. Stack decision from [HACKATHON_PRESETUP.md §2](HACKATHON_PRESETUP.md#2-recommended-tech-stacks) (5 min).
+4. Stack decision (5 min); the chosen stack is in the [README](README.md#how-it-is-built).
 5. Assign Hour-0 tasks from the table above; everyone opens a branch (5 min).
 
 ## 6. Keeping the Knowledge Graph Fresh

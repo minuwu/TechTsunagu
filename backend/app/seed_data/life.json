@@ -22,16 +22,16 @@
       "category": "disaster",
       "sourceKind": "text",
       "sourceJa": "12月6日（日）9時から、みなと町の防災訓練を行います。みなと小学校の体育館に集合してください。",
-      "title": { "ja": "防災訓練（12月6日）", "bn": "দুর্যোগ মহড়া (৬ ডিসেম্বর)", "en": "Disaster drill (6 Dec)" },
+      "title": { "ja": "防災訓練（12月6日）", "en": "Disaster drill (6 Dec)" },
       "steps": [
-        { "ja": "12月6日（日）9:00に集まります。", "bn": "৬ ডিসেম্বর (রবিবার) সকাল ৯টায় জড়ো হবেন।", "en": "Gather on Sunday 6 Dec at 9:00." },
-        { "ja": "場所：みなと小学校の体育館（避難所）。", "bn": "জায়গা: মিনাতো প্রাথমিক বিদ্যালয়ের জিমনেসিয়াম (আশ্রয়কেন্দ্র)।", "en": "Place: Minato Elementary School gym (evacuation shelter)." },
-        { "ja": "動きやすい服で来てください。", "bn": "চলাফেরায় সুবিধাজনক কাপড় পরে আসুন।", "en": "Wear clothes you can move in." }
+        { "ja": "12月6日（日）9:00に集まります。", "en": "Gather on Sunday 6 Dec at 9:00." },
+        { "ja": "場所：みなと小学校の体育館（避難所）。", "en": "Place: Minato Elementary School gym (evacuation shelter)." },
+        { "ja": "動きやすい服で来てください。", "en": "Wear clothes you can move in." }
       ],
       "events": [
         {
           "key": "ev-drill",
-          "title": { "ja": "防災訓練", "bn": "দুর্যোগ মহড়া", "en": "Disaster drill" },
+          "title": { "ja": "防災訓練", "en": "Disaster drill" },
           "startsAt": "2026-12-06T09:00:00+09:00",
           "rrule": null,
           "confirmed": true
@@ -40,11 +40,11 @@
       "question": {
         "id": "q1",
         "termId": null,
-        "prompt": { "ja": "訓練の日、どこに集まりますか？", "bn": "মহড়ার দিন কোথায় জড়ো হবেন?", "en": "Where do you gather on drill day?" },
+        "prompt": { "ja": "訓練の日、どこに集まりますか？", "en": "Where do you gather on drill day?" },
         "options": [
-          { "ja": "みなと小学校の体育館", "bn": "মিনাতো প্রাথমিক বিদ্যালয়ের জিমনেসিয়াম", "en": "Minato Elementary School gym" },
-          { "ja": "会社", "bn": "কোম্পানি", "en": "The company" },
-          { "ja": "駅", "bn": "স্টেশন", "en": "The station" }
+          { "ja": "みなと小学校の体育館", "en": "Minato Elementary School gym" },
+          { "ja": "会社", "en": "The company" },
+          { "ja": "駅", "en": "The station" }
         ],
         "correctIndex": 0
       },
@@ -57,15 +57,15 @@
       "category": "event",
       "sourceKind": "text",
       "sourceJa": "12月13日（日）11時から、みなと公園で冬まつりがあります。外国人の方もぜひ参加してください。",
-      "title": { "ja": "みなと公園 冬まつり", "bn": "মিনাতো পার্ক শীত উৎসব", "en": "Minato Park winter festival" },
+      "title": { "ja": "みなと公園 冬まつり", "en": "Minato Park winter festival" },
       "steps": [
-        { "ja": "12月13日（日）11:00から、みなと公園で。", "bn": "১৩ ডিসেম্বর (রবিবার) সকাল ১১টা থেকে, মিনাতো পার্কে।", "en": "Sunday 13 Dec from 11:00, Minato Park." },
-        { "ja": "だれでも参加できます。無料です。", "bn": "যে কেউ যোগ দিতে পারেন। বিনামূল্যে।", "en": "Anyone can join. Free." }
+        { "ja": "12月13日（日）11:00から、みなと公園で。", "en": "Sunday 13 Dec from 11:00, Minato Park." },
+        { "ja": "だれでも参加できます。無料です。", "en": "Anyone can join. Free." }
       ],
       "events": [
         {
           "key": "ev-festival",
-          "title": { "ja": "冬まつり", "bn": "শীত উৎসব", "en": "Winter festival" },
+          "title": { "ja": "冬まつり", "en": "Winter festival" },
           "startsAt": "2026-12-13T11:00:00+09:00",
           "rrule": null,
           "confirmed": true
@@ -74,11 +74,11 @@
       "question": {
         "id": "q1",
         "termId": null,
-        "prompt": { "ja": "まつりに参加するのに、お金はいりますか？", "bn": "উৎসবে যেতে টাকা লাগবে?", "en": "Does the festival cost money?" },
+        "prompt": { "ja": "まつりに参加するのに、お金はいりますか？", "en": "Does the festival cost money?" },
         "options": [
-          { "ja": "いらない（無料）", "bn": "না (বিনামূল্যে)", "en": "No (free)" },
-          { "ja": "1万円", "bn": "১০,০০০ ইয়েন", "en": "¥10,000" },
-          { "ja": "会社が払う", "bn": "কোম্পানি দেবে", "en": "The company pays" }
+          { "ja": "いらない（無料）", "en": "No (free)" },
+          { "ja": "1万円", "en": "¥10,000" },
+          { "ja": "会社が払う", "en": "The company pays" }
         ],
         "correctIndex": 0
       },
@@ -91,15 +91,15 @@
       "category": "duty",
       "sourceKind": "text",
       "sourceJa": "毎月第1日曜は自治会の清掃当番です。8時に公民館前に集合。軍手を持ってきてください。",
-      "title": { "ja": "自治会の清掃当番", "bn": "পাড়ার সমিতির পরিষ্কার-পরিচ্ছন্নতা", "en": "Neighbourhood clean-up duty" },
+      "title": { "ja": "自治会の清掃当番", "en": "Neighbourhood clean-up duty" },
       "steps": [
-        { "ja": "毎月の第1日曜、8:00に公民館の前に集まります。", "bn": "প্রতি মাসের প্রথম রবিবার সকাল ৮টায় কমিউনিটি হলের সামনে।", "en": "First Sunday of each month, 8:00, in front of the community hall." },
-        { "ja": "軍手を持ってきます。", "bn": "কাজের গ্লাভস নিয়ে আসুন।", "en": "Bring work gloves." }
+        { "ja": "毎月の第1日曜、8:00に公民館の前に集まります。", "en": "First Sunday of each month, 8:00, in front of the community hall." },
+        { "ja": "軍手を持ってきます。", "en": "Bring work gloves." }
       ],
       "events": [
         {
           "key": "ev-cleanup",
-          "title": { "ja": "清掃当番", "bn": "পরিষ্কার-পরিচ্ছন্নতা", "en": "Clean-up duty" },
+          "title": { "ja": "清掃当番", "en": "Clean-up duty" },
           "startsAt": "2026-12-06T08:00:00+09:00",
           "rrule": null,
           "confirmed": true
@@ -108,11 +108,11 @@
       "question": {
         "id": "q1",
         "termId": null,
-        "prompt": { "ja": "清掃当番に何を持っていきますか？", "bn": "পরিষ্কারের দিন কী নিয়ে যাবেন?", "en": "What do you bring to clean-up duty?" },
+        "prompt": { "ja": "清掃当番に何を持っていきますか？", "en": "What do you bring to clean-up duty?" },
         "options": [
-          { "ja": "軍手", "bn": "কাজের গ্লাভস", "en": "Work gloves" },
-          { "ja": "お弁当", "bn": "দুপুরের খাবার", "en": "A lunch box" },
-          { "ja": "パスポート", "bn": "পাসপোর্ট", "en": "Passport" }
+          { "ja": "軍手", "en": "Work gloves" },
+          { "ja": "お弁当", "en": "A lunch box" },
+          { "ja": "パスポート", "en": "Passport" }
         ],
         "correctIndex": 0
       },

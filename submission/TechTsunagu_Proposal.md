@@ -43,7 +43,7 @@ The name is the promise: *"Wakatta?"* means *"Understood?"*, and the app makes s
 
 ## 5. What we built, and how far it is
 
-- **Android app:** Kotlin and Jetpack Compose, 15 feature modules, signed APK 1.0.2.
+- **Android app:** Kotlin and Jetpack Compose, 15 feature modules, signed APK 1.0.3.
 - **Web app:** React and TypeScript, for the foreman's PC and our landing page.
 - **Backend:** Python, FastAPI and PostgreSQL, live on Microsoft Azure.
 - **AI:** Groq Whisper turns real speech into text; Gemini handles translation, questions and task extraction. Every AI step has a fallback, so the app keeps working when a model is busy.
@@ -78,6 +78,6 @@ In three days, five of us made **474 commits**. We worked in parallel through a 
 - **Demo video (YouTube, unlisted):** [YOUTUBE_UNLISTED_LINK]
 - **GitHub repository:** https://github.com/minuwu/TechTsunagu
 - **Web app / landing page:** https://mango-beach-001af4300.4.azurestaticapps.net
-- **Android app (APK 1.0.2):** https://wakattaapk71923.blob.core.windows.net/apk/wakatta-1.0.2.apk
+- **Android app (APK 1.0.3):** https://wakattaapk71923.blob.core.windows.net/apk/wakatta-1.0.3.apk
 
 **Sources:** MHLW, 「外国人雇用状況」の届出状況まとめ（令和7年10月末時点）, 2026-01-30 · Nagasaki Labour Bureau, 長崎県における「外国人雇用状況」の集計結果まとめ（令和7年10月末時点）, 2026-01-30 · Sompo Risk Management, Report 277, 外国人労働者の労働災害の現状とその対策, 2025-09-17 · MHLW, 第14次労働災害防止計画.

@@ -61,6 +61,9 @@ const json = (
   body: JSON.stringify(body),
 })
 
+/** A Senpai link route. The token comes from a URL anyone can craft, so encode it: `../` must not reach another route. */
+const senpaiPath = (token: string) => `/api/senpai/${encodeURIComponent(token)}`
+
 /** Multipart POST with an Idempotency-Key (every multipart route takes one). Empty fields are left out. */
 const multipart = (
   fields: Record<string, string | Blob | null | undefined>,
@@ -481,8 +484,9 @@ export async function senpaiReply(token: string, askId: string, reply: Tri) {
   if (!USE_MOCK)
     // The backend translates the Japanese for the Worker
     return request<void>(
-      `/api/senpai/${token}/asks/${askId}/reply`,
+      `${senpaiPath(token)}/asks/${encodeURIComponent(askId)}/reply`,
       json('POST', { replyJa: reply.ja }),
+      false,
     )
   update((db) => {
     const pair = db.pairs.find((p) => p.token === token)
@@ -506,8 +510,9 @@ export async function logMeetup(input: {
   if (!USE_MOCK) {
     const body = { kind: meetup.kind, date: meetup.date, note: meetup.note }
     return request<void>(
-      token ? `/api/senpai/${token}/meetups` : '/api/meetups',
+      token ? `${senpaiPath(token)}/meetups` : '/api/meetups',
       json('POST', body, !token),
+      !token,
     )
   }
   update((db) => {
@@ -657,4 +662,4 @@ export interface SenpaiView {
 
 /** The Senpai's private link: no account, the token is the key (404 when wrong or revoked). */
 export const senpaiView = (token: string) =>
-  request<SenpaiView>(`/api/senpai/${encodeURIComponent(token)}`)
+  request<SenpaiView>(senpaiPath(token), undefined, false)
