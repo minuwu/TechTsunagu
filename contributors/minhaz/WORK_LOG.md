@@ -7,6 +7,13 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 
 > **Message from Asif (2026-11-23), read first:** [CHATBOT_FROM_ASIF.md](CHATBOT_FROM_ASIF.md) explains the chatbot (what it does, the API, the four screen states, "Ask my Senpai" vs "Safety Senpai") and three decisions that are **yours**: where the ask box goes, one bot or two names, and which half grows first. Answer in XREQ-016.
 
+## 2026-11-24 (Android app on the live backend)
+
+- The native app in `android/` runs on the live API for every screen: Asks and Senpai pairs (Worker and Foreman), Panel Check reminders and override end by id, Chat and Panel ETag bodies kept in Room, pushes that show the server's text and open their thread or Machine.
+- Device features wired: dictation, TTS, QR camera, photo, share, offline outbox with banner.
+- Checks: `testDebugUnitTest`, `checkModuleGraph`, `:app:assembleDebug` green; installs and starts on the emulator. Plan and open items: [ANDROID_FINISH_PLAN.md](ANDROID_FINISH_PLAN.md), backend asks: [BACKEND_WORK.md](BACKEND_WORK.md).
+- Still open: full Worker/Foreman walk on the device, Senpai revoke button, fonts, App Links, baseline profile; backend XREQ-019, 025, 026, 014.
+
 ## 2026-11-24 (backend gaps for the Android app: XREQ-021, 023, 024)
 
 - Built in the backend, with tests and one migration (`a445952485bc`): Machine reminders and override retries (XREQ-021), Near-miss severity, photo mark, Worker's own list and Task link (XREQ-023), Asks for the Foreman (XREQ-024, items 2 and 3 not built, see the card).
