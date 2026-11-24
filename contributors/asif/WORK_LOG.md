@@ -17,7 +17,7 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 - **`docs/API_SPEC.md`** filled in; its endpoint index is generated and checked (`a430bbc`).
 - **XREQ-025 unblocked**: `Microsoft.Storage` registered. **XREQ-009 closed. XREQ-007 item 3** (seam) answered in the card.
 - **`Cache-Control: no-store`** on every API response (sign-in and Senpai links too), as §12 promised; guard test also lists routes outside the contract; untrue claims in BACKEND_ARCHITECTURE corrected (SQLModel, Pillow, docker-compose, `/demo/reset`, load test).
-- Notes for the team: `FROM_ASIF_2026-11-24.md` in the anim, galib, minhaz and arjun folders.
+- Notes for the team: `FROM_ASIF_2026-11-24.md` in the anim, galib, minhaz and arjun folders, each starting with that person's task list.
 
 ### Next
 - XREQ-013 (static web demo): stays with Anim (decided 2026-11-24).

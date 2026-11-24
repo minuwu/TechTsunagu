@@ -1,14 +1,15 @@
 import '@fontsource/aileron/400.css'
 import '@fontsource/aileron/700.css'
 import '@fontsource/aileron/800.css'
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link, useLocation } from '@tanstack/react-router'
 import { m } from '@/i18n/paraglide/messages'
 import { ping } from '@/lib/audio'
-import { useDataStatus } from '@/features/health'
+import { useDataStatus, useWriteFailure } from '@/features/health'
 import { useDemoScenario } from '@/features/hub'
 import { usePersisted } from '@/lib/persisted'
 import { startSmoothScroll } from '@/ui/v4/lib/motion'
+import { toast } from '@/ui/v4/lib/toast'
 import { cn } from '@/ui/v4/lib/utils'
 import { BridgeMark } from './components/Brand'
 import { Toaster } from './components/Feedback'
@@ -175,6 +176,26 @@ function DemoSwitcher() {
   )
 }
 
+const WRITE_MESSAGE = {
+  busy: m.write_busy,
+  limit: m.write_limit,
+  offline: m.write_offline,
+  failed: m.write_failed,
+} as const
+
+/** A failed write (save, send, ask) becomes an error toast, so nothing fails silently. */
+function WriteFailureToast() {
+  const failure = useWriteFailure()
+  // Highest id already shown: a remount or the cache dropping old failures never repeats a toast
+  const shown = useRef(failure?.id ?? 0)
+  useEffect(() => {
+    if (!failure || failure.id <= shown.current) return
+    shown.current = failure.id
+    toast(WRITE_MESSAGE[failure.kind](), 'error')
+  }, [failure])
+  return null
+}
+
 /** Offline or a failed read: a caution band under the header, never silent stale data. */
 function ConnectionBanner() {
   const { status, retry } = useDataStatus()
@@ -271,6 +292,7 @@ export function Layout({ children }: { children: ReactNode }) {
       </main>
       <TabBar path={path} sound={sound} />
       <DemoSwitcher />
+      <WriteFailureToast />
       <Toaster />
     </div>
   )

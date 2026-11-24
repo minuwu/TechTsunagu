@@ -65,6 +65,26 @@ describe('services/api (live mode)', () => {
     })
   })
 
+  it('keeps Retry-After on a 429, so the UI can say when to try again', async () => {
+    server.use(
+      http.get(`${API}/api/health`, () =>
+        HttpResponse.json(
+          {
+            success: false,
+            error: { code: 'RATE_LIMITED', message: 'Slow down', details: {} },
+          },
+          { status: 429, headers: { 'Retry-After': '60' } },
+        ),
+      ),
+    )
+    const { getHealth } = await liveApi()
+    await expect(getHealth()).rejects.toMatchObject({
+      status: 429,
+      code: 'RATE_LIMITED',
+      retryAfter: 60,
+    })
+  })
+
   it('throws ApiError when a proxy returns a non-JSON error page', async () => {
     server.use(
       http.get(

@@ -16,6 +16,8 @@ export class ApiError extends Error {
     public readonly status: number,
     public readonly code: string,
     message: string,
+    /** Seconds from the Retry-After header (a 429 says when to try again) */
+    public readonly retryAfter?: number,
   ) {
     super(message)
     this.name = 'ApiError'
@@ -29,10 +31,12 @@ export async function request<T>(path: string, init?: RequestInit): Promise<T> {
     { success: true; data: T } | ErrorEnvelope | null
   if (!res.ok || !body?.success) {
     const error = body && !body.success ? body.error : undefined
+    const wait = Number(res.headers.get('Retry-After'))
     throw new ApiError(
       res.status,
       error?.code ?? 'UNKNOWN',
       error?.message ?? res.statusText,
+      wait > 0 ? wait : undefined,
     )
   }
   return body.data
