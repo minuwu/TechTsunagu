@@ -58,7 +58,7 @@ interface ChatRepository {
     ): AppResult<ChatMessageUiModel>
 
     /** Speech to text for a finished recording. */
-    suspend fun transcribe(audio: File?): AppResult<String>
+    suspend fun transcribe(audio: File, language: String): AppResult<String>
 
     suspend fun getReexplainDraft(messageId: String, workerId: String): AppResult<ReexplainDraft>
 

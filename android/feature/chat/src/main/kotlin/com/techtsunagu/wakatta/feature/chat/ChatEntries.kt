@@ -5,6 +5,7 @@ import androidx.navigation3.runtime.NavKey
 import com.techtsunagu.wakatta.core.model.ThreadSource
 import com.techtsunagu.wakatta.core.navigation.ChatKey
 import com.techtsunagu.wakatta.core.navigation.ChatsKey
+import com.techtsunagu.wakatta.core.navigation.ConnectKey
 import com.techtsunagu.wakatta.core.navigation.PChatKey
 import com.techtsunagu.wakatta.core.navigation.FeatureEntries
 import com.techtsunagu.wakatta.core.navigation.Navigator
@@ -31,6 +32,7 @@ class ChatEntries @Inject constructor() : FeatureEntries {
         entry<ChatsKey> {
             ChatsScreen(
                 onThreadClick = { threadId -> navigator.push(threadKey(threadId)) },
+                onQrClick = { navigator.push(ConnectKey) },
             )
         }
         // Screen id: chat

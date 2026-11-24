@@ -689,6 +689,32 @@ def _reexplain_ai(
     return result.value, terms, languages
 
 
+def transcribe(db: Session, who: Principal, audio: bytes | None, language: str, ai: AiRunner, now: datetime) -> str:
+    """Dictation fallback for phones without on-device speech recognition: the recording becomes composer text."""
+    if not audio:
+        raise ApiError(422, "VALIDATION_ERROR", "A recording is required", {"fields": [{"loc": ["body", "audio"]}]})
+    if language not in LANGUAGE_NAMES:
+        raise ApiError(422, "VALIDATION_ERROR", "Unsupported language", {"fields": [{"loc": ["body", "language"]}]})
+    shop_id, user_id = _me(who)
+    terms = _glossary(db, shop_id)
+    db.commit()  # no transaction is held during the model call (§8.3)
+    name = LANGUAGE_NAMES[language]
+    request = AiRequest(
+        pipeline="translate",
+        # translate into the same language = transcribe; the prompt keeps the Glossary Terms' fixed forms
+        prompt=render("translate", 1, source_lang=name, target_lang=name, glossary=_glossary_block(terms)),
+        parts=[Part.blob(audio, audio_mime(audio), language)],
+        schema=Translation,
+        scope=f"user:{user_id}",  # personal: never cached (ADR 0014)
+        cache_input=b"",
+        caller=f"user:{user_id}",
+    )
+    result = ai.run(request, lambda _: [], now)
+    if result.value is None or not result.value.text.strip():
+        raise ApiError(503, "AI_UNAVAILABLE", "The recording could not be transcribed now; type the message")
+    return result.value.text.strip()
+
+
 def reexplain_draft(
     db: Session, who: Principal, message_id: int, body: ReexplainIn, ai: AiRunner, now: datetime
 ) -> ReexplainDraft:

@@ -561,3 +561,23 @@ def test_a_worker_lists_their_unanswered_checks_in_one_call(
     assert (item["messageId"], item["threadId"]) == (sent["id"], str(line.thread_id))
     assert after == []
     assert client.get("/api/messages/unanswered", headers=line.foreman).status_code == 403
+
+
+def test_a_recording_is_transcribed_for_the_composer_and_nothing_is_sent(
+    client: TestClient, line: Line, fake_ai: FakeAiClient
+) -> None:
+    fake_ai.queue("translate", {"text": "3号機の油を点検してください"})
+    m4a = ("d.m4a", b"\x00\x00\x00\x18ftypM4A " + b"\x00" * 32, "audio/mp4")
+
+    res = client.post("/api/transcriptions", headers=line.foreman, data={"language": "ja"}, files={"audio": m4a})
+    empty = client.post("/api/transcriptions", headers=line.foreman, data={"language": "ja"})
+    odd = client.post("/api/transcriptions", headers=line.foreman, data={"language": "xx"}, files={"audio": m4a})
+    unavailable = client.post(
+        "/api/transcriptions", headers=line.foreman, data={"language": "ja"}, files={"audio": m4a}
+    )
+
+    assert res.status_code == 200, res.text
+    assert res.json()["data"] == {"text": "3号機の油を点検してください"}
+    assert (empty.status_code, odd.status_code, unavailable.status_code) == (422, 422, 503)
+    msgs = client.get(f"/api/threads/{line.thread_id}/messages", headers=line.foreman).json()["data"]["items"]
+    assert msgs == []

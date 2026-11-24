@@ -16,6 +16,8 @@ import javax.inject.Singleton
 abstract class MediaModule {
     @Binds @Singleton abstract fun bindDictationSource(impl: DeviceDictation): DictationSource
 
+    @Binds abstract fun bindVoiceRecorder(impl: DeviceVoiceRecorder): VoiceRecorder
+
     @Binds abstract fun bindSpeaker(impl: TtsSpeaker): Speaker
 
     @Binds abstract fun bindPhotoCapture(impl: PhotoCaptureBroker): PhotoCapture

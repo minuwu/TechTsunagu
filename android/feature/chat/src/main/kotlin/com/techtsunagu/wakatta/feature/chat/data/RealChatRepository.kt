@@ -204,8 +204,12 @@ internal class RealChatRepository(
         }
     }
 
-    override suspend fun transcribe(audio: File?): AppResult<String> =
-        AppResult.Failure(AppError.Validation(listOf("audio")))
+    override suspend fun transcribe(audio: File, language: String): AppResult<String> = safeApiCall {
+        api().transcribe(
+            language = MultipartBody.Part.createFormData("language", language),
+            audio = MultipartBody.Part.createFormData("audio", audio.name, audio.asRequestBody("audio/mp4".toMediaType())),
+        )
+    }.mapOk { it.text }
 
     override suspend fun getReexplainDraft(messageId: String, workerId: String): AppResult<ReexplainDraft> {
         val followUp = when (val r = getFollowUps()) {

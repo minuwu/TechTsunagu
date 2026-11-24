@@ -304,7 +304,7 @@ class FakeChatRepository @Inject constructor() : ChatRepository {
         return AppResult.Success(defaultMsg)
     }
 
-    override suspend fun transcribe(audio: File?): AppResult<String> {
+    override suspend fun transcribe(audio: File, language: String): AppResult<String> {
         delay(simulatedLatencyMs)
         return AppResult.Success(DEMO_DICTATION)
     }

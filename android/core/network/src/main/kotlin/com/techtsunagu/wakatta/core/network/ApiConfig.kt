@@ -78,6 +78,7 @@ object ApiConfig {
         const val THREADS = "/api/threads"
         const val THREAD_MESSAGES = "/api/threads/{thread_id}/messages"
         const val MESSAGE_SEND = "/api/messages/{message_id}/send"
+        const val TRANSCRIPTIONS = "/api/transcriptions"
         const val MESSAGE_ANSWERS = "/api/messages/{message_id}/answers"
         const val FOLLOW_UPS = "/api/follow-ups"
         const val FOLLOW_UP = "/api/follow-ups/{follow_up_id}"
