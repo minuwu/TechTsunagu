@@ -49,6 +49,16 @@ object AsksDataModule {
 
     @Provides
     @Singleton
+    fun provideChatbotRepository(fake: Provider<FakeChatbotRepository>, retrofit: Lazy<Retrofit>): ChatbotRepository =
+        if (ApiConfig.USE_LIVE_API) {
+            val api = lazy { retrofit.get().create(KnowledgeApi::class.java) }
+            RealChatbotRepository { api.value }
+        } else {
+            fake.get()
+        }
+
+    @Provides
+    @Singleton
     fun provideTodayWordSource(
         fake: Provider<FakeTodayWordSource>,
         real: Provider<RealTodayWordSource>,
