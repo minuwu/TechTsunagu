@@ -368,6 +368,20 @@ def test_an_unchanged_poll_is_a_304(client: TestClient, line: Line, fake_ai: Fak
     assert again.status_code == 304
 
 
+def test_a_long_thread_opens_at_its_newest_messages(client: TestClient, db: Session, line: Line) -> None:
+    """Without a cursor a poll returns the newest page, oldest first; a cursor still walks forward from it."""
+    thread = db.get_one(Thread, line.thread_id)
+    shop, foreman = db.get_one(Shop, thread.shop_id), db.get_one(User, thread.created_by)
+    sent = [str(f.message(db, shop, thread, foreman, stage=4, sent_at=datetime.now(UTC)).id) for _ in range(103)]
+
+    ids = [m["id"] for m in _poll(client, line, line.rahim)]
+    url = f"/api/threads/{line.thread_id}/messages"
+    page = client.get(url, params={"after": sent[0]}, headers=line.rahim).json()["data"]["items"]
+
+    assert ids == sent[3:]
+    assert [m["id"] for m in page] == sent[1:101]
+
+
 @pytest.mark.parametrize("path", ["/api/threads", "/api/tasks"])
 def test_unchanged_threads_and_tasks_are_a_304(
     client: TestClient, line: Line, fake_ai: FakeAiClient, path: str
