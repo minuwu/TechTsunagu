@@ -17,3 +17,11 @@ def test_report_counts_per_model_and_lists_failures() -> None:
     assert "build_notice" not in text.split("## Failures")[0]  # a pipeline that did not run gets no row
     assert "- `m` · build_note · `n02`: lost: 寸法" in text
     assert "- `m` · answer_ask · `a01`: HTTP 503" in text
+
+
+def test_report_keeps_the_links_to_the_other_evals() -> None:
+    # The report replaces docs/ai-eval.md on every run, so links added by hand were lost on the next run
+    text = report([], ["m"], "2026-11-24 16:00 JST")
+
+    assert "(ai-eval-messages.md)" in text
+    assert "(ai-eval-chatbot.md)" in text
