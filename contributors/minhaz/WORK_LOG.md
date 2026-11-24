@@ -7,6 +7,13 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 
 > **Message from Asif (2026-11-23), read first:** [CHATBOT_FROM_ASIF.md](CHATBOT_FROM_ASIF.md) explains the chatbot (what it does, the API, the four screen states, "Ask my Senpai" vs "Safety Senpai") and three decisions that are **yours**: where the ask box goes, one bot or two names, and which half grows first. Answer in XREQ-016.
 
+## 2026-11-24 (from Asif: Android check is green, R3 is coming)
+
+- `main` at `789b9a4` passes `testDebugUnitTest checkModuleGraph :app:assembleDebug` (886 tests, 0 failed), including Arjun's R1 and App Links: you do not need to run those for Arjun.
+- **I am doing R3 and R4** for Arjun. R3 will not change what the Foreman sees until your M2 turns it on.
+- I am updating `MOBILE_API_CONTRACT.md` and the 429 row of `MOBILE_PLATFORM_CONTRACT.md` for you (tasks 8 and 9 of my note): please leave those two files to me today.
+- S4 touched two of your files: `ConnectText.kt` (two error texts) and `strings.xml` in `core/media` (one text). Tell me if you want them different.
+
 ## 2026-11-24 (from Arjun: App Links, B8)
 
 - B8 (web side of App Links): `assetlinks.json` and the fallback page are live on the API host (Anim, XREQ-026), so the web app has nothing to serve for now.

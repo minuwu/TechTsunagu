@@ -4,6 +4,15 @@ Owner: Asif (`MdAsif-Hossain`) — Role: Backend (lead) / Services / Database
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-24 — Full Android check on `main`
+
+### Verified (`789b9a4`, local, JDK 17; not run on a phone)
+- `testDebugUnitTest checkModuleGraph :app:assembleDebug`: BUILD SUCCESSFUL, 886 tests, 0 failed, 0 skipped, debug APK built.
+- This covers S4's missing app build, Arjun's R1 (`ReadTimeoutTest`) and App Links (`AppLinkHostTest`), and Minhaz's `444b71d`.
+
+### Taken from Arjun
+- R3 and R4 (marked in the plan). R2 was already done by Minhaz.
+
 ## 2026-11-24 — S4: dictation says what went wrong; Talk keeps words it could not save
 
 ### Changed (`eae8254`, on `main`)
