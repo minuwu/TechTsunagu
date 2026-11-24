@@ -409,8 +409,9 @@ class ChatViewModel @Inject constructor(
             return
         }
         updateState { it.copy(composerStatus = ComposerStatus.SENDING, isListening = false) }
+        val lang = currentDictationTag().substringBefore('-')
         dictationJob = viewModelScope.launch {
-            when (val r = chatRepository.transcribe(file, currentDictationTag().substringBefore('-'))) {
+            when (val r = chatRepository.transcribe(file, lang)) {
                 is AppResult.Success -> {
                     val text = accumulator.onFinal(r.value)
                     inputIsVoice = true
@@ -419,11 +420,45 @@ class ChatViewModel @Inject constructor(
                 }
                 is AppResult.Failure -> {
                     updateState { it.copy(composerStatus = ComposerStatus.EDITING) }
-                    sendEffect(ChatEffect.ShowHint(R.string.chat_dictation_type_instead))
+                    if (!retryable(r.error)) {
+                        sendEffect(ChatEffect.ShowHint(R.string.chat_dictation_type_instead))
+                        return@launch
+                    }
+                    // Layer 3: offline or the server is down. Keep the recording; the next tap must not overwrite it.
+                    val kept = File(file.parentFile, "dictation-${System.nanoTime()}.m4a").takeIf { file.renameTo(it) } ?: file
+                    sendEffect(ChatEffect.ShowHint(R.string.chat_dictation_saved))
+                    viewModelScope.launch { transcribeLater(kept, lang) }
                 }
             }
         }
     }
+
+    /** Retries a kept recording with backoff (about 10 minutes); the text joins whatever is typed by then. */
+    private suspend fun transcribeLater(file: File, lang: String) {
+        var wait = 2_000L
+        for (attempt in 1..RETRY_ATTEMPTS) {
+            delay(wait)
+            wait = (wait * 2).coerceAtMost(30_000L)
+            when (val r = chatRepository.transcribe(file, lang)) {
+                is AppResult.Success -> {
+                    file.delete()
+                    if (r.value.isBlank()) return
+                    val typed = state.value.inputText.trim()
+                    updateState { it.copy(inputText = if (typed.isEmpty()) r.value else "$typed ${r.value}") }
+                    if (typed.isEmpty()) inputIsVoice = true
+                    sendEffect(ChatEffect.ShowHint(R.string.chat_dictation_recovered))
+                    return
+                }
+                is AppResult.Failure -> if (!retryable(r.error)) break
+            }
+        }
+        file.delete()
+        sendEffect(ChatEffect.ShowHint(R.string.chat_dictation_type_instead))
+    }
+
+    private fun retryable(e: AppError) = e !is AppError.Validation && e !is AppError.PayloadTooLarge &&
+        e !is AppError.UnsupportedMedia && e !is AppError.SessionExpired && e !is AppError.Forbidden &&
+        e !is AppError.UpgradeRequired
 
     /** Set once the phone's recognizer failed: later taps go straight to the server. */
     private var serverDictation = false
@@ -602,3 +637,5 @@ class ChatViewModel @Inject constructor(
         correctOptionIndex = newQuestionCorrectIndex,
     )
 }
+
+private const val RETRY_ATTEMPTS = 24

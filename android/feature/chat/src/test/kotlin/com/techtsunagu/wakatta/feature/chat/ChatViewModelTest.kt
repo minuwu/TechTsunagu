@@ -147,14 +147,15 @@ class ChatViewModelTest {
         session: Session? = foreman,
         debug: Boolean = false,
         dictation: DictationSource = fakeDictation,
-    ) = ChatViewModel(
-        chatRepository = repository,
-        dictation = dictation,
-        recorder = object : com.techtsunagu.wakatta.core.media.VoiceRecorder {
+        recorder: com.techtsunagu.wakatta.core.media.VoiceRecorder = object : com.techtsunagu.wakatta.core.media.VoiceRecorder {
             override fun start() = false
             override fun stop(): java.io.File? = null
             override fun cancel() {}
         },
+    ) = ChatViewModel(
+        chatRepository = repository,
+        dictation = dictation,
+        recorder = recorder,
         speaker = FakeSpeaker(),
         sessionStore = TestSessionStore(session),
         appConfig = AppConfig(true, "", "", "1", 1, isDebug = debug),
@@ -256,6 +257,32 @@ class ChatViewModelTest {
         testDispatcher.scheduler.advanceUntilIdle()
         assertEquals(ComposerStatus.EDITING, vm.state.value.composerStatus)
         assertEquals(ChatEffect.ShowHint(R.string.chat_dictation_type_instead), vm.effects.first())
+    }
+
+    @Test
+    fun offline_voiceIsKept_andBecomesTextWhenBackOnline() = runTest {
+        fakeDictation.isAvailableResult = false
+        val audio = File.createTempFile("dictation", ".m4a").apply { writeBytes(ByteArray(64)) }
+        val recorder = object : com.techtsunagu.wakatta.core.media.VoiceRecorder {
+            override fun start() = true
+            override fun stop(): File? = audio
+            override fun cancel() {}
+        }
+        repository.failTranscribe = AppError.Offline
+        val vm = viewModel(recorder = recorder)
+        vm.init()
+
+        vm.onEvent(ChatEvent.StartRecording)
+        testDispatcher.scheduler.advanceUntilIdle()
+        vm.onEvent(ChatEvent.StopRecording)
+        testDispatcher.scheduler.runCurrent()
+        assertEquals(ChatEffect.ShowHint(R.string.chat_dictation_saved), vm.effects.first())
+        assertEquals(ComposerStatus.EDITING, vm.state.value.composerStatus)
+
+        repository.failTranscribe = null // the network is back
+        testDispatcher.scheduler.advanceUntilIdle()
+        assertEquals(repository.transcript, vm.state.value.inputText)
+        assertEquals(ChatEffect.ShowHint(R.string.chat_dictation_recovered), vm.effects.first())
     }
 
     @Test

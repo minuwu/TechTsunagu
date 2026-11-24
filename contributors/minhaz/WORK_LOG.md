@@ -234,3 +234,4 @@ Minhaz mapped the prototype (`prototypes/wakatta/`) and the frontend against `ma
 - A crash outside screens reopens the app on Home silently; a second crash within 10 s falls back to the system, so it never loops.
 - `safeApiCall` turns any unexpected exception into `AppError.Unknown`.
 - Added the 7 path constants teammates' new routes were missing (`OpenApiContractTest` was red).
+- Voice layer 3: offline or server down keeps the recording, says so, and retries with backoff (about 10 min); the text joins the composer when it lands. Fixed backend CI (API_SPEC endpoint index lacked `/api/transcriptions`), which had blocked the deploy.

@@ -108,4 +108,6 @@
     <string name="chat_show_translation">Show translation</string>
     <string name="chat_hide_translation">Hide translation</string>
     <string name="chat_qr_connect">My QR code and scan</string>
+    <string name="chat_dictation_saved">No connection. Your voice is saved and will turn into text when you are back online.</string>
+    <string name="chat_dictation_recovered">Your saved voice is now text. Check it, then send.</string>
 </resources>
