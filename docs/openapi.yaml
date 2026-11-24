@@ -6158,9 +6158,9 @@
             "required": true,
             "schema": {
               "type": "string",
-              "minLength": 16,
+              "minLength": 8,
               "maxLength": 64,
-              "pattern": "^[A-Za-z0-9_-]+$",
+              "pattern": "^[A-Za-z0-9_ -]+$",
               "title": "Token"
             }
           }
@@ -8917,8 +8917,8 @@
           "token": {
             "type": "string",
             "maxLength": 64,
-            "minLength": 16,
-            "pattern": "^[A-Za-z0-9_-]+$",
+            "minLength": 8,
+            "pattern": "^[A-Za-z0-9_ -]+$",
             "title": "Token"
           }
         },

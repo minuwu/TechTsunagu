@@ -1,5 +1,6 @@
 """XREQ-017 items 1-2 (ADR 0014): My QR, Contacts across shops, blocks, Contact Threads translated per side."""
 
+import re
 from dataclasses import dataclass
 
 import pytest
@@ -199,3 +200,10 @@ def test_personal_texts_are_never_kept_in_the_ai_cache(
     client.post(f"/api/contacts/{mine}/messages", headers=people.rahim, json={"text": "ব্যক্তিগত", "lang": "bn"})
 
     assert fake_ai.calls == 1 and db.scalars(select(AiCache)).all() == []
+
+
+def test_my_qr_is_a_short_code_typed_any_way(client: TestClient, people: People) -> None:
+    code = _qr(client, people.nguyen, rotate=True)
+    assert re.fullmatch(r"WK-[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{6}", code)
+    typed = code.lower().replace("-", " ")  # "wk 7kq4m2"
+    assert client.get("/api/contacts/resolve", params={"token": typed}, headers=people.rahim).status_code == 200

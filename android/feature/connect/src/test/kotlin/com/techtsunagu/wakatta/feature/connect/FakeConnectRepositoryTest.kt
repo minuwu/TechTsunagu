@@ -22,7 +22,7 @@ class FakeConnectRepositoryTest {
     @Test
     fun myQrIsAnOpaqueTokenAndRotationChangesIt() = runTest {
         val first = repo.getMyQr().value().token
-        assertTrue(Regex("[0-9a-f]{32}").matches(first))
+        assertTrue(Regex("WK-[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{6}").matches(first))
         assertFalse(first.contains("u_"))
         assertNotEquals(first, repo.rotateMyQr().value().token)
         assertEquals(repo.getMyQr().value().token, repo.getMyQr().value().token)

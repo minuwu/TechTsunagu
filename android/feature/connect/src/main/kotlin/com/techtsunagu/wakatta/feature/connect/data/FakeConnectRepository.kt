@@ -53,10 +53,10 @@ class FakeConnectRepository(
 
     // shortcut: seeded people stand in for accounts; the real app resolves a token on the server
     private val people = listOf(
-        Person("mai", "田辺 舞", "ja", "q7Lm2xV9aRtB4eKd"),
-        Person("sato", "佐藤 美咲", "ja", "Zc81nPw0HyUf5sJm"),
-        Person("nguyen", "Nguyen Van An", "vi", "b3Td6QkE1gXo9rVa"),
-        Person("siti", "Siti Rahma", "id", "Lw5Yh2NzC8vMq0Pe"),
+        Person("mai", "田辺 舞", "ja", "WK-Q7KM2X"),
+        Person("sato", "佐藤 美咲", "ja", "WK-ZC8NPW"),
+        Person("nguyen", "Nguyen Van An", "vi", "WK-B3TD6Q"),
+        Person("siti", "Siti Rahma", "id", "WK-HW5Y2N"),
     )
 
     private val lock = Any()
@@ -366,7 +366,7 @@ class FakeConnectRepository(
 
     private fun now(): String = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm"))
 
-    private fun newToken(): String = ByteArray(16).also { random.nextBytes(it) }.joinToString("") { "%02x".format(it) }
+    private fun newToken(): String = "WK-" + (1..6).map { "23456789ABCDEFGHJKMNPQRSTUVWXYZ"[random.nextInt(31)] }.joinToString("")
 }
 
 private inline fun <T, R> AppResult<T>.map(transform: (T) -> R): AppResult<R> = when (this) {

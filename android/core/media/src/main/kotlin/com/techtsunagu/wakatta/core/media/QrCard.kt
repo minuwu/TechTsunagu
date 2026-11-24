@@ -49,11 +49,12 @@ object QrCard {
         code?.let {
             val mono = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 textAlign = Paint.Align.CENTER
-                typeface = Typeface.MONOSPACE
-                color = 0xFF74777F.toInt()
-                textSize = 20f
+                typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
+                color = 0xFF1A1C1E.toInt()
+                textSize = 34f
+                letterSpacing = 0.1f
             }
-            c.drawText(it, W / 2f, top + QR + 40f, mono)
+            c.drawText(it, W / 2f, top + QR + 44f, mono)
         }
         val who = name?.trim().orEmpty()
         text.color = 0xFF1B1B1F.toInt()

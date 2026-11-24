@@ -38,6 +38,8 @@
     <string name="connect_scan_code_label">リンクまたはコード</string>
     <string name="connect_scan_read">コードを読み取る</string>
     <string name="connect_scan_photo">写真・ファイルから読み取る</string>
+    <string name="connect_copy_code">コードをコピー</string>
+    <string name="connect_paste_code">貼り付け</string>
     <string name="connect_scan_samples">スキャンを試す（デモ）</string>
     <string name="connect_scan_confirm_title">%1$sさんとつながりますか？</string>
     <string name="connect_scan_confirm_lang">言語: %1$s</string>

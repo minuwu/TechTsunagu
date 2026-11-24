@@ -270,3 +270,10 @@ Minhaz mapped the prototype (`prototypes/wakatta/`) and the frontend against `ma
 - Share sends the link as text with the image, so chat apps make it tappable.
 - Scan errors say what is wrong: not a Wakatta? QR, QR replaced by a new one, no one has this QR, your own QR, no QR in the photo.
 - Backend: your own QR is 409 `OWN_QR` on resolve and add (was a 403 the app showed as "blocked").
+
+## 2026-11-24 — My QR short code
+
+- My QR code is now `WK-7KQ4M2` (WK- plus 6 characters, no 0/O/1/I/L; about 887 million values, resolve is rate-limited). Stored hashed; older long codes keep working until New QR.
+- Server normalizes typed codes (`wk 7kq4m2` is `WK-7KQ4M2`). The app checks the shape before asking.
+- Copy icon next to My QR code; paste icon in the scan field. The card prints the code large and bold; share text includes it.
+- Needs the backend deploy; until then the live server rejects short codes, and the scan shows "no one has this QR".

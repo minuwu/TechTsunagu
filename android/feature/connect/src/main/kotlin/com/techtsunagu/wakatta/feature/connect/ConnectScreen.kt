@@ -1,10 +1,15 @@
 package com.techtsunagu.wakatta.feature.connect
 
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.unit.sp
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.ClipEntry
+import android.content.ClipData
 import com.techtsunagu.wakatta.feature.connect.data.shareText
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.foundation.text.selection.SelectionContainer
 import android.content.ContextWrapper
 import android.app.Activity
 import com.techtsunagu.wakatta.feature.connect.data.inviteLink
@@ -201,7 +206,7 @@ internal class ConnectViewModel @Inject constructor(
             when (val res = contacts.createInviteFile()) {
                 is AppResult.Success -> {
                     val code = state.value.myCode
-                    if (code.isEmpty()) shareFile.share(res.value, "image/png") else shareFile.share(res.value, "image/png", shareText(inviteLink(code)))
+                    if (code.isEmpty()) shareFile.share(res.value, "image/png") else shareFile.share(res.value, "image/png", shareText(inviteLink(code), code))
                 }
                 is AppResult.Failure -> sendEffect(ConnectEffect.Failed(res.error.toConnectError()))
             }
@@ -362,13 +367,18 @@ private fun MyQrCard(state: ConnectUiState, onEvent: (ConnectEvent) -> Unit, onS
             QrCode(state.qrSide, state.qrModules)
             if (state.myCode.isNotEmpty()) {
                 // the code under the QR: someone who cannot scan pastes or types it on Scan a QR
-                SelectionContainer {
+                val clipboard = LocalClipboard.current
+                val scope = rememberCoroutineScope()
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         state.myCode,
-                        style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Monospace, letterSpacing = 2.sp),
                         textAlign = TextAlign.Center,
+                        modifier = Modifier.weight(1f, fill = false),
                     )
+                    IconButton(onClick = { scope.launch { clipboard.setClipEntry(ClipEntry(ClipData.newPlainText("Wakatta? code", state.myCode))) } }) {
+                        Icon(Icons.Default.ContentCopy, contentDescription = stringResource(R.string.connect_copy_code))
+                    }
                 }
             }
             FullBrightness()

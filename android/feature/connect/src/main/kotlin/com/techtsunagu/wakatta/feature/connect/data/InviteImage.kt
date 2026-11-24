@@ -10,8 +10,9 @@ import java.io.File
 fun inviteLink(token: String): String = "${ApiConfig.BASE_URL}/c/$token"
 
 /** The line sent with the QR image: chat apps make the link tappable, and it opens the app. */
-fun shareText(link: String): String = "Chat with me on Wakatta? (each of us reads in our own language). Tap to open: $link\n" +
-    "Wakatta?でチャットしましょう（翻訳つき）。タップして開く: $link"
+fun shareText(link: String, code: String): String =
+    "Chat with me on Wakatta? (each of us reads in our own language). Tap to open: $link or enter my code $code\n" +
+        "Wakatta?でチャットしましょう（翻訳つき）。タップして開くか、コード $code を入力: $link"
 
 /** The share-sheet image: the captioned card on a device, the bare QR in JVM tests (no Android graphics there). */
 internal fun writeInviteImage(context: Context?, token: String, name: String?, dir: File): File {

@@ -38,6 +38,8 @@
     <string name="connect_scan_code_label">Link or code</string>
     <string name="connect_scan_read">Read code</string>
     <string name="connect_scan_photo">Scan from a photo or file</string>
+    <string name="connect_copy_code">Copy my code</string>
+    <string name="connect_paste_code">Paste</string>
     <string name="connect_scan_samples">Try a scan (demo)</string>
     <string name="connect_scan_confirm_title">Connect with %1$s?</string>
     <string name="connect_scan_confirm_lang">Language: %1$s</string>

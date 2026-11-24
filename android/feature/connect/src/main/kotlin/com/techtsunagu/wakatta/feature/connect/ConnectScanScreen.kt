@@ -1,5 +1,8 @@
 package com.techtsunagu.wakatta.feature.connect
 
+import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.filled.ContentPaste
+import androidx.compose.ui.platform.LocalClipboard
 import com.techtsunagu.wakatta.core.media.readQrFromImage
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.rememberCoroutineScope
@@ -114,8 +117,7 @@ internal class ConnectScanViewModel @Inject constructor(
 
     /** Accepts the My QR link, `wk:<token>` from an older QR, or a bare token typed by hand. */
     private fun resolveRaw(raw: String) {
-        val payload = QrPayload.parse(raw) ?: QrPayload.parse("wk:${raw.trim()}")
-        val token = (payload as? QrPayload.MyQr)?.token
+        val token = (QrPayload.parse(raw) as? QrPayload.MyQr)?.token ?: typedCode(raw)
         if (token == null) updateState { it.copy(error = ConnectError.BAD_CODE) } else resolveToken(token)
     }
 
@@ -223,6 +225,16 @@ private fun ScanBody(state: ConnectScanUiState, onEvent: (ConnectScanEvent) -> U
             value = state.code,
             onValueChange = { onEvent(ConnectScanEvent.SetCode(it)) },
             label = { Text(stringResource(R.string.connect_scan_code_label)) },
+            placeholder = { Text("WK-7KQ4M2") },
+            trailingIcon = {
+                val clipboard = LocalClipboard.current
+                IconButton(onClick = {
+                    scope.launch {
+                        val pasted = clipboard.getClipEntry()?.clipData?.takeIf { it.itemCount > 0 }?.getItemAt(0)?.text?.toString()
+                        if (!pasted.isNullOrBlank()) onEvent(ConnectScanEvent.SetCode(pasted.trim()))
+                    }
+                }) { Icon(Icons.Default.ContentPaste, contentDescription = stringResource(R.string.connect_paste_code)) }
+            },
             singleLine = true,
             isError = state.error != null,
             modifier = Modifier.fillMaxWidth(),
@@ -295,4 +307,15 @@ private fun ConfirmDialog(person: ContactResolveDto, busy: Boolean, onEvent: (Co
 }
 
 /** On a scan, "not found" means no one has this QR: say that, not a generic "could not find it". */
-private fun AppError.toScanError(): ConnectError = if (this == AppError.NotFound) ConnectError.QR_UNKNOWN else toConnectError()
+private fun AppError.toScanError(): ConnectError =
+    if (this == AppError.NotFound || this is AppError.Validation) ConnectError.QR_UNKNOWN else toConnectError()
+
+private val SHORT_CODE = Regex("WK([23456789ABCDEFGHJKMNPQRSTUVWXYZ]{6})")
+private val LONG_TOKEN = Regex("[A-Za-z0-9_-]{16,64}")
+
+/** A typed or pasted code: `wk 7kq4m2` is `WK-7KQ4M2`; an older long token passes as it is; anything else is not a code. */
+internal fun typedCode(raw: String): String? {
+    val text = raw.trim()
+    SHORT_CODE.matchEntire(text.filterNot { it.isWhitespace() || it == '-' }.uppercase())?.let { return "WK-${it.groupValues[1]}" }
+    return text.takeIf { LONG_TOKEN.matches(it) }
+}

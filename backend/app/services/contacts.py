@@ -27,7 +27,7 @@ from app.schemas.contacts import (
 from app.services.ai_runner import AiRunner
 from app.services.asks import translate
 from app.services.auth import Principal
-from app.services.credentials import new_token, token_digest
+from app.services.credentials import new_qr_code, normalize_qr, token_digest
 
 RESOLVES_PER_MINUTE = 20  # a scanned QR is resolved once; this stops guessing tokens
 SENDS_PER_MINUTE = 30
@@ -67,7 +67,7 @@ def my_qr(db: Session, who: Principal, rotate: bool, now: datetime) -> QrOut:
     current = repo.qr_of(db, me)
     if current is not None and not rotate:
         return QrOut(token=None, created_at=current.created_at)
-    token, digest = new_token()
+    token, digest = new_qr_code()
     repo.set_qr(db, me, digest, now)
     db.commit()
     return QrOut(token=token, created_at=now)
@@ -76,6 +76,7 @@ def my_qr(db: Session, who: Principal, rotate: bool, now: datetime) -> QrOut:
 def resolve(db: Session, who: Principal, token: str, now: datetime) -> ContactPreview:
     me = _me(who)
     _limit(db, f"qr-resolve:{me}", RESOLVES_PER_MINUTE, now)
+    token = normalize_qr(token)
     owner = repo.user_by_qr(db, token_digest(token))
     if owner is None:
         raise _no_owner(db, token)
@@ -102,9 +103,10 @@ def _contact_out(c: Contact, peer_name: str, peer_lang: str, last: datetime | No
 def add(db: Session, who: Principal, body: ContactCreate, now: datetime) -> ContactOut:
     me = _me(who)
     _limit(db, f"qr-resolve:{me}", RESOLVES_PER_MINUTE, now)
-    peer = repo.user_by_qr(db, token_digest(body.token))
+    token = normalize_qr(body.token)
+    peer = repo.user_by_qr(db, token_digest(token))
     if peer is None:
-        raise _no_owner(db, body.token)
+        raise _no_owner(db, token)
     if peer.id == me:
         raise _own_qr()
     if repo.contact_with(db, me, peer.id) is not None:
