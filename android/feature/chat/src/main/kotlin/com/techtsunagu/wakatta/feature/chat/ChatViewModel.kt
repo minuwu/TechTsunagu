@@ -1,5 +1,6 @@
 package com.techtsunagu.wakatta.feature.chat
 
+import com.techtsunagu.wakatta.core.media.continuous
 import androidx.annotation.StringRes
 import androidx.lifecycle.viewModelScope
 import com.techtsunagu.wakatta.core.common.AppConfig
@@ -334,7 +335,9 @@ class ChatViewModel @Inject constructor(
 
         val tag = currentDictationTag()
         dictationJob = viewModelScope.launch {
-            dictation.start(tag).collect { event ->
+            // each pause restarts the recognizer; the message ends only when a whole listen hears nothing
+            var said = ""
+            dictation.continuous(tag, "", maxSilentRounds = 1).collect { event ->
                 when (event) {
                     is DictationEvent.Listening -> {
                         updateState { it.copy(isListening = true, composerStatus = ComposerStatus.RECORDING) }
@@ -350,7 +353,11 @@ class ChatViewModel @Inject constructor(
                         }
                     }
                     is DictationEvent.Final -> {
-                        val text = accumulator.onFinal(event.text)
+                        said = event.text
+                        updateState { it.copy(inputText = accumulator.onPartial(event.text)) }
+                    }
+                    is DictationEvent.Error -> if (event.kind == DictationErrorKind.NO_SPEECH && said.isNotBlank()) {
+                        val text = accumulator.onFinal(said)
                         inputIsVoice = true
                         updateState {
                             it.copy(
@@ -360,8 +367,7 @@ class ChatViewModel @Inject constructor(
                             )
                         }
                         startCountdownTimer()
-                    }
-                    is DictationEvent.Error -> {
+                    } else {
                         handleDictationError(event.kind)
                     }
                 }

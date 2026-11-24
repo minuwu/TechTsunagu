@@ -255,3 +255,9 @@ Minhaz mapped the prototype (`prototypes/wakatta/`) and the frontend against `ma
 - Rotating My QR keeps the old hash in `retired_qr_tokens`; resolve/add on it answer 410 `QR_REPLACED`, and the app says the QR was replaced and to ask for the new one (`AppError.Gone`).
 - "Make a new QR" button is now "New QR" / 「新しいQR」 (fits one line).
 - Fingerprints for `ANDROID_CERT_SHA256` written in AGENTS.md XREQ-026 for Anim (no az CLI here).
+
+## 2026-11-24 14:20: voice waits for a long pause; check verdict only; offline voice packs prompt
+
+- Chat dictation uses `continuous()` with one silent round: a pause restarts the recognizer and the send countdown starts only when a whole listen hears nothing (also asks the recognizer for a 3 s end-of-speech silence). Chat VM tests' fake recognizer now ends a round on Final or Error.
+- Worker check result banner shows only the verdict (Understood / Partly understood / Not understood); the "all answers correct" clause and "k of n correct" line are gone; missed questions still listed.
+- One-time prompt after sign-in to download the Japanese and English offline speech packs (`SpeechPackPrompt`): Android 13+ checks the on-device recognizer and triggers the download of missing packs; older phones open Google's Offline Speech Recognition screen. Checked on the Redmi (API 29).

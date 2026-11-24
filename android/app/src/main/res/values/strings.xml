@@ -16,4 +16,8 @@
     <string name="app_demo_signout">Sign out</string>
     <string name="app_offline">No network. You see what was loaded before.</string>
     <string name="app_unexpected_error">Something went wrong. Please try again.</string>
+    <string name="app_speech_packs_title">Voice typing without a network</string>
+    <string name="app_speech_packs_body">Download the Japanese and English voice packs on this phone, so speaking a message works both ways, even with a weak signal. Add both languages on the next screen.</string>
+    <string name="app_speech_packs_download">Download</string>
+    <string name="app_speech_packs_later">Later</string>
 </resources>

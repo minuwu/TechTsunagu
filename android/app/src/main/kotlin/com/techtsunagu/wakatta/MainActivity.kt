@@ -96,6 +96,8 @@ class MainActivity : AppCompatActivity() {
                 WakattaTheme(darkTheme = dark) {
                     AppNavHost()
                     PhotoCaptureHost(photoBroker)
+                    val signedIn by sessionStore.session.collectAsStateWithLifecycle()
+                    SpeechPackPrompt(signedIn = signedIn?.let { !it.mustChangePin } == true)
                 }
             }
         }
