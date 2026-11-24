@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="support_loading">Loading...</string>
+    <string name="support_empty">No records found</string>
+    <string name="support_retry">Retry</string>
+
+    <!-- Support Log screen -->
+    <string name="support_log_screen_title">Support Log</string>
+    <string name="support_log_export_csv">Export CSV / Share</string>
+    <string name="support_log_exporting">Exporting...</string>
+    <string name="support_log_export_success">Support Log CSV exported</string>
+    <string name="support_log_filter_worker">Worker</string>
+    <string name="support_log_filter_month">Month</string>
+    <string name="support_log_filter_all_workers">All</string>
+    <string name="support_log_filter_all_months">All Time</string>
+    <string name="support_log_section_interviews">Periodic Interviews (at least every 3 months)</string>
+    <string name="support_log_section_meetups">Meet-ups with Senpai (%1$d records)</string>
+    <string name="support_log_section_notices">Notice Confirmations (%1$d/%2$d)</string>
+    <string name="support_log_empty_interviews">No interviews in this period</string>
+    <string name="support_log_empty_meetups">No meet-ups in this period</string>
+    <string name="support_log_empty_notices">No notices in this period</string>
+    <string name="support_log_last_interview">Last: %1$s</string>
+    <string name="support_log_due_interview">Due: %1$s</string>
+    <string name="support_log_none">None</string>
+    <string name="support_log_status_ok">OK</string>
+    <string name="support_log_status_soon">Due soon</string>
+    <string name="support_log_status_overdue">Overdue</string>
+    <string name="support_log_status_wait">Not answered</string>
+    <string name="support_log_desc_reporting">For reporting to Registered Support Organization</string>
+
+    <!-- Periodic Interview screen -->
+    <string name="support_interview_screen_title">Periodic Interview Sheet</string>
+    <string name="support_interview_select_worker">Worker</string>
+    <string name="support_interview_next_due">Next due: %1$s</string>
+    <string name="support_interview_initial_due">Due: 3 months from initial interview</string>
+    <string name="support_interview_last_date">Last: %1$s</string>
+    <string name="support_interview_frequency">At least once every 3 months</string>
+    <string name="support_interview_facts_title">Records since last interview (%1$s)</string>
+    <string name="support_interview_fact_meetups">Meet-ups with Senpai</string>
+    <string name="support_interview_fact_notices">Notice confirmations</string>
+    <string name="support_interview_fact_bad_notices">Notices needing confirmation</string>
+    <string name="support_interview_fact_terms">Confusing words recorded</string>
+    <string name="support_interview_fact_asks">Questions forwarded to Senpai</string>
+    <string name="support_interview_questions_title">Questions to ask in interview</string>
+    <string name="support_interview_form_title">Record Interview</string>
+    <string name="support_interview_method">Method</string>
+    <string name="support_interview_method_face">In-person</string>
+    <string name="support_interview_method_online">Online</string>
+    <string name="support_interview_consent_label">Worker\'s consent obtained (recordings must be kept for at least 1 year after employment ends)</string>
+    <string name="support_interview_date">Date</string>
+    <string name="support_interview_notes">Notes / Action taken</string>
+    <string name="support_interview_notes_placeholder">What was discussed and actions taken</string>
+    <string name="support_interview_submit">Record Interview</string>
+    <string name="support_interview_past_title">Past Interviews</string>
+    <string name="support_interview_disclaimer">Draft content for Reference Form No. 5-5. Not an official form. Supervisor interview (Form 5-6) is also required once every 3 months.</string>
+    <string name="support_interview_err_note_required">Please enter interview notes</string>
+    <string name="support_interview_err_future_date">Future dates cannot be recorded</string>
+    <string name="support_interview_err_consent_required">Worker\'s consent is required for online interviews</string>
+    <string name="support_interview_success">Interview recorded successfully</string>
+
+    <!-- Errors and labels -->
+    <string name="support_err_offline">No internet connection, so the data could not be loaded. Check your connection and tap Retry.</string>
+    <string name="support_err_timeout">The server took too long to answer. Wait a moment and tap Retry.</string>
+    <string name="support_err_server">The server has a problem and could not finish. Try again later.</string>
+    <string name="support_err_not_found">This worker could not be found. Go back and choose another worker.</string>
+    <string name="support_err_unknown">Something went wrong. Tap Retry. If it keeps happening, tell your Foreman.</string>
+    <string name="support_due_never">Not done yet</string>
+    <string name="support_due_overdue">Overdue by %1$d days</string>
+    <string name="support_due_left">%1$d days left</string>
+    <string name="support_log_summary">%1$s: Interviews %2$d · Meet-ups %3$d · Notice checks %4$d/%5$d</string>
+    <string name="support_log_target_all">All workers</string>
+    <string name="support_log_target">%1$s · %2$s</string>
+    <string name="support_meetup_coffee">Coffee meet-up</string>
+    <string name="support_meetup_drill">Drill</string>
+    <string name="support_meetup_festival">Festival</string>
+    <string name="support_meetup_other">Meet-up</string>
+    <string name="support_icon_warning">Warning</string>
+</resources>

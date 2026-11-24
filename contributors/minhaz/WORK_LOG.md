@@ -7,6 +7,34 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 
 > **Message from Asif (2026-11-23), read first:** [CHATBOT_FROM_ASIF.md](CHATBOT_FROM_ASIF.md) explains the chatbot (what it does, the API, the four screen states, "Ask my Senpai" vs "Safety Senpai") and three decisions that are **yours**: where the ask box goes, one bot or two names, and which half grows first. Answer in XREQ-016.
 
+## 2026-11-24 (Shop Registration, Members screen, bilingual sign-in and intro)
+
+- Backend: `POST /api/auth/register` opens a new shop with its first Foreman, a 「全員」 group Thread and a copy of the standard Glossary (ADR 0017). New accounts join every group Thread. `UserOut` carries `shopCode`. Re-explain no longer fails with 503 for a term outside the Glossary.
+- Android: sign-in and intro redesigned, Japanese first with English under it; demo chips fill the form; errors show inline. Register a shop from the sign-in screen.
+- Android: Members screen for Foremen (Me tab row and Home shortcut). Add a person by name only; the app makes a first PIN and a share card (shop code, name, PIN) for LINE or SMS. Rename, reset PIN, stop or resume an account.
+- Checks: backend pytest, ruff, pyright; Android unit tests and `:app:assembleDebug` green.
+
+## 2026-11-24 (Wakatta cards work end to end; Home crash; Japanese and English only)
+
+- Backend chat: the Foreman's message carries `results` (each Worker's status, answers, read, nudged); the Worker's carries `myAnswers`, `answerKey` (only after answering) and `asked`; the answer response returns the key; a repeated ask on the same term sends nothing new. Contract in `docs/MOBILE_API_CONTRACT.md` and `docs/openapi.yaml`; tests green.
+- Android: Worker Check card asks one question at a time and shows right and wrong after the last answer (with Retry if the send fails); Foreman card shows the understood count, live steps, the answer key and each Worker's read state, score, Nudge and Re-explain.
+- Fixed: Home crashed on scroll (duplicate LazyColumn keys across sections). Foreman Machines no longer calls the Worker-only sign-offs route.
+- App icon and splash use the brand Nekko on #246DD4. Bengali removed from the app (ADR 0016).
+
+## 2026-11-24 (Android app on the live backend)
+
+- The native app in `android/` runs on the live API for every screen: Asks and Senpai pairs (Worker and Foreman), Panel Check reminders and override end by id, Chat and Panel ETag bodies kept in Room, pushes that show the server's text and open their thread or Machine.
+- Device features wired: dictation, TTS, QR camera, photo, share, offline outbox with banner.
+- Checks: `testDebugUnitTest`, `checkModuleGraph`, `:app:assembleDebug` green; installs and starts on the emulator. Plan and open items: [ANDROID_FINISH_PLAN.md](ANDROID_FINISH_PLAN.md), backend asks: [BACKEND_WORK.md](BACKEND_WORK.md).
+- Still open: full Worker/Foreman walk on the device, Senpai revoke button, fonts, App Links, baseline profile; backend XREQ-019, 025, 026, 014.
+
+## 2026-11-24 (backend gaps for the Android app: XREQ-021, 023, 024)
+
+- Built in the backend, with tests and one migration (`a445952485bc`): Machine reminders and override retries (XREQ-021), Near-miss severity, photo mark, Worker's own list and Task link (XREQ-023), Asks for the Foreman (XREQ-024, items 2 and 3 not built, see the card).
+- Chat: a retried message POST now returns its `taskDrafts` until the Send (stored in `messages.task_drafts`); an edit that lost the model is repaired by the same `PATCH` again.
+- `docs/openapi.yaml` and the frontend types are regenerated. New push type `check_due` (`machineId` in the data, channel `safety`).
+- Still open for Anim: XREQ-019 (group controls), XREQ-025, XREQ-026, XREQ-014 key.
+
 ## 2026-11-23 (chatbot decisions answered)
 
 - Answered Asif's three decisions in XREQ-016 (`AGENTS.md`): pinned "Ask Wakatta" chat-list entry (history on the phone only) plus the Machine-screen button with `machineId`; one "Ask Wakatta" bot, no Safety Senpai / Life Guide names on screen; Life Guide grows first after the hackathon.

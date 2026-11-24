@@ -1,0 +1,331 @@
+[
+  {
+    "id": "WP-0A",
+    "title": "Scaffold",
+    "globs": [
+      "android/*.kts",
+      "android/gradle*",
+      "android/gradle/**",
+      "android/build-logic/**",
+      "android/app/**",
+      "android/core/model/**",
+      "android/core/common/**",
+      "android/core/navigation/**",
+      "android/screens.json",
+      "android/module-rules.json",
+      "android/work-packages.json",
+      "android/README.md",
+      "android/.gitignore",
+      "android/tools/check-screens.py"
+    ],
+    "depends": [],
+    "doneWhen": "cd android && ./gradlew assembleDebug assembleRelease checkModuleGraph exits 0; ./gradlew :app:dependencies contains no kotlin-gradle-plugin applied as kotlin-android; python tools/check-screens.py exits 0 for all 34 ids; SCOPE(WP-0A)",
+    "size": "L"
+  },
+  {
+    "id": "WP-0B",
+    "title": "Network, session, sign-in slice",
+    "globs": [
+      "android/core/network/**",
+      "android/core/datastore/**",
+      "android/feature/auth/**"
+    ],
+    "depends": ["WP-0A"],
+    "doneWhen": "GATE(core:network), GATE(core:datastore), GATE(feature:auth); MockWebServer test for each 9.2 code; ViewModel test on Fake; Robolectric test; assembleDebug reaches Home; SCOPE(WP-0B)",
+    "size": "L"
+  },
+  {
+    "id": "WP-0C",
+    "title": "Design system",
+    "globs": [
+      "android/core/design/**"
+    ],
+    "depends": ["WP-0A"],
+    "doneWhen": "GATE(core:design); Robolectric renders shared composables ja/en/bn light/dark; SCOPE(WP-0C)",
+    "size": "L"
+  },
+  {
+    "id": "WP-0D",
+    "title": "Outbox and cache",
+    "globs": [
+      "android/core/database/**",
+      "android/core/sync/**"
+    ],
+    "depends": ["WP-0A"],
+    "doneWhen": "GATE(core:database), GATE(core:sync); outbox & cache persistence tests; SCOPE(WP-0D)",
+    "size": "M"
+  },
+  {
+    "id": "WP-0E",
+    "title": "Shared repositories and test kit",
+    "globs": [
+      "android/core/data/**",
+      "android/core/testing/**"
+    ],
+    "depends": ["WP-0A", "WP-0B"],
+    "doneWhen": "GATE(core:data), GATE(core:testing); contract tests pass; SCOPE(WP-0E)",
+    "size": "M"
+  },
+  {
+    "id": "WP-M",
+    "title": "Media",
+    "globs": [
+      "android/core/media/**"
+    ],
+    "depends": ["WP-0A", "WP-0C"],
+    "doneWhen": "GATE(core:media); media tests; SCOPE(WP-M)",
+    "size": "M"
+  },
+  {
+    "id": "WP-Q",
+    "title": "Quality gates",
+    "globs": [
+      "android/tools/**",
+      "android/config/**",
+      ".github/workflows/android.yml"
+    ],
+    "depends": ["WP-0A"],
+    "doneWhen": "tools/check-module.sh exits 0; workflow YAML valid; SCOPE(WP-Q)",
+    "size": "M"
+  },
+  {
+    "id": "WP-PERF-C",
+    "title": "Compose report gate",
+    "globs": [
+      "android/tools/perf/compose/**",
+      "android/perf/compose-baseline.json"
+    ],
+    "depends": ["WP-0A", "WP-Q"],
+    "doneWhen": "check-compose-report.py passes; SCOPE(WP-PERF-C)",
+    "size": "S"
+  },
+  {
+    "id": "WP-PERF-D",
+    "title": "Debug diagnostics",
+    "globs": [
+      "android/app/src/debug/**"
+    ],
+    "depends": ["WP-0A"],
+    "doneWhen": "LeakCanary in debug, not release; StrictMode installed; SCOPE(WP-PERF-D)",
+    "size": "S"
+  },
+  {
+    "id": "WP-PERF-A",
+    "title": "Macrobenchmark and Baseline Profile module",
+    "globs": [
+      "android/baselineprofile/build.gradle.kts",
+      "android/baselineprofile/src/main/**",
+      "android/app/src/*/generated/baselineProfiles/**"
+    ],
+    "depends": ["WP-0A", "WP-0B"],
+    "doneWhen": "generateBaselineProfile writes non-empty baseline-prof.txt; SCOPE(WP-PERF-A)",
+    "size": "M"
+  },
+  {
+    "id": "WP-PERF-B",
+    "title": "Release-mode measurement runbook and journeys",
+    "globs": [
+      "android/baselineprofile/src/main/**/journeys/**",
+      "android/perf/results.md",
+      "android/tools/perf/bench/**"
+    ],
+    "depends": ["WP-PERF-A"],
+    "doneWhen": "run-benchmarks.sh exits 0; results recorded; SCOPE(WP-PERF-B)",
+    "size": "M"
+  },
+  {
+    "id": "WP-HOME",
+    "title": "Home, me, onboarding",
+    "globs": [
+      "android/feature/home/**"
+    ],
+    "depends": ["WP-0A", "WP-0B", "WP-0C", "WP-0E"],
+    "doneWhen": "GATE(feature:home); PERF-DW; Robolectric tests; SCOPE(WP-HOME)",
+    "size": "M"
+  },
+  {
+    "id": "WP-CHAT",
+    "title": "Chats and Chat",
+    "globs": [
+      "android/feature/chat/**"
+    ],
+    "depends": ["WP-0A", "WP-0B", "WP-0C", "WP-0E", "WP-M"],
+    "doneWhen": "GATE(feature:chat); PERF-DW; chat tests; SCOPE(WP-CHAT)",
+    "size": "L"
+  },
+  {
+    "id": "WP-BOARD",
+    "title": "Board and task",
+    "globs": [
+      "android/feature/board/**"
+    ],
+    "depends": ["WP-0A", "WP-0B", "WP-0C"],
+    "doneWhen": "GATE(feature:board); PERF-DW; board tests; SCOPE(WP-BOARD)",
+    "size": "M"
+  },
+  {
+    "id": "WP-MACH",
+    "title": "Machines, machine, scan, panel, note",
+    "globs": [
+      "android/feature/machines/**"
+    ],
+    "depends": ["WP-0A", "WP-0B", "WP-0C", "WP-0E", "WP-M"],
+    "doneWhen": "GATE(feature:machines); PERF-DW; machines tests; SCOPE(WP-MACH)",
+    "size": "L"
+  },
+  {
+    "id": "WP-NM",
+    "title": "Near-miss report and list",
+    "globs": [
+      "android/feature/nearmiss/**"
+    ],
+    "depends": ["WP-0A", "WP-0B", "WP-0C", "WP-0E", "WP-M"],
+    "doneWhen": "GATE(feature:nearmiss); PERF-DW; nearmiss tests; SCOPE(WP-NM)",
+    "size": "M"
+  },
+  {
+    "id": "WP-BRF",
+    "title": "Briefing, briefing-board, briefing-card",
+    "globs": [
+      "android/feature/briefing/**"
+    ],
+    "depends": ["WP-0A", "WP-0B", "WP-0C", "WP-0E", "WP-M"],
+    "doneWhen": "GATE(feature:briefing); PERF-DW; briefing tests; SCOPE(WP-BRF)",
+    "size": "M"
+  },
+  {
+    "id": "WP-NOTICE",
+    "title": "Life, notice, notice-new",
+    "globs": [
+      "android/feature/notices/**"
+    ],
+    "depends": ["WP-0A", "WP-0B", "WP-0C", "WP-0E", "WP-M"],
+    "doneWhen": "GATE(feature:notices); PERF-DW; notices tests; SCOPE(WP-NOTICE)",
+    "size": "L"
+  },
+  {
+    "id": "WP-ASK",
+    "title": "Ask and senpai",
+    "globs": [
+      "android/feature/asks/**"
+    ],
+    "depends": ["WP-0A", "WP-0B", "WP-0C", "WP-0E", "WP-M"],
+    "doneWhen": "GATE(feature:asks); PERF-DW; asks tests; SCOPE(WP-ASK)",
+    "size": "M"
+  },
+  {
+    "id": "WP-SUP",
+    "title": "Support log and interview",
+    "globs": [
+      "android/feature/support/**"
+    ],
+    "depends": ["WP-0A", "WP-0B", "WP-0C", "WP-0E"],
+    "doneWhen": "GATE(feature:support); PERF-DW; support tests; SCOPE(WP-SUP)",
+    "size": "M"
+  },
+  {
+    "id": "WP-CONN",
+    "title": "Connect, scan, pchat",
+    "globs": [
+      "android/feature/connect/**"
+    ],
+    "depends": ["WP-0A", "WP-0B", "WP-0C", "WP-0E", "WP-M"],
+    "doneWhen": "GATE(feature:connect); PERF-DW; connect tests; SCOPE(WP-CONN)",
+    "size": "L"
+  },
+  {
+    "id": "WP-INS",
+    "title": "Insights: analytics, skills, followups, learning",
+    "globs": [
+      "android/feature/insights/**"
+    ],
+    "depends": ["WP-0A", "WP-0B", "WP-0C", "WP-0E"],
+    "doneWhen": "GATE(feature:insights); PERF-DW; insights tests; SCOPE(WP-INS)",
+    "size": "L"
+  },
+  {
+    "id": "WP-COURSE",
+    "title": "Course and safety drill",
+    "globs": [
+      "android/feature/course/**"
+    ],
+    "depends": ["WP-0A", "WP-0C"],
+    "doneWhen": "GATE(feature:course); PERF-DW; course tests; SCOPE(WP-COURSE)",
+    "size": "M"
+  },
+  {
+    "id": "WP-NOTIF",
+    "title": "Notifications and push receiver",
+    "globs": [
+      "android/feature/notifications/**"
+    ],
+    "depends": ["WP-0A", "WP-0B", "WP-0C"],
+    "doneWhen": "GATE(feature:notifications); PERF-DW; notifications tests; SCOPE(WP-NOTIF)",
+    "size": "M"
+  },
+  {
+    "id": "WP-DL",
+    "title": "App links and deep links",
+    "globs": [
+      "android/core/deeplink/**"
+    ],
+    "depends": ["WP-0A", "WP-0B"],
+    "doneWhen": "GATE(core:deeplink); matcher tests; SCOPE(WP-DL)",
+    "size": "S"
+  },
+  {
+    "id": "WP-UPD",
+    "title": "In-app update",
+    "globs": [
+      "android/feature/update/**"
+    ],
+    "depends": ["WP-0A", "WP-0B", "WP-0C"],
+    "doneWhen": "GATE(feature:update); PERF-DW; update tests; SCOPE(WP-UPD)",
+    "size": "M"
+  },
+  {
+    "id": "WP-REL",
+    "title": "Release build tooling",
+    "globs": [
+      "android/tools/release/**",
+      "android/release/**",
+      "android/version.properties",
+      ".github/workflows/android-release.yml"
+    ],
+    "depends": ["WP-0A"],
+    "doneWhen": "build-release.sh --throwaway-key exits 0; verification passes; SCOPE(WP-REL)",
+    "size": "M"
+  },
+  {
+    "id": "WP-INT",
+    "title": "Integration",
+    "globs": [
+      "android/app/**"
+    ],
+    "depends": ["all"],
+    "doneWhen": "check assembleRelease exits 0; smoke androidTest passes; check-screens passes",
+    "size": "L"
+  },
+  {
+    "id": "WP-QA",
+    "title": "Localization, accessibility, low-end audit",
+    "globs": [
+      "android/qa/**",
+      "android/tools/check-strings.py"
+    ],
+    "depends": ["WP-INT"],
+    "doneWhen": "check-strings.py exits 0; REPORT.md filed",
+    "size": "M"
+  },
+  {
+    "id": "WP-REAL",
+    "title": "Real-backend switch",
+    "globs": [
+      "android/app/build.gradle.kts",
+      "android/gradle.properties"
+    ],
+    "depends": ["WP-INT"],
+    "doneWhen": "contract tests pass against live server; assembleRelease with URL set",
+    "size": "L"
+  }
+]

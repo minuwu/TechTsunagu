@@ -371,7 +371,7 @@ export function InspectDoor({
   )
 }
 
-/** Words to know: Japanese with reading, then English and Bengali. */
+/** Words to know: Japanese with reading, then English. */
 function Glossary({ course }: { course: CourseData }) {
   return (
     <Card title={m.course_glossary()}>

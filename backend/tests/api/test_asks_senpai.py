@@ -238,6 +238,9 @@ def test_another_shop_cannot_touch_these_records(client: TestClient, db: Session
     body = {"workerId": str(shop.worker_id), "senpaiName": "他人", "kind": "coworker"}
     assert client.post("/api/senpai-pairs", headers=other.foreman, json=body).status_code == 404
     assert client.get("/api/asks", headers=other.worker).json()["data"]["items"] == []
+    assert client.get("/api/asks", headers=other.foreman).json()["data"]["items"] == []
+    [seen] = client.get("/api/asks", headers=shop.foreman).json()["data"]["items"]  # XREQ-024: the shop's Asks
+    assert seen["id"] == ask["id"] and seen["workerName"] and seen["repliedAt"] is None
     params = {"from": str(TODAY - timedelta(days=1)), "to": str(TODAY + timedelta(days=1))}
     other_log = client.get("/api/support-log.csv", headers=other.foreman, params=params).content.decode("utf-8-sig")
     assert "田中 健" not in other_log

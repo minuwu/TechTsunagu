@@ -1,0 +1,206 @@
+package com.techtsunagu.wakatta.feature.chat
+
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithText
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.techtsunagu.wakatta.core.model.AppError
+import com.techtsunagu.wakatta.core.model.MessageKind
+import com.techtsunagu.wakatta.core.model.Role
+import com.techtsunagu.wakatta.core.model.WakattaStatus
+import com.techtsunagu.wakatta.feature.chat.model.ChatMessageUiModel
+import com.techtsunagu.wakatta.feature.chat.model.CheckQuestionForWorker
+import com.techtsunagu.wakatta.feature.chat.model.ThreadUiModel
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.annotation.Config
+
+@RunWith(AndroidJUnit4::class)
+@Config(sdk = [34])
+class ChatComposeTest {
+
+    @get:Rule
+    val composeTestRule = createComposeRule()
+
+    // ---------------- ChatsContent Tests ----------------
+
+    @Test
+    fun rendersChatsContent_loading() {
+        composeTestRule.setContent {
+            ChatsContent(
+                state = ChatsUiState(isLoading = true),
+                onEvent = {},
+            )
+        }
+        composeTestRule.onNodeWithText("Loading...").assertIsDisplayed()
+    }
+
+    @Test
+    fun rendersChatsContent_empty() {
+        composeTestRule.setContent {
+            ChatsContent(
+                state = ChatsUiState(isEmpty = true),
+                onEvent = {},
+            )
+        }
+        composeTestRule.onNodeWithText("No chats yet").assertIsDisplayed()
+    }
+
+    @Test
+    fun rendersChatsContent_error() {
+        composeTestRule.setContent {
+            ChatsContent(
+                state = ChatsUiState(error = "Network timeout"),
+                onEvent = {},
+            )
+        }
+        composeTestRule.onNodeWithText("Network timeout").assertIsDisplayed()
+    }
+
+    @Test
+    fun rendersChatsContent_success() {
+        val sampleThreads = listOf(
+            ThreadUiModel(
+                id = "t_line2",
+                title = mapOf("ja" to "Line 2 · プレス班", "en" to "Line 2 · Press team"),
+                lastMessage = "今日は3号機の油の点検を先にしてください。",
+                lastMessageAt = "08:02",
+                unreadCount = 2,
+                worstStatus = WakattaStatus.ORANGE,
+                isGroup = true,
+                membersCount = 4,
+            ),
+        )
+
+        composeTestRule.setContent {
+            ChatsContent(
+                state = ChatsUiState(threads = sampleThreads),
+                onEvent = {},
+            )
+        }
+
+        composeTestRule.onNodeWithText("Line 2 · プレス班").assertIsDisplayed()
+        composeTestRule.onNodeWithText("今日は3号機の油の点検を先にしてください。").assertIsDisplayed()
+        composeTestRule.onNodeWithText("08:02").assertIsDisplayed()
+        composeTestRule.onNodeWithText("2").assertIsDisplayed()
+    }
+
+    // ---------------- ChatContent Tests ----------------
+
+    @Test
+    fun rendersChatContent_loading() {
+        composeTestRule.setContent {
+            ChatContent(
+                state = ChatUiState(isLoading = true),
+                onEvent = {},
+            )
+        }
+        composeTestRule.onNodeWithText("Loading...").assertIsDisplayed()
+    }
+
+    @Test
+    fun rendersChatContent_empty() {
+        composeTestRule.setContent {
+            ChatContent(
+                state = ChatUiState(isEmpty = true),
+                onEvent = {},
+            )
+        }
+        composeTestRule.onNodeWithText("No messages").assertIsDisplayed()
+    }
+
+    @Test
+    fun rendersChatContent_error() {
+        composeTestRule.setContent {
+            ChatContent(
+                state = ChatUiState(error = AppError.Offline),
+                onEvent = {},
+            )
+        }
+        composeTestRule.onNodeWithText("No connection. Your message is still here: try again.").assertIsDisplayed()
+    }
+
+    @Test
+    fun rendersChatContent_success_foreman() {
+        val sampleMessages = listOf(
+            ChatMessageUiModel(
+                id = "m1",
+                threadId = "t_line2",
+                fromUserId = "u_tanaka",
+                fromUserName = "田中 健一 (Foreman)",
+                isMine = true,
+                kind = MessageKind.VOICE,
+                text = mapOf("ja" to "3号機の油圧オイルを点検してください。"),
+                originalText = "3号機の油圧オイルを点検してください。",
+                translatedText = "Check hydraulic oil on Machine 3.",
+                time = "08:02",
+                isVoice = true,
+                hasCheck = true,
+                workerStatuses = mapOf("u_rahim" to WakattaStatus.GREEN),
+            ),
+        )
+
+        composeTestRule.setContent {
+            ChatContent(
+                state = ChatUiState(
+                    title = "Line 2 · プレス班",
+                    currentRole = Role.FOREMAN,
+                    canSwitchRole = true,
+                    messages = sampleMessages,
+                ),
+                onEvent = {},
+            )
+        }
+
+        composeTestRule.onNodeWithText("Line 2 · プレス班").assertIsDisplayed()
+        composeTestRule.onNodeWithText("3号機の油圧オイルを点検してください。").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Foreman").assertIsDisplayed()
+        composeTestRule.onNodeWithText("1/1 understood").assertIsDisplayed()
+    }
+
+    @Test
+    fun rendersChatContent_success_worker_withCheck() {
+        val q1 = CheckQuestionForWorker(
+            id = "q1",
+            prompt = mapOf("en" to "What do you check first?"),
+            options = listOf(mapOf("en" to "Machine 3 Oil"), mapOf("en" to "Safety Shoes")),
+        )
+
+        val sampleMessages = listOf(
+            ChatMessageUiModel(
+                id = "m1",
+                threadId = "t_line2",
+                fromUserId = "u_tanaka",
+                fromUserName = "田中 健一 (Foreman)",
+                isMine = false,
+                kind = MessageKind.TEXT,
+                text = mapOf("en" to "Check the oil first.", "ja" to "油を先に点検してください。"),
+                originalText = "油を先に点検してください。",
+                translatedText = "Check the oil first.",
+                time = "08:02",
+                hasCheck = true,
+                workerQuestions = listOf(q1),
+            ),
+        )
+
+        composeTestRule.setContent {
+            ChatContent(
+                state = ChatUiState(
+                    title = "Line 2 · プレス班",
+                    currentRole = Role.WORKER,
+                    canSwitchRole = true,
+                    messages = sampleMessages,
+                ),
+                onEvent = {},
+            )
+        }
+
+        composeTestRule.onNodeWithText("Line 2 · プレス班").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Check the oil first.").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Worker").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Wakatta? 1 quick questions").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Machine 3 Oil").assertExists()
+        composeTestRule.onNodeWithText("Not sure").assertExists()
+    }
+}

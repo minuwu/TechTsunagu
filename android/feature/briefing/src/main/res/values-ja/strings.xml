@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="briefing_screen_id">画面ID: %1$s</string>
+    <string name="briefing_loading">読み込み中...</string>
+    <string name="briefing_empty">朝礼がまだありません</string>
+    <string name="briefing_retry">再試行</string>
+    <string name="briefing_error">エラー: %1$s</string>
+    <string name="briefing_close">閉じる</string>
+    <string name="briefing_done">完了</string>
+    <string name="briefing_back">戻る</string>
+
+    <!-- Briefing New Screen -->
+    <string name="briefing_new_screen_title">朝礼の連絡</string>
+    <string name="briefing_new_mic_idle_prompt">マイクをタップして、今日の朝礼を話してください</string>
+    <string name="briefing_new_mic_recording_prompt">話してください… タップして完了</string>
+    <string name="briefing_new_mic_action_record">録音</string>
+    <string name="briefing_new_mic_action_stop">録音停止</string>
+    <string name="briefing_new_past_title">過去の朝礼</string>
+    <string name="briefing_new_translating_title">英語に翻訳し、確認質問を作成中…</string>
+    <string name="briefing_new_spoken_section_title">話した内容 (日本語)</string>
+    <string name="briefing_new_english_section_title">作業員に届く英語</string>
+    <string name="briefing_new_tag_safety_focus">TODAY’S SAFETY FOCUS</string>
+    <string name="briefing_new_tag_one_change">ONE CHANGE</string>
+    <string name="briefing_new_question_section_title">確認質問 (自動作成 1問)</string>
+    <string name="briefing_new_btn_redo">やり直す</string>
+    <string name="briefing_new_btn_publish">配信</string>
+    <string name="briefing_new_confirm_publish_title">朝礼を配信しますか？</string>
+    <string name="briefing_new_confirm_publish_message">作業員全員に翻訳された朝礼と確認質問が届きます。</string>
+    <string name="briefing_new_confirm_publish_action">配信する</string>
+    <string name="briefing_new_cancel">キャンセル</string>
+    <string name="briefing_new_offline_error">オフラインでは配信できません。接続を確認してください。</string>
+
+    <!-- Briefing Board Screen -->
+    <string name="briefing_board_screen_title">朝礼ボード</string>
+    <string name="briefing_board_confirmed_summary">%1$d/%2$d 確認済</string>
+    <string name="briefing_board_status_green">理解 %1$d</string>
+    <string name="briefing_board_status_orange">再説明 %1$d</string>
+    <string name="briefing_board_status_red">不正解 %1$d</string>
+    <string name="briefing_board_status_wait">未確認 %1$d</string>
+    <string name="briefing_board_workers_section_title">作業員ごとの出席と理解</string>
+    <string name="briefing_board_attended">出席</string>
+    <string name="briefing_board_unattended">未出席</string>
+    <string name="briefing_board_not_sure">わからない</string>
+    <string name="briefing_board_btn_explain_again">もう一度説明</string>
+    <string name="briefing_board_reexplain_sent">%1$s に再説明を送りました</string>
+    <string name="briefing_board_question_section_title">確認質問</string>
+    <string name="briefing_board_correct_answer_label">正解: %1$s</string>
+
+    <!-- Briefing Card Screen -->
+    <string name="briefing_card_screen_title">今日の朝礼</string>
+    <string name="briefing_card_foreman_role">班長</string>
+    <string name="briefing_card_read_aloud">読み上げ</string>
+    <string name="briefing_card_stop_reading">読み上げ停止</string>
+    <string name="briefing_card_question_section_title">確認質問 1問</string>
+    <string name="briefing_card_not_sure_option">わからない</string>
+    <string name="briefing_card_feedback_understood">わかりました！理解できました。</string>
+    <string name="briefing_card_feedback_not_sure">班長がもう一度説明します。</string>
+    <string name="briefing_card_feedback_incorrect">惜しい！班長がもう一度説明します。</string>
+    <string name="briefing_card_correct_answer">正解: %1$s</string>
+    <string name="briefing_new_make_draft">下書きを作る</string>
+</resources>

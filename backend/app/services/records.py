@@ -1,5 +1,6 @@
 """Foreman records beside the floor flow: Panel Overrides (§7.1), the Sign-off list and the Knowledge Library (WS8)."""
 
+import uuid
 from datetime import datetime, timedelta
 
 from sqlalchemy.orm import Session
@@ -12,6 +13,8 @@ from app.repositories import work as repo
 from app.schemas.work import EffortOut, NoteVersionOut, OverrideIn, OverrideOut, SignOffOut
 from app.services.auth import Principal
 from app.services.notes import note_out, shop_of
+
+REMIND_WINDOW = timedelta(minutes=10)
 
 
 def _not_found() -> ApiError:
@@ -31,8 +34,14 @@ def _override_out(db: Session, o: PanelOverride) -> OverrideOut:
     )
 
 
-def start_override(db: Session, who: Principal, machine_id: int, body: OverrideIn, now: datetime) -> OverrideOut:
+def start_override(
+    db: Session, who: Principal, machine_id: int, body: OverrideIn, now: datetime, key: uuid.UUID | None = None
+) -> OverrideOut:
     shop_id = shop_of(who)
+    if key is not None and (done := repo.override_by_key(db, shop_id, key)) is not None:
+        if done.created_by != who.user_id or done.machine_id != machine_id:
+            raise ApiError(409, "IDEMPOTENCY_KEY_REUSED", "This Idempotency-Key was already used for another record")
+        return _override_out(db, done)  # a retry returns the first
     if repo.machine(db, shop_id, machine_id) is None:
         raise _not_found()
     worker_id = int(body.worker_id) if body.worker_id else None
@@ -46,12 +55,25 @@ def start_override(db: Session, who: Principal, machine_id: int, body: OverrideI
         created_by=who.user_id,
         starts_at=now,
         ends_at=now + timedelta(minutes=body.minutes),
+        idempotency_key=key,
     )
     db.add(o)
     db.flush()
     accounts.audit(db, "panel_override_started", who.user_id, shop_id, subject_id=o.id)
     db.commit()
     return _override_out(db, o)
+
+
+def remind(db: Session, who: Principal, machine_id: int, worker_id: int, now: datetime) -> None:
+    """The Foreman asks a Worker to take the Machine's Check; the router sends the push. Once per 10 minutes."""
+    shop_id = shop_of(who)
+    if repo.machine(db, shop_id, machine_id) is None or repo.worker(db, shop_id, worker_id) is None:
+        raise _not_found()
+    if accounts.count_attempt(db, f"remind:{machine_id}:{worker_id}", now, REMIND_WINDOW) > 1:
+        db.commit()
+        raise ApiError(429, "RATE_LIMITED", "Already reminded; wait a few minutes", headers={"Retry-After": "600"})
+    accounts.audit(db, f"check_reminder:{worker_id}", who.user_id, shop_id, subject_id=machine_id)
+    db.commit()
 
 
 def end_override(db: Session, who: Principal, machine_id: int, override_id: int, now: datetime) -> OverrideOut:

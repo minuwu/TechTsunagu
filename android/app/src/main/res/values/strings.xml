@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Wakatta?</string>
+
+    <!-- Bottom navigation tabs -->
+    <string name="app_tab_home">Home</string>
+    <string name="app_tab_chats">Chats</string>
+    <string name="app_tab_board">Board</string>
+    <string name="app_tab_machines">Machines</string>
+    <string name="app_tab_me">Me</string>
+
+    <!-- Demo and Auth strings -->
+    <string name="app_demo_worker">Worker (Rahim)</string>
+    <string name="app_demo_foreman">Foreman (Tanaka)</string>
+    <string name="app_demo_signin_prompt">Demo Quick Sign-In:</string>
+    <string name="app_demo_signout">Sign out</string>
+    <string name="app_offline">No network. You see what was loaded before.</string>
+</resources>

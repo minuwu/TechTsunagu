@@ -108,6 +108,7 @@ class PanelWorker(CamelModel):
 
 
 class PanelOverrideOut(CamelModel):
+    id: str
     by: str
     until: datetime
     reason: str
@@ -120,6 +121,12 @@ class OverrideIn(CamelModel):
     worker_id: IdIn | None
     minutes: Annotated[int, Field(ge=1, le=480)]
     reason: Annotated[str, StringConstraints(strip_whitespace=True, min_length=3, max_length=200)]
+
+
+class RemindIn(CamelModel):
+    """POST /machines/{id}/remind: the Worker who should take the Machine's Check."""
+
+    worker_id: IdIn
 
 
 class OverrideOut(CamelModel):

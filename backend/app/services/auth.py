@@ -1,17 +1,23 @@
 """Roster, login, lockout and sessions (architecture §3, §12). Every write commits its own short transaction, so a
 failed PIN is counted even though the request then fails."""
 
+import json
+import secrets
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from pathlib import Path
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.api.errors import ApiError
 from app.domain.pins import pin_problem
+from app.models.chat import Thread, ThreadMember
+from app.models.scopes import District, Shop, User
 from app.models.scopes import Session as SessionRow
-from app.models.scopes import User
+from app.models.work import GlossaryTerm
 from app.repositories import accounts as repo
-from app.schemas.auth import UserOut
+from app.schemas.auth import RegisterIn, UserOut
 from app.services.credentials import hash_pin, new_token, token_digest, verify_pin
 
 SESSION_TTL = {
@@ -26,6 +32,9 @@ LOCK_FOR = timedelta(minutes=15)
 LIMIT_WINDOW = timedelta(minutes=1)
 LOGINS_PER_IP = 10
 ROSTERS_PER_IP = 20
+REGISTERS_PER_IP = 3
+GLOSSARY = Path(__file__).resolve().parent.parent / "seed_data" / "glossary.json"
+CODE_LETTERS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"  # no 0/O or 1/I: the code is read off a sticker
 
 
 @dataclass(frozen=True)
@@ -52,7 +61,8 @@ def _rate_limit(db: Session, key: str, limit: int, now: datetime) -> None:
         raise ApiError(429, "RATE_LIMITED", "Too many attempts, try again in a minute", headers={"Retry-After": "60"})
 
 
-def user_out(user: User) -> UserOut:
+def user_out(db: Session, user: User) -> UserOut:
+    shop = repo.shop_by_id(db, user.shop_id) if user.shop_id else None
     return UserOut(
         id=str(user.id),
         display_name=user.display_name,
@@ -60,6 +70,7 @@ def user_out(user: User) -> UserOut:
         language=user.language,  # pyright: ignore[reportArgumentType]  # constrained by the users.language CHECK
         shop_id=str(user.shop_id) if user.shop_id else None,
         district_id=str(user.district_id) if user.district_id else None,
+        shop_code=shop.code if shop else None,
     )
 
 
@@ -98,12 +109,60 @@ def login(db: Session, user_id: int, pin: str, ip: str, pepper: str, now: dateti
 
     user.pin_failed_count = 0
     user.pin_locked_until = None
+    return _open_session(db, user, "login", now)
+
+
+def _open_session(db: Session, user: User, event: str, now: datetime) -> tuple[str, datetime, User]:
     token, digest = new_token()
     expires_at = now + SESSION_TTL[user.role]
     db.add(SessionRow(token_hash=digest, kind="user", user_id=user.id, expires_at=expires_at, last_seen_at=now))
-    repo.audit(db, "login", user.id, user.shop_id, user.district_id)
+    repo.audit(db, event, user.id, user.shop_id, user.district_id)
     db.commit()
     return token, expires_at, user
+
+
+def register(db: Session, body: RegisterIn, ip: str, pepper: str, now: datetime) -> tuple[str, datetime, User, Shop]:
+    """ADR 0017: anyone can open a new shop and becomes its first Foreman. The shop starts with one group Thread and a
+    copy of the standard Glossary; Workers still get their accounts from a Foreman (ADR 0010)."""
+    _rate_limit(db, f"register:{ip}", REGISTERS_PER_IP, now)
+    if (problem := pin_problem("foreman", body.pin)) is not None:
+        raise ApiError(
+            422, "VALIDATION_ERROR", "Choose a different PIN", {"fields": [{"loc": ["body", "pin"], "msg": problem}]}
+        )
+    # shortcut: a new shop joins the first district; a district picker comes when there is more than one.
+    district_id = db.scalar(select(District.id).order_by(District.id).limit(1))
+    if district_id is None:
+        raise ApiError(503, "UNAVAILABLE", "No district to join yet")
+    code = _new_shop_code(db)
+    shop = Shop(code=code, name=body.shop_name, default_district_id=district_id, languages=["en"])
+    db.add(shop)
+    db.flush()
+    user = User(
+        role="foreman",
+        display_name=body.display_name,
+        language="ja",
+        shop_id=shop.id,
+        district_id=district_id,
+        pin_hash=hash_pin(pepper, body.pin),
+        pin_must_change=False,  # they chose it themselves; nobody else knows it
+    )
+    db.add(user)
+    db.flush()
+    thread = Thread(shop_id=shop.id, title_ja="全員", kind="group", created_by=user.id)
+    db.add(thread)
+    db.flush()
+    db.add(ThreadMember(thread_id=thread.id, user_id=user.id, shop_id=shop.id, last_read_at=now))
+    for t in json.loads(GLOSSARY.read_text(encoding="utf-8"))["terms"]:
+        db.add(GlossaryTerm(shop_id=shop.id, ja=t["ja"], reading=t["reading"], translations=t["translations"]))
+    token, expires_at, user = _open_session(db, user, "register", now)
+    return token, expires_at, user, shop
+
+
+def _new_shop_code(db: Session) -> str:
+    while True:
+        code = "".join(secrets.choice(CODE_LETTERS) for _ in range(8))
+        if repo.shop_by_code(db, code) is None:
+            return code
 
 
 def authenticate(db: Session, token: str, now: datetime) -> Principal:

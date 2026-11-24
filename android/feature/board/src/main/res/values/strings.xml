@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="board_screen_title">Task Board</string>
+    <string name="board_task_screen_title">Task Detail</string>
+    <string name="board_screen_id">Screen: %1$s</string>
+    <string name="board_loading">Loading tasks…</string>
+    <string name="board_empty">No tasks</string>
+    <string name="board_retry">Retry</string>
+    <string name="board_error">Error: %1$s</string>
+
+    <string name="board_col_todo">To do</string>
+    <string name="board_col_doing">Doing</string>
+    <string name="board_col_done">Done</string>
+
+    <string name="board_empty_todo">No tasks to do · drop here</string>
+    <string name="board_empty_doing">No tasks in progress</string>
+    <string name="board_empty_done">No completed tasks</string>
+
+    <string name="board_add_task">New task</string>
+    <string name="board_add_task_title">Title</string>
+    <string name="board_add_task_assignees">Assignees</string>
+    <string name="board_add_task_due">Due</string>
+    <string name="board_add_task_machine">Machine (optional)</string>
+    <string name="board_add_task_submit">Add task</string>
+    <string name="board_add_task_title_required">Enter a title first</string>
+    <string name="board_task_added">Task added</string>
+    <string name="board_task_moved">Task moved</string>
+
+    <string name="board_due_today">Today</string>
+    <string name="board_due_tomorrow">Tomorrow</string>
+    <string name="board_due_fri">Friday</string>
+
+    <string name="board_task_status">Status</string>
+    <string name="board_task_assigned_to">Assigned to</string>
+    <string name="board_task_due">Due</string>
+    <string name="board_task_machine">Machine</string>
+    <string name="board_task_from_chat">From chat</string>
+    <string name="board_task_source_nearmiss">Source</string>
+    <string name="board_task_from_nearmiss">From near-miss report</string>
+
+    <string name="board_move_task">Move task</string>
+    <string name="board_move_to_col">Move to %1$s</string>
+
+    <string name="board_conflict_title">Task Conflict (HTTP 412)</string>
+    <string name="board_conflict_message">This task was updated by someone else. Please reload to see the latest version.</string>
+    <string name="board_conflict_reloading">Conflict: Task was modified. Reloading…</string>
+    <string name="board_reload">Reload</string>
+    <string name="board_foreman_only">Only Foremen can add tasks</string>
+
+    <string name="board_error_offline">Offline. Please check network connection.</string>
+    <string name="board_error_timeout">Request timed out. Please retry.</string>
+    <string name="board_error_conflict">Conflict (HTTP 412): Task was modified.</string>
+    <string name="board_error_not_found">Task not found.</string>
+    <string name="board_error_forbidden">Permission denied.</string>
+    <string name="board_error_generic">An unexpected error occurred.</string>
+</resources>

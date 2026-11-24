@@ -4,6 +4,13 @@ Owner: Anim (`anim710`) — Role: Backend (WS10 Notices + Events, WS11 Asks + Se
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-24 (from Arjun: small help, nothing to do unless you want)
+
+- **XREQ-013 is ready to host:** on today's `main`, `npm run build:static` in `frontend/` is green: 39 pages pre-rendered into `frontend/.output/public`, 19 MB (the card says about 15 MB; the 3D Journey assets came since). Only `VITE_PUBLIC_URL` is still needed, once the Static Web App has its address.
+- **Frontend CI was red on `main`:** `docs/openapi.yaml` changed in `c74d4c6` (Wakatta cards: `WorkerResult`, answer keys, `asked`) without `npm run gen:api`, and `frontend-ci` fails on stale `src/services/generated`. Regenerated; typecheck, lint and 104 frontend tests pass.
+- **Your Landing.tsx typecheck FYI** (`lp_all_courses`, `lp_label_access`): already fixed on `main`.
+- Windows tip: if `vitest` says "failed to find the runner" for every file, the shell is in `d:\` (lowercase drive). Run it from `D:\techtsunagu\frontend`.
+
 ## 2026-11-24
 
 ### Completed

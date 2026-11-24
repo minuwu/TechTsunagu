@@ -1,0 +1,20 @@
+*.iml
+.gradle
+/local.properties
+/.idea
+.DS_Store
+/build
+captures/
+.externalNativeBuild
+.cxx
+
+# Keystores & credentials
+*.jks
+*.keystore
+keystore.properties
+
+# Do NOT ignore release APKs, hashes, and mapping files (plan 5.5)
+!release/*.apk
+!release/*.sha256
+!release/latest.json
+!release/*-mapping.txt

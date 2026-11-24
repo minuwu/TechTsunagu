@@ -10,7 +10,7 @@ import { Button } from '@/ui/v4/components/ui/button'
 import { uiLang } from '@/ui/v4/lib/format'
 import { ForemanPage } from './ForemanBoardScreen'
 
-/** Record a voice note at the Machine; AI drafts steps, Bengali/English, back-translation and Check. */
+/** Record a voice note at the Machine; AI drafts steps, English, back-translation and Check. */
 export function ForemanRecordScreen() {
   const r = useRecordNote()
   const lang = uiLang()

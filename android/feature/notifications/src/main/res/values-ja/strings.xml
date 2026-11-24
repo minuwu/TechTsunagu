@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notifications_screen_title">通知</string>
+    <string name="notifications_loading">読み込み中...</string>
+    <string name="notifications_empty">通知はありません</string>
+    <string name="notifications_retry">再試行</string>
+    <string name="notifications_error">通知を読み込めませんでした。</string>
+    <string name="notifications_permission_title">確認やメッセージのお知らせを受け取りますか？</string>
+    <string name="notifications_permission_message">確認（チェック）やメッセージが届いたときにお知らせします。通知には送った人の名前だけが出て、内容は出ません。設定でいつでも変えられます。</string>
+    <string name="notifications_turn_on">オンにする</string>
+    <string name="notifications_not_now">あとで</string>
+    <string name="notifications_off">通知はオフです。アプリを開くとメッセージと確認が表示されます。</string>
+    <string name="notifications_open_settings">設定を開く</string>
+    <string name="notifications_channel_messages">メッセージ</string>
+    <string name="notifications_channel_contacts">連絡メッセージ</string>
+    <string name="notifications_channel_safety">安全・確認</string>
+    <string name="notifications_channel_life">生活・お知らせ</string>
+    <string name="notifications_channel_updates">お知らせ（その他）</string>
+    <string name="notifications_generic_title">新しいメッセージ</string>
+</resources>

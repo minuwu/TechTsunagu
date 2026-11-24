@@ -60,6 +60,7 @@ def test_login_returns_a_token_and_the_user(client: TestClient, db: Session) -> 
         "language": "bn",
         "shopId": str(shop.id),
         "districtId": str(shop.default_district_id),
+        "shopCode": shop.code,
     }
     expires = datetime.fromisoformat(data["expiresAt"])
     assert timedelta(days=29) < expires - datetime.now(UTC) <= timedelta(days=30)
@@ -206,4 +207,33 @@ def test_unknown_fields_are_rejected(client: TestClient, db: Session) -> None:
 
     res = client.post("/api/auth/login", json={"userId": str(rahim.id), "pin": "2468", "role": "foreman"})
 
+    assert res.status_code == 422
+
+
+def test_anyone_can_open_a_shop_and_becomes_its_foreman(client: TestClient, db: Session) -> None:
+    f.district(db)
+
+    res = client.post(
+        "/api/auth/register", json={"shopName": "Minato Works", "displayName": "森 太郎", "pin": "739215"}
+    )
+
+    assert res.status_code == 201, res.text
+    data = res.json()["data"]
+    assert data["user"]["role"] == "foreman" and data["mustChangePin"] is False
+    assert data["user"]["shopCode"] == data["shopCode"]
+    roster = client.get("/api/auth/roster", params={"code": data["shopCode"], "role": "foreman"})
+    assert roster.json()["data"] == [{"id": data["user"]["id"], "displayName": "森 太郎"}]
+    threads = client.get("/api/threads", headers=_bearer(data["token"])).json()["data"]
+    assert [t["titleJa"] for t in (threads if isinstance(threads, list) else threads["items"])] == ["全員"]
+
+    worker = client.post(
+        "/api/workers", headers=_bearer(data["token"]), json={"displayName": "Rahim", "language": "en", "pin": "5820"}
+    )
+    worker_token = client.post("/api/auth/login", json={"userId": worker.json()["data"]["id"], "pin": "5820"})
+    assert worker_token.status_code == 200
+
+
+def test_opening_a_shop_needs_a_safe_six_digit_pin(client: TestClient, db: Session) -> None:
+    f.district(db)
+    res = client.post("/api/auth/register", json={"shopName": "X", "displayName": "Y", "pin": "123456"})
     assert res.status_code == 422

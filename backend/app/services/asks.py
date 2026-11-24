@@ -17,10 +17,11 @@ from app.domain.grounding import ground
 from app.media import audio_mime
 from app.models.life import Ask
 from app.repositories import life as repo
+from app.repositories import work as work_repo
 from app.schemas.asks import AskOut
 from app.services.ai_runner import AiRequest, AiRunner
 from app.services.auth import Principal
-from app.services.notes import ai_languages
+from app.services.notes import ai_languages, shop_of
 
 ASK_PROMPT_VERSION = 3  # v2 adds question_text (voice Asks keep a transcript); v3 per-shop languages
 TRANSLATE_PROMPT_VERSION = 1
@@ -45,17 +46,24 @@ def worker_of(who: Principal) -> tuple[int, int, int]:
     return who.shop_id, who.district_id, who.user_id
 
 
-def ask_out(a: Ask) -> AskOut:
+def ask_out(db: Session, a: Ask) -> AskOut:
+    return _out(a, work_repo.display_names(db, a.shop_id, [a.worker_id]).get(a.worker_id, ""))
+
+
+def _out(a: Ask, worker_name: str) -> AskOut:
     return AskOut.model_validate(
         {
             "id": str(a.id),
             "worker_id": str(a.worker_id),
+            "worker_name": worker_name,
             "text": a.text_src,
+            "text_ja": a.text_ja,
             "covered": a.covered,
             "answer": a.answer,
             "source_notice_ids": [str(i) for i in a.source_notice_ids],
             "forwarded": a.forwarded_at is not None,
             "senpai_reply": a.senpai_reply,
+            "replied_at": a.replied_at,
             "created_at": a.created_at,
         }
     )
@@ -96,7 +104,7 @@ def create(
     shop_id, district_id, worker_id = worker_of(who)
     existing = repo.ask_by_key(db, shop_id, worker_id, key)
     if existing is not None:
-        return ask_out(existing)
+        return ask_out(db, existing)
     text = text.strip() if text else None
     if bool(text) == bool(audio):
         raise ApiError(422, "VALIDATION_ERROR", "Send text or a recording, not both", {"fields": [{"loc": ["body"]}]})
@@ -144,7 +152,7 @@ def create(
 
     raced = repo.ask_by_key(db, shop_id, worker_id, key)
     if raced is not None:
-        return ask_out(raced)
+        return ask_out(db, raced)
     row = Ask(
         shop_id=shop_id,
         worker_id=worker_id,
@@ -160,15 +168,18 @@ def create(
     )
     db.add(row)
     db.commit()
-    return ask_out(row)
+    return ask_out(db, row)
 
 
-def list_own(db: Session, who: Principal, page: PageParams) -> Page[AskOut]:
-    shop_id, _, worker_id = worker_of(who)
-    rows = repo.asks_page(db, shop_id, worker_id, page.after_id, page.limit)
+def list_asks(db: Session, who: Principal, page: PageParams) -> Page[AskOut]:
+    """A Worker sees their own Asks, a Foreman the shop's (XREQ-024)."""
+    shop_id = shop_of(who)
+    own = who.user_id if who.role == "worker" else None
+    rows = repo.asks_page(db, shop_id, own, page.after_id, page.limit)
     shown = rows[: page.limit]
+    names = work_repo.display_names(db, shop_id, list({a.worker_id for a in shown}))
     cursor = encode_cursor(shown[-1].id) if len(rows) > page.limit else None
-    return Page(items=[ask_out(a) for a in shown], next_cursor=cursor)
+    return Page(items=[_out(a, names.get(a.worker_id, "")) for a in shown], next_cursor=cursor)
 
 
 def forward(db: Session, who: Principal, ask_id: int, ai: AiRunner, now: datetime) -> AskOut:
@@ -178,7 +189,7 @@ def forward(db: Session, who: Principal, ask_id: int, ai: AiRunner, now: datetim
     if a is None:
         raise ApiError(404, "NOT_FOUND", "Not found")
     if a.forwarded_at is not None:
-        return ask_out(a)
+        return ask_out(db, a)
     pair = repo.active_pair(db, shop_id, worker_id, now)
     if pair is None:
         raise ApiError(409, "NO_ACTIVE_PAIR", "You have no Senpai yet; ask your Foreman")
@@ -197,4 +208,4 @@ def forward(db: Session, who: Principal, ask_id: int, ai: AiRunner, now: datetim
     if a.forwarded_at is None:
         a.pair_id, a.forwarded_at, a.text_ja = pair_id, now, text_ja
         db.commit()
-    return ask_out(a)
+    return ask_out(db, a)

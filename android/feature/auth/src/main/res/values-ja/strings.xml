@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="auth_signin_title">ログイン</string>
+    <string name="auth_changepin_title">暗証番号変更</string>
+    <string name="auth_shop_code_label">店舗コード</string>
+    <string name="auth_shop_code_hint">英数8文字（例: SHOP1234）</string>
+    <string name="auth_pin_label">暗証番号</string>
+    <string name="auth_pin_hint">4〜6桁の数字</string>
+    <string name="auth_current_pin_label">現在の暗証番号</string>
+    <string name="auth_new_pin_label">新しい暗証番号</string>
+    <string name="auth_confirm_pin_label">新しい暗証番号（確認）</string>
+    <string name="auth_submit">ログイン</string>
+    <string name="auth_change_pin_submit">暗証番号を更新</string>
+    <string name="auth_select_worker">名前を選択</string>
+    <string name="auth_loading">読み込み中...</string>
+    <string name="auth_empty">作業者が見つかりません</string>
+    <string name="auth_retry">再試行</string>
+    <string name="auth_error">エラー: %1$s</string>
+    <string name="auth_role_label">あなたは</string>
+    <string name="auth_role_foreman">職長</string>
+    <string name="auth_role_worker">作業者</string>
+    <string name="auth_error_title">問題が起きました</string>
+    <string name="auth_error_wrong_pin">暗証番号が違います。</string>
+    <string name="auth_error_locked">暗証番号を間違えすぎました。%1$s以降にもう一度お試しください。</string>
+    <string name="auth_error_rate_limited">試行回数が多すぎます。%1$s秒待ってからもう一度お試しください。</string>
+    <string name="auth_error_offline">接続できません。ネットワークを確認してもう一度お試しください。</string>
+    <string name="auth_error_timeout">サーバーが時間内に応答しませんでした。もう一度お試しください。</string>
+    <string name="auth_error_server">サーバーに問題があります。しばらくしてからお試しください。</string>
+    <string name="auth_error_upgrade">続けるにはアプリを更新してください。</string>
+    <string name="auth_error_unknown_shop">この店舗コードは見つかりませんでした。</string>
+    <string name="auth_error_pin_rejected">その暗証番号は使えません。数字のみで、同じ数字の繰り返しや連番は避けてください。</string>
+    <string name="auth_error_unknown">問題が起きました。もう一度お試しください。</string>
+</resources>

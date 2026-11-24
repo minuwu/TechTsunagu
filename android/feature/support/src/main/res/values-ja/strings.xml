@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="support_loading">読み込み中...</string>
+    <string name="support_empty">記録がありません</string>
+    <string name="support_retry">再試行</string>
+
+    <!-- Support Log screen -->
+    <string name="support_log_screen_title">支援記録</string>
+    <string name="support_log_export_csv">CSVを書き出す / 共有</string>
+    <string name="support_log_exporting">書き出し中...</string>
+    <string name="support_log_export_success">支援記録CSVを書き出しました</string>
+    <string name="support_log_filter_worker">作業者</string>
+    <string name="support_log_filter_month">月</string>
+    <string name="support_log_filter_all_workers">全員</string>
+    <string name="support_log_filter_all_months">全期間</string>
+    <string name="support_log_section_interviews">定期面談（3か月に1回以上）</string>
+    <string name="support_log_section_meetups">先輩との面談（%1$d件）</string>
+    <string name="support_log_section_notices">お知らせ確認（%1$d/%2$d）</string>
+    <string name="support_log_empty_interviews">この期間の面談はありません</string>
+    <string name="support_log_empty_meetups">この期間の面談はありません</string>
+    <string name="support_log_empty_notices">この期間のお知らせはありません</string>
+    <string name="support_log_last_interview">前回 %1$s</string>
+    <string name="support_log_due_interview">期限 %1$s</string>
+    <string name="support_log_none">なし</string>
+    <string name="support_log_status_ok">良好</string>
+    <string name="support_log_status_soon">期限間近</string>
+    <string name="support_log_status_overdue">期限超過</string>
+    <string name="support_log_status_wait">未回答</string>
+    <string name="support_log_desc_reporting">登録支援機関への報告用</string>
+
+    <!-- Periodic Interview screen -->
+    <string name="support_interview_screen_title">定期面談シート</string>
+    <string name="support_interview_select_worker">作業者</string>
+    <string name="support_interview_next_due">次の期限 %1$s</string>
+    <string name="support_interview_initial_due">期限: 初回の面談から3か月</string>
+    <string name="support_interview_last_date">前回 %1$s</string>
+    <string name="support_interview_frequency">3か月に1回以上</string>
+    <string name="support_interview_facts_title">前回（%1$s）からの記録</string>
+    <string name="support_interview_fact_meetups">先輩との面談</string>
+    <string name="support_interview_fact_notices">お知らせの確認</string>
+    <string name="support_interview_fact_bad_notices">要確認のお知らせ</string>
+    <string name="support_interview_fact_terms">記録されたつまずき</string>
+    <string name="support_interview_fact_asks">先輩に転送した質問</string>
+    <string name="support_interview_questions_title">面談で聞くこと</string>
+    <string name="support_interview_form_title">面談の記録</string>
+    <string name="support_interview_method">方法</string>
+    <string name="support_interview_method_face">対面</string>
+    <string name="support_interview_method_online">オンライン</string>
+    <string name="support_interview_consent_label">本人の同意を得ました（録画は雇用契約の終了後1年以上、保管が必要です）</string>
+    <string name="support_interview_date">日付</string>
+    <string name="support_interview_notes">内容・対応</string>
+    <string name="support_interview_notes_placeholder">聞いたこと、対応したこと</string>
+    <string name="support_interview_submit">面談を記録</string>
+    <string name="support_interview_past_title">これまでの面談</string>
+    <string name="support_interview_disclaimer">参考様式第5-5号に書く内容の下書きです。正式な様式ではありません。監督者との面談（第5-6号）も3か月に1回必要です。</string>
+    <string name="support_interview_err_note_required">面談の内容を入れてください</string>
+    <string name="support_interview_err_future_date">未来の日付は記録できません</string>
+    <string name="support_interview_err_consent_required">オンライン面談は本人の同意が必要です</string>
+    <string name="support_interview_success">面談を記録しました</string>
+
+    <!-- Errors and labels -->
+    <string name="support_err_offline">インターネットにつながっていないため、データを読み込めませんでした。接続を確認して「再試行」を押してください。</string>
+    <string name="support_err_timeout">サーバーの返事が遅れています。少し待ってから「再試行」を押してください。</string>
+    <string name="support_err_server">サーバーに問題があり、処理できませんでした。しばらくしてからもう一度お試しください。</string>
+    <string name="support_err_not_found">この作業者が見つかりません。前の画面にもどって、ほかの作業者を選んでください。</string>
+    <string name="support_err_unknown">問題が起きました。「再試行」を押してください。何度も起きるときは親方に伝えてください。</string>
+    <string name="support_due_never">未実施</string>
+    <string name="support_due_overdue">期限超過 %1$d日</string>
+    <string name="support_due_left">あと%1$d日</string>
+    <string name="support_log_summary">%1$s: 定期面談 %2$d件 · 先輩との面談 %3$d件 · お知らせ確認 %4$d/%5$d</string>
+    <string name="support_log_target_all">作業者全員</string>
+    <string name="support_log_target">%1$s · %2$s</string>
+    <string name="support_meetup_coffee">コーヒーで面談</string>
+    <string name="support_meetup_drill">防災訓練</string>
+    <string name="support_meetup_festival">お祭り</string>
+    <string name="support_meetup_other">面談</string>
+    <string name="support_icon_warning">警告</string>
+</resources>

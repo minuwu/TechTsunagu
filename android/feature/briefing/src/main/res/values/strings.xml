@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="briefing_screen_id">Screen: %1$s</string>
+    <string name="briefing_loading">Loading...</string>
+    <string name="briefing_empty">No briefings yet</string>
+    <string name="briefing_retry">Retry</string>
+    <string name="briefing_error">Error: %1$s</string>
+    <string name="briefing_close">Close</string>
+    <string name="briefing_done">Done</string>
+    <string name="briefing_back">Back</string>
+
+    <!-- Briefing New Screen -->
+    <string name="briefing_new_screen_title">New Briefing</string>
+    <string name="briefing_new_mic_idle_prompt">Tap mic to speak today\'s briefing</string>
+    <string name="briefing_new_mic_recording_prompt">Speaking... Tap to finish</string>
+    <string name="briefing_new_mic_action_record">Record</string>
+    <string name="briefing_new_mic_action_stop">Stop recording</string>
+    <string name="briefing_new_past_title">Past Briefings</string>
+    <string name="briefing_new_translating_title">Translating to English and generating check question...</string>
+    <string name="briefing_new_spoken_section_title">Spoken content (Japanese)</string>
+    <string name="briefing_new_english_section_title">English sent to workers</string>
+    <string name="briefing_new_tag_safety_focus">TODAY’S SAFETY FOCUS</string>
+    <string name="briefing_new_tag_one_change">ONE CHANGE</string>
+    <string name="briefing_new_question_section_title">Check Question (1 auto-generated)</string>
+    <string name="briefing_new_btn_redo">Redo</string>
+    <string name="briefing_new_btn_publish">Publish</string>
+    <string name="briefing_new_confirm_publish_title">Publish morning briefing?</string>
+    <string name="briefing_new_confirm_publish_message">All workers will receive the translated briefing and check question.</string>
+    <string name="briefing_new_confirm_publish_action">Publish</string>
+    <string name="briefing_new_cancel">Cancel</string>
+    <string name="briefing_new_offline_error">Cannot publish briefing while offline. Please check connection.</string>
+
+    <!-- Briefing Board Screen -->
+    <string name="briefing_board_screen_title">Briefing Board</string>
+    <string name="briefing_board_confirmed_summary">%1$d/%2$d Confirmed</string>
+    <string name="briefing_board_status_green">Understood %1$d</string>
+    <string name="briefing_board_status_orange">Explain again %1$d</string>
+    <string name="briefing_board_status_red">Incorrect %1$d</string>
+    <string name="briefing_board_status_wait">Unattended %1$d</string>
+    <string name="briefing_board_workers_section_title">Attendance and understanding per worker</string>
+    <string name="briefing_board_attended">Attended</string>
+    <string name="briefing_board_unattended">Not attended</string>
+    <string name="briefing_board_not_sure">Not sure</string>
+    <string name="briefing_board_btn_explain_again">Explain again</string>
+    <string name="briefing_board_reexplain_sent">Sent re-explanation to %1$s</string>
+    <string name="briefing_board_question_section_title">Check Question</string>
+    <string name="briefing_board_correct_answer_label">Correct answer: %1$s</string>
+
+    <!-- Briefing Card Screen -->
+    <string name="briefing_card_screen_title">Today\'s Briefing</string>
+    <string name="briefing_card_foreman_role">Foreman</string>
+    <string name="briefing_card_read_aloud">Read aloud</string>
+    <string name="briefing_card_stop_reading">Stop reading</string>
+    <string name="briefing_card_question_section_title">1 quick question</string>
+    <string name="briefing_card_not_sure_option">Not sure</string>
+    <string name="briefing_card_feedback_understood">Wakatta! You understood.</string>
+    <string name="briefing_card_feedback_not_sure">The foreman will explain it again.</string>
+    <string name="briefing_card_feedback_incorrect">Not quite. The foreman will explain it again.</string>
+    <string name="briefing_card_correct_answer">Answer: %1$s</string>
+    <string name="briefing_new_make_draft">Make the briefing</string>
+</resources>

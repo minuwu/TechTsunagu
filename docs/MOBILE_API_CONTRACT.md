@@ -109,6 +109,7 @@ The backend adds enum values over time (Lang already has 9, Notice category 5, m
 3. The user picks a name and types the PIN: 4 digits for Workers, 6 for Foremen and Posters (ADR 0010; `BA:616`). `POST /api/auth/login {userId, pin}` returns `{token, expiresAt, mustChangePin, user}` (E-004). 10 attempts per minute per IP; 5 wrong PINs lock the account for 15 minutes (`backend/app/services/auth.py:24-27`).
 4. Send `Authorization: Bearer <token>` on every call except E-001, E-002, E-003, E-004 and the `/api/senpai/{token}` family, which use the path token (BA 9.1 at `BA:419`).
 5. If `mustChangePin` is `true`, show "choose your PIN" first. Until `PUT /api/auth/me/pin` succeeds every other route answers `403 PIN_CHANGE_REQUIRED` (`backend/app/api/auth.py:49-50`). Allowed while the flag is set: `GET /auth/me`, `PUT /auth/me/pin`, `POST /auth/logout` only (`backend/app/routers/auth.py:12`).
+5a. A shop that has no code yet is opened with `POST /api/auth/register {shopName, displayName, pin}` (ADR 0017): `201` with the login answer plus `shopCode`, the new Foreman signed in. 3 per minute per IP; a guessable or non-6-digit PIN is `422`. Show the `shopCode` so the Foreman can hand it to Workers; Worker accounts are then made from the Me tab.
 6. Session lifetime: Worker 30 days, Foreman and Poster 12 hours, Panel 180 days (`backend/app/services/auth.py:17-22`). A Worker's session is extended on the server when it is used more than an hour after its last use (`backend/app/services/auth.py:118-121`), but the client is not told the new expiry: `expiresAt` from login is only a hint. Treat the first `401` as the real expiry. A Foreman phone must expect a re-login about twice a day.
 7. A PIN change revokes the user's other sessions but keeps the current one (`backend/app/services/auth.py:147`). A Foreman reset of a Worker's PIN revokes all of that Worker's sessions (ADR 0010); the Worker then gets 401 on the next call.
 8. `POST /api/auth/logout` revokes the session; the Android client must also delete its stored token and, from the platform contract, unregister the push token.
@@ -452,9 +453,9 @@ Request: `{"machineId":"2","shift":"day","date":"2026-11-23","workerId":"12"}`; 
 ---
 ### 4.7 Chat (XREQ-005, live)
 
-Built as WS12 (`backend/app/routers/chat.py`, `backend/app/schemas/chat.py`) and in `docs/openapi.yaml`. The XREQ-005 row in `AGENTS.md` still reads `[PENDING]` (`AGENTS.md:61`) although the routes exist; the XREQ-006 AI half also reads `[PENDING]` there (`AGENTS.md:62`). The six stages are Transcribed, Translated, Check Questions made, Tasks extracted, Sent to Workers, Answers in (`prototypes/wakatta/parts/skeleton.html:279`; `stage` 0 to 5). The Auto-send Countdown is client-side: the app calls `/send` unless the Foreman cancels. No route creates a message of `kind: "ask"` (the enum has it; D-24).
+Built as WS12 (`backend/app/routers/chat.py`, `backend/app/schemas/chat.py`) and in `docs/openapi.yaml`. The XREQ-005 row in `AGENTS.md` still reads `[PENDING]` (`AGENTS.md:61`) although the routes exist; the XREQ-006 AI half also reads `[PENDING]` there (`AGENTS.md:62`). The six stages are Transcribed, Translated, Check Questions made, Tasks extracted, Sent to Workers, Answers in (`prototypes/wakatta/parts/skeleton.html:279`; `stage` 0 to 5). The Auto-send Countdown is client-side: the app calls `/send` unless the Foreman cancels. `POST /api/messages/{id}/ask` (XREQ-022) creates the `kind: "ask"` message; a second ask on the same term returns the first and sends nothing new.
 
-Shared message fields (`MessageForSender`, `MessageForWorker`): `id`, `threadId`, `fromUserId`, `kind` (`voice|text|ask|reexplain`), `language`, `stage`, `needsEdit`, `transcriptJa` (nullable), `text` (a map: `ja` plus translations; empty for a degraded draft), `toUserId` and `refMessageId` (nullable), `createdAt`, `sentAt` (nullable). The Foreman's view adds `questions` (with `correctIndex`) and `taskDrafts` (only on the response to `POST`; they are not stored). The Worker's view adds `questions` (without `correctIndex`), `myStatus` (`green|orange|red|null`) and `nudged`.
+Shared message fields (`MessageForSender`, `MessageForWorker`): `id`, `threadId`, `fromUserId`, `kind` (`voice|text|ask|reexplain`), `language`, `stage`, `needsEdit`, `transcriptJa` (nullable), `text` (a map: `ja` plus translations; empty for a degraded draft), `toUserId` and `refMessageId` (nullable), `createdAt`, `sentAt` (nullable). The Foreman's view adds `questions` (with `correctIndex`) and `taskDrafts` (only on the response to `POST`; they are not stored). The Foreman's view also carries `results` on a sent message with questions: one row per Worker of the Thread (a Re-explanation: only its Worker), `{userId, status (green|orange|red|null while waiting), answers (null while waiting), read, nudged}`, for the Wakatta card. The Worker's view adds `questions` (without `correctIndex`), `myStatus` (`green|orange|red|null`), `nudged`, `myAnswers` and `answerKey` (both null until this Worker answers; then the per-question picks and the correct option of each, so the card can show right and wrong after the last answer), and `asked` (this Worker already sent an `ask` about the message).
 
 #### E-051 `GET /api/threads`
 Status: `live` · Roles: F W members · Poll: none stated, no ETag (B-11) · Screens: `chats`, `home`, tab badge · Bus: `msg:new`
@@ -479,7 +480,7 @@ Errors: `409 ALREADY_SENT`; `404` not the author's; `422` assignees or Machine n
 
 #### E-055 `POST /api/messages/{id}/answers`
 Status: `live` · Roles: W · Idempotency: one answer per message and user (a repeat is idempotent) · Screens: `chat`, `home` (Checks waiting) · Bus: `check:answer`, `followup:new`
-Request: `{"answers":[1,1,-1]}` (1 to 3 values; each 0 to 2, or `-1` for "not sure"; this route accepts `-1`, `POST /checks` does not). Response 200: `{"status":"orange","followUpIds":["4"]}`; `status` `green|orange|red`. A wrong or "not sure" answer on a question with a term creates a Confusion and a Follow-up.
+Request: `{"answers":[1,1,-1]}` (1 to 3 values; each 0 to 2, or `-1` for "not sure"; this route accepts `-1`, `POST /checks` does not). Response 200: `{"status":"orange","followUpIds":["4"],"answers":[1,1,-1],"answerKey":[1,0,2]}`; `status` `green|orange|red`. The answer key is revealed only after answering; a repeat returns the first answers. A wrong or "not sure" answer on a question with a term creates a Confusion and a Follow-up.
 Errors: `403`; `404`; `422` the message has no questions, or a wrong answer count.
 
 #### E-056 `GET /api/follow-ups`
@@ -714,7 +715,7 @@ Screen ids are the keys of `SCREENS` in `prototypes/wakatta/parts/*.js` (34 ids;
 
 | Screen id | Role | R / W (endpoints) | Notes |
 | :--- | :--- | :--- | :--- |
-| `chat` | F W | R: E-052 messages (poll 2 s, ETag), E-046 glossary, E-056 follow-ups (F). W: E-053 post (Foreman draft or Worker message), E-054 send, E-055 answers, E-058 reexplain, E-059 nudge, E-047 add term; group controls E-063..E-070 (Pending) | the Worker "ask the Foreman" message has no route (D-24); stages 0 to 5 in the message |
+| `chat` | F W | R: E-052 messages (poll 2 s, ETag), E-046 glossary, E-056 follow-ups (F). W: E-053 post (Foreman draft or Worker message), E-054 send, E-055 answers, E-058 reexplain, E-059 nudge, E-047 add term; group controls E-063..E-070 (Pending) | W also: `POST /messages/{id}/ask` (XREQ-022); stages 0 to 5 in the message |
 | `home` | F W | F: E-040 board, E-056 follow-ups, E-038 near-misses (open count, Pending), E-060 tasks, E-052 (tally of Wakatta Status). W: E-033 briefings, E-051 threads (Checks waiting), E-060 tasks, E-043 passport, E-089 notices (pending count) | |
 | `chats` | F W | R: E-051 threads, E-074 contacts, E-080 talk-threads. W: E-081 new talk | personal threads are `new` |
 | `board` | F W | R: E-060 tasks. W: E-061, E-062 (`If-Match`) | this is the **Task Board**, not `GET /api/board` (E-040) |
@@ -755,7 +756,7 @@ The prototype's `Bus` fans an event out to both phones. In production there is n
 
 | Bus event | Prototype source | Replaced by | Carried by (receiver) |
 | :--- | :--- | :--- | :--- |
-| `ask:foreman` | `A.js:781` | no route: a message of kind `ask` is in the enum but nothing creates one (D-24); a Worker can post plain text with E-053 | E-052 poll |
+| `ask:foreman` | `A.js:781` | `POST /api/messages/{id}/ask` (XREQ-022); `asked` on the Worker's message disables a second ask | E-052 poll |
 | `ask:foremanReply` | `A.js:787` | a Foreman message with E-053 then E-054 (the draft and send flow) | E-052 poll |
 | `ask:new` | `D.js:477` | E-095 (the response carries the Ask) | none (own Worker); Foreman view none (B-04) |
 | `ask:reply` | `D.js:481,882` | E-103 (Senpai web page) | E-096 poll (`senpaiReply`) |
@@ -779,7 +780,7 @@ The prototype's `Bus` fans an event out to both phones. In production there is n
 | `signoff` | `C.js:320` | server side effect of E-027 (kind `note`) | E-043, E-040, E-018 |
 | `task:update` | `A.js:955`, `B.js:273`, `B.init.js:29`, `C.js:474` | E-061 (Foreman), E-062 (Foreman or Worker); Tasks from a message are created by E-054 | E-060 poll |
 | `wk:nudge` | `A.js:599` | E-059 | push (the Worker is reminded) |
-| `wk:read` | `A.js:684,961` | no read-receipt route; reading with E-052 only moves the member's own unread marker, and a Foreman sees only `myStatus` and `nudged`-style state through answers (B-08) | none |
+| `wk:read` | `A.js:684,961` | no read-receipt route; reading with E-052 only moves the member's own unread marker, and a Foreman sees each Worker's `read` (unread marker at or after `sentAt`, or answered) in `results` on E-052 | none |
 | `wk:reexplain` | `A.js:727` | E-058 | E-052 poll (that Worker) |
 | `wk:stage` | `A.js:954` | the `stage` field of the message (E-053, E-054) | E-052 poll |
 

@@ -119,8 +119,11 @@ def ask(db: Session, shop_id: int, worker_id: int, ask_id: int, *, for_update: b
     return db.scalar(stmt.with_for_update() if for_update else stmt)
 
 
-def asks_page(db: Session, shop_id: int, worker_id: int, after_id: int | None, limit: int) -> list[Ask]:
-    stmt = select(Ask).where(Ask.shop_id == shop_id, Ask.worker_id == worker_id)
+def asks_page(db: Session, shop_id: int, worker_id: int | None, after_id: int | None, limit: int) -> list[Ask]:
+    """One Worker's Asks, or the whole shop's when `worker_id` is None (the Foreman)."""
+    stmt = select(Ask).where(Ask.shop_id == shop_id)
+    if worker_id is not None:
+        stmt = stmt.where(Ask.worker_id == worker_id)
     if after_id is not None:
         stmt = stmt.where(Ask.id < after_id)
     return list(db.scalars(stmt.order_by(Ask.id.desc()).limit(limit + 1)))

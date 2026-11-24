@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Common -->
+    <string name="nearmiss_loading">読み込み中...</string>
+    <string name="nearmiss_empty">報告がありません</string>
+    <string name="nearmiss_retry">再試行</string>
+    <string name="nearmiss_error">読み込めませんでした</string>
+    <string name="nearmiss_done">完了</string>
+    <string name="nearmiss_screen_id">画面ID: %1$s</string>
+
+    <!-- Near-miss New Screen -->
+    <string name="nearmiss_new_screen_title">ヒヤリハット報告</string>
+    <string name="nearmiss_step_machine">1 · どの機械ですか？</string>
+    <string name="nearmiss_step_what">2 · 何が起きましたか？ 長押しで録音</string>
+    <string name="nearmiss_mic_label">長押しで録音</string>
+    <string name="nearmiss_text_placeholder">マイクを長押しして話すか、ここに入力してください</string>
+    <string name="nearmiss_auto_translate_hint">班長のために自動で日本語に翻訳されます</string>
+    <string name="nearmiss_step_photo">3 · 写真（任意）</string>
+    <string name="nearmiss_add_photo">写真を追加</string>
+    <string name="nearmiss_tap_circle_hint">写真の危ない場所をタップして丸をつけます</string>
+    <string name="nearmiss_remove_photo">写真を削除</string>
+    <string name="nearmiss_step_severity">4 · 危険の度合いは？</string>
+    <string name="nearmiss_severity_low">軽微</string>
+    <string name="nearmiss_severity_mid">中程度</string>
+    <string name="nearmiss_severity_high">重大</string>
+    <string name="nearmiss_my_reports">自分の報告</string>
+    <string name="nearmiss_send_button">%1$sさんに報告</string>
+    <string name="nearmiss_send_button_default">報告を送信</string>
+    <string name="nearmiss_sent_title">%1$sさんに報告しました</string>
+    <string name="nearmiss_sent_message">班長に通知が届きました。報告ありがとうございます。</string>
+    <string name="nearmiss_report_another">別の報告をする</string>
+    <string name="nearmiss_foreman_info">ヒヤリハットは作業員のスマホから届きます</string>
+    <string name="nearmiss_view_list">報告の一覧を見る</string>
+    <string name="nearmiss_pick_machine_first">先に機械を選んでください</string>
+
+    <!-- Near-miss List Screen -->
+    <string name="nearmiss_list_screen_title">ヒヤリハット</string>
+    <string name="nearmiss_filter_open">未対応</string>
+    <string name="nearmiss_filter_ack">対応済</string>
+    <string name="nearmiss_empty_open">未対応の報告はありません</string>
+    <string name="nearmiss_empty_ack">対応済の報告はまだありません</string>
+    <string name="nearmiss_new_report_fab">新規報告</string>
+    <string name="nearmiss_status_seen">%1$sさんが確認済</string>
+    <string name="nearmiss_status_sent">送信済</string>
+    <string name="nearmiss_status_waiting">送信待ち</string>
+
+    <!-- Near-miss Detail Screen -->
+    <string name="nearmiss_detail_screen_title">ヒヤリハット</string>
+    <string name="nearmiss_not_found">報告が見つかりません</string>
+    <string name="nearmiss_header_ja_trans">日本語訳</string>
+    <string name="nearmiss_header_original">原文</string>
+    <string name="nearmiss_header_worker_said">あなたの報告</string>
+    <string name="nearmiss_header_foreman_reads">%1$sさんが読む内容（日本語）</string>
+    <string name="nearmiss_seen_at">確認 %1$s</string>
+    <string name="nearmiss_btn_make_task">タスクにする</string>
+    <string name="nearmiss_btn_task_created">タスク作成済</string>
+    <string name="nearmiss_btn_ack">確認</string>
+    <string name="nearmiss_btn_acked">確認済み</string>
+    <string name="nearmiss_task_created_toast">ボードにタスクを追加しました</string>
+    <string name="nearmiss_queued_message">通信できません。つながったら、自動で送ります。</string>
+    <string name="nearmiss_send_failed">報告を受け付けられませんでした。内容を確認して、もう一度送ってください。</string>
+    <string name="nearmiss_error_hint">通信を確認して、もう一度試してください。</string>
+    <string name="nearmiss_action_failed">うまくいきませんでした。もう一度お試しください。</string>
+</resources>

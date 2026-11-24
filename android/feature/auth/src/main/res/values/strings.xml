@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="auth_signin_title">Sign In</string>
+    <string name="auth_changepin_title">Change PIN</string>
+    <string name="auth_shop_code_label">Shop Code</string>
+    <string name="auth_shop_code_hint">8 characters (e.g. SHOP1234)</string>
+    <string name="auth_pin_label">PIN</string>
+    <string name="auth_pin_hint">4 to 6 digits</string>
+    <string name="auth_current_pin_label">Current PIN</string>
+    <string name="auth_new_pin_label">New PIN</string>
+    <string name="auth_confirm_pin_label">Confirm New PIN</string>
+    <string name="auth_submit">Sign In</string>
+    <string name="auth_change_pin_submit">Update PIN</string>
+    <string name="auth_select_worker">Select your name</string>
+    <string name="auth_loading">Loading...</string>
+    <string name="auth_empty">No workers found</string>
+    <string name="auth_retry">Retry</string>
+    <string name="auth_error">Error: %1$s</string>
+    <string name="auth_role_label">I am a</string>
+    <string name="auth_role_foreman">Foreman</string>
+    <string name="auth_role_worker">Worker</string>
+    <string name="auth_error_title">Something went wrong</string>
+    <string name="auth_error_wrong_pin">That PIN is not correct.</string>
+    <string name="auth_error_locked">Too many wrong PINs. You can try again after %1$s.</string>
+    <string name="auth_error_rate_limited">Too many tries. Wait %1$s seconds and try again.</string>
+    <string name="auth_error_offline">No connection. Check the network and try again.</string>
+    <string name="auth_error_timeout">The server did not answer in time. Try again.</string>
+    <string name="auth_error_server">The server has a problem. Try again later.</string>
+    <string name="auth_error_upgrade">Please update the app to continue.</string>
+    <string name="auth_error_unknown_shop">This shop code was not found.</string>
+    <string name="auth_error_pin_rejected">That PIN is not allowed. Use digits only, and not a repeat or a run.</string>
+    <string name="auth_error_unknown">Something went wrong. Try again.</string>
+
+    <string name="auth_intro_skip_ja" translatable="false" formatted="false">スキップ</string>
+    <string name="auth_intro_skip_en" translatable="false" formatted="false">Skip</string>
+    <string name="auth_intro_next_ja" translatable="false" formatted="false">次へ</string>
+    <string name="auth_intro_next_en" translatable="false" formatted="false">Next</string>
+    <string name="auth_intro_start_ja" translatable="false" formatted="false">はじめる</string>
+    <string name="auth_intro_start_en" translatable="false" formatted="false">Get started</string>
+    <string name="auth_intro_1_title_ja" translatable="false" formatted="false">一度話せば、全員に伝わる</string>
+    <string name="auth_intro_1_title_en" translatable="false" formatted="false">Say it once. Everyone understands.</string>
+    <string name="auth_intro_1_body_ja" translatable="false" formatted="false">職長の言葉を、やさしい日本語と英語に。本当にわかったかも、一人ずつ確認できます。</string>
+    <string name="auth_intro_1_body_en" translatable="false" formatted="false">The foreman\'s words in plain Japanese and English, with a check that each worker really understood.</string>
+    <string name="auth_intro_1_say_ja" translatable="false" formatted="false">金型交換の前に、必ず電源を切ってください。</string>
+    <string name="auth_intro_1_say_en" translatable="false" formatted="false">Always switch the power off before a die change.</string>
+    <string name="auth_intro_1_ok_ja" translatable="false" formatted="false">わかった</string>
+    <string name="auth_intro_1_ok_en" translatable="false" formatted="false">Understood</string>
+    <string name="auth_intro_2_title_ja" translatable="false" formatted="false">現場の課題、第1位</string>
+    <string name="auth_intro_2_title_en" translatable="false" formatted="false">The top problem on the floor</string>
+    <string name="auth_intro_2_stat_ja" translatable="false" formatted="false">「日本語能力等のためにコミュニケーションが取りにくい」</string>
+    <string name="auth_intro_2_stat_en" translatable="false" formatted="false">say communication is hard because of Japanese ability</string>
+    <string name="auth_intro_2_body_ja" translatable="false" formatted="false">外国人を雇う事業所で最も多い回答です（前年43.9%）。伝わらない指示は、安全のリスクです。</string>
+    <string name="auth_intro_2_body_en" translatable="false" formatted="false">The most-cited problem among employers of foreign workers (43.9% the year before). An instruction not understood is a safety risk.</string>
+    <string name="auth_intro_2_src_ja" translatable="false" formatted="false">厚生労働省 2025年 外国人雇用実態調査</string>
+    <string name="auth_intro_2_src_en" translatable="false" formatted="false">MHLW 2025 survey of foreign employment</string>
+    <string name="auth_intro_3_title_ja" translatable="false" formatted="false">理解は、確認する</string>
+    <string name="auth_intro_3_title_en" translatable="false" formatted="false">Understanding is checked, not assumed</string>
+    <string name="auth_intro_3_s1_ja" translatable="false" formatted="false">職長が話す・入力する</string>
+    <string name="auth_intro_3_s1_en" translatable="false" formatted="false">The foreman speaks or types</string>
+    <string name="auth_intro_3_s2_ja" translatable="false" formatted="false">AIが確認質問を1〜3問つくる</string>
+    <string name="auth_intro_3_s2_en" translatable="false" formatted="false">AI writes 1–3 quick questions</string>
+    <string name="auth_intro_3_s3_ja" translatable="false" formatted="false">一人ずつ 緑・オレンジ・赤</string>
+    <string name="auth_intro_3_s3_en" translatable="false" formatted="false">Green, orange or red for each worker</string>
+    <string name="auth_intro_3_body_ja" translatable="false" formatted="false">わからなかった人には、その人だけにやさしく再説明。確認に合格するまで機械はロック。</string>
+    <string name="auth_intro_3_body_en" translatable="false" formatted="false">A worker who missed it gets a simpler re-explanation. A machine unlocks only after its Check is passed.</string>
+    <string name="auth_intro_4_title_ja" translatable="false" formatted="false">家でも、まちでも</string>
+    <string name="auth_intro_4_title_en" translatable="false" formatted="false">At home and in town</string>
+    <string name="auth_intro_4_t1_ja" translatable="false" formatted="false">お知らせ</string>
+    <string name="auth_intro_4_t1_en" translatable="false" formatted="false">Notices</string>
+    <string name="auth_intro_4_t2_ja" translatable="false" formatted="false">先輩</string>
+    <string name="auth_intro_4_t2_en" translatable="false" formatted="false">Senpai</string>
+    <string name="auth_intro_4_t3_ja" translatable="false" formatted="false">AIに聞く</string>
+    <string name="auth_intro_4_t3_en" translatable="false" formatted="false">Ask AI</string>
+    <string name="auth_intro_4_body_ja" translatable="false" formatted="false">ごみ出しや避難訓練のお知らせを、日付つきの手順に。困ったら先輩かAIに聞けます。</string>
+    <string name="auth_intro_4_body_en" translatable="false" formatted="false">Garbage rules and drills as dated steps. Stuck? Ask your Senpai or the AI.</string>
+
+    <string name="auth_si_title_ja" translatable="false" formatted="false">サインイン</string>
+    <string name="auth_si_title_en" translatable="false" formatted="false">Sign in</string>
+    <string name="auth_si_tagline_ja" translatable="false" formatted="false">職場の指示を、わかるまで。</string>
+    <string name="auth_si_tagline_en" translatable="false" formatted="false">Instructions, until they are understood.</string>
+    <string name="auth_si_demo_ja" translatable="false" formatted="false">デモで試す</string>
+    <string name="auth_si_demo_en" translatable="false" formatted="false">Try a demo</string>
+    <string name="auth_si_demo_hint_ja" translatable="false" formatted="false">タップすると入力されます</string>
+    <string name="auth_si_demo_hint_en" translatable="false" formatted="false">Tap to fill the form</string>
+    <string name="auth_si_worker_ja" translatable="false" formatted="false">作業員</string>
+    <string name="auth_si_worker_en" translatable="false" formatted="false">Worker</string>
+    <string name="auth_si_foreman_ja" translatable="false" formatted="false">職長</string>
+    <string name="auth_si_foreman_en" translatable="false" formatted="false">Foreman</string>
+    <string name="auth_si_code_ja" translatable="false" formatted="false">ショップコード</string>
+    <string name="auth_si_code_en" translatable="false" formatted="false">Shop code</string>
+    <string name="auth_si_code_hint_ja" translatable="false" formatted="false">8文字（例: SASEBO01）</string>
+    <string name="auth_si_code_hint_en" translatable="false" formatted="false">8 characters, e.g. SASEBO01</string>
+    <string name="auth_si_name_ja" translatable="false" formatted="false">名前を選ぶ</string>
+    <string name="auth_si_name_en" translatable="false" formatted="false">Pick your name</string>
+    <string name="auth_si_no_names_ja" translatable="false" formatted="false">この役割の人はまだいません</string>
+    <string name="auth_si_no_names_en" translatable="false" formatted="false">Nobody with this role yet</string>
+    <string name="auth_si_pin_ja" translatable="false" formatted="false">PIN（暗証番号）</string>
+    <string name="auth_si_pin_en" translatable="false" formatted="false">PIN</string>
+    <string name="auth_si_submit_ja" translatable="false" formatted="false">サインイン</string>
+    <string name="auth_si_submit_en" translatable="false" formatted="false">Sign in</string>
+    <string name="auth_si_no_code_ja" translatable="false" formatted="false">ショップコードがない？</string>
+    <string name="auth_si_no_code_en" translatable="false" formatted="false">No shop code yet?</string>
+    <string name="auth_si_register_ja" translatable="false" formatted="false">新しいショップを登録</string>
+    <string name="auth_si_register_en" translatable="false" formatted="false">Register a new shop</string>
+    <string name="auth_si_what_ja" translatable="false" formatted="false">Wakatta? とは</string>
+    <string name="auth_si_what_en" translatable="false" formatted="false">What is Wakatta?</string>
+    <string name="auth_rg_title_ja" translatable="false" formatted="false">ショップを登録</string>
+    <string name="auth_rg_title_en" translatable="false" formatted="false">Register a shop</string>
+    <string name="auth_rg_note_ja" translatable="false" formatted="false">あなたが最初の職長になります。作業員はショップコードでサインインします。</string>
+    <string name="auth_rg_note_en" translatable="false" formatted="false">You become its first foreman. Workers sign in with the shop code.</string>
+    <string name="auth_rg_shop_ja" translatable="false" formatted="false">ショップ名</string>
+    <string name="auth_rg_shop_en" translatable="false" formatted="false">Shop name</string>
+    <string name="auth_rg_name_ja" translatable="false" formatted="false">あなたの名前</string>
+    <string name="auth_rg_name_en" translatable="false" formatted="false">Your name</string>
+    <string name="auth_rg_pin_ja" translatable="false" formatted="false">6桁のPIN</string>
+    <string name="auth_rg_pin_en" translatable="false" formatted="false">6-digit PIN</string>
+    <string name="auth_rg_pin_hint_ja" translatable="false" formatted="false">連番や同じ数字の繰り返しは使えません</string>
+    <string name="auth_rg_pin_hint_en" translatable="false" formatted="false">No runs or repeated digits</string>
+    <string name="auth_rg_submit_ja" translatable="false" formatted="false">登録してはじめる</string>
+    <string name="auth_rg_submit_en" translatable="false" formatted="false">Register and start</string>
+    <string name="auth_rg_back_ja" translatable="false" formatted="false">サインインに戻る</string>
+    <string name="auth_rg_back_en" translatable="false" formatted="false">Back to sign in</string>
+    <string name="auth_rg_done_ja" translatable="false" formatted="false">ショップができました</string>
+    <string name="auth_rg_done_en" translatable="false" formatted="false">Your shop is ready</string>
+    <string name="auth_rg_done_note_ja" translatable="false" formatted="false">このコードを作業員に伝えてください。</string>
+    <string name="auth_rg_done_note_en" translatable="false" formatted="false">Give this code to your workers.</string>
+    <string name="auth_rg_start_ja" translatable="false" formatted="false">はじめる</string>
+    <string name="auth_rg_start_en" translatable="false" formatted="false">Start</string>
+</resources>

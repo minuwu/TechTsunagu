@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="core_design_retry">再試行</string>
+    <string name="core_design_loading">読み込み中…</string>
+    <string name="core_design_back">戻る</string>
+    <string name="core_design_status_green">わかった</string>
+    <string name="core_design_status_orange">要確認</string>
+    <string name="core_design_status_red">未理解</string>
+    <string name="core_design_status_wait">回答待ち</string>
+</resources>

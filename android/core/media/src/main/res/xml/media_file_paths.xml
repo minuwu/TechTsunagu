@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Camera output and recordings are in cache/media; ShareFile may also send other cache or files-dir files. -->
+    <cache-path name="media_cache" path="." />
+    <files-path name="media_files" path="." />
+</paths>

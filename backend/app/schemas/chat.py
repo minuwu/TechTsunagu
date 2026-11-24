@@ -49,11 +49,24 @@ class _MessageOut(CamelModel):
     sent_at: AwareDatetime | None
 
 
+class WorkerResult(CamelModel):
+    """One Worker's state on a sent message, for the Foreman's Wakatta card."""
+
+    user_id: str
+    status: WakattaStatus | None
+    """null while the Worker has not answered."""
+    answers: list[int] | None
+    read: bool
+    nudged: bool
+
+
 class MessageForSender(_MessageOut):
-    """The Foreman's view: the answer key, and the Task drafts on the response to POST (they are not stored)."""
+    """The Foreman's view: the answer key, and the Task drafts of an unsent message (empty once it is sent)."""
 
     questions: list[CheckQuestion]
     task_drafts: list[TaskDraft] = []
+    results: list[WorkerResult] = []
+    """Every Worker of the Thread (a Re-explanation: only its Worker); empty for a message without questions."""
 
 
 class MessageForWorker(_MessageOut):
@@ -61,6 +74,11 @@ class MessageForWorker(_MessageOut):
     my_status: WakattaStatus | None
     nudged: bool
     """The Foreman is waiting for this Worker's answer."""
+    my_answers: list[int] | None = None
+    answer_key: list[int] | None = None
+    """The correct option of each question, only once this Worker has answered."""
+    asked: bool = False
+    """This Worker already asked the Foreman to explain this message again."""
 
 
 class MessagesPage(CamelModel):
@@ -83,6 +101,9 @@ class AnswersIn(CamelModel):
 class AnswerResult(CamelModel):
     status: WakattaStatus
     follow_up_ids: list[str]
+    answers: list[int] = []
+    answer_key: list[int] = []
+    """The correct option of each question, revealed once the Worker has answered."""
 
 
 class FollowUpOut(CamelModel):

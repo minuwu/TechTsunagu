@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="connect_loading">Loading...</string>
+    <string name="connect_cancel">Cancel</string>
+    <string name="connect_save">Save</string>
+    <string name="connect_create">Create</string>
+    <string name="connect_delete">Delete</string>
+    <string name="connect_rename">Rename</string>
+    <string name="connect_block">Block</string>
+    <string name="connect_send">Send</string>
+    <string name="connect_check">Check</string>
+    <string name="connect_icon_info">Information</string>
+    <string name="connect_icon_warning">Warning</string>
+
+    <!-- Connect screen -->
+    <string name="connect_screen_title">Connect</string>
+    <string name="connect_my_qr_title">My QR</string>
+    <string name="connect_my_qr_desc">My QR code. Another person can scan it to connect with you.</string>
+    <string name="connect_my_qr_note">When someone scans this, you can chat. They see only your name and language. It works outside work too.</string>
+    <string name="connect_scan">Scan a QR</string>
+    <string name="connect_share">Share my QR</string>
+    <string name="connect_rotate">Make a new QR</string>
+    <string name="connect_rotated">New QR ready. The old QR does not work any more.</string>
+    <string name="connect_contacts_title">Contacts</string>
+    <string name="connect_contacts_empty">No contacts yet. Scan someone\'s QR to connect.</string>
+    <string name="connect_talks_title">Talk Threads</string>
+    <string name="connect_talks_empty">No Talk Threads yet. Make one for a person you talk with.</string>
+    <string name="connect_new_talk">New talk</string>
+    <string name="connect_name_label">Name (the person, for example)</string>
+    <string name="connect_err_name_required">Enter a name of 1 to 40 characters.</string>
+    <string name="connect_privacy_notice_title">Before you record</string>
+    <string name="connect_privacy_notice_message">Ask the person if recording is okay. Avoid names and other personal details. Follow your workplace rules.</string>
+    <string name="connect_privacy_notice_dismiss">I understand</string>
+
+    <!-- Scan screen -->
+    <string name="connect_scan_screen_title">Scan a QR</string>
+    <string name="connect_scan_hint">Type the code from the other person\'s QR, or tap a person below to try a scan.</string>
+    <string name="connect_scan_code_label">Code</string>
+    <string name="connect_scan_read">Read code</string>
+    <string name="connect_scan_samples">Try a scan (demo)</string>
+    <string name="connect_scan_confirm_title">Connect with %1$s?</string>
+    <string name="connect_scan_confirm_lang">Language: %1$s</string>
+    <string name="connect_scan_confirm_note">You can message each other. Your Foreman cannot see this chat.</string>
+    <string name="connect_scan_connect">Connect</string>
+
+    <!-- Contact Thread -->
+    <string name="connect_pchat_screen_title">Chat</string>
+    <string name="connect_chat_empty">No messages yet. Say hello.</string>
+    <string name="connect_message_hint">Message</string>
+    <string name="connect_they_see">They see: %1$s</string>
+    <string name="connect_original">Original: %1$s</string>
+    <string name="connect_no_translation">(no translation yet)</string>
+    <string name="connect_block_title">Block this person?</string>
+    <string name="connect_block_body">%1$s · This chat will be removed. They will not be told.</string>
+
+    <!-- Talk Thread -->
+    <string name="connect_talk_empty">Tap Listen and hold the phone near the person.</string>
+    <string name="connect_listen">Listen</string>
+    <string name="connect_listening">Listening...</string>
+    <string name="connect_said">What they said · %1$s</string>
+    <string name="connect_play_again">Play again</string>
+    <string name="connect_your_words">What did they say? Write it in your own words</string>
+    <string name="connect_example">For example...</string>
+    <string name="connect_show_meaning">Show the meaning</string>
+    <string name="connect_your_understanding">Your understanding</string>
+    <string name="connect_grade_green">Yes, you understood.</string>
+    <string name="connect_grade_orange">Close.</string>
+    <string name="connect_grade_red">Not quite.</string>
+    <string name="connect_grade_skipped">You looked at the meaning first.</string>
+    <string name="connect_meaning">Meaning</string>
+    <string name="connect_staff_flag">Tell a staff member or nurse about pain or loss of appetite. Follow your facility rules.</string>
+    <string name="connect_choose_reply">Choose your reply</string>
+    <string name="connect_show_screen">Show this screen to them</string>
+    <string name="connect_read_aloud">Read aloud</string>
+    <string name="connect_yes">はい</string>
+    <string name="connect_no">いいえ</string>
+    <string name="connect_confirmed_yes">They said yes. It got through.</string>
+    <string name="connect_confirmed_no">They did not understand.</string>
+    <string name="connect_try_another">Try another reply</string>
+    <string name="connect_delete_title">Delete this talk?</string>
+    <string name="connect_delete_body">%1$s · All its messages will be deleted too.</string>
+
+    <string name="connect_needs_edit">AI unavailable · transcript only</string>
+    <string name="connect_mic_rationale">Microphone permission is needed to listen to what is said.</string>
+    <string name="connect_dictation_unavailable">Speech recognition is not available on this phone.</string>
+    <string name="connect_dictation_no_speech">No speech detected. Please try again.</string>
+
+    <!-- Errors: what happened, why, what to do -->
+    <string name="connect_err_offline">No internet connection, so this could not be done. Check your connection and try again.</string>
+    <string name="connect_err_timeout">The server took too long to answer. Wait a moment and try again.</string>
+    <string name="connect_err_server">The server has a problem and could not finish. Try again later.</string>
+    <string name="connect_err_not_found">We could not find it. Check the QR or the code and try again.</string>
+    <string name="connect_err_blocked">You blocked this person.</string>
+    <string name="connect_err_bad_code">This is not a Wakatta? QR code. Check the code and try again.</string>
+    <string name="connect_err_no_speech">Read-aloud is not available on this phone. Show the screen to the person instead.</string>
+    <string name="connect_err_rate_limited">Too many requests. Please wait a moment and try again.</string>
+    <string name="connect_err_already_connected">This person is already in your contacts.</string>
+    <string name="connect_err_unknown">Something went wrong. Try again. If it keeps happening, tell your Foreman.</string>
+</resources>

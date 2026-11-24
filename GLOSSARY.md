@@ -80,6 +80,10 @@ _Avoid_: Login, check-in, session
 
 ## Shop management
 
+**Shop Registration**:
+Opening a new shop from the sign-in screen; the person who opens it becomes its first Foreman (ADR 0017). Workers never register themselves.
+_Avoid_: Sign-up, Worker self-join
+
 **Shift Assignment**:
 A Foreman's decision that a Worker runs a Machine during a shift.
 _Avoid_: Schedule, roster entry, responsibility

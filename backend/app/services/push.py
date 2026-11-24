@@ -13,9 +13,10 @@ from app.repositories import accounts, devices
 from app.repositories import chat as chat_repo
 from app.repositories import work as work_repo
 
-Kind = Literal["chat_message", "nudge"]
+Kind = Literal["chat_message", "nudge", "check_due"]
 
-# Visible text per type: (title, body), {name} = the sender. ja and en only until a shop language is native-reviewed.
+# Visible text per type: (title, body), {name} = the sender, or the Machine of a
+# check_due. ja and en only until a shop language is native-reviewed.
 TEMPLATES: dict[Kind, dict[str, tuple[str, str]]] = {
     "chat_message": {
         "ja": ("{name}さんからメッセージ", "Wakatta?を開いて確認してください"),
@@ -25,9 +26,13 @@ TEMPLATES: dict[Kind, dict[str, tuple[str, str]]] = {
         "ja": ("確認に答えてください", "{name}さんが待っています"),
         "en": ("Please answer the Check", "{name} is waiting"),
     },
+    "check_due": {
+        "ja": ("確認テストがあります", "{name}"),
+        "en": ("A Check is waiting", "{name}"),
+    },
 }
-CHANNEL: dict[Kind, str] = {"chat_message": "messages", "nudge": "safety"}
-TTL: dict[Kind, str] = {"chat_message": "86400s", "nudge": "7200s"}
+CHANNEL: dict[Kind, str] = {"chat_message": "messages", "nudge": "safety", "check_due": "safety"}
+TTL: dict[Kind, str] = {"chat_message": "86400s", "nudge": "7200s", "check_due": "43200s"}
 # A replayed POST (same Idempotency-Key) returns the same message: push it once.
 # shortcut: one login_limits row per message; add a cleanup job if that table grows large.
 PUSH_ONCE = timedelta(days=1)
@@ -100,3 +105,23 @@ class Pusher:
                 db.commit()
         except Exception:  # see message_sent
             log.exception("push: nudge for message %s failed", message_id)
+
+    def check_due(self, shop_id: int, machine_id: int, worker_id: int) -> None:
+        """The Foreman's reminder to take a Machine's Check (XREQ-021)."""
+        client = self._client
+        if client is None:
+            return
+        now = datetime.now(UTC)
+        try:
+            with self._factory() as db:
+                m = work_repo.machine(db, shop_id, machine_id)
+                if m is None:
+                    return
+                for device, language in devices.reachable(db, [worker_id], now):
+                    name = m.name.get(language) or m.name.get("ja") or m.code
+                    message = _message("check_due", language, name, {"machineId": str(m.id)}, now)
+                    if client.send(device.fcm_token, message) == "gone":
+                        devices.forget(db, device.id)
+                db.commit()
+        except Exception:  # see message_sent
+            log.exception("push: check_due for machine %s failed", machine_id)

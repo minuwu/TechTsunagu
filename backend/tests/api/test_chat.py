@@ -361,6 +361,37 @@ def test_an_edit_without_the_model_keeps_the_foremans_text(client: TestClient, l
     assert res.status_code == 200 and data["needsEdit"] is True and data["text"] == {"ja": "清掃は10時"}
 
 
+def test_an_edit_that_lost_the_model_is_repaired_by_the_same_edit(
+    client: TestClient, line: Line, fake_ai: FakeAiClient
+) -> None:
+    fake_ai.queue("draft_message", draft_answer(line))
+    res = client.post(
+        f"/api/threads/{line.thread_id}/messages", headers=line.foreman | _key(), data={"text": "金型交換"}
+    )
+    path, edit = f"/api/messages/{res.json()['data']['id']}", {"textJa": "明日9時に金型交換"}
+    degraded = client.patch(path, headers=line.foreman, json=edit).json()["data"]
+    assert degraded["needsEdit"] is True and degraded["taskDrafts"] == []  # not the old text's Tasks
+
+    fake_ai.queue("draft_message", draft_answer(line))
+    again = client.patch(path, headers=line.foreman, json=edit).json()["data"]
+
+    assert again["needsEdit"] is False and again["questions"] and again["taskDrafts"]
+
+
+def test_a_retried_post_returns_the_task_drafts_until_send(
+    client: TestClient, line: Line, fake_ai: FakeAiClient
+) -> None:
+    fake_ai.queue("draft_message", draft_answer(line))
+    path, headers, form = f"/api/threads/{line.thread_id}/messages", line.foreman | _key(), {"text": "金型交換"}
+    first = client.post(path, headers=headers, data=form).json()["data"]
+    again = client.post(path, headers=headers, data=form).json()["data"]
+    assert first["taskDrafts"] and again == first
+
+    body = {"text": first["text"], "questions": first["questions"]}
+    client.post(f"/api/messages/{first['id']}/send", headers=line.foreman, json=body)
+    assert client.post(path, headers=headers, data=form).json()["data"]["taskDrafts"] == []
+
+
 def test_the_foreman_reads_and_edits_a_reexplanation_before_it_is_sent(
     client: TestClient, line: Line, fake_ai: FakeAiClient
 ) -> None:
@@ -399,9 +430,36 @@ def test_a_worker_asks_the_foreman_about_a_term(client: TestClient, line: Line, 
 
     follow_ups = client.get("/api/follow-ups?status=open", headers=line.foreman).json()["data"]["items"]
     assert [f["termJa"] for f in follow_ups] == ["金型"]  # asking twice opens one Follow-up
-    assert any(m["kind"] == "ask" for m in _poll(client, line, line.foreman))
+    assert [m["kind"] for m in _poll(client, line, line.foreman)].count("ask") == 1  # a second tap sends nothing
+    assert next(m for m in _poll(client, line, line.rahim) if m["id"] == sent["id"])["asked"] is True
     assert (
         client.post(f"/api/messages/{sent['id']}/ask", headers=line.foreman, json={"termJa": "金型"}).status_code == 403
     )
     outsider = client.post(f"/api/messages/{sent['id']}/ask", headers=line.outsider, json={"termJa": "金型"})
     assert outsider.status_code in (403, 404)
+
+
+def test_the_wakatta_cards_show_each_workers_answers(client: TestClient, line: Line, fake_ai: FakeAiClient) -> None:
+    """The Foreman's card lists every Worker; a Worker sees the answer key only after answering."""
+    sent = _sent(client, line, fake_ai)
+    [card] = _poll(client, line, line.foreman)
+    assert {r["userId"] for r in card["results"]} == {str(line.rahim_id), str(line.sadia_id)}
+    assert all(r["status"] is None and r["answers"] is None for r in card["results"])
+
+    [before] = _poll(client, line, line.rahim)
+    assert before["answerKey"] is None and before["myAnswers"] is None and before["asked"] is False
+    done = client.post(f"/api/messages/{sent['id']}/answers", headers=line.rahim, json={"answers": [1, 0]})
+    assert done.json()["data"]["answers"] == [1, 0] and done.json()["data"]["answerKey"] == [0, 0]
+    [after] = _poll(client, line, line.rahim)
+    assert after["myAnswers"] == [1, 0] and after["answerKey"] == [0, 0]
+
+    client.post(f"/api/messages/{sent['id']}/nudge", headers=line.foreman, json={"userId": str(line.sadia_id)})
+    rows = {r["userId"]: r for r in _poll(client, line, line.foreman)[0]["results"]}
+    assert rows[str(line.rahim_id)] == {
+        "userId": str(line.rahim_id),
+        "status": "orange",
+        "answers": [1, 0],
+        "read": True,
+        "nudged": False,
+    }
+    assert rows[str(line.sadia_id)]["status"] is None and rows[str(line.sadia_id)]["nudged"] is True

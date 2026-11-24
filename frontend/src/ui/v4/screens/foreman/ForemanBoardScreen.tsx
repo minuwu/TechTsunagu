@@ -12,7 +12,7 @@ import { Button } from '@/ui/v4/components/ui/button'
 import { fmtDate, uiLang } from '@/ui/v4/lib/format'
 import { StatePlate, type PlateState } from '@/ui/v4/components/StatePlate'
 
-/** Every Foreman screen: PIN, nav, title. */
+/** Every Foreman screen: PIN, nav, title. From lg the nav is a sticky sidebar (console layout). */
 export function ForemanPage({
   title,
   sub,
@@ -23,13 +23,30 @@ export function ForemanPage({
   children: ReactNode
 }) {
   return (
-    <PinGate gate="foreman">
-      <ForemanNav />
-      <PageTitle sub={sub}>{title}</PageTitle>
+    <PinGate
+      gate="foreman"
+      frame={(lock, screen) => (
+        <div className="lg:grid lg:grid-cols-[13.5rem_minmax(0,1fr)] lg:items-start lg:gap-10">
+          <aside className="flex flex-col lg:sticky lg:top-24">
+            <div className="mb-2 flex justify-end lg:mb-3 lg:justify-start">
+              {lock}
+            </div>
+            <ForemanNav />
+          </aside>
+          <div className="min-w-0">
+            <PageTitle sub={sub}>{title}</PageTitle>
+            {screen}
+          </div>
+        </div>
+      )}
+    >
       {children}
     </PinGate>
   )
 }
+
+// Text links in dense rows still get a 44px target (F-23)
+const rowLink = 'inline-flex min-h-11 items-center text-primary underline'
 
 /** Board: who is on which Machine, what is locked and why, open Confusions. */
 export function ForemanBoardScreen() {
@@ -40,12 +57,14 @@ export function ForemanBoardScreen() {
       {b.loading ? (
         <ScreenSkeleton panels={4} />
       ) : (
-        <div className="space-y-4">
+        // Phone: flags, machines, Confusions in one column. Wide (xl): machines left, alerts right.
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_21rem] xl:grid-rows-[auto_1fr] xl:items-start xl:[grid-template-areas:'mach_flags'_'mach_conf']">
           {b.flags.length > 0 && (
             <Card
               tone="danger"
               title={m.flags_title({ count: b.flags.length })}
               id="flags"
+              className="xl:[grid-area:flags]"
             >
               <ul className="space-y-2">
                 {b.flags.map((f) => (
@@ -53,10 +72,7 @@ export function ForemanBoardScreen() {
                     <strong>{f.workerName}</strong>
                     {pick(f.machine.name, lang)}
                     <StatusChip status={f.status} />
-                    <Link
-                      to="/foreman/assign"
-                      className="text-primary underline"
-                    >
+                    <Link to="/foreman/assign" className={rowLink}>
                       {m.reassign()}
                     </Link>
                   </li>
@@ -65,7 +81,12 @@ export function ForemanBoardScreen() {
             </Card>
           )}
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2 xl:[grid-area:mach]">
+            {b.rows.length === 0 && (
+              <div className="sm:col-span-2">
+                <EmptyState>{m.board_empty()}</EmptyState>
+              </div>
+            )}
             {b.rows.map((r) => (
               <Card
                 key={r.machine.id}
@@ -101,25 +122,25 @@ export function ForemanBoardScreen() {
                     </li>
                   )}
                 </ul>
-                <div className="flex flex-wrap gap-x-4 gap-y-1 border-t border-[var(--rule)] pt-3 text-sm font-bold">
+                <div className="flex flex-wrap gap-x-4 border-t border-[var(--rule)] pt-1 text-sm font-bold">
                   <Link
                     to="/foreman/record/$machineId"
                     params={{ machineId: r.machine.id }}
-                    className="text-primary underline"
+                    className={rowLink}
                   >
                     {m.record_note()}
                   </Link>
                   <Link
                     to="/foreman/library/$machineId"
                     params={{ machineId: r.machine.id }}
-                    className="text-primary underline"
+                    className={rowLink}
                   >
                     {m.library()}
                   </Link>
                   <Link
                     to="/panel/$machineId"
                     params={{ machineId: r.machine.id }}
-                    className="text-primary underline"
+                    className={rowLink}
                   >
                     {m.hub_panel()}
                   </Link>
@@ -128,12 +149,17 @@ export function ForemanBoardScreen() {
             ))}
           </div>
 
-          <Card title={m.confusions_title()} id="confusions" tone="warning">
+          <Card
+            title={m.confusions_title()}
+            id="confusions"
+            tone="warning"
+            className="xl:[grid-area:conf]"
+          >
             {b.openNearMisses > 0 && (
               <p className="mb-3">
                 <Link
                   to="/foreman/near-misses"
-                  className="font-bold text-primary underline"
+                  className={`${rowLink} font-bold`}
                 >
                   {m.open_near_misses({ count: b.openNearMisses })}
                 </Link>
