@@ -31,11 +31,17 @@ export function StatePlate({
   size = 'md',
   children,
   className,
+  art,
+  label,
 }: {
   state: PlateState
   size?: 'sm' | 'md' | 'lg'
   children?: ReactNode
   className?: string
+  /** Shown instead of the mark, e.g. the unlock moment right after the plate turns Ready */
+  art?: ReactNode
+  /** Replaces the state word, e.g. UNKNOWN when the Panel has no data */
+  label?: ReactNode
 }) {
   const lg = size === 'lg'
   const sm = size === 'sm'
@@ -65,26 +71,28 @@ export function StatePlate({
               : 'px-4 py-3',
         )}
       >
-        <span
-          aria-hidden="true"
-          className={cn(
-            'grid shrink-0 place-items-center rounded-full',
-            state === 'idle' ? 'bg-card' : 'bg-white/15',
-            lg ? 'size-24 sm:size-28' : sm ? 'size-7' : 'size-10',
-          )}
-        >
-          <Mark
-            id={MARK[state]}
-            className={lg ? 'size-12 sm:size-14' : sm ? 'size-4' : 'size-5'}
-          />
-        </span>
+        {art ?? (
+          <span
+            aria-hidden="true"
+            className={cn(
+              'grid shrink-0 place-items-center rounded-full',
+              state === 'idle' ? 'bg-card' : 'bg-white/15',
+              lg ? 'size-24 sm:size-28' : sm ? 'size-7' : 'size-10',
+            )}
+          >
+            <Mark
+              id={MARK[state]}
+              className={lg ? 'size-12 sm:size-14' : sm ? 'size-4' : 'size-5'}
+            />
+          </span>
+        )}
         <p
           className={cn(
             'display leading-none',
             lg ? 'text-5xl sm:text-7xl' : sm ? 'text-base' : 'text-xl',
           )}
         >
-          {plateWord(state)}
+          {label ?? plateWord(state)}
         </p>
         {children && (
           <div className={cn('min-w-0', lg ? 'space-y-3' : 'text-base')}>

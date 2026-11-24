@@ -5,10 +5,14 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { Link, useLocation } from '@tanstack/react-router'
 import { m } from '@/i18n/paraglide/messages'
 import { ping } from '@/lib/audio'
+import { useDataStatus } from '@/features/health'
+import { useDemoScenario } from '@/features/hub'
 import { usePersisted } from '@/lib/persisted'
+import { startSmoothScroll } from '@/ui/v4/lib/motion'
 import { cn } from '@/ui/v4/lib/utils'
 import { BridgeMark } from './components/Brand'
 import { Toaster } from './components/Feedback'
+import { Mark } from './components/Icon'
 import { LocaleSwitcher } from './components/LocaleSwitcher'
 
 // The splash belongs to the first document load only, never to in-app navigation
@@ -132,6 +136,73 @@ function HeaderLinks({ path, sound }: { path: string; sound: boolean }) {
   )
 }
 
+const SCENARIO_LABEL = {
+  live: m.demo_live,
+  loading: m.demo_loading,
+  empty: m.demo_empty,
+  error: m.demo_error,
+} as const
+
+/** Demo-state switcher for presenting (mock data only; see useDemoScenario). */
+function DemoSwitcher() {
+  const demo = useDemoScenario()
+  if (!demo.available) return null
+  return (
+    <aside
+      aria-label={m.demo_state()}
+      className="fixed bottom-20 left-3 z-40 flex items-center border border-foreground bg-background text-sm md:bottom-4"
+    >
+      <span className="px-3 text-xs font-bold tracking-wider uppercase">
+        {m.demo_state()}
+      </span>
+      {demo.options.map((s) => (
+        <button
+          key={s}
+          type="button"
+          aria-pressed={demo.scenario === s}
+          onClick={() => demo.choose(s)}
+          className={cn(
+            'min-h-11 cursor-pointer border-l border-foreground px-3 font-bold transition-colors duration-300',
+            demo.scenario === s
+              ? 'bg-primary text-primary-foreground'
+              : 'hover:bg-foreground hover:text-background',
+          )}
+        >
+          {SCENARIO_LABEL[s]()}
+        </button>
+      ))}
+    </aside>
+  )
+}
+
+/** Offline or a failed read: a caution band under the header, never silent stale data. */
+function ConnectionBanner() {
+  const { status, retry } = useDataStatus()
+  if (status === 'ok') return null
+  return (
+    <div
+      role="alert"
+      className="border-b border-warning bg-[color-mix(in_oklch,var(--warning)_10%,var(--background))]"
+    >
+      <div className="mx-auto flex max-w-[90rem] flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2.5 sm:px-6">
+        <Mark id="alert" className="size-5 shrink-0 text-warning" />
+        <p className="flex-1 font-bold">
+          {status === 'offline' ? m.data_offline() : m.data_error()}
+        </p>
+        {status === 'error' && (
+          <button
+            type="button"
+            onClick={retry}
+            className="min-h-11 cursor-pointer border border-foreground px-4 font-bold transition-colors duration-300 hover:bg-foreground hover:text-background"
+          >
+            {m.retry()}
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
 const toggle =
   'grid size-11 shrink-0 cursor-pointer place-items-center border border-foreground text-foreground transition-colors duration-300 hover:bg-foreground hover:text-background'
 
@@ -139,6 +210,8 @@ export function Layout({ children }: { children: ReactNode }) {
   const path = useLocation({ select: (l) => l.pathname })
   const [soundPref, setSound] = usePersisted('wakatta.sound', 'on')
   const sound = soundPref === 'on'
+  // Lenis smooth wheel scroll for the whole kit (touch stays native; no smoothing under reduced motion)
+  useEffect(() => startSmoothScroll(), [])
   return (
     <div className="v4 v4-ground flex min-h-dvh flex-col">
       <Splash />
@@ -186,6 +259,7 @@ export function Layout({ children }: { children: ReactNode }) {
             <LocaleSwitcher />
           </div>
         </div>
+        <ConnectionBanner />
       </header>
       <main
         id="main"
@@ -196,6 +270,7 @@ export function Layout({ children }: { children: ReactNode }) {
         </div>
       </main>
       <TabBar path={path} sound={sound} />
+      <DemoSwitcher />
       <Toaster />
     </div>
   )

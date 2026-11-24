@@ -1,17 +1,18 @@
 import { Link } from '@tanstack/react-router'
 import { m } from '@/i18n/paraglide/messages'
 
-// Tabs on a hairline: the current one is ink with an ocean-blue rule under it
+// Phone: tabs on a hairline, the current one is ink with a cobalt rule under it.
+// Desktop (lg): a flat vertical rail inside a hairline frame; the cobalt rule moves to the left edge.
 const tab =
-  'relative inline-flex min-h-11 shrink-0 items-center rounded-t-md px-3 font-bold whitespace-nowrap text-muted-foreground transition-colors duration-150 after:absolute after:inset-x-2 after:-bottom-px after:h-0.5 after:rounded-full after:bg-transparent after:transition-colors hover:bg-accent/60 hover:text-foreground [&.active]:text-foreground [&.active]:after:bg-primary'
+  'relative inline-flex min-h-11 shrink-0 items-center rounded-t-md px-3 font-bold whitespace-nowrap text-muted-foreground transition-colors duration-150 after:absolute after:inset-x-2 after:-bottom-px after:h-0.5 after:rounded-full after:bg-transparent after:transition-colors hover:bg-accent/60 hover:text-foreground [&.active]:text-foreground [&.active]:after:bg-primary lg:rounded-none lg:px-4 lg:after:inset-x-auto lg:after:inset-y-0 lg:after:left-0 lg:after:h-auto lg:after:w-1 lg:after:rounded-none lg:[&.active]:bg-accent'
 
 export function ForemanNav() {
   return (
     <nav
       aria-label={m.foreman_nav()}
-      className="-mx-4 mb-8 overflow-x-auto border-b border-[var(--rule)] px-4 [scrollbar-width:thin] sm:mx-0 sm:px-0"
+      className="-mx-4 mb-8 overflow-x-auto border-b border-[var(--rule)] px-4 [scrollbar-width:thin] sm:mx-0 sm:px-0 lg:mb-0 lg:overflow-visible lg:border lg:border-foreground lg:py-1"
     >
-      <div className="flex gap-1">
+      <div className="flex gap-1 lg:flex-col lg:gap-0">
         <Link to="/foreman" activeOptions={{ exact: true }} className={tab}>
           {m.nav_board()}
         </Link>

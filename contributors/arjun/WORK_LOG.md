@@ -4,6 +4,22 @@ Owner: Arjun Saha (`sillyfellow21`) — Role: Frontend design
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-24 (v4: Journey to Nagasaki, and the v3 work ported to v4)
+
+### Done
+- **Journey to Nagasaki** (`3d4657f`), a landing section below the hero: a 3D Earth (three.js r134, NASA Blue Marble, lazy chunk about 153 KB gzipped) turns and flies to Nagasaki, then hands over to a map of the 47 prefectures (d3-geo/zoom). A panel shows each prefecture's names, famous place, a CC0/PD photo, a description and a fact in ja and en. Reduced motion, no WebGL or a failed texture go straight to the map. `@types/three@0.134.0` added (dev only).
+- **Ported from v3 to v4** (presentation only, A-01…A-09; v4 keeps its flat, square look):
+  - Lenis smooth scroll and GSAP landing motion: hero entrance, scroll reveals (opacity only), count-up on the sourced 46.2%, gliding `#demo` / `#how` links that move focus. `data-lenis-prevent` on the chatbot list, the confirm dialog and the journey panel.
+  - States: the connection band (offline / error, with Try again), the demo switcher (`?demo=loading|empty|error|live`, mock only), Panel UNKNOWN, Board and Home empty states.
+  - Lottie moments: the Panel's `machine-unlock` on a live Locked→Ready change, `understood-stamp` / `check-wrong` after a Check.
+  - Foreman desktop: a sticky sidebar from 1024 px, Board machines left with flags and Confusions right (≥ 1280 px), Assign in two columns, the Glossary form as a sticky column, Near-misses in a grid, 44 px link targets on the Board.
+- **Fixed:** v4 Home showed a loading skeleton forever when a list was empty. New e2e "demo states show the empty message and the connection band" (failed before the fix; axe runs on the error state).
+- Check: typecheck, lint, unit 104/104, e2e 15/15 with axe in both languages; screenshots at 1440 and 390 px with no sideways scroll and no console errors.
+
+### Next
+- The Brand spot illustrations (Nekko, role and state art) are not in v4: they are blue brand art and v4 has its own poster art. Ask Minhaz whether v4 wants them.
+- The WSTG checklist (tanprathan/owasp-testing-checklist) has not been run. Frontend gaps: no Content Security Policy or `frame-ancestors`, and no dependency or secret scanning in CI. A full run needs the hosted app (XREQ-013).
+
 ## 2026-11-23 (frontend ↔ backend connection check)
 
 ### Done

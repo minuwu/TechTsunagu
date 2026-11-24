@@ -10,6 +10,7 @@ import { Icon, Mark } from '@/ui/v4/components/Icon'
 import { LangToggle } from '@/ui/v4/components/LangToggle'
 import { Question } from '@/ui/v4/components/Question'
 import { StatusChip } from '@/ui/v4/components/StatusChip'
+import { Moment } from '@/ui/v4/components/Moment'
 import { StatePlate } from '@/ui/v4/components/StatePlate'
 import { Button } from '@/ui/v4/components/ui/button'
 import { uiLang } from '@/ui/v4/lib/format'
@@ -155,6 +156,7 @@ export function MachineScreen() {
         </Card>
       ) : c.result?.passed ? (
         <Card tone="success" title={m.passed_title()} id="result">
+          <Moment id="understood-stamp" className="mx-auto mb-2 w-40 sm:w-48" />
           <StatePlate state="ready" className="mb-4">
             <span className="font-bold">{c.worker.name}</span>
           </StatePlate>
@@ -169,6 +171,7 @@ export function MachineScreen() {
         </Card>
       ) : (
         <Card tone="danger" title={m.failed_title()} id="result">
+          <Moment id="check-wrong" className="mx-auto mb-2 w-40 sm:w-48" />
           <StatePlate state="locked" className="mb-4">
             <span className="font-bold">{c.worker.name}</span>
           </StatePlate>
