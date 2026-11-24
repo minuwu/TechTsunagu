@@ -291,3 +291,19 @@ def test_find_does_not_tell_a_locked_person_from_nobody(client: TestClient, db: 
 
     assert _find(client, "2468") == 401  # not 423: the reply never confirms that a shop and person exist
     assert _find(client, "2468", name="Nobody") == 401
+
+
+def test_one_ip_opens_at_most_ten_shops_a_day(client: TestClient, db: Session) -> None:
+    """ADR 0017: each new shop's Foreman gets a fresh AI allowance, so shops per IP are capped by day, not only by
+    minute. The day counter is filled directly so the 3-a-minute limit does not trip first."""
+    from app.repositories import accounts
+
+    f.district(db)
+    now = datetime.now(UTC)
+    for _ in range(10):
+        accounts.count_attempt(db, "register-day:testclient", now, timedelta(days=1))
+    db.flush()
+
+    res = client.post("/api/auth/register", json={"shopName": "Eleventh", "displayName": "森 太郎", "pin": "739215"})
+
+    assert res.status_code == 429 and res.json()["error"]["code"] == "RATE_LIMITED"

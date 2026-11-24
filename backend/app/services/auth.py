@@ -34,6 +34,9 @@ LIMIT_WINDOW = timedelta(minutes=1)
 LOGINS_PER_IP = 10
 ROSTERS_PER_IP = 20
 REGISTERS_PER_IP = 3
+# ADR 0017: every new shop's Foreman gets a fresh AI allowance; one venue or mobile network shares an IP, so raise
+# this if the judges register their own shops on site.
+REGISTERS_PER_IP_PER_DAY = 10
 GLOSSARY = Path(__file__).resolve().parent.parent / "seed_data" / "glossary.json"
 CODE_LETTERS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"  # no 0/O or 1/I: the code is read off a sticker
 
@@ -55,11 +58,12 @@ def _unauthorized() -> ApiError:
     return ApiError(401, "UNAUTHORIZED", "Wrong name or PIN")
 
 
-def _rate_limit(db: Session, key: str, limit: int, now: datetime) -> None:
-    attempts = repo.count_attempt(db, key, now, LIMIT_WINDOW)
+def _rate_limit(db: Session, key: str, limit: int, now: datetime, window: timedelta = LIMIT_WINDOW) -> None:
+    attempts = repo.count_attempt(db, key, now, window)
     db.commit()
     if attempts > limit:
-        raise ApiError(429, "RATE_LIMITED", "Too many attempts, try again in a minute", headers={"Retry-After": "60"})
+        retry = str(int(window.total_seconds()))
+        raise ApiError(429, "RATE_LIMITED", "Too many attempts, try again later", headers={"Retry-After": retry})
 
 
 def user_out(db: Session, user: User) -> UserOut:
@@ -156,6 +160,7 @@ def register(db: Session, body: RegisterIn, ip: str, pepper: str, now: datetime)
     """ADR 0017: anyone can open a new shop and becomes its first Foreman. The shop starts with one group Thread and a
     copy of the standard Glossary; Workers still get their accounts from a Foreman (ADR 0010)."""
     _rate_limit(db, f"register:{ip}", REGISTERS_PER_IP, now)
+    _rate_limit(db, f"register-day:{ip}", REGISTERS_PER_IP_PER_DAY, now, timedelta(days=1))
     if (problem := pin_problem("foreman", body.pin)) is not None:
         raise ApiError(
             422, "VALIDATION_ERROR", "Choose a different PIN", {"fields": [{"loc": ["body", "pin"], "msg": problem}]}

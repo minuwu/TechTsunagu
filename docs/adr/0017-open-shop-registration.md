@@ -9,3 +9,7 @@ A forgotten random code locked owners out. Three ways back, all live:
 - The app remembers the last shop code and role on the phone and fills the sign-in form with them.
 - At registration the owner may choose the code (6 to 12 letters or digits, e.g. TECHTSUNAGU); a taken code is 409 `SHOP_CODE_TAKEN`. Left empty, the code stays random (8 characters). Shop codes are now 6 to 12 characters; district codes stay 8.
 - `POST /api/auth/find` signs in with shop name + own name + PIN (both names ignore case). It answers only with the right PIN, uses the login rate limit and PIN lockout, so a shop name never reveals its code or roster.
+
+## Amendment 2026-11-24: a daily limit per IP
+
+Each new shop's Foreman gets a fresh AI allowance (100 requests a day), so 3 registrations a minute per IP let one person spend many days' quota. Decided by Anim with Asif's proposal: at most **10 new shops a day per IP** (`REGISTERS_PER_IP_PER_DAY`, `services/auth.py`), next to the 3 a minute; over it, `429 RATE_LIMITED` with `Retry-After`. No new table (the existing attempt counter, key `register-day:<ip>`); people in existing shops notice nothing. Limit: everyone behind one venue or mobile network shares an IP, so raise the number if judges register their own shops on site.

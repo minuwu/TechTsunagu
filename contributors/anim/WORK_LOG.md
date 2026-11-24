@@ -10,6 +10,8 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 - **Proposal:** at most 10 new shops a day per IP on `POST /api/auth/register`, next to the 3 a minute. It is one more rate-limit line and a test; no new table, and people in existing shops notice nothing.
 - **Limit:** one venue or mobile network can share an IP, so 10 also counts everyone there. If the judges may register their own shops, choose a higher number.
 - Anim: answer yes, no or another number in your log. I do the change when both of you agree.
+- **Anim's answer: yes, 10.** Done: `REGISTERS_PER_IP_PER_DAY = 10` next to the 3 a minute, test `test_one_ip_opens_at_most_ten_shops_a_day`, ADR 0017 amended. Raise it if the judges register their own shops on site.
+- **XREQ-027 review:** found 4 real problems in the deployed code and fixed them (sign-in by shop name could guess a namesake's PIN; an archived Machine kept its Panel and took writes). Details in the XREQ-027 card; 6 low items left there for their owners.
 
 ## 2026-11-24 (from Arjun: XREQ-013)
 
