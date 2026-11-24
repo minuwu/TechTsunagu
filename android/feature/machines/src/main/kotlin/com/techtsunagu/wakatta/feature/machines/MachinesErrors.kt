@@ -9,5 +9,7 @@ internal fun AppError.machinesMessageRes(): Int = when (this) {
     AppError.Offline, AppError.Timeout -> R.string.machines_error_offline
     AppError.NotFound -> R.string.machines_error_not_found
     is AppError.RateLimited -> R.string.machines_error_rate_limited
+    is AppError.Conflict -> if (code == "MACHINE_ARCHIVED") R.string.machines_error_archived else R.string.machines_error_code_taken
+    is AppError.Validation -> R.string.machines_error_code_format
     else -> R.string.machines_generic_error
 }

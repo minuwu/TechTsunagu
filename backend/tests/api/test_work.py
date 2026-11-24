@@ -498,3 +498,20 @@ def test_a_check_whose_result_cannot_be_built_saves_nothing(client: TestClient, 
 
     assert res.status_code == 500
     assert db.scalar(select(func.count()).select_from(Check).where(Check.worker_id == shop.worker_id)) == 0
+
+
+def test_a_foreman_renames_and_archives_a_machine_and_history_keeps_it(client: TestClient, shop: Shop) -> None:
+    url = f"/api/machines/{shop.machine.id}"
+    renamed = client.patch(url, headers=_auth(shop.foreman), json={"name": {"ja": "新プレス", "en": "New press"}})
+    assert renamed.status_code == 200
+    assert renamed.json()["data"]["name"]["en"] == "New press"
+    assert client.patch(url, headers=_auth(shop.worker), json={"name": {"ja": "x", "en": "x"}}).status_code == 403
+
+    assert client.delete(url, headers=_auth(shop.foreman)).status_code == 200
+    assert client.delete(url, headers=_auth(shop.foreman)).status_code == 200  # twice is a no-op
+    listed = client.get("/api/machines", headers=_auth(shop.foreman)).json()["data"]["items"]
+    assert str(shop.machine.id) not in [m["id"] for m in listed]
+    detail = client.get(url, headers=_auth(shop.foreman)).json()["data"]
+    assert detail["archived"] is True and detail["name"]["en"] == "New press"
+    scanned = client.post(f"{url}/scan", headers=_auth(shop.worker))
+    assert scanned.status_code == 409 and scanned.json()["error"]["code"] == "MACHINE_ARCHIVED"

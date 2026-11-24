@@ -60,7 +60,7 @@ Foremen and Workers also own personal data that no employer route reads ([ADR 00
 Generated from the code: `cd backend; uv run python -m app.openapi index` (CI fails when it is stale).
 
 <!-- endpoint index: generated -->
-131 operations on 104 paths, all live.
+133 operations on 104 paths, all live.
 
 | Method | Path | Who | What |
 | :--- | :--- | :--- | :--- |
@@ -81,6 +81,8 @@ Generated from the code: `cd backend; uv run python -m app.openapi index` (CI fa
 | `PATCH` | `/api/foremen/{user_id}` | foreman | Rename, reset PIN or deactivate a foreman |
 | `GET` | `/api/machines` | foreman, worker | Machines of your shop |
 | `POST` | `/api/machines` | foreman | Add a Machine |
+| `PATCH` | `/api/machines/{machine_id}` | foreman | Rename a Machine (the code stays) |
+| `DELETE` | `/api/machines/{machine_id}` | foreman | Archive a Machine: off the lists, still named in history |
 | `GET` | `/api/machines/{machine_id}` | foreman, worker | A Machine and its current Note Version (no answers) |
 | `POST` | `/api/machines/{machine_id}/scan` | worker | The signed-in Worker is at this Machine (Presence) |
 | `GET` | `/api/machines/{machine_id}/panel` | panel, foreman | Machine Panel state; send If-None-Match to get 304 when unchanged |
@@ -149,7 +151,7 @@ Generated from the code: `cd backend; uv run python -m app.openapi index` (CI fa
 | `POST` | `/api/messages/{message_id}/ask` | worker | Worker: ask the Foreman to explain a term again (no AI) |
 | `POST` | `/api/messages/{message_id}/nudge` | foreman | Show a Worker you are waiting for their answer (rate-limited) |
 | `GET` | `/api/tasks` | foreman, worker | The Task Board of your shop; If-None-Match gives 304 |
-| `POST` | `/api/tasks` | foreman | Add a Task by hand |
+| `POST` | `/api/tasks` | foreman, worker | Add a Task by hand (a Worker's own Task is always theirs alone) |
 | `PATCH` | `/api/tasks/{task_id}` | foreman, worker | Move or edit a Task; If-Match: <version>, 412 when it changed meanwhile |
 | `GET` | `/api/threads/{thread_id}` | foreman, worker | A Thread with its members and your own settings |
 | `PATCH` | `/api/threads/{thread_id}` | foreman | Rename, describe or set announce-only (Foreman admin) |

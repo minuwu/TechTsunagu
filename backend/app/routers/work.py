@@ -27,6 +27,7 @@ from app.schemas.work import (
     MachineDetail,
     MachineIn,
     MachineOut,
+    MachineRename,
     NoteVersionOut,
     OverrideIn,
     OverrideOut,
@@ -64,6 +65,17 @@ def list_machines(who: ShopMember, db: DbSession, page: Paging) -> Envelope[Page
 @router.post("/machines", status_code=201, summary="Add a Machine")
 def create_machine(who: Foreman, body: MachineIn, db: DbSession) -> Envelope[MachineOut]:
     return Envelope(data=floor.create_machine(db, who, body, now_utc()))
+
+
+@router.patch("/machines/{machine_id}", summary="Rename a Machine (the code stays)")
+def rename_machine(who: Foreman, machine_id: IdIn, body: MachineRename, db: DbSession) -> Envelope[MachineOut]:
+    return Envelope(data=floor.rename_machine(db, who, int(machine_id), body, now_utc()))
+
+
+@router.delete("/machines/{machine_id}", summary="Archive a Machine: off the lists, still named in history")
+def archive_machine(who: Foreman, machine_id: IdIn, db: DbSession) -> Envelope[None]:
+    floor.archive_machine(db, who, int(machine_id), now_utc())
+    return Envelope(data=None)
 
 
 @router.get("/machines/{machine_id}", summary="A Machine and its current Note Version (no answers)")

@@ -815,6 +815,114 @@
       }
     },
     "/api/machines/{machine_id}": {
+      "patch": {
+        "tags": [
+          "work"
+        ],
+        "summary": "Rename a Machine (the code stays)",
+        "operationId": "rename_machine_api_machines__machine_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "machine_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Machine Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MachineRename"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_MachineOut_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "foreman"
+        ]
+      },
+      "delete": {
+        "tags": [
+          "work"
+        ],
+        "summary": "Archive a Machine: off the lists, still named in history",
+        "operationId": "archive_machine_api_machines__machine_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "machine_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Machine Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "foreman"
+        ]
+      },
       "get": {
         "tags": [
           "work"
@@ -4648,7 +4756,7 @@
         "tags": [
           "chat"
         ],
-        "summary": "Add a Task by hand",
+        "summary": "Add a Task by hand (a Worker's own Task is always theirs alone)",
         "operationId": "create_task_api_tasks_post",
         "security": [
           {
@@ -4707,7 +4815,8 @@
           }
         },
         "x-roles": [
-          "foreman"
+          "foreman",
+          "worker"
         ]
       }
     },
@@ -12452,6 +12561,11 @@
             ],
             "title": "Activeworkerid"
           },
+          "archived": {
+            "type": "boolean",
+            "title": "Archived",
+            "default": false
+          },
           "current": {
             "anyOf": [
               {
@@ -12550,6 +12664,11 @@
               }
             ],
             "title": "Activeworkerid"
+          },
+          "archived": {
+            "type": "boolean",
+            "title": "Archived",
+            "default": false
           }
         },
         "additionalProperties": false,
@@ -12562,6 +12681,38 @@
           "activeWorkerId"
         ],
         "title": "MachineOut"
+      },
+      "MachineRename": {
+        "properties": {
+          "name": {
+            "additionalProperties": {
+              "type": "string",
+              "maxLength": 1000
+            },
+            "propertyNames": {
+              "enum": [
+                "ja",
+                "bn",
+                "en",
+                "vi",
+                "id",
+                "ne",
+                "my",
+                "tl",
+                "zh"
+              ]
+            },
+            "type": "object",
+            "title": "Name"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "MachineRename",
+        "description": "The code stays: printed QR stickers and Panel links are made from it."
       },
       "MeetupCreate": {
         "properties": {
@@ -16554,6 +16705,17 @@
             "type": "string",
             "title": "Threadid"
           },
+          "threadTitle": {
+            "type": "string",
+            "title": "Threadtitle"
+          },
+          "text": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Text"
+          },
           "sentAt": {
             "type": "string",
             "format": "date-time",
@@ -16577,11 +16739,13 @@
         "required": [
           "messageId",
           "threadId",
+          "threadTitle",
+          "text",
           "sentAt",
           "deadline"
         ],
         "title": "UnansweredCheck",
-        "description": "GET /messages/unanswered: a sent message whose Check the caller has not answered yet."
+        "description": "GET /messages/unanswered: a sent message whose Check the caller has not answered yet. Listing it does not mark\nthe Thread as read."
       },
       "Understanding": {
         "properties": {

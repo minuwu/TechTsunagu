@@ -76,7 +76,7 @@ fun ChatScreen(
     LaunchedEffect(viewModel) {
         viewModel.effects.collect { effect ->
             when (effect) {
-                is ChatEffect.ShowError -> snackbarHostState.showSnackbar(context.getString(effect.error.chatMessageRes()))
+                is ChatEffect.ShowError -> snackbarHostState.showSnackbar(effect.error.chatMessage(context))
                 is ChatEffect.ShowHint -> snackbarHostState.showSnackbar(context.getString(effect.messageRes))
             }
         }
@@ -140,7 +140,7 @@ fun ChatContent(
                 }
                 state.error != null -> {
                     ErrorState(
-                        message = stringResource(state.error.chatMessageRes()),
+                        message = state.error.chatMessage(LocalContext.current),
                         onRetry = { onEvent(ChatEvent.Retry) },
                     )
                 }

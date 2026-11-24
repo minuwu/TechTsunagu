@@ -68,7 +68,7 @@ This file is:
 | `XREQ-011` | P2 | Frontend (Minhaz, Android app) | Backend (Anim), AI (Galib) | Gaps in live routes: Worker reads, ETag and Idempotency-Key, get-one Notice, Glossary PATCH, analytics, per-shop AI languages, XREQ status upkeep | `[DONE]` | 2026-11-24 11:20 |
 | `XREQ-012` | P1 | Backend (Anim, database) | Backend (Asif, deploy) | Point the Azure API at the Supabase database (`backend/deploy/SUPABASE.md`), reseed, smoke, then delete Azure PostgreSQL | `[DONE]` | 2026-11-23 17:30 |
 
-| `XREQ-013` | P1 | Frontend (Arjun) | Backend (Asif, deploy) | Host the frontend demo on Azure Static Web Apps (static build, `npm run build:static`) and reply with the live URL | `[PENDING]` | 2026-11-23 18:30 |
+| `XREQ-013` | P1 | Frontend (Arjun) | Backend (Asif, deploy) | Host the frontend demo on Azure Static Web Apps (static build, `npm run build:static`) and reply with the live URL | `[DONE]` | 2026-11-24 17:17 |
 | `XREQ-014` | P1 | Backend (Anim) | Frontend (Minhaz, Android + Firebase) | Firebase for push: project, Android app, FCM token upload to `PUT /api/devices/me`, service-account key to Anim privately | `[PENDING]` | 2026-11-23 19:30 |
 | `XREQ-015` | P0 | Backend (Anim) | Backend (Asif, Azure owner) | Give Anim's Azure account Contributor on the Wakatta resource group (Asif is off the project; Anim runs deploy now) | `[RESOLVED]` | 2026-11-23 19:30 |
 | `XREQ-016` | P0 | AI (Galib) | Frontend (Minhaz, Arjun; Android: Minhaz) | Chatbot screen on the Worker home and the Machine screen: `POST /api/knowledge/asks` (cited answer + self-check; emergency card; not covered → forward to Senpai) | `[IN_PROGRESS]` (web done; Android open) | 2026-11-23 23:00 |
@@ -82,6 +82,7 @@ This file is:
 | `XREQ-024` | P2 | Frontend (Minhaz, Android app) | Backend (Anim) | Foreman reads Asks; set Today's Word; Support Log JSON summary; transcript of voice Asks | `[RESOLVED]` | 2026-11-23 23:56 |
 | `XREQ-025` | P1 | Frontend (Minhaz, Android app) | Backend (Anim, Azure) | Host the release APK and run the release routine behind GET /app/config | `[DONE]` | 2026-11-24 12:12 |
 | `XREQ-026` | P2 | Frontend (Minhaz, Android app) | Backend (Anim, Azure) | App Links: a host, assetlinks.json and a web fallback for QR and share links | `[RESOLVED]` | 2026-11-24 11:27 |
+| `XREQ-027` | P0 | Frontend (Minhaz, Android app) | Backend (Anim, Azure) | Deploy the backend and run migrations `8e3b5d0a2f41` and `9a4c6e2b8d13`: Machine rename/archive, Worker's own Task, shop find and chosen codes, My QR short codes | `[PENDING]` | 2026-11-24 18:30 |
 *(When adding a request: append a row above AND add a detailed card in 2.2. Never insert in the middle.)*
 
 ### 2.2 Detailed Request Cards
@@ -542,7 +543,7 @@ scripts/smoke.py → "13/13 passed" (with --origin)
 - **Priority**: `P1 (High)`
 - **From**: Frontend (Arjun)
 - **To**: Backend (Asif, deploy)
-- **Status**: `[PENDING]`
+- **Status**: `[DONE]`
 - **Created**: `2026-11-23 18:30 (UTC+6)`
 - **Target Interface / Endpoint**: a public HTTPS URL for the web demo (landing with the Japan map, the Check → Panel loop, Foreman and Poster screens)
 
@@ -569,8 +570,8 @@ GET https://<name>.azurestaticapps.net/panel/m-press → 200, the Machine Panel
 
 **Fulfillment & Proof (filled by recipient on completion):**
 - **Branch / Commit**:
-- **Status / Notes**: 2026-11-23 Asif (off the project): handed to **Anim**, who runs Azure now; needs XREQ-015 first. The `Microsoft.Web` provider is already registered (Contributor on a resource group could not do it). Ops notes: `contributors/asif/WORK_LOG.md` (HANDOVER section).
-- **Verification Proof**:
+- **Status / Notes**: 2026-11-23 Asif (off the project): handed to **Anim**, who runs Azure now; needs XREQ-015 first. The `Microsoft.Web` provider is already registered (Contributor on a resource group could not do it). Ops notes: `contributors/asif/WORK_LOG.md` (HANDOVER section). 2026-11-24 Anim: **live at https://mango-beach-001af4300.4.azurestaticapps.net** (Static Web App `wakatta-web`, Free, East Asia, in `wakatta-rg`). Built from `main` with `npm ci && npm run build:static` and `VITE_PUBLIC_URL=https://mango-beach-001af4300.4.azurestaticapps.net` (QR stickers, Senpai links and the share card use it); 43 pre-rendered pages, 19 MB, on the in-browser demo data. Deployed once by hand with the Static Web Apps CLI (`swa deploy .output/public --env production`, deployment token from `az staticwebapp secrets list`, never printed). **To update it:** the same build and deploy; no CI yet (card item 4 is optional). The API's CORS is unchanged: the demo does not call the API (step 5 is for later).
+- **Verification Proof**: `/`, `/foreman`, `/foreman/skills` answer 200 `text/html`; an unknown URL falls back to the app (200); the page's JS asset loads; the address is in the built JS. **Arjun:** please check every page and tell Anim anything to fix.
 
 #### `[XREQ-014]` Firebase for push notifications (Android)
 - **Priority**: `P1 (High)`
@@ -901,6 +902,30 @@ Machine QR stickers and shared links open the app directly (Android App Links, s
 - **Branch / Commit**: `main` (this commit): `backend/app/routers/links.py`
 - **Status / Notes**: 2026-11-24 Anim. **Backend side done; waiting for the fingerprint.** (1) **Host = the API host** `wakatta-api.agreeablestone-840cfb57.japaneast.azurecontainerapps.io` (put it in the manifest for `[HOST]`): it is the only stable HTTPS host today (no hosted web app yet, XREQ-013), serves over HTTPS with no redirect, and keeps its name across deploys (it changes only if the Container App environment is recreated). (2) `GET /.well-known/assetlinks.json` (`application/json`) lists package `com.techtsunagu.wakatta` with every fingerprint in the env `ANDROID_CERT_SHA256` (comma-separated `AB:CD:…`, so release and debug can both be listed; a malformed one stops the API at startup). It returns `[]` until set, so Android simply does not verify yet. **Minhaz:** send the SHA-256 of your debug and release signing certificates (`keytool -list -v -keystore …`, the `SHA256:` line); Anim sets them with `az containerapp update -n wakatta-api -g wakatta-rg --set-env-vars "ANDROID_CERT_SHA256=<release>,<debug>"`. (3) Fallback page on `/m/…`, `/c/…`, `/t/…`, `/n/…`, `/b/…`, `/nm/…`, `/i/…` (any id or query): one static page in ja and en, "open in the Wakatta? app", with the download link once XREQ-025 sets `APP_DOWNLOAD_URL` (no link before that). It never echoes the link or a token. `/m/` shows this page too, not the web Machine page, until the web app is hosted. These routes are outside `/api` and not in `docs/openapi.yaml`. 2026-11-24 Arjun (with Minhaz's OK): the Android filter is on, on this host (`android/app/src/main/AndroidManifest.xml`), and `MainActivity` opens matched links after sign-in; open: the fingerprints from Minhaz. 2026-11-24 Minhaz: **fingerprints (public, safe to paste)** — release `64:DE:D8:E9:D1:0D:07:1D:58:01:F2:3E:B2:98:CA:39:E8:AC:CD:21:B8:53:86:2E:34:B1:9F:20:02:E2:D9:79`, debug `3B:96:9E:DE:21:FA:3A:45:03:0F:4D:05:C5:34:3B:23:95:92:F4:3C:83:6D:B9:B3:AA:B3:A8:88:70:16:E1:65`. **Anim:** `az containerapp update -n wakatta-api -g wakatta-rg --set-env-vars "ANDROID_CERT_SHA256=<release>,<debug>"` with those two. My QR now encodes `https://[HOST]/c/{token}` (43-char token accepted by the matcher), so a phone camera opens the app on the scan screen, which resolves the token at once. Also new: a replaced My QR answers `410 QR_REPLACED` (table `retired_qr_tokens`, migration `7d2f4a9c1e30`) so the scanner is told to ask for the new QR.
 - **Verification Proof**: `tests/api/test_links.py` (12: the file with two fingerprints, `[]` when unset, the page on all 7 prefixes with no echo of a token or shop code, no download link before a release, `/api` 404s untouched, a bad fingerprint refused at startup); full suite 439 passed; ruff, pyright strict, lint-imports clean.
+
+#### `[XREQ-027]` Deploy the backend and run the two new migrations
+
+- **Priority**: `P0 (Blocker)`
+- **From**: `Frontend (Minhaz, Android app)`
+- **To**: `Backend (Anim, Azure)`
+- **Status**: `[PENDING]`
+- **Created**: `2026-11-24 18:30 (UTC+6)`
+- **Target Interface / Endpoint**: `PATCH /api/machines/{id}`, `DELETE /api/machines/{id}`, `POST /api/tasks` (Worker), `POST /api/auth/find`, My QR short codes
+
+**Requirement Details:**
+The Android build on the phones already calls these routes; the live API answers 405 or 403 until the deploy. Please deploy `main` and run `alembic upgrade head` on the Supabase database. Two migrations are new since the last deploy:
+1. `8e3b5d0a2f41`: `shops.code` check widened to 6 to 12 letters or digits (owner-chosen shop codes, `POST /api/auth/find`).
+2. `9a4c6e2b8d13`: `machines.archived_at` (nullable timestamptz). Additive only; safe on live data.
+
+What the code does (written by Minhaz with tests, outside the usual Backend ownership, so please review):
+- `PATCH /api/machines/{id}` (Foreman): rename only, body `{name: {ja, en}}`; the code stays because QR stickers are printed from it.
+- `DELETE /api/machines/{id}` (Foreman): archive, a soft delete. The machine leaves `GET /api/machines`, the board, AI drafts, the skill matrix and the Knowledge Library list; `GET /api/machines/{id}` still answers (with `archived: true`) so history keeps the name; the confusion heatmap keeps it. Scan, panel token and shift assignment on an archived machine are `409 MACHINE_ARCHIVED`. Archiving twice is a no-op; an audit row `machine_archived` is written.
+- `POST /api/tasks` now accepts a Worker; a Worker's Task is always assigned to that Worker alone (other `assigneeIds` are ignored).
+
+**Fulfillment & Proof (filled by recipient on completion):**
+- **Branch / Commit**:
+- **Status / Notes**:
+- **Verification Proof**: local before handoff: full backend suite passed (new tests `test_a_foreman_renames_and_archives_a_machine_and_history_keeps_it`, `test_a_worker_adds_a_task_that_is_only_theirs`, route-guard cases for PATCH/DELETE); ruff clean; `docs/openapi.yaml` regenerated.
 
 ### 2.3 Blank XREQ Template (copy & paste)
 

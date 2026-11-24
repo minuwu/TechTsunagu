@@ -128,4 +128,21 @@
     <string name="machines_panel_override_reason_hint">許可しないとラインが止まります</string>
     <string name="machines_note_submit_failed">回答を送信できませんでした。接続を確認して、もう一度お試しください。</string>
     <string name="machines_error_rate_limited">リマインド済みです。数分待ってください。</string>
+    <string name="machines_add">機械を追加</string>
+    <string name="machines_add_title">機械を追加</string>
+    <string name="machines_rename_title">機械の名前を変更</string>
+    <string name="machines_rename">名前を変更</string>
+    <string name="machines_archive">アーカイブ</string>
+    <string name="machines_archive_title">%1$s をアーカイブしますか？</string>
+    <string name="machines_archive_body">機械一覧から外れ、パネルとQRスキャンは止まります。過去の手順・タスク・認定には名前が残ります。</string>
+    <string name="machines_more">その他</string>
+    <string name="machines_save">保存</string>
+    <string name="machines_cancel">キャンセル</string>
+    <string name="machines_field_code">コード</string>
+    <string name="machines_field_code_hint">英小文字・数字・ハイフン。QRに印刷され、後から変更できません。</string>
+    <string name="machines_field_name_ja">名前（日本語）</string>
+    <string name="machines_field_name_en">名前（英語）</string>
+    <string name="machines_error_code_taken">このコードの機械はすでにあります。</string>
+    <string name="machines_error_code_format">英小文字・数字・ハイフンだけを使ってください。</string>
+    <string name="machines_error_archived">この機械はアーカイブ済みです。</string>
 </resources>

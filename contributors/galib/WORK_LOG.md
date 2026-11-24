@@ -4,6 +4,16 @@ Owner: Galib (`Ga-lib`) — Role: AI / LLM
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-24 (from Arjun: AI checks, with your OK)
+
+- **Checked:** `tests/ai`, `tests/fixtures/ai` and `test_ai_checks` pass (81 tests); ruff, format and pyright are clean on `app/ai`. On this PC, run pytest and pyright as `uv run python -m pytest` and `uv run python -m pyright` (Windows Application Control blocks the `.exe` launchers).
+- **XREQ-006 item 5, docs** (`2e2db1f`): [docs/ai-eval-messages.md](../../docs/ai-eval-messages.md) describes the 10 Chat cases and what `eval_messages` scores. It is linked from `ai-eval.md`.
+- **Fixed** (`2e2db1f`): `app.ai.eval` rewrites `docs/ai-eval.md` on every run, so hand-added sections were lost; the chatbot link was one of them. `report()` now always links the messages and chatbot write-ups, with a test. Your "Takeaways" prose in `ai-eval.md` will still be replaced at the next run: keep a copy.
+- **Still yours:**
+  - The card wants one **prompt-injection** case ("ignore your instructions…"); m03 tests toning down, not injection.
+  - Run the live `--pipelines messages` eval after filming, then close XREQ-006.
+  - G3 capacity: free tier is about 900 calls a day and 24 a minute on Flash-Lite, but a Gemini 503 drops everything to Groq at 1 a minute. Paid or not needs the live logs.
+
 ## 2026-11-24 (Android audit and fix plan)
 
 - **G1 / audit A1** (`a585352`): one model call stops at 15 s, the whole request at 25 s, then degraded (needsEdit).

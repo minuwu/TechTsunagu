@@ -21,6 +21,7 @@ interface ChatRepository {
     /** User ids the debug role switch may act as. Empty (the default) hides the switch. */
     val debugUserIds: Map<Role, String> get() = emptyMap()
 
+    /** Sends a Worker's message. A Foreman's becomes a draft ([ChatMessageUiModel.isDraft]) until [sendDraft]. */
     suspend fun sendMessage(
         threadId: String,
         text: String? = null,
@@ -44,6 +45,9 @@ interface ChatRepository {
         fromUserId = fromUserId,
         idempotencyKey = idempotencyKey,
     )
+
+    /** Sends a draft to the Workers as it is, also one that [ChatMessageUiModel.needsEdit]. */
+    suspend fun sendDraft(messageId: String): AppResult<ChatMessageUiModel>
 
     suspend fun submitAnswers(
         messageId: String,

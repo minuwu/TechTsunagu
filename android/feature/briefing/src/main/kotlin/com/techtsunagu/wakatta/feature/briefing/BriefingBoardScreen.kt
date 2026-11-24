@@ -15,9 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -425,25 +423,8 @@ private fun BoardDataContent(
 
                     Column(horizontalAlignment = Alignment.End) {
                         StatusChip(status = statusItem.status)
-
-                        if (statusItem.status == WakattaStatus.ORANGE || statusItem.status == WakattaStatus.RED) {
-                            Spacer(modifier = Modifier.height(6.dp))
-                            FilledTonalButton(
-                                onClick = {
-                                    onSendReexplanation(
-                                        statusItem.worker.id,
-                                        statusItem.worker.displayName,
-                                    )
-                                },
-                                modifier = Modifier.height(36.dp),
-                                contentPadding = ButtonDefaults.TextButtonContentPadding,
-                            ) {
-                                Text(
-                                    text = stringResource(R.string.briefing_board_btn_explain_again),
-                                    style = MaterialTheme.typography.labelSmall,
-                                )
-                            }
-                        }
+                        // "Explain again" stays hidden until a backend route re-explains a Briefing (M6):
+                        // RealBriefingRepository.sendReexplanation does nothing yet, so the button would lie.
                     }
                 }
             }

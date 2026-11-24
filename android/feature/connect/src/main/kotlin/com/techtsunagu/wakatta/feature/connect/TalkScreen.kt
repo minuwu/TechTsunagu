@@ -54,6 +54,7 @@ import com.techtsunagu.wakatta.core.design.component.LoadingState
 import com.techtsunagu.wakatta.core.design.component.WakattaTopBar
 import com.techtsunagu.wakatta.core.media.DictationEvent
 import com.techtsunagu.wakatta.core.media.DictationSource
+import com.techtsunagu.wakatta.core.model.AppError
 import com.techtsunagu.wakatta.core.model.AppResult
 import com.techtsunagu.wakatta.core.model.Speaker
 import com.techtsunagu.wakatta.feature.connect.domain.EntryAction
@@ -64,6 +65,8 @@ import javax.inject.Inject
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 internal enum class TalkDialog { NONE, RENAME, DELETE }
 
@@ -116,6 +119,10 @@ internal class TalkViewModel @Inject constructor(
 
     private var dictationJob: Job? = null
 
+    // Nobody can repeat what the other person said: words that could not be saved go again at the next Listen.
+    private val unsaved = mutableListOf<String>()
+    private val saving = Mutex()
+
     override fun onEvent(event: TalkEvent) {
         when (event) {
             is TalkEvent.Init -> {
@@ -166,8 +173,9 @@ internal class TalkViewModel @Inject constructor(
             stopListening()
             return
         }
+        if (unsaved.isNotEmpty()) saveWords()
         if (!dictation.isAvailable()) {
-            sendEffect(TalkEffect.Failed(ConnectError.NO_SPEECH))
+            sendEffect(TalkEffect.Failed(ConnectError.DICTATION_UNAVAILABLE))
             return
         }
 
@@ -182,21 +190,46 @@ internal class TalkViewModel @Inject constructor(
                         updateState { it.copy(isListening = false) }
                         dictation.stop()
                         if (event.text.isNotBlank()) {
-                            when (val res = threads.addEntry(state.value.threadId, event.text)) {
-                                is AppResult.Success -> updateState { it.copy(entries = it.entries + res.value) }
-                                is AppResult.Failure -> sendEffect(TalkEffect.Failed(res.error.toConnectError()))
-                            }
+                            unsaved += event.text
+                            saveWords()
                         }
                     }
                     is DictationEvent.Error -> {
                         updateState { it.copy(isListening = false) }
                         dictation.stop()
-                        sendEffect(TalkEffect.Failed(ConnectError.NO_SPEECH))
+                        sendEffect(TalkEffect.Failed(event.kind.toConnectError()))
                     }
                 }
             }
             updateState { it.copy(isListening = false) }
         }
+    }
+
+    /** Not part of [dictationJob]: listening again must not cut a save short. In the order the words were spoken. */
+    private fun saveWords() {
+        viewModelScope.launch {
+            saving.withLock {
+                while (unsaved.isNotEmpty()) {
+                    when (val res = threads.addEntry(state.value.threadId, unsaved.first())) {
+                        is AppResult.Success -> {
+                            unsaved.removeAt(0)
+                            updateState { it.copy(entries = it.entries + res.value) }
+                        }
+                        is AppResult.Failure -> {
+                            sendEffect(TalkEffect.Failed(res.error.toConnectError()))
+                            if (res.error.canPass()) return@withLock
+                            unsaved.removeAt(0)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /** True for an error that a later try can get past; the others would fail the same way each time. */
+    private fun AppError.canPass() = when (this) {
+        AppError.Offline, AppError.Timeout, AppError.Server, AppError.Busy, AppError.SessionExpired, is AppError.RateLimited -> true
+        else -> false
     }
 
     private fun stopListening() {

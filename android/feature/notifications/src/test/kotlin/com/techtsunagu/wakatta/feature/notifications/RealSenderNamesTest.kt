@@ -77,6 +77,11 @@ class RealSenderNamesTest {
                 dataJson = """{"items":[]}""",
             ),
         )
+        server.enqueue(
+            MockWebServerHelper.envelopeResponse(
+                dataJson = """{"items":[]}""",
+            ),
+        )
         val sendersEn = RealSenderNames(dagger.Lazy { retrofit }, dagger.Lazy { workerRepo }, LanguageManagerImpl("en"))
         assertEquals("New message", sendersEn.nameOf("unknown_id"))
 

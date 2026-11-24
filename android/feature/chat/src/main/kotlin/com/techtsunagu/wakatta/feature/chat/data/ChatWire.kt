@@ -53,16 +53,9 @@ internal fun listStamp(iso: String?, today: java.time.LocalDate = java.time.Loca
 }
 
 internal fun WireThread.toDto(me: User? = null): ThreadDto {
-    val displayTitle = if (me != null && me.role == Role.WORKER) {
-        val myName = me.displayName.trim()
-        val matchesMyName = myName.isNotEmpty() && titleJa.trim().equals(myName, ignoreCase = true)
-        if (matchesMyName) "職長" else titleJa
-    } else {
-        titleJa
-    }
     return ThreadDto(
         id = id,
-        titleJa = displayTitle,
+        titleJa = displayTitle.ifBlank { titleJa },
         kind = kind,
         memberIds = memberIds,
         unread = unread,
@@ -122,6 +115,7 @@ internal fun WireSenderMessage.toUi(ctx: MessageContext): ChatMessageUiModel {
         senderQuestions = forSender,
         workerQuestions = questions.map { CheckQuestionForWorker(it.id, it.termId, it.prompt, it.options) },
         addedTasks = taskDrafts.map { pick(it.title, ctx.myLang) },
+        isDraft = sentAt == null,
         needsEdit = needsEdit,
         workerStatuses = results.associate { it.userId to (wireStatus(it.status) ?: WakattaStatus.WAIT) },
         workerAnswerMap = results.mapNotNull { r -> r.answers?.let { r.userId to it } }.toMap(),
@@ -155,9 +149,9 @@ internal fun WireFollowUp.toDto() = FollowUpDto(
     resolvedAt = resolvedAt,
 )
 
-internal fun WireSenderMessage.toSendBody(typed: String) = SendInDto(
-    // A draft the AI could not translate comes back with an empty text: send what the Foreman typed.
-    text = text.ifEmpty { mapOf("ja" to typed) },
+internal fun WireSenderMessage.toSendBody() = SendInDto(
+    // A draft the AI could not translate can come back without a text: send the Foreman's own words.
+    text = text.ifEmpty { mapOf("ja" to transcriptJa.orEmpty()) },
     questions = questions,
     tasks = taskDrafts,
 )

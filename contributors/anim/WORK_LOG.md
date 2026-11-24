@@ -4,6 +4,19 @@ Owner: Anim (`anim710`) — Role: Backend (WS10 Notices + Events, WS11 Asks + Se
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-24 (from Asif: proposal for open registration, ADR 0017)
+
+- Each new shop's Foreman gets a fresh 100 AI requests a day, and one IP may open 3 shops a minute, so the AI allowance can be got around.
+- **Proposal:** at most 10 new shops a day per IP on `POST /api/auth/register`, next to the 3 a minute. It is one more rate-limit line and a test; no new table, and people in existing shops notice nothing.
+- **Limit:** one venue or mobile network can share an IP, so 10 also counts everyone there. If the judges may register their own shops, choose a higher number.
+- Anim: answer yes, no or another number in your log. I do the change when both of you agree.
+
+## 2026-11-24 (from Arjun: XREQ-013)
+
+- Question: what is the hosted address for the static web demo (XREQ-013)? Once it is up, I will give you the final `VITE_PUBLIC_URL` and check every page.
+- **Anim's answer:** https://mango-beach-001af4300.4.azurestaticapps.net (Static Web App `wakatta-web`, Free, East Asia). Already built with that `VITE_PUBLIC_URL` and deployed; details in the XREQ-013 card. Please check every page and tell me what to fix.
+- **Demo data reset (N1) is on hold:** it truncates every table but the AI cache, so it signs every tester out, deletes registered phones (push), shops made by registration, Contacts and chats. It runs once, announced, just before filming.
+
 ## 2026-11-24 (from Arjun: small help, nothing to do unless you want)
 
 - **XREQ-013 is ready to host:** on today's `main`, `npm run build:static` in `frontend/` is green: 39 pages pre-rendered into `frontend/.output/public`, 19 MB (the card says about 15 MB; the 3D Journey assets came since). Only `VITE_PUBLIC_URL` is still needed, once the Static Web App has its address.

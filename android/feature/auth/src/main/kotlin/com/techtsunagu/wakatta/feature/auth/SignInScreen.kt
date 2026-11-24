@@ -13,6 +13,10 @@ import android.content.ClipData
 import android.content.Context
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
@@ -54,6 +58,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -64,6 +69,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -79,14 +87,15 @@ fun SignInScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val prefs = LocalContext.current.getSharedPreferences(INTRO_PREFS, Context.MODE_PRIVATE)
     var showIntro by rememberSaveable { mutableStateOf(!prefs.getBoolean(INTRO_SEEN, false)) }
+    // The form opens blank; the phone remembers the last shop as a one-tap button, so a forgotten code never locks
+    // anyone out.
+    val lastCode = remember { prefs.getString(LAST_CODE, null) }
+    val useLastShop: () -> Unit = {
+        Role.entries.firstOrNull { it.name == prefs.getString(LAST_ROLE, null) }
+            ?.let { viewModel.onEvent(SignInEvent.OnRoleChanged(it)) }
+        lastCode?.let { viewModel.onEvent(SignInEvent.OnShopCodeChanged(it)) }
+    }
     LaunchedEffect(viewModel) {
-        // The phone remembers the last shop, so a forgotten code never locks anyone out.
-        val last = prefs.getString(LAST_CODE, null)
-        if (last != null && viewModel.state.value.shopCode.isEmpty()) {
-            Role.entries.firstOrNull { it.name == prefs.getString(LAST_ROLE, null) }
-                ?.let { viewModel.onEvent(SignInEvent.OnRoleChanged(it)) }
-            viewModel.onEvent(SignInEvent.OnShopCodeChanged(last))
-        }
         viewModel.effects.collect { effect ->
             val s = viewModel.state.value
             if (AuthRules.validateShopCode(s.shopCode)) {
@@ -109,6 +118,8 @@ fun SignInScreen(
         state = state,
         onEvent = viewModel::onEvent,
         onShowIntro = { showIntro = true },
+        lastCode = lastCode,
+        onUseLastShop = useLastShop,
     )
 }
 
@@ -124,6 +135,8 @@ fun SignInContent(
     onEvent: (SignInEvent) -> Unit,
     modifier: Modifier = Modifier,
     onShowIntro: () -> Unit = {},
+    lastCode: String? = null,
+    onUseLastShop: () -> Unit = {},
 ) {
     Surface(modifier = modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Column(
@@ -152,7 +165,7 @@ fun SignInContent(
                     2 -> ShopReady(state.newShopCode.orEmpty(), onEvent)
                     1 -> RegisterForm(state, onEvent)
                     3 -> FindForm(state, onEvent)
-                    else -> SignInForm(state, onEvent, onShowIntro)
+                    else -> SignInForm(state, onEvent, onShowIntro, lastCode, onUseLastShop)
                 }
             }
         }
@@ -160,7 +173,13 @@ fun SignInContent(
 }
 
 @Composable
-private fun SignInForm(state: SignInUiState, onEvent: (SignInEvent) -> Unit, onShowIntro: () -> Unit) {
+private fun SignInForm(
+    state: SignInUiState,
+    onEvent: (SignInEvent) -> Unit,
+    onShowIntro: () -> Unit,
+    lastCode: String?,
+    onUseLastShop: () -> Unit,
+) {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         DemoAccounts(onPick = { onEvent(SignInEvent.PrefillDemo(it)) })
 
@@ -177,6 +196,11 @@ private fun SignInForm(state: SignInUiState, onEvent: (SignInEvent) -> Unit, onS
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier.fillMaxWidth(),
             )
+            if (lastCode != null && state.shopCode.isEmpty()) {
+                TextButton(onClick = onUseLastShop) {
+                    Text(stringResource(R.string.auth_si_last_shop, lastCode))
+                }
+            }
             if (state.error != null) {
                 ErrorLine(state, onRetry = { onEvent(SignInEvent.Retry) })
             }
@@ -417,12 +441,21 @@ private fun PinField(
     isError: Boolean,
     hint: String? = null,
 ) {
+    var shown by rememberSaveable { mutableStateOf(false) }
     OutlinedTextField(
         value = value,
         onValueChange = onChange,
         label = { FieldLabel(ja, en) },
         supportingText = hint?.let { { Text(it) } },
-        visualTransformation = PasswordVisualTransformation(),
+        visualTransformation = if (shown) VisualTransformation.None else PasswordVisualTransformation(),
+        trailingIcon = {
+            IconButton(onClick = { shown = !shown }) {
+                Icon(
+                    if (shown) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                    contentDescription = stringResource(if (shown) R.string.auth_si_pin_hide else R.string.auth_si_pin_show),
+                )
+            }
+        },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
         isError = isError,
         singleLine = true,
@@ -544,19 +577,49 @@ private fun NameRow(name: String, selected: Boolean, onClick: () -> Unit) {
 
 @Composable
 private fun DemoAccounts(onPick: (DemoAccount) -> Unit) {
+    // Demo accounts stay folded away so picking one is a deliberate tap, not an accident.
+    var open by rememberSaveable { mutableStateOf(false) }
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Row(verticalAlignment = Alignment.Bottom) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .clickable { open = !open }
+                .padding(vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             Text(
                 stringResource(R.string.auth_si_demo_ja),
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
             )
             Spacer(Modifier.width(8.dp))
             Text(
-                stringResource(R.string.auth_si_demo_en) + " · " + stringResource(R.string.auth_si_demo_hint_en),
+                stringResource(R.string.auth_si_demo_en),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.weight(1f),
+            )
+            Icon(
+                Icons.Default.KeyboardArrowDown, null,
+                modifier = Modifier.rotate(if (open) 180f else 0f),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
+        AnimatedVisibility(open) {
+            DemoAccountChips(onPick)
+        }
+        HorizontalDivider(Modifier.padding(top = 6.dp), color = MaterialTheme.colorScheme.outlineVariant)
+    }
+}
+
+@Composable
+private fun DemoAccountChips(onPick: (DemoAccount) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text(
+            stringResource(R.string.auth_si_demo_hint_ja) + " · " + stringResource(R.string.auth_si_demo_hint_en),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
         DEMO_ACCOUNTS.chunked(2).forEach { pair ->
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 pair.forEach { a ->
@@ -583,6 +646,5 @@ private fun DemoAccounts(onPick: (DemoAccount) -> Unit) {
                 }
             }
         }
-        HorizontalDivider(Modifier.padding(top = 6.dp), color = MaterialTheme.colorScheme.outlineVariant)
     }
 }

@@ -43,6 +43,14 @@ class DeviceFeaturesTest {
     }
 
     @Test
+    fun dictationErrorsSayWhatWentWrong() {
+        assertEquals(R.string.media_dictation_no_speech, dictationMessage(DictationErrorKind.NO_SPEECH))
+        assertEquals(R.string.media_mic_denied, dictationMessage(DictationErrorKind.NO_PERMISSION))
+        assertEquals(R.string.media_dictation_network, dictationMessage(DictationErrorKind.NETWORK))
+        assertEquals(R.string.media_dictation_unavailable, dictationMessage(DictationErrorKind.BUSY))
+    }
+
+    @Test
     fun scanGateIgnoresRepeatsAndTwoCodes() {
         val gate = ScanGate()
         assertEquals("a", gate.accept(listOf("a", "a"), 0))

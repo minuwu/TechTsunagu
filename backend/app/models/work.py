@@ -55,6 +55,8 @@ class Machine(Base):
     recheck_version_no: Mapped[int | None] = mapped_column(Integer)
     present_worker_id: Mapped[int | None] = mapped_column(BigInteger)
     present_at: Mapped[TimestampOrNone]
+    # Archived: gone from lists and pickers, still named in history (notes, tasks, sign-offs keep pointing here).
+    archived_at: Mapped[TimestampOrNone]
     created_at: Mapped[CreatedAt]
 
 

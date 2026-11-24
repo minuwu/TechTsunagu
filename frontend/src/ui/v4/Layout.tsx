@@ -255,10 +255,8 @@ export function Layout({ children }: { children: ReactNode }) {
             to="/"
             className="flex min-w-0 items-center gap-2 py-1 sm:gap-3"
           >
-            <span
-              aria-hidden="true"
-              className="size-4 shrink-0 bg-foreground"
-            />
+            {/* the mark in the photo's sky blue, so it sits in the misty ground instead of punching through it */}
+            <span aria-hidden="true" className="size-4 shrink-0 bg-primary" />
             <span className="display truncate text-base font-extrabold tracking-tight uppercase sm:text-lg">
               {m.app_name()}
             </span>

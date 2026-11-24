@@ -12,7 +12,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.ai.fake import FakeAiClient
-from app.models.chat import Thread, ThreadMember
+from app.models.chat import MessageCheck, Thread, ThreadMember
 from app.models.scopes import Shop, User
 from app.models.work import Confusion, GlossaryTerm
 from tests import factories as f
@@ -680,8 +680,26 @@ def test_a_worker_lists_their_unanswered_checks_in_one_call(
     assert before.status_code == 200
     [item] = before.json()["data"]
     assert (item["messageId"], item["threadId"]) == (sent["id"], str(line.thread_id))
+    assert item["text"] == sent["text"] and item["threadTitle"] == "2号ライン"
     assert after == []
     assert client.get("/api/messages/unanswered", headers=line.foreman).status_code == 403
+
+
+def test_an_unanswered_check_of_a_direct_thread_is_titled_with_the_other_person(
+    client: TestClient, db: Session, line: Line
+) -> None:
+    group = db.get_one(Thread, line.thread_id)
+    shop, foreman = db.get_one(Shop, group.shop_id), db.get_one(User, group.created_by)
+    direct = f.thread(db, shop, foreman, [db.get_one(User, line.rahim_id)], kind="direct")
+    m = f.message(db, shop, direct, foreman, stage=4, sent_at=datetime.now(UTC))
+    db.add(MessageCheck(shop_id=shop.id, message_id=m.id, questions=[{"id": "q1"}]))
+    db.flush()
+    unread = client.get("/api/threads", headers=line.rahim).json()["data"]
+
+    [item] = client.get("/api/messages/unanswered", headers=line.rahim).json()["data"]
+
+    assert item["threadTitle"] == foreman.display_name
+    assert client.get("/api/threads", headers=line.rahim).json()["data"] == unread  # listing reads nothing
 
 
 def test_a_recording_is_transcribed_for_the_composer_and_nothing_is_sent(
@@ -702,3 +720,11 @@ def test_a_recording_is_transcribed_for_the_composer_and_nothing_is_sent(
     assert (empty.status_code, odd.status_code, unavailable.status_code) == (422, 422, 503)
     msgs = client.get(f"/api/threads/{line.thread_id}/messages", headers=line.foreman).json()["data"]["items"]
     assert msgs == []
+
+
+def test_a_worker_adds_a_task_that_is_only_theirs(client: TestClient, line: Line) -> None:
+    body = {"title": {"ja": "工具を片付ける", "en": "Put the tools away"}, "assigneeIds": [str(line.sadia_id)]}
+    res = client.post("/api/tasks", headers=line.rahim, json=body)
+
+    assert res.status_code == 201
+    assert res.json()["data"]["assigneeIds"] == [str(line.rahim_id)]

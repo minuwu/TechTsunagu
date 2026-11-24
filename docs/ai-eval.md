@@ -34,6 +34,11 @@ covered or not).
 Not scored here: how natural the English reads (a person reads `--json` output), voice input
 (recorded audio cases are added separately) and flyer photos.
 
+## Chat messages
+
+What each Chat message case checks: [ai-eval-messages.md](ai-eval-messages.md). The `draft_message` rows appear in
+the table above after the next run.
+
 ## Chatbot
 
 The chatbot (`POST /api/knowledge/asks`) has its own eval through the running API: see

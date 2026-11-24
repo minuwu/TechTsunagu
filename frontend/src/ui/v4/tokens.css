@@ -1,11 +1,12 @@
-/* Kit v4 look: "Poster Modernist" on Fuji at Lake Motosu. Mist ground over the photo, lake-navy type, one
+/* Kit v4 look: "Poster Modernist" on Fuji at Lake Motosu. Mist ground over the photo, Fuji-blue type, one
    steel-blue accent, hairline grid, 0px corners, no shadows, fast linear colour changes.
    Light and dark: each colour is light-dark(day, night). The page follows the device (color-scheme) until
    the header button pins one on .v4[data-theme]. Night is the same photo under a lake-navy scrim.
-   Palette sampled from art/fuji-motosu.avif: mist = snow and haze, navy = the lake and hills, steel = the
-   upper sky darkened to pass 4.5:1. Every text token was checked against the worst photo pixel under the
-   scrim in .v4-ground: day against the darkest (label 4.5:1, primary 4.8:1, muted 4.9:1), night against the
-   brightest (label and primary 5.5:1, muted 6.5:1).
+   Palette sampled from art/fuji-motosu.avif, so the photo's blue runs through the whole UI: ink = the deep
+   blue of the hills, mist = snow and haze, steel = the upper sky darkened to pass 4.5:1; neutrals lean blue.
+   Every text token was checked against the worst photo pixel under the scrim in .v4-ground: day against
+   the darkest (ink 7.2, muted 4.8, primary 4.7, label 4.6:1), night against the brightest (ink 9.7,
+   muted 6.5, primary 5.5, label 5.4:1).
    Same variable names as every kit; utilities that read the values are mapped in theme/base.css (A-06).
    Colour carries meaning (JIS Z 9103): red = Lock / Confusion, green = Ready / valid, amber = expiring,
    steel = action. Safety-sign pictograms keep the JIS/ISO colours. */
@@ -19,33 +20,31 @@
 :root,
 .v4 {
   color-scheme: light dark;
-  --background: light-dark(#e4ecf2, #08151e); /* mist / deep lake */
-  --foreground: light-dark(#0a1c26, #e6eef3); /* lake navy / snow */
-  --card: light-dark(#ecf2f6, #0e2230);
+  --background: light-dark(#e1ebf4, #071622); /* blue mist / deep lake */
+  --foreground: light-dark(#0f2f47, #dde9f4); /* Fuji blue ink / blue snow */
+  --card: light-dark(#e9f1f8, #0d2236);
   --card-foreground: var(--foreground);
-  --primary: light-dark(
-    #214c69,
-    #8cb4d2
-  ); /* steel sky; at night the sky lightened to 5.5:1 */
-  --primary-foreground: light-dark(#f3f7fa, #04111a);
+  /* steel sky; at night the sky lightened to 5.5:1 */
+  --primary: light-dark(#1b4c74, #86b6dc);
+  --primary-foreground: light-dark(#f2f7fc, #04111a);
   --secondary: var(--foreground);
   --secondary-foreground: var(--background);
-  --muted: light-dark(#d5e0e8, #132a38);
-  --muted-foreground: light-dark(#34495a, #afc2d0); /* secondary text */
-  --accent: light-dark(#c9d7e3, #1b3646); /* haze */
+  --muted: light-dark(#d2e0ec, #12293d);
+  --muted-foreground: light-dark(#2b4a63, #a9c2d8); /* secondary text */
+  --accent: light-dark(#c4d6e6, #18364d); /* haze */
   --accent-foreground: var(--foreground);
-  /* Status text on its 10% chip. Day: the brand colours darkened to 4.95 / 5.0 / 4.5:1 (WCAG 1.4.3).
-     Night: lightened, 6.2 / 7.4 / 7.7:1 on the night card. */
+  /* Status text on its 10% chip: the brand colours, darker by day and lighter at night, 5.5:1 or more on
+     the card in both themes (WCAG 1.4.3) */
   --destructive: light-dark(#a32219, #ff8e84);
   --success: light-dark(#1a6133, #7ed3a2);
   --warning: light-dark(#7a4900, #f0be68);
   --life: var(--primary);
-  --border: light-dark(#a9bccb, #2b4658); /* hairline dividers */
-  --input: light-dark(#0a1c26, #a9bccb); /* a control edge has to be seen */
+  --border: light-dark(#9fb8cf, #284660); /* hairline dividers */
+  --input: light-dark(#0f2f47, #9fb8cf); /* a control edge has to be seen */
   --ring: var(--primary);
 
   --rule: var(--border);
-  --label: light-dark(#384f60, #9db3c3); /* uppercase labels */
+  --label: light-dark(#2e4d66, #98b2c9); /* uppercase labels */
   --shell: var(--background);
   --shell-raised: var(--muted);
   --shell-foreground: var(--foreground);
@@ -58,7 +57,7 @@
   --shadow-lg: none;
   --tile: var(--card);
   /* solid: a see-through hover would show the photo and dim the tile */
-  --tile-hover: light-dark(#f6f9fb, #15303f);
+  --tile-hover: light-dark(#f3f8fc, #14304a);
   --tile-border: var(--border);
   --tile-border-hover: var(--foreground);
   --aurora-a: transparent;
@@ -88,8 +87,8 @@
   pointer-events: none;
   background:
     linear-gradient(
-      light-dark(rgb(228 236 242 / 0.72), rgb(8 21 30 / 0.84)),
-      light-dark(rgb(228 236 242 / 0.8), rgb(8 21 30 / 0.84)) 30%
+      light-dark(rgb(225 235 244 / 0.72), rgb(7 22 34 / 0.84)),
+      light-dark(rgb(225 235 244 / 0.8), rgb(7 22 34 / 0.84)) 30%
     ),
     url('./art/fuji-motosu.avif') center / cover no-repeat;
 }
@@ -420,9 +419,9 @@ input[type='file']::file-selector-button:hover {
    Motion: fade-in and parallax are GSAP; the float is CSS (transform only, on the compositor). */
 .fuji {
   /* day: lake navy, steel sky, upper sky; night: snow, haze and sky, light shapes on the dark ground */
-  --fuji-front: light-dark(#0a1c26, #e6eef3);
-  --fuji-mid: light-dark(#214c69, #afc2d0);
-  --fuji-back: light-dark(#4c7b98, #8cb4d2);
+  --fuji-front: light-dark(#0f2f47, #dde9f4);
+  --fuji-mid: light-dark(#1b4c74, #a9c2d8);
+  --fuji-back: light-dark(#4c7b98, #86b6dc);
   --fuji-float: -1.5px;
   --fuji-float-time: 3.5s; /* half a wave: alternate makes the full loop 7 s */
   position: absolute;

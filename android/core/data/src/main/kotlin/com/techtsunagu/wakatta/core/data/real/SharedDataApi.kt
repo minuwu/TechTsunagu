@@ -15,7 +15,9 @@ import com.techtsunagu.wakatta.core.network.safeApiCall
 import kotlinx.serialization.Serializable
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -34,6 +36,15 @@ interface SharedDataApi {
 
     @POST(ApiPaths.MACHINE_SCAN)
     suspend fun scan(@Path("machine_id") id: String): Response<ApiEnvelope<Unit>>
+
+    @POST(ApiPaths.MACHINES)
+    suspend fun addMachine(@Body body: MachineInDto): Response<ApiEnvelope<MachineDto>>
+
+    @PATCH(ApiPaths.MACHINE)
+    suspend fun renameMachine(@Path("machine_id") id: String, @Body body: MachineRenameDto): Response<ApiEnvelope<MachineDto>>
+
+    @DELETE(ApiPaths.MACHINE)
+    suspend fun archiveMachine(@Path("machine_id") id: String): Response<ApiEnvelope<Unit>>
 
     @GET(ApiPaths.WORKERS)
     suspend fun workers(
@@ -71,6 +82,12 @@ data class MachineDto(
     val currentVersionId: String? = null,
     val activeWorkerId: String? = null,
 )
+
+@Serializable
+data class MachineInDto(val code: String, val name: Map<String, String>)
+
+@Serializable
+data class MachineRenameDto(val name: Map<String, String>)
 
 @Serializable
 data class StepDto(val text: Map<String, String> = emptyMap(), val icon: String? = null)

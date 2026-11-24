@@ -299,6 +299,9 @@ def report(rows: Sequence[Row], models: Sequence[str], when: str) -> str:
         "Not scored here: how natural the English reads (a person reads `--json` output), voice input",
         "(recorded audio cases are added separately) and flyer photos.",
         "",
+        "What each Chat message case checks: [ai-eval-messages.md](ai-eval-messages.md). The chatbot has its own",
+        "eval through the running API: [ai-eval-chatbot.md](ai-eval-chatbot.md).",
+        "",
     ]
     return "\n".join(lines)
 

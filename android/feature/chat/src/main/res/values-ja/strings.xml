@@ -11,6 +11,10 @@
     <string name="chat_error_offline">接続できません。メッセージは残っています。もう一度お試しください。</string>
     <string name="chat_error_session">サインアウトされたか、この操作は許可されていません。</string>
     <string name="chat_error_already_sent">このメッセージは既に送信されています。</string>
+    <string name="chat_error_timeout">サーバーの応答が遅れています。メッセージは残っています。もう一度お試しください。</string>
+    <string name="chat_error_rate_limited">操作が多すぎます。少し待ってからもう一度お試しください。</string>
+    <string name="chat_error_rate_limited_in">操作が多すぎます。%1$d秒後にもう一度お試しください。</string>
+    <string name="chat_error_ai_busy">AIが混み合っています。少し待ってからもう一度お試しください。</string>
     <string name="chat_error_generic">問題が起きました。もう一度お試しください。</string>
 
     <string name="chat_filter_all">すべて</string>
@@ -93,6 +97,7 @@
     <string name="chat_wk_ing_4">タスクを抽出中</string>
     <string name="chat_wk_ing_5">作業員へ送信中</string>
     <string name="chat_wk_ing_6">回答を待っています</string>
+    <string name="chat_wk_sent_read">送信済み · %2$d人中%1$d人が既読</string>
     <string name="chat_wk_answers">作業員の回答</string>
     <string name="chat_sending">送信中…</string>
     <string name="chat_no_messages_yet">メッセージはまだありません</string>

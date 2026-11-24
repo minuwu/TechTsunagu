@@ -9,6 +9,7 @@ import com.techtsunagu.wakatta.core.model.MachineRepository
 import com.techtsunagu.wakatta.core.model.Role
 import com.techtsunagu.wakatta.core.model.SessionStore
 import com.techtsunagu.wakatta.core.model.SkillStatus
+import com.techtsunagu.wakatta.core.model.Tri
 import com.techtsunagu.wakatta.core.network.safeApiCall
 import com.techtsunagu.wakatta.core.network.safeApiCallUnit
 import kotlinx.serialization.builtins.ListSerializer
@@ -63,6 +64,14 @@ class RealMachineRepository(
         safeApiCall { api().machine(id) }.map { it.toDetail() }
 
     override suspend fun scan(machineId: String): AppResult<Unit> = safeApiCallUnit { api().scan(machineId) }
+
+    override suspend fun addMachine(code: String, name: Tri): AppResult<Machine> =
+        safeApiCall { api().addMachine(MachineInDto(code, name)) }.map { it.toMachine(isReady = false) }
+
+    override suspend fun renameMachine(id: String, name: Tri): AppResult<Machine> =
+        safeApiCall { api().renameMachine(id, MachineRenameDto(name)) }.map { it.toMachine(isReady = it.currentVersionId != null) }
+
+    override suspend fun archiveMachine(id: String): AppResult<Unit> = safeApiCallUnit { api().archiveMachine(id) }
 
     private companion object {
         val machineList = ListSerializer(Machine.serializer())

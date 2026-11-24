@@ -4,6 +4,80 @@ Owner: Asif (`MdAsif-Hossain`) — Role: Backend (lead) / Services / Database
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-24 — R4: a direct Thread has the other person's name (for Arjun)
+
+### Changed
+- `displayTitle` is mapped and used for every Thread name; the guess that replaced a Worker's own name with 職長 is gone from `ChatWire.kt` (`ChatsViewModel` still has its own).
+- The empty bubble and `fromDisplayName` were already fixed by Minhaz; both now have a test.
+
+### Verified (local; not run on a phone)
+- The new title test failed first, then passed. `testDebugUnitTest checkModuleGraph :app:assembleDebug`: BUILD SUCCESSFUL, 896 tests, 0 failed.
+
+### Waiting for Minhaz and Anim
+- Open registration and the AI allowance (ADR 0017): my proposal is in both of your logs. I change nothing until you answer.
+
+## 2026-11-24 — R3: the AI draft can wait for the Foreman (for Arjun)
+
+### Changed
+- `sendMessage` only posts: a Foreman's message comes back as a draft (`isDraft`, `needsEdit` in `ChatMessageUiModel`). New `ChatRepository.sendDraft(id)` and `ChatEvent.SendDraft(id)`; a double tap sends once; `ALREADY_SENT` counts as sent.
+- A draft left from an earlier timeout arrives with the poll and can be sent or edited, with its questions and Tasks.
+- **Nothing changes for the Foreman yet:** without a Send button on screen, the app still sends at once. M2 sets `reviewDrafts` in `ChatViewModel` to true; from then on no draft, good or `needsEdit`, goes out without `SendDraft`.
+
+### Verified (local; not run on a phone)
+- `testDebugUnitTest checkModuleGraph :app:assembleDebug`: BUILD SUCCESSFUL, 894 tests (85 in chat), 0 failed. 8 new tests; two of them fail when the review guard is removed.
+
+## 2026-11-24 — Both mobile contract docs match the API again (for Minhaz)
+
+- `MOBILE_API_CONTRACT.md`: 133 live operations on 104 paths (it said 76 on 64). 32 entries became live, 25 routes were missing (E-115 to E-139), three paths corrected.
+- `MOBILE_PLATFORM_CONTRACT.md`: the 429 rows give the AI limit (10 a minute, 100 a day, 500 paid; `Retry-After` 60 or 3600).
+- Verified with two separate scripts against `docs/openapi.yaml`: 0 missing, 0 extra. Not checked: the roles written on the Contacts and Talk rows (F W P) were left as they were.
+
+## 2026-11-24 — Full Android check on `main`
+
+### Verified (`789b9a4`, local, JDK 17; not run on a phone)
+- `testDebugUnitTest checkModuleGraph :app:assembleDebug`: BUILD SUCCESSFUL, 886 tests, 0 failed, 0 skipped, debug APK built.
+- This covers S4's missing app build, Arjun's R1 (`ReadTimeoutTest`) and App Links (`AppLinkHostTest`), and Minhaz's `444b71d`.
+
+### Taken from Arjun
+- R3 and R4 (marked in the plan). R2 was already done by Minhaz.
+
+## 2026-11-24 — S4: dictation says what went wrong; Talk keeps words it could not save
+
+### Changed (`eae8254`, on `main`)
+- Dictation and Talk show a lost connection as a network error, and no longer report every failure as "no speech"; Talk no longer shows the read-aloud message for a dictation failure.
+- Talk keeps words it could not save (offline, timeout, server error, busy, signed out, rate limit) and sends them again, in order, at the next Listen.
+- The offline-recognition preference named in the plan is already gone from `DeviceDictation.kt`; no change needed.
+- `eae8254` was pushed before its tests ran and with two Kotlin session files; the tests were run right after, and this commit untracks the files and ignores `.kotlin/`.
+
+### Verified (local, JDK 17; not run on a phone)
+- `:core:media:testDebugUnitTest` 26 passed, `:feature:connect:testDebugUnitTest` 78 passed, 0 failed, 0 skipped; `checkModuleGraph` passed.
+
+### Known limits
+- A save that times out after the server stored it can add the same Talk entry twice.
+- Unsaved words are lost when the screen closes.
+
+### Next
+- S5 (final test on two phones) waits for Minhaz's 1.0.2 APK (M12).
+
+## 2026-11-24 — S3: unanswered Checks carry the text and the Thread title
+
+### Changed (`2f16153`, on `main`)
+- `GET /api/messages/unanswered` items (`UnansweredCheck`) now also carry `threadTitle` (string, required, never null) and `text` (object of language code to string, required). Existing fields: `messageId`, `threadId`, `sentAt`, `deadline` (date-time or `null`). Additive only; listing does not mark the Thread as read.
+- `docs/openapi.yaml` and `frontend/src/services/generated/types.gen.ts` updated in the same commit.
+
+### Verified (on `main` after merging origin, 590 tests collected)
+- `uv run ruff check .` clean; `ruff format --check .` 199 files already formatted; `pyright` 0 errors; `lint-imports` 4 kept, 0 broken.
+- `uv run pytest --cov -q` exit 0, total coverage 90.36% (gate 80%), including `tests/test_contract.py` (OpenAPI matches the app).
+- `npm run gen:api` in `frontend/`: no diff in `src/services/generated`.
+
+### For Anim
+- N2 is unblocked: pull main and use `GET /messages/unanswered` in `HomeBoardSource.kt` instead of polling all messages; the live API has it after the next backend deploy.
+
+## 2026-11-24 (from Arjun: task 2)
+
+- Question on my task 2 (Task Board against the live API): `frontend/` has no Task Board; only the Android app (`feature/board`) has one. Which client failed on `If-Match`? If it was Android, it is Minhaz's.
+- **Answer (Asif):** you are right, the web has no Task Board, and nothing in `frontend/` outside the generated types uses `If-Match`; only Android `feature/board` does, and CORS does not apply to it. My line "from the web" was wrong. The CORS fix (`4c0c559`) is for a future web board, so task 2 needs nothing from you: close it.
+
 ## 2026-11-24 — Android audit (code read + live API; no app code changed)
 
 ### Found (main at `0f7e60c`; not run on a phone)
