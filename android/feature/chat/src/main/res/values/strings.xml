@@ -114,4 +114,12 @@
     <string name="chat_qr_connect">My QR code and scan</string>
     <string name="chat_dictation_saved">No connection. Your voice is saved and will turn into text when you are back online.</string>
     <string name="chat_dictation_recovered">Your saved voice is now text. Check it, then send.</string>
+    <string name="chat_draft_review_title">Check before sending</string>
+    <string name="chat_draft_not_translated_notice">Not translated. Send it in Japanese only, or edit it.</string>
+    <string name="chat_draft_japanese">Japanese</string>
+    <string name="chat_draft_english">English</string>
+    <string name="chat_draft_tasks">Tasks</string>
+    <string name="chat_draft_edit">Edit</string>
+    <string name="chat_draft_save">Save</string>
+    <string name="chat_draft_send_japanese_only">Send in Japanese only</string>
 </resources>

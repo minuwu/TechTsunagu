@@ -1,16 +1,23 @@
 package com.techtsunagu.wakatta.feature.chat
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextReplacement
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.techtsunagu.wakatta.core.model.AppError
 import com.techtsunagu.wakatta.core.model.MessageKind
 import com.techtsunagu.wakatta.core.model.Role
 import com.techtsunagu.wakatta.core.model.WakattaStatus
 import com.techtsunagu.wakatta.feature.chat.model.ChatMessageUiModel
+import com.techtsunagu.wakatta.feature.chat.model.CheckQuestionForSender
 import com.techtsunagu.wakatta.feature.chat.model.CheckQuestionForWorker
 import com.techtsunagu.wakatta.feature.chat.model.ThreadUiModel
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -257,5 +264,80 @@ class ChatComposeTest {
         }
 
         composeTestRule.onNodeWithText("Nudge").assertExists()
+    }
+
+    // ---------------- Draft review card (M2) ----------------
+
+    private fun draft(needsEdit: Boolean = false, en: String? = "Check the oil on Machine 3.") = ChatMessageUiModel(
+        id = "d1",
+        threadId = "t1",
+        fromUserId = "u_tanaka",
+        fromUserName = "Tanaka",
+        isMine = true,
+        kind = MessageKind.TEXT,
+        text = listOfNotNull("ja" to "3号機の油を点検してください。", en?.let { "en" to it }).toMap(),
+        originalText = "3号機の油を点検してください。",
+        translatedText = en ?: "3号機の油を点検してください。",
+        time = "08:00",
+        stage = if (needsEdit) 0 else 3,
+        isDraft = true,
+        needsEdit = needsEdit,
+        hasCheck = true,
+        senderQuestions = listOf(
+            CheckQuestionForSender(
+                id = "q1",
+                prompt = mapOf("en" to "Which machine?"),
+                options = listOf(mapOf("en" to "Machine 3"), mapOf("en" to "Machine 5")),
+                correctIndex = 0,
+            ),
+        ),
+    )
+
+    private fun showDraft(message: ChatMessageUiModel, events: MutableList<ChatEvent>) {
+        composeTestRule.setContent {
+            ChatContent(
+                state = ChatUiState(threadId = "t1", title = "Line 2", currentRole = Role.FOREMAN, messages = listOf(message)),
+                onEvent = { events += it },
+            )
+        }
+    }
+
+    @Test
+    fun foremanReviewsTheDraftAndSendsIt() {
+        val events = mutableListOf<ChatEvent>()
+        showDraft(draft(), events)
+
+        composeTestRule.onNodeWithText("Check before sending").assertExists()
+        composeTestRule.onNodeWithText("Check the oil on Machine 3.").assertExists()
+        composeTestRule.onNodeWithText("Which machine?", substring = true).assertExists()
+        composeTestRule.onNodeWithText("Not translated", substring = true).assertDoesNotExist()
+
+        composeTestRule.onNodeWithText("Send").performClick()
+        assertEquals(listOf<ChatEvent>(ChatEvent.SendDraft("d1")), events)
+    }
+
+    @Test
+    fun anUntranslatedDraftSaysSoAndItsSendIsJapaneseOnly() {
+        val events = mutableListOf<ChatEvent>()
+        showDraft(draft(needsEdit = true, en = null), events)
+
+        composeTestRule.onNodeWithText("Not translated", substring = true).assertExists()
+        composeTestRule.onNodeWithText("Send").assertDoesNotExist()
+        composeTestRule.onNodeWithText("Send in Japanese only").performClick()
+        assertEquals(listOf<ChatEvent>(ChatEvent.SendDraft("d1")), events)
+    }
+
+    @Test
+    fun foremanEditsTheDraftsJapanese() {
+        val events = mutableListOf<ChatEvent>()
+        showDraft(draft(needsEdit = true, en = null), events)
+
+        composeTestRule.onNodeWithText("Edit").performClick()
+        composeTestRule.onNode(hasSetTextAction() and hasText("Japanese")).performTextReplacement(" ")
+        composeTestRule.onNodeWithText("Save").assertIsNotEnabled()
+        composeTestRule.onNode(hasSetTextAction() and hasText("Japanese")).performTextReplacement("5号機の油を点検してください。")
+        composeTestRule.onNodeWithText("Save").performClick()
+
+        assertEquals(listOf<ChatEvent>(ChatEvent.EditDraft("d1", "5号機の油を点検してください。")), events)
     }
 }

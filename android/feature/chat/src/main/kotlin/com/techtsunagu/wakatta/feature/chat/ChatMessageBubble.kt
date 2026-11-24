@@ -245,8 +245,13 @@ internal fun ChatMessageBubble(
                 )
             }
 
-            // Wakatta Status Pill / Fold for Foreman
-            if (isForeman && message.hasCheck && isMine) {
+            // The AI draft waits for the Foreman's Send; the status pill comes once it is sent
+            if (isForeman && isMine && message.isDraft) {
+                DraftReviewCard(
+                    message = message,
+                    onEvent = onEvent,
+                )
+            } else if (isForeman && message.hasCheck && isMine) {
                 ForemanWakattaPill(
                     message = message,
                     onEvent = onEvent,

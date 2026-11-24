@@ -129,9 +129,7 @@ class ChatViewModel @Inject constructor(
     private var sendKey: String? = null
     private val answerKeys = mutableMapOf<String, Pair<List<Int>, String>>()
 
-    // shortcut: a Foreman's draft goes out at once because no screen can send it yet; the review card (M2) makes this
-    // true for good, and then no draft is sent without SendDraft.
-    internal var reviewDrafts = false
+    // A Foreman's AI draft waits on the review card; only SendDraft sends it.
     private val sendingDrafts = mutableSetOf<String>()
 
     // True while inputText came from dictation, so the sent message is a voice message.
@@ -556,14 +554,14 @@ class ChatViewModel @Inject constructor(
             isVoice = isVoice,
             hasCheck = isForeman,
         )
-        // Optimistic: the bubble shows and the composer frees at once; the AI draft and send run behind it.
+        // Optimistic: the bubble shows and the composer frees at once; the AI draft runs behind it.
         pending = pending + local
         sendKey = null
         inputIsVoice = false
         accumulator.clear()
         updateState { it.copy(inputText = "", composerStatus = ComposerStatus.IDLE, hasPendingAudio = false, isEmpty = false, messages = shown()) }
         viewModelScope.launch {
-            val posted = chatRepository.sendMessage(
+            val result = chatRepository.sendMessage(
                 threadId = current.threadId,
                 text = textToSend,
                 audio = null,
@@ -571,14 +569,11 @@ class ChatViewModel @Inject constructor(
                 fromUserId = current.currentUserId,
                 idempotencyKey = key,
             )
-            // the real message stands in until the poll brings it (same id, so no duplicate)
-            if (posted is AppResult.Success) replace(local.id, posted.value)
-            val draft = (posted as? AppResult.Success)?.value?.takeIf { it.isDraft && !reviewDrafts }
-            val result = if (draft == null) posted else chatRepository.sendDraft(draft.id)
             when (result) {
-                is AppResult.Success -> replace(result.value.id, result.value)
+                // the real message stands in until the poll brings it (same id, so no duplicate)
+                is AppResult.Success -> replace(local.id, result.value)
                 is AppResult.Failure -> {
-                    pending = pending.filter { it.id != local.id && it.id != draft?.id }
+                    pending = pending - local
                     updateState { it.copy(messages = shown()) }
                 }
             }
