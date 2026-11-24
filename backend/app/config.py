@@ -45,7 +45,9 @@ class Settings(BaseSettings):
     ai_chain: Chain = "dev"
     ai_tier: Tier = "free"  # paid: the budgets become a cost cap instead of the free quota
     groq_api_key: SecretStr | None = None  # optional backup at the end of the chain; empty turns it off
-    ai_timeout_seconds: int = 45
+    # One model call, and the whole chain (audit A1: drafts took 51-61 s; the Android app gives up at 30 s).
+    ai_timeout_seconds: int = 15
+    ai_chain_seconds: int = 25
     ai_max_concurrent: int = 2
 
     @field_validator("frontend_origin", "android_cert_sha256", mode="before")
