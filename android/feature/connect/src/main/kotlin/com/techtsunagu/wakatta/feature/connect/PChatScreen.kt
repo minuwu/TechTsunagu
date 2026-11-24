@@ -37,7 +37,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewModelScope
 import com.techtsunagu.wakatta.core.common.MviViewModel
 import com.techtsunagu.wakatta.core.design.component.EmptyState
@@ -51,8 +54,11 @@ import com.techtsunagu.wakatta.feature.connect.domain.PersonalThreadIds
 import com.techtsunagu.wakatta.feature.connect.domain.PersonalThreadRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+
+private const val POLL_MS = 5_000L
 
 internal data class PChatUiState(
     val threadId: String = "",
@@ -70,6 +76,8 @@ internal sealed interface PChatEvent {
     /** [lang] is the app language: it decides which side of a translation is shown first. */
     data class Init(val threadId: String, val lang: String) : PChatEvent
     data object Retry : PChatEvent
+    /** Sent by the screen every [POLL_MS] while it is shown (R7): new messages appear without leaving. */
+    data object Poll : PChatEvent
     data class SetInput(val text: String) : PChatEvent
     data object Send : PChatEvent
     data object AskBlock : PChatEvent
@@ -95,6 +103,7 @@ internal class PChatViewModel @Inject constructor(
                 load()
             }
             PChatEvent.Retry -> load()
+            PChatEvent.Poll -> poll()
             is PChatEvent.SetInput -> updateState { it.copy(input = event.text) }
             PChatEvent.Send -> send()
             PChatEvent.AskBlock -> updateState { it.copy(confirmBlock = true) }
@@ -117,6 +126,16 @@ internal class PChatViewModel @Inject constructor(
                     it.copy(isLoading = false, title = contact.getOrNull()?.name.orEmpty(), messages = messages.getOrNull().orEmpty())
                 }
             }
+        }
+    }
+
+    /** A quiet refresh: no spinner, and a failed poll changes nothing (the next one tries again). */
+    private fun poll() {
+        val s = state.value
+        if (s.threadId.isEmpty() || s.isLoading || s.error != null || s.isSending) return
+        viewModelScope.launch {
+            val messages = threads.getMessages(s.threadId).getOrNull() ?: return@launch
+            if (messages != state.value.messages) updateState { it.copy(messages = messages) }
         }
     }
 
@@ -171,6 +190,15 @@ internal fun ContactChatScreen(
     val lang = appLanguage()
 
     LaunchedEffect(threadId) { viewModel.onEvent(PChatEvent.Init(threadId, lang)) }
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    LaunchedEffect(threadId) {
+        lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            while (true) {
+                delay(POLL_MS)
+                viewModel.onEvent(PChatEvent.Poll)
+            }
+        }
+    }
     LaunchedEffect(viewModel) {
         viewModel.effects.collectLatest { effect ->
             when (effect) {
