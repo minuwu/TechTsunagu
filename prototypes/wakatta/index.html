@@ -162,7 +162,10 @@
   const APP = new URLSearchParams(location.search).get('app') || 'app.html';
   // Zoom the stage (story rail + phones + insight rail) to fit the window.
   // Wide: zoom the whole stage to fit. Narrow or portrait: stack, and zoom only the phones to the width.
+  // clientWidth, not innerWidth: on phones innerWidth grows with any overflow and the zoom would feed it
+  const vw = () => document.documentElement.clientWidth, vh = () => document.documentElement.clientHeight;
   const fit = () => {
+    const innerWidth = vw(), innerHeight = vh();
     const stacked = innerWidth < 1100 || innerWidth < innerHeight, stage = document.getElementById('stage');
     document.body.classList.toggle('stacked', stacked);
     stage.style.zoom = stacked ? 1 : Math.min(1, (innerHeight - 24) / 950, (innerWidth - 24) / 1660);
@@ -170,7 +173,7 @@
   };
   fit(); addEventListener('resize', fit);
   // Small screens: suggest a wide screen once per session; Esc or the button dismisses it.
-  if (Math.min(innerWidth, innerHeight) < 600 || innerWidth < 900) {
+  if (Math.min(vw(), vh()) < 600 || vw() < 900) {
     try { if (!sessionStorage.getItem('wk-wide')) { document.getElementById('wide').showModal(); sessionStorage.setItem('wk-wide', '1'); } } catch (e) { document.getElementById('wide').showModal(); }
   }
   // Relay Bus events between the two phones.
