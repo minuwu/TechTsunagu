@@ -29,6 +29,8 @@ from app.schemas.chat import (
     TaskOut,
     TaskUpdate,
     ThreadOut,
+    Transcription,
+    UnansweredCheck,
 )
 from app.schemas.common import IdIn
 from app.services import chat
@@ -87,6 +89,18 @@ def post_message(
     return Envelope(data=_pushed(request, later, db, who, data))
 
 
+@router.post("/transcriptions", summary="Dictation fallback: a recording in, its text out (personal, never stored)")
+def transcribe(
+    who: ShopMember,
+    db: DbSession,
+    request: Request,
+    language: Annotated[str, Form(max_length=8)],
+    audio: Annotated[UploadFile | None, File()] = None,
+) -> Envelope[Transcription]:
+    data = audio.file.read(MAX_AUDIO_BYTES + 1) if audio is not None else None
+    return Envelope(data=Transcription(text=chat.transcribe(db, who, data, language, _ai(request), now_utc())))
+
+
 @router.get(
     "/threads/{thread_id}/messages",
     summary="Poll messages after a cursor; send If-None-Match to get 304 when nothing changed",
@@ -117,6 +131,11 @@ def send_message(
     who: Foreman, message_id: IdIn, body: SendIn, db: DbSession, request: Request, later: BackgroundTasks
 ) -> Envelope[MessageForSender]:
     return Envelope(data=_pushed(request, later, db, who, chat.send(db, who, int(message_id), body, now_utc())))
+
+
+@router.get("/messages/unanswered", summary="Your unanswered Checks across your Threads, newest first (at most 100)")
+def unanswered(who: Worker, db: DbSession) -> Envelope[list[UnansweredCheck]]:
+    return Envelope(data=chat.unanswered(db, who))
 
 
 @router.post("/messages/{message_id}/answers", summary="Answer a message's questions (-1 = not sure) → Wakatta Status")

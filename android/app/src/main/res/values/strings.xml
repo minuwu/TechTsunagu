@@ -15,4 +15,5 @@
     <string name="app_demo_signin_prompt">Demo Quick Sign-In:</string>
     <string name="app_demo_signout">Sign out</string>
     <string name="app_offline">No network. You see what was loaded before.</string>
+    <string name="app_unexpected_error">Something went wrong. Please try again.</string>
 </resources>

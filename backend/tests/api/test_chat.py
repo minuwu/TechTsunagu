@@ -493,3 +493,91 @@ def test_a_workers_message_keeps_the_shop_word_in_japanese(
 
     assert res.status_code == 201, res.text
     assert res.json()["data"]["text"]["ja"] == "金型の交換が終わりました"
+
+
+def test_the_thread_list_shows_the_last_message_and_the_worst_status(
+    client: TestClient, line: Line, fake_ai: FakeAiClient
+) -> None:
+    """Chats rows: a preview of the newest message for everyone; the worst Wakatta Status for the Foreman only."""
+
+    def row(who: dict[str, str]) -> Json:
+        threads: list[Json] = client.get("/api/threads", headers=who).json()["data"]
+        return next(t for t in threads if t["id"] == str(line.thread_id))
+
+    assert row(line.foreman)["lastMessage"] is None and row(line.foreman)["wkStatus"] is None
+    sent = _sent(client, line, fake_ai)
+
+    mine = row(line.foreman)
+    assert mine["lastMessage"]["fromUserId"] == sent["fromUserId"] and mine["lastMessage"]["text"]["ja"]
+    assert mine["wkStatus"] == "wait"
+    client.post(f"/api/messages/{sent['id']}/answers", headers=line.rahim, json={"answers": [1, 0]})
+    assert row(line.foreman)["wkStatus"] == "orange"
+    assert row(line.rahim)["wkStatus"] is None and row(line.rahim)["lastMessage"]["kind"] == sent["kind"]
+
+
+def test_workers_see_names_next_to_ids_and_the_tasks_thread(
+    client: TestClient, line: Line, fake_ai: FakeAiClient
+) -> None:
+    sent = _sent(client, line, fake_ai)
+    names = {
+        m["userId"]: m["displayName"]
+        for m in client.get(f"/api/threads/{line.thread_id}", headers=line.rahim).json()["data"]["members"]
+    }
+
+    polled = next(m for m in _poll(client, line, line.rahim) if m["id"] == sent["id"])
+    [task] = client.get("/api/tasks", headers=line.rahim).json()["data"]["items"]
+
+    assert polled["fromDisplayName"] == names[polled["fromUserId"]]
+    assert task["assignees"] == [{"userId": str(line.rahim_id), "displayName": names[str(line.rahim_id)]}]
+    assert task["fromThreadId"] == str(line.thread_id)
+
+
+def test_a_direct_thread_is_titled_with_the_other_person(client: TestClient, db: Session, line: Line) -> None:
+    rahim = db.get(User, line.rahim_id)
+    shop = db.get(Shop, rahim.shop_id) if rahim else None
+    assert rahim is not None and shop is not None
+    foreman = db.scalar(select(User).where(User.shop_id == shop.id, User.role == "foreman"))
+    assert foreman is not None
+    direct = f.thread(db, shop, foreman, [rahim], kind="direct")
+
+    threads = {t["id"]: t for t in client.get("/api/threads", headers=line.rahim).json()["data"]}
+
+    assert threads[str(direct.id)]["displayTitle"] == foreman.display_name
+    group = threads[str(line.thread_id)]
+    assert group["displayTitle"] == group["titleJa"]
+
+
+def test_a_worker_lists_their_unanswered_checks_in_one_call(
+    client: TestClient, line: Line, fake_ai: FakeAiClient
+) -> None:
+    sent = _sent(client, line, fake_ai)
+
+    before = client.get("/api/messages/unanswered", headers=line.rahim)
+    client.post(f"/api/messages/{sent['id']}/answers", headers=line.rahim, json={"answers": [0, 0]})
+    after = client.get("/api/messages/unanswered", headers=line.rahim).json()["data"]
+
+    assert before.status_code == 200
+    [item] = before.json()["data"]
+    assert (item["messageId"], item["threadId"]) == (sent["id"], str(line.thread_id))
+    assert after == []
+    assert client.get("/api/messages/unanswered", headers=line.foreman).status_code == 403
+
+
+def test_a_recording_is_transcribed_for_the_composer_and_nothing_is_sent(
+    client: TestClient, line: Line, fake_ai: FakeAiClient
+) -> None:
+    fake_ai.queue("translate", {"text": "3号機の油を点検してください"})
+    m4a = ("d.m4a", b"\x00\x00\x00\x18ftypM4A " + b"\x00" * 32, "audio/mp4")
+
+    res = client.post("/api/transcriptions", headers=line.foreman, data={"language": "ja"}, files={"audio": m4a})
+    empty = client.post("/api/transcriptions", headers=line.foreman, data={"language": "ja"})
+    odd = client.post("/api/transcriptions", headers=line.foreman, data={"language": "xx"}, files={"audio": m4a})
+    unavailable = client.post(
+        "/api/transcriptions", headers=line.foreman, data={"language": "ja"}, files={"audio": m4a}
+    )
+
+    assert res.status_code == 200, res.text
+    assert res.json()["data"] == {"text": "3号機の油を点検してください"}
+    assert (empty.status_code, odd.status_code, unavailable.status_code) == (422, 422, 503)
+    msgs = client.get(f"/api/threads/{line.thread_id}/messages", headers=line.foreman).json()["data"]["items"]
+    assert msgs == []

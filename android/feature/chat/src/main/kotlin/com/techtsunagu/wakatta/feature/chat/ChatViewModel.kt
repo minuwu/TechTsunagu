@@ -12,6 +12,7 @@ import com.techtsunagu.wakatta.core.media.dictationTag
 import com.techtsunagu.wakatta.core.model.AppError
 import com.techtsunagu.wakatta.core.model.AppResult
 import com.techtsunagu.wakatta.core.model.GlossaryTerm
+import com.techtsunagu.wakatta.core.model.MessageKind
 import com.techtsunagu.wakatta.core.model.Role
 import com.techtsunagu.wakatta.core.model.SessionStore
 import com.techtsunagu.wakatta.core.model.Speaker
@@ -50,6 +51,9 @@ data class ChatUiState(
     val currentUserId: String = "",
     val canSwitchRole: Boolean = false,
     val messages: List<ChatMessageUiModel> = emptyList(),
+    /** Fixed when the Thread opens: the divider sits above it and the list opens there (null: open at the bottom). */
+    val firstUnreadId: String? = null,
+    val unreadAtOpen: Int = 0,
     val composerStatus: ComposerStatus = ComposerStatus.IDLE,
     val inputText: String = "",
     val isListening: Boolean = false,
@@ -98,6 +102,7 @@ private const val ASK_TERM_MAX = 100
 class ChatViewModel @Inject constructor(
     private val chatRepository: ChatRepository,
     private val dictation: DictationSource,
+    private val recorder: com.techtsunagu.wakatta.core.media.VoiceRecorder,
     private val speaker: Speaker,
     private val sessionStore: SessionStore,
     appConfig: AppConfig,
@@ -122,6 +127,16 @@ class ChatViewModel @Inject constructor(
 
     // True while inputText came from dictation, so the sent message is a voice message.
     private var inputIsVoice = false
+
+    /** Optimistic bubbles shown at once; each leaves when the poll returns its id or its send fails. */
+    private var pending = listOf<ChatMessageUiModel>()
+    private var openUnread: Int? = 0 // null once the first page has placed the divider
+    private var server = listOf<ChatMessageUiModel>()
+
+    private fun shown(): List<ChatMessageUiModel> {
+        pending = pending.filter { p -> server.none { it.id == p.id } }
+        return server + pending
+    }
     private var currentUserLang: String = ""
     private val accumulator = DictationAccumulator()
 
@@ -230,15 +245,20 @@ class ChatViewModel @Inject constructor(
                 .catch { updateState { it.copy(isLoading = false, error = AppError.Unknown()) } }
                 .collect { msgList ->
                     val myId = state.value.currentUserId
-                    val mapped = msgList.map { it.copy(isMine = it.fromUserId == myId) }
+                    server = msgList.map { it.copy(isMine = it.fromUserId == myId) }
+                    val all = shown()
+                    // first emission only: the oldest of the last `unread` messages from other people
+                    val n = openUnread
+                    openUnread = null
+                    val anchor = if (n == null || n <= 0) null else server.filter { !it.isMine }.takeLast(n).firstOrNull()?.id
                     updateState {
                         it.copy(
                             threadId = threadId,
                             isLoading = false,
-                            isEmpty = mapped.isEmpty(),
+                            isEmpty = all.isEmpty(),
                             error = null,
-                            messages = mapped,
-                        )
+                            messages = all,
+                        ).let { s -> if (anchor != null) s.copy(firstUnreadId = anchor, unreadAtOpen = n ?: 0) else s }
                     }
                 }
         }
@@ -250,6 +270,7 @@ class ChatViewModel @Inject constructor(
             put("ja", thread.titleJa)
             thread.titleEn?.let { put("en", it) }
         }
+        openUnread = thread.unread
         updateState { it.copy(title = thread.titleJa, titleTri = titleTri, membersCount = thread.memberIds.size) }
     }
 
@@ -293,9 +314,8 @@ class ChatViewModel @Inject constructor(
         dictationJob = null
         sendKey = null
 
-        if (!dictation.isAvailable()) {
-            updateState { it.copy(composerStatus = ComposerStatus.EDITING) }
-            sendEffect(ChatEffect.ShowHint(R.string.chat_dictation_unavailable))
+        if (serverDictation || !dictation.isAvailable()) {
+            startServerRecording()
             return
         }
 
@@ -358,7 +378,12 @@ class ChatViewModel @Inject constructor(
                 }
                 sendEffect(ChatEffect.ShowHint(R.string.chat_dictation_no_speech))
             }
-            DictationErrorKind.NETWORK, DictationErrorKind.UNAVAILABLE, DictationErrorKind.NO_PERMISSION, DictationErrorKind.BUSY, DictationErrorKind.OTHER -> {
+            DictationErrorKind.NETWORK, DictationErrorKind.UNAVAILABLE, DictationErrorKind.BUSY, DictationErrorKind.OTHER -> {
+                // the phone's recognizer cannot do it: record and let the server transcribe, from now on
+                serverDictation = true
+                startServerRecording()
+            }
+            DictationErrorKind.NO_PERMISSION -> {
                 updateState {
                     it.copy(
                         composerStatus = ComposerStatus.EDITING,
@@ -371,8 +396,83 @@ class ChatViewModel @Inject constructor(
     }
 
     private fun stopRecording() {
-        dictation.stop()
-        updateState { it.copy(isListening = false) }
+        if (!serverRecording) {
+            dictation.stop()
+            updateState { it.copy(isListening = false) }
+            return
+        }
+        serverRecording = false
+        val file = recorder.stop()
+        if (file == null) {
+            updateState { it.copy(composerStatus = ComposerStatus.IDLE, isListening = false) }
+            sendEffect(ChatEffect.ShowHint(R.string.chat_dictation_no_speech))
+            return
+        }
+        updateState { it.copy(composerStatus = ComposerStatus.SENDING, isListening = false) }
+        val lang = currentDictationTag().substringBefore('-')
+        dictationJob = viewModelScope.launch {
+            when (val r = chatRepository.transcribe(file, lang)) {
+                is AppResult.Success -> {
+                    val text = accumulator.onFinal(r.value)
+                    inputIsVoice = true
+                    updateState { it.copy(inputText = text, composerStatus = ComposerStatus.COUNTDOWN) }
+                    startCountdownTimer()
+                }
+                is AppResult.Failure -> {
+                    updateState { it.copy(composerStatus = ComposerStatus.EDITING) }
+                    if (!retryable(r.error)) {
+                        sendEffect(ChatEffect.ShowHint(R.string.chat_dictation_type_instead))
+                        return@launch
+                    }
+                    // Layer 3: offline or the server is down. Keep the recording; the next tap must not overwrite it.
+                    val kept = File(file.parentFile, "dictation-${System.nanoTime()}.m4a").takeIf { file.renameTo(it) } ?: file
+                    sendEffect(ChatEffect.ShowHint(R.string.chat_dictation_saved))
+                    viewModelScope.launch { transcribeLater(kept, lang) }
+                }
+            }
+        }
+    }
+
+    /** Retries a kept recording with backoff (about 10 minutes); the text joins whatever is typed by then. */
+    private suspend fun transcribeLater(file: File, lang: String) {
+        var wait = 2_000L
+        for (attempt in 1..RETRY_ATTEMPTS) {
+            delay(wait)
+            wait = (wait * 2).coerceAtMost(30_000L)
+            when (val r = chatRepository.transcribe(file, lang)) {
+                is AppResult.Success -> {
+                    file.delete()
+                    if (r.value.isBlank()) return
+                    val typed = state.value.inputText.trim()
+                    updateState { it.copy(inputText = if (typed.isEmpty()) r.value else "$typed ${r.value}") }
+                    if (typed.isEmpty()) inputIsVoice = true
+                    sendEffect(ChatEffect.ShowHint(R.string.chat_dictation_recovered))
+                    return
+                }
+                is AppResult.Failure -> if (!retryable(r.error)) break
+            }
+        }
+        file.delete()
+        sendEffect(ChatEffect.ShowHint(R.string.chat_dictation_type_instead))
+    }
+
+    private fun retryable(e: AppError) = e !is AppError.Validation && e !is AppError.PayloadTooLarge &&
+        e !is AppError.UnsupportedMedia && e !is AppError.SessionExpired && e !is AppError.Forbidden &&
+        e !is AppError.UpgradeRequired
+
+    /** Set once the phone's recognizer failed: later taps go straight to the server. */
+    private var serverDictation = false
+    private var serverRecording = false
+
+    private fun startServerRecording() {
+        accumulator.reset(state.value.inputText)
+        if (!recorder.start()) {
+            updateState { it.copy(composerStatus = ComposerStatus.EDITING, isListening = false) }
+            sendEffect(ChatEffect.ShowHint(R.string.chat_dictation_type_instead))
+            return
+        }
+        serverRecording = true
+        updateState { it.copy(composerStatus = ComposerStatus.RECORDING, isListening = true, hasPendingAudio = false) }
     }
 
     private fun cancelCountdown() {
@@ -407,16 +507,35 @@ class ChatViewModel @Inject constructor(
     }
 
     private fun doSend() {
+        cancelCountdownTimer()
         val current = state.value
-        if (current.composerStatus == ComposerStatus.SENDING) return
         val textToSend = current.inputText.trim()
-
         if (textToSend.isEmpty()) return
 
         val isVoice = inputIsVoice
-        val key = sendKey ?: UUID.randomUUID().toString().also { sendKey = it }
-
-        updateState { it.copy(composerStatus = ComposerStatus.SENDING) }
+        val key = sendKey ?: UUID.randomUUID().toString()
+        val isForeman = current.currentRole == Role.FOREMAN
+        val local = ChatMessageUiModel(
+            id = "local-$key",
+            threadId = current.threadId,
+            fromUserId = current.currentUserId,
+            fromUserName = "",
+            isMine = true,
+            kind = MessageKind.TEXT,
+            text = mapOf("ja" to textToSend),
+            originalText = textToSend,
+            translatedText = textToSend,
+            time = java.time.LocalTime.now().toString().take(5),
+            stage = if (isForeman) 1 else 5, // the Foreman's pill shows "Translating…" until the server answers
+            isVoice = isVoice,
+            hasCheck = isForeman,
+        )
+        // Optimistic: the bubble shows and the composer frees at once; the AI draft and send run behind it.
+        pending = pending + local
+        sendKey = null
+        inputIsVoice = false
+        accumulator.clear()
+        updateState { it.copy(inputText = "", composerStatus = ComposerStatus.IDLE, hasPendingAudio = false, isEmpty = false, messages = shown()) }
         viewModelScope.launch {
             val result = chatRepository.sendMessage(
                 threadId = current.threadId,
@@ -426,17 +545,21 @@ class ChatViewModel @Inject constructor(
                 fromUserId = current.currentUserId,
                 idempotencyKey = key,
             )
-            when (result) {
-                is AppResult.Success -> {
-                    sendKey = null
-                    inputIsVoice = false
-                    accumulator.clear()
-                    updateState { it.copy(inputText = "", composerStatus = ComposerStatus.IDLE, hasPendingAudio = false) }
+            pending = when (result) {
+                // the real message stands in until the poll brings it (same id, so no duplicate)
+                is AppResult.Success -> pending.map { if (it.id == local.id) result.value.copy(isMine = true) else it }
+                is AppResult.Failure -> pending - local
+            }
+            updateState { it.copy(messages = shown()) }
+            if (result is AppResult.Failure) {
+                // give the words back, same key so a retry cannot post twice
+                if (state.value.inputText.isEmpty()) {
+                    sendKey = key
+                    inputIsVoice = isVoice
+                    accumulator.reset(textToSend)
+                    updateState { it.copy(inputText = textToSend, composerStatus = ComposerStatus.EDITING) }
                 }
-                is AppResult.Failure -> {
-                    updateState { it.copy(composerStatus = ComposerStatus.EDITING) }
-                    sendEffect(ChatEffect.ShowError(result.error))
-                }
+                sendEffect(ChatEffect.ShowError(result.error))
             }
         }
     }
@@ -444,6 +567,7 @@ class ChatViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         dictationJob?.cancel()
+        recorder.cancel()
     }
 
     private fun submitAnswers(messageId: String, answers: List<Int>) {
@@ -513,3 +637,5 @@ class ChatViewModel @Inject constructor(
         correctOptionIndex = newQuestionCorrectIndex,
     )
 }
+
+private const val RETRY_ATTEMPTS = 24

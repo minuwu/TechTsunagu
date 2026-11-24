@@ -24,6 +24,7 @@ data class ThreadUiModel(
     val isGroup: Boolean = true,
     val membersCount: Int = 2,
     val kind: String = "group",
+    val lastFromMe: Boolean = false,
 )
 
 data class ChatMessageUiModel(

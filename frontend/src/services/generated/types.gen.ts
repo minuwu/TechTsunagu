@@ -493,6 +493,20 @@ export type BodyReportApiNearMissesPost = {
 };
 
 /**
+ * Body_transcribe_api_transcriptions_post
+ */
+export type BodyTranscribeApiTranscriptionsPost = {
+    /**
+     * Language
+     */
+    language: string;
+    /**
+     * Audio
+     */
+    audio?: Blob | File | null;
+};
+
+/**
  * BriefingForForeman
  */
 export type BriefingForForeman = {
@@ -2004,6 +2018,21 @@ export type EnvelopeTodayWord = {
 };
 
 /**
+ * Envelope[Transcription]
+ */
+export type EnvelopeTranscription = {
+    /**
+     * Success
+     */
+    success?: true;
+    data: Transcription;
+    /**
+     * Message
+     */
+    message?: string;
+};
+
+/**
  * Envelope[Understanding]
  */
 export type EnvelopeUnderstanding = {
@@ -2237,6 +2266,24 @@ export type EnvelopeListThreadOut = {
      * Data
      */
     data: Array<ThreadOut>;
+    /**
+     * Message
+     */
+    message?: string;
+};
+
+/**
+ * Envelope[list[UnansweredCheck]]
+ */
+export type EnvelopeListUnansweredCheck = {
+    /**
+     * Success
+     */
+    success?: true;
+    /**
+     * Data
+     */
+    data: Array<UnansweredCheck>;
     /**
      * Message
      */
@@ -2707,6 +2754,29 @@ export type KnowledgeSource = {
 };
 
 /**
+ * LastMessage
+ *
+ * The newest message the caller can see, for the Chats list row.
+ */
+export type LastMessage = {
+    /**
+     * Fromuserid
+     */
+    fromUserId: string;
+    /**
+     * Kind
+     */
+    kind: 'voice' | 'text' | 'ask' | 'reexplain' | 'system';
+    /**
+     * Text
+     */
+    text: {
+        [key: string]: string;
+    };
+    event?: SystemEvent | null;
+};
+
+/**
  * Learning
  */
 export type Learning = {
@@ -3004,6 +3074,10 @@ export type MessageForSender = {
     sentAt: string | null;
     event?: SystemEvent | null;
     /**
+     * Fromdisplayname
+     */
+    fromDisplayName?: string | null;
+    /**
      * Questions
      */
     questions: Array<CheckQuestion>;
@@ -3076,6 +3150,10 @@ export type MessageForWorker = {
      */
     sentAt: string | null;
     event?: SystemEvent | null;
+    /**
+     * Fromdisplayname
+     */
+    fromDisplayName?: string | null;
     /**
      * Questions
      */
@@ -3908,6 +3986,20 @@ export type Passport = {
 };
 
 /**
+ * PersonOut
+ */
+export type PersonOut = {
+    /**
+     * Userid
+     */
+    userId: string;
+    /**
+     * Displayname
+     */
+    displayName: string;
+};
+
+/**
  * PhotoMark
  *
  * Where the danger is on the photo: fractions of its width and height (0 to 1).
@@ -4653,6 +4745,14 @@ export type TaskOut = {
      */
     fromMessageId: string | null;
     /**
+     * Fromthreadid
+     */
+    fromThreadId?: string | null;
+    /**
+     * Assignees
+     */
+    assignees?: Array<PersonOut>;
+    /**
      * Version
      */
     version: number;
@@ -4808,6 +4908,15 @@ export type ThreadOut = {
      * Archived
      */
     archived?: boolean;
+    lastMessage?: LastMessage | null;
+    /**
+     * Wkstatus
+     */
+    wkStatus?: 'green' | 'orange' | 'red' | 'wait' | null;
+    /**
+     * Displaytitle
+     */
+    displayTitle?: string;
 };
 
 /**
@@ -4852,6 +4961,40 @@ export type TodayWord = {
      * Meaningja
      */
     meaningJa: string;
+};
+
+/**
+ * Transcription
+ */
+export type Transcription = {
+    /**
+     * Text
+     */
+    text: string;
+};
+
+/**
+ * UnansweredCheck
+ *
+ * GET /messages/unanswered: a sent message whose Check the caller has not answered yet.
+ */
+export type UnansweredCheck = {
+    /**
+     * Messageid
+     */
+    messageId: string;
+    /**
+     * Threadid
+     */
+    threadId: string;
+    /**
+     * Sentat
+     */
+    sentAt: string;
+    /**
+     * Deadline
+     */
+    deadline: string | null;
 };
 
 /**
@@ -7055,6 +7198,31 @@ export type PostMessageApiThreadsThreadIdMessagesPostResponses = {
 
 export type PostMessageApiThreadsThreadIdMessagesPostResponse = PostMessageApiThreadsThreadIdMessagesPostResponses[keyof PostMessageApiThreadsThreadIdMessagesPostResponses];
 
+export type TranscribeApiTranscriptionsPostData = {
+    body: BodyTranscribeApiTranscriptionsPost;
+    path?: never;
+    query?: never;
+    url: '/api/transcriptions';
+};
+
+export type TranscribeApiTranscriptionsPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type TranscribeApiTranscriptionsPostError = TranscribeApiTranscriptionsPostErrors[keyof TranscribeApiTranscriptionsPostErrors];
+
+export type TranscribeApiTranscriptionsPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeTranscription;
+};
+
+export type TranscribeApiTranscriptionsPostResponse = TranscribeApiTranscriptionsPostResponses[keyof TranscribeApiTranscriptionsPostResponses];
+
 export type EditDraftApiMessagesMessageIdPatchData = {
     body: DraftEdit;
     path: {
@@ -7114,6 +7282,22 @@ export type SendMessageApiMessagesMessageIdSendPostResponses = {
 };
 
 export type SendMessageApiMessagesMessageIdSendPostResponse = SendMessageApiMessagesMessageIdSendPostResponses[keyof SendMessageApiMessagesMessageIdSendPostResponses];
+
+export type UnansweredApiMessagesUnansweredGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/messages/unanswered';
+};
+
+export type UnansweredApiMessagesUnansweredGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeListUnansweredCheck;
+};
+
+export type UnansweredApiMessagesUnansweredGetResponse = UnansweredApiMessagesUnansweredGetResponses[keyof UnansweredApiMessagesUnansweredGetResponses];
 
 export type AnswerMessageApiMessagesMessageIdAnswersPostData = {
     body: AnswersIn;

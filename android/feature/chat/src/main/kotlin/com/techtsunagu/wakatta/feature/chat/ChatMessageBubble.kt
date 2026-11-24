@@ -128,8 +128,8 @@ internal fun ChatMessageBubble(
                         }
                     }
 
-                    // Main text: If worker, show translated text with original toggle; if foreman, show Japanese
-                    val displayText = if (isForeman) message.originalText else message.translatedText
+                    // Main text: always the original as spoken; a Worker opens the translation below it
+                    val displayText = message.originalText.ifEmpty { message.translatedText }
 
                     GlossaryHighlightedText(
                         text = displayText,
@@ -137,14 +137,14 @@ internal fun ChatMessageBubble(
                         onTermClick = { onEvent(ChatEvent.SelectGlossaryTerm(it)) },
                     )
 
-                    // Original text toggle for Workers
+                    // Translation toggle for Workers
                     if (!isForeman && message.originalText.isNotEmpty() && message.originalText != message.translatedText) {
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = if (message.showOriginal) {
-                                stringResource(R.string.chat_hide_original)
+                                stringResource(R.string.chat_hide_translation)
                             } else {
-                                stringResource(R.string.chat_show_original)
+                                stringResource(R.string.chat_show_translation)
                             },
                             style = MaterialTheme.typography.labelSmall.copy(
                                 fontWeight = FontWeight.Bold,
@@ -163,8 +163,8 @@ internal fun ChatMessageBubble(
                                     .padding(top = 4.dp),
                             ) {
                                 Text(
-                                    text = message.originalText,
-                                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 13.sp),
+                                    text = message.translatedText,
+                                    style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurface,
                                     modifier = Modifier.padding(8.dp),
                                 )

@@ -32,4 +32,7 @@ internal suspend fun <T> guarded(block: suspend () -> AppResult<T>): AppResult<T
     AppResult.Failure(AppError.Offline)
 } catch (_: SerializationException) {
     AppResult.Failure(AppError.Unknown("bad response"))
+} catch (e: Exception) {
+    // a mapping bug or an odd response is a failed call, never a crash
+    AppResult.Failure(AppError.Unknown(e.message))
 }

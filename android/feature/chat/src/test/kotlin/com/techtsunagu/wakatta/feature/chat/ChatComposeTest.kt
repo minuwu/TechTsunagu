@@ -198,9 +198,9 @@ class ChatComposeTest {
         }
 
         composeTestRule.onNodeWithText("Line 2 · プレス班").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Check the oil first.").assertIsDisplayed()
+        composeTestRule.onNodeWithText("油を先に点検してください。").assertExists() // the original shows; the translation sits under "Show translation"
         composeTestRule.onNodeWithText("Worker").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Wakatta? 1 quick questions").assertIsDisplayed()
+        composeTestRule.onNodeWithText("1 quick question").assertIsDisplayed()
         composeTestRule.onNodeWithText("Machine 3 Oil").assertExists()
         composeTestRule.onNodeWithText("Not sure").assertExists()
     }

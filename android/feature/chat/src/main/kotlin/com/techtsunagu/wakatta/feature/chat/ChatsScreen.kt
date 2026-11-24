@@ -49,12 +49,15 @@ import com.techtsunagu.wakatta.core.design.component.TriText
 import com.techtsunagu.wakatta.core.design.component.WakattaTopBar
 import com.techtsunagu.wakatta.core.design.theme.StatusColors
 import com.techtsunagu.wakatta.core.model.pick
+import androidx.compose.material.icons.filled.QrCode2
+import androidx.compose.material3.IconButton
 import com.techtsunagu.wakatta.feature.chat.model.ThreadFilter
 import com.techtsunagu.wakatta.feature.chat.model.ThreadUiModel
 
 @Composable
 fun ChatsScreen(
     onThreadClick: (String) -> Unit = {},
+    onQrClick: () -> Unit = {},
     viewModel: ChatsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -63,6 +66,7 @@ fun ChatsScreen(
         state = state,
         onEvent = viewModel::onEvent,
         onThreadClick = onThreadClick,
+        onQrClick = onQrClick,
     )
 }
 
@@ -72,11 +76,20 @@ fun ChatsContent(
     onEvent: (ChatsEvent) -> Unit,
     modifier: Modifier = Modifier,
     onThreadClick: (String) -> Unit = {},
+    onQrClick: () -> Unit = {},
 ) {
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = {
-            WakattaTopBar(title = stringResource(R.string.chat_chats_screen_title))
+            WakattaTopBar(
+                title = stringResource(R.string.chat_chats_screen_title),
+                actions = {
+                    // prototype: the QR in the Chats bar opens Connect (my code + scan)
+                    IconButton(onClick = onQrClick) {
+                        Icon(Icons.Default.QrCode2, contentDescription = stringResource(R.string.chat_qr_connect))
+                    }
+                },
+            )
         },
     ) { innerPadding ->
         Column(
@@ -229,8 +242,9 @@ private fun ThreadListItem(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                 }
+                val you = if (thread.lastFromMe && thread.lastMessage.isNotEmpty()) stringResource(R.string.chat_you_prefix) else ""
                 Text(
-                    text = thread.lastMessage,
+                    text = you + thread.lastMessage.ifEmpty { stringResource(R.string.chat_no_messages_yet) },
                     style = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,

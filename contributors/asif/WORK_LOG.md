@@ -4,6 +4,21 @@ Owner: Asif (`MdAsif-Hossain`) — Role: Backend (lead) / Services / Database
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-24 — Android audit (code read + live API; no app code changed)
+
+### Found (main at `0f7e60c`; not run on a phone)
+- **AI drafts vs the app's 30 s read timeout:** 4 of 14 live drafts took 51–61 s. The app then shows "No connection" and the draft stays unsent; 12 unsent drafts are in the `SASEBO01` group Thread.
+- **Chat voice:** the stop button becomes Send after the first partial words, and dictation keeps running, so a message is cut or sent twice. Audio is never uploaded; server Whisper is unused by the app.
+- **Degraded drafts are sent untranslated** without a warning; `PATCH` draft edit has no screen.
+- **Re-explain** fails for a wrong answer on a question without a Glossary Term (no Follow-up is created).
+- **Live seed is old:** `shops.languages` and Rahim still have `bn`; needs the demo reset.
+- **Home marks every Thread as read** (it polls messages); `GET /messages/unanswered` fixes it.
+
+### Next
+- Minhaz: interface and Firebase. Arjun: app logic. Galib: AI. Anim: demo data and CI. Asif: backend gaps and the final test.
+- Work split for the five of us: [ANDROID_FIX_PLAN.md](../ANDROID_FIX_PLAN.md).
+- Test data left in `ISAHAYA2`: Thread "Android audit" and one Briefing draft; the demo reset removes it.
+
 ## 2026-11-24 — Backend evaluation: every finding fixed
 
 ### Completed (all on `main`, `b155816`; 542 tests, 90% coverage)

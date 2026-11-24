@@ -22,8 +22,6 @@
     <string name="chat_role_worker">Worker</string>
     <string name="chat_switch_role">Switch role</string>
 
-    <string name="chat_show_original">Show original (Japanese)</string>
-    <string name="chat_hide_original">Hide original</string>
     <string name="chat_voice_message">Voice message</string>
     <string name="chat_read_aloud">Read aloud</string>
 
@@ -56,7 +54,6 @@
     <string name="chat_nudged_notice">Foreman is waiting for your answer</string>
     <string name="chat_reexplain">Re-explain</string>
 
-    <string name="chat_questions_title">Wakatta? %1$d quick questions</string>
     <string name="chat_question_progress">Question %1$d of %2$d</string>
     <string name="chat_option_not_sure">Not sure</string>
     <string name="chat_result_green">Understood! All answers correct</string>
@@ -99,4 +96,18 @@
     <string name="chat_wk_ing_6">Waiting for answers</string>
     <string name="chat_wk_answers">Worker answers</string>
     <string name="chat_sending">Sending…</string>
+    <string name="chat_no_messages_yet">No messages yet</string>
+    <plurals name="chat_unread_divider">
+        <item quantity="one">%1$d new message</item>
+        <item quantity="other">%1$d new messages</item>
+    </plurals>
+    <plurals name="chat_quick_questions">
+        <item quantity="one">%1$d quick question</item>
+        <item quantity="other">%1$d quick questions</item>
+    </plurals>
+    <string name="chat_show_translation">Show translation</string>
+    <string name="chat_hide_translation">Hide translation</string>
+    <string name="chat_qr_connect">My QR code and scan</string>
+    <string name="chat_dictation_saved">No connection. Your voice is saved and will turn into text when you are back online.</string>
+    <string name="chat_dictation_recovered">Your saved voice is now text. Check it, then send.</string>
 </resources>

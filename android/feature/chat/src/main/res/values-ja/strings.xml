@@ -22,8 +22,6 @@
     <string name="chat_role_worker">作業員</string>
     <string name="chat_switch_role">役割切替</string>
 
-    <string name="chat_show_original">原文を見る（日本語）</string>
-    <string name="chat_hide_original">原文を隠す</string>
     <string name="chat_voice_message">音声メッセージ</string>
     <string name="chat_read_aloud">読み上げ</string>
 
@@ -56,7 +54,6 @@
     <string name="chat_nudged_notice">職長が回答を待っています</string>
     <string name="chat_reexplain">もう一度説明する</string>
 
-    <string name="chat_questions_title">わかった？確認質問（%1$d問）</string>
     <string name="chat_question_progress">質問 %1$d / %2$d</string>
     <string name="chat_option_not_sure">自信がない</string>
     <string name="chat_result_green">理解完了！全問正解</string>
@@ -99,4 +96,16 @@
     <string name="chat_wk_ing_6">回答を待っています</string>
     <string name="chat_wk_answers">作業員の回答</string>
     <string name="chat_sending">送信中…</string>
+    <string name="chat_no_messages_yet">メッセージはまだありません</string>
+    <plurals name="chat_unread_divider">
+        <item quantity="other">新着メッセージ %1$d件</item>
+    </plurals>
+    <plurals name="chat_quick_questions">
+        <item quantity="other">%1$d問の確認</item>
+    </plurals>
+    <string name="chat_show_translation">翻訳を見る</string>
+    <string name="chat_hide_translation">翻訳を隠す</string>
+    <string name="chat_qr_connect">QRコード・スキャン</string>
+    <string name="chat_dictation_saved">接続がありません。音声は保存しました。オンラインに戻ると文字になります。</string>
+    <string name="chat_dictation_recovered">保存した音声を文字にしました。確認して送信してください。</string>
 </resources>

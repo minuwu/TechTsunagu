@@ -42,6 +42,13 @@ internal interface ChatApi {
         @Part audio: MultipartBody.Part? = null,
     ): Response<ApiEnvelope<WireSenderMessage>>
 
+    @Multipart
+    @POST(ApiPaths.TRANSCRIPTIONS)
+    suspend fun transcribe(
+        @Part language: MultipartBody.Part,
+        @Part audio: MultipartBody.Part,
+    ): Response<ApiEnvelope<WireTranscription>>
+
     /** `@ExplicitNulls`: every `CheckQuestion` field is required, including a null `termId` and `correctIndex` 0. */
     @POST(ApiPaths.MESSAGE_SEND)
     suspend fun send(
@@ -94,6 +101,9 @@ internal interface ChatApi {
 internal data class WirePage<T>(val items: List<T> = emptyList(), val nextCursor: String? = null)
 
 @Serializable
+internal data class WireTranscription(val text: String = "")
+
+@Serializable
 internal data class WireThread(
     val id: String,
     val titleJa: String = "",
@@ -101,6 +111,16 @@ internal data class WireThread(
     val memberIds: List<String> = emptyList(),
     val unread: Int = 0,
     val lastMessageAt: String? = null,
+    val lastMessage: WireLastMessage? = null,
+    val wkStatus: String? = null,
+)
+
+/** The newest message the caller can see, for the Chats row. */
+@Serializable
+internal data class WireLastMessage(
+    val fromUserId: String,
+    val kind: String = "text",
+    val text: Tri = emptyMap(),
 )
 
 /** The Worker's view of a Check Question: this type has no answer-key field (rule R-3). */

@@ -1,5 +1,8 @@
 package com.techtsunagu.wakatta
 
+import android.util.Log
+import android.widget.Toast
+import com.techtsunagu.wakatta.core.common.CrashGuard
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
@@ -66,6 +69,14 @@ class MainActivity : AppCompatActivity() {
         if (savedInstanceState == null) {
             openFromNotification(intent)
             openFromAppLink(intent)
+        }
+
+        // A screen hit an unexpected error (release build): say so briefly and keep the app running.
+        lifecycleScope.launch {
+            CrashGuard.errors.collect {
+                Log.e("Wakatta", "unexpected error", it)
+                Toast.makeText(this@MainActivity, R.string.app_unexpected_error, Toast.LENGTH_SHORT).show()
+            }
         }
 
         setContent {

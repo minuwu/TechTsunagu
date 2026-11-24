@@ -155,3 +155,36 @@ def test_rename_delete_and_validation(client: TestClient, people: People, fake_a
 
     assert client.delete(f"/api/talk-threads/{first['id']}", headers=people.rahim).status_code == 200
     assert client.get(f"/api/talk-threads/{first['id']}/entries", headers=people.rahim).status_code == 404
+
+
+def test_two_identical_retries_at_once_make_one_entry(
+    client: TestClient, db: Session, people: People, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Asif's task 3: the twin request commits its entry while this one waits for the model; this one then returns
+    that entry instead of failing on the unique key (it was a 500)."""
+    from app.models.personal import TalkEntry, TalkThread
+    from app.services import talk
+
+    thread = _thread(client, people.rahim)
+    owner = db.get(TalkThread, int(thread["id"]))
+    assert owner is not None
+    key = uuid.uuid4()
+
+    def twin_finishes_first(*_: object) -> None:
+        db.add(
+            TalkEntry(
+                thread_id=owner.id, owner_id=owner.owner_id, transcript=SAID, meaning_lang="en", idempotency_key=key
+            )
+        )
+        db.commit()
+        return None  # this request's own model call failed
+
+    monkeypatch.setattr(talk, "_explain", twin_finishes_first)
+    res = client.post(
+        f"/api/talk-threads/{thread['id']}/entries",
+        headers=people.rahim | {"Idempotency-Key": str(key)},
+        data={"text": SAID},
+    )
+    assert res.status_code == 201, res.text
+    [entry] = client.get(f"/api/talk-threads/{thread['id']}/entries", headers=people.rahim).json()["data"]["items"]
+    assert res.json()["data"]["id"] == entry["id"]

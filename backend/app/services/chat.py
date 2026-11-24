@@ -47,6 +47,7 @@ from app.schemas.chat import (
     TaskOut,
     TaskUpdate,
     ThreadOut,
+    UnansweredCheck,
 )
 from app.schemas.common import CheckQuestion
 from app.services.ai_runner import AiRequest, AiRunner
@@ -55,7 +56,8 @@ from app.services.auth import Principal
 from app.services.notes import ai_languages
 
 PROMPT_VERSION = 1  # translate
-MESSAGE_PROMPT_VERSION = 2  # draft_message, reexplain: per-shop languages (XREQ-011)
+MESSAGE_PROMPT_VERSION = 2  # reexplain: per-shop languages (XREQ-011)
+DRAFT_PROMPT_VERSION = 3  # draft_message: the Foreman's own words, no quiz for a greeting (audit A4)
 NUDGE_WINDOW = timedelta(minutes=10)  # one Nudge per message and Worker in this window
 
 
@@ -188,11 +190,36 @@ def _sender_view(db: Session, m: Message) -> MessageForSender:
     return _for_sender(m, check.questions if check else [])
 
 
+def _last(m: Message) -> dict[str, object]:
+    return {"from_user_id": str(m.from_user_id), "kind": m.kind, "text": _text(m), "event": m.event}
+
+
+def _worst_statuses(db: Session, shop_id: int, thread_ids: list[int]) -> dict[int, str]:
+    """Per Thread, the worst status of its newest checked message: red, orange, all green, else wait."""
+    out: dict[int, str] = {}
+    # shortcut: one _results call per Thread with a Check (a few per shop); batch it if lists grow large
+    for tid, m in repo.last_checked(db, shop_id, thread_ids).items():
+        statuses = [r["status"] for r in _results(db, shop_id, tid, [m]).get(m.id, [])]
+        out[tid] = next((s for s in ("red", "orange") if s in statuses), None) or (
+            "green" if statuses and all(s == "green" for s in statuses) else "wait"
+        )
+    return out
+
+
 def list_threads(db: Session, who: Principal) -> list[ThreadOut]:
     shop_id, user_id = _me(who)
     rows = repo.threads_of(db, shop_id, user_id)
     ids = [t.id for t, _, _ in rows]
     members, mine = repo.member_ids(db, shop_id, ids), repo.my_memberships(db, shop_id, user_id, ids)
+    lasts = repo.last_messages(db, shop_id, user_id, ids)
+    worst = _worst_statuses(db, shop_id, ids) if who.role == "foreman" else {}
+    others = {t.id: next((u for u in members[t.id] if u != user_id), None) for t, _, _ in rows if t.kind == "direct"}
+    names = work_repo.display_names(db, shop_id, [u for u in others.values() if u is not None])
+
+    def title_for_me(t: Thread) -> str:
+        other = others.get(t.id)
+        return names.get(other, t.title_ja) if other is not None else t.title_ja
+
     return [
         ThreadOut.model_validate(
             {
@@ -206,6 +233,9 @@ def list_threads(db: Session, who: Principal) -> list[ThreadOut]:
                 "muted": mine[t.id].muted,
                 "pinned": mine[t.id].pinned,
                 "archived": mine[t.id].archived,
+                "last_message": _last(m) if (m := lasts.get(t.id)) else None,
+                "wk_status": worst.get(t.id),
+                "display_title": title_for_me(t),
             }
         )
         for t, unread, last in rows
@@ -228,11 +258,25 @@ def messages(db: Session, who: Principal, thread_id: int, after_id: int | None, 
         mine = {a.message_id: a for a in repo.answers_of(db, shop_id, ids, user_id)}
         nudged, asked = repo.nudged_messages(db, shop_id, user_id, ids), repo.asked_messages(db, shop_id, user_id, ids)
         items = [_for_worker(m, questions.get(m.id, []), mine.get(m.id), m.id in nudged, m.id in asked) for m in rows]
+    senders = work_repo.display_names(db, shop_id, sorted({m.from_user_id for m in rows}))
+    items = [i.model_copy(update={"from_display_name": senders.get(int(i.from_user_id))}) for i in items]
     newest = max((m.sent_at for m in rows if m.sent_at is not None and m.from_user_id != user_id), default=None)
     if member is not None and newest is not None and (member.last_read_at is None or member.last_read_at < newest):
         member.last_read_at = now
     db.commit()
     return MessagesPage(items=items)
+
+
+UNANSWERED_LIMIT = 100  # shortcut: no paging; a Worker with more open Checks than this sees the newest 100
+
+
+def unanswered(db: Session, who: Principal) -> list[UnansweredCheck]:
+    """The caller's open Checks across their Threads, newest first: one call for the Worker Home."""
+    shop_id, user_id = _me(who)
+    return [
+        UnansweredCheck(message_id=str(m.id), thread_id=str(m.thread_id), sent_at=m.sent_at, deadline=c.deadline)  # pyright: ignore[reportArgumentType]  # sent_at is set: the query asks for sent ones
+        for m, c in repo.unanswered(db, shop_id, user_id, UNANSWERED_LIMIT)
+    ]
 
 
 def _glossary(db: Session, shop_id: int) -> list[AiTerm]:
@@ -376,7 +420,7 @@ def _draft_ai(
         pipeline="draft_message",
         prompt=render(
             "draft_message",
-            MESSAGE_PROMPT_VERSION,
+            DRAFT_PROMPT_VERSION,
             glossary=glossary,
             languages=", ".join(languages),
             members=roster,
@@ -391,7 +435,8 @@ def _draft_ai(
         languages=languages,
     )
     member_ids, machine_ids = {str(u.id) for u in people}, {str(m.id) for m in machines}
-    result = ai.run(request, lambda d: message_problems(d, terms, languages, member_ids, machine_ids), now)
+    names = [(m.name.get("ja", ""), m.name.get("en", "")) for m in machines]
+    result = ai.run(request, lambda d: message_problems(d, terms, languages, member_ids, machine_ids, text, names), now)
     return result.value, terms, languages
 
 
@@ -646,6 +691,32 @@ def _reexplain_ai(
     return result.value, terms, languages
 
 
+def transcribe(db: Session, who: Principal, audio: bytes | None, language: str, ai: AiRunner, now: datetime) -> str:
+    """Dictation fallback for phones without on-device speech recognition: the recording becomes composer text."""
+    if not audio:
+        raise ApiError(422, "VALIDATION_ERROR", "A recording is required", {"fields": [{"loc": ["body", "audio"]}]})
+    if language not in LANGUAGE_NAMES:
+        raise ApiError(422, "VALIDATION_ERROR", "Unsupported language", {"fields": [{"loc": ["body", "language"]}]})
+    shop_id, user_id = _me(who)
+    terms = _glossary(db, shop_id)
+    db.commit()  # no transaction is held during the model call (§8.3)
+    name = LANGUAGE_NAMES[language]
+    request = AiRequest(
+        pipeline="translate",
+        # translate into the same language = transcribe; the prompt keeps the Glossary Terms' fixed forms
+        prompt=render("translate", 1, source_lang=name, target_lang=name, glossary=_glossary_block(terms)),
+        parts=[Part.blob(audio, audio_mime(audio), language)],
+        schema=Translation,
+        scope=f"user:{user_id}",  # personal: never cached (ADR 0014)
+        cache_input=b"",
+        caller=f"user:{user_id}",
+    )
+    result = ai.run(request, lambda _: [], now)
+    if result.value is None or not result.value.text.strip():
+        raise ApiError(503, "AI_UNAVAILABLE", "The recording could not be transcribed now; type the message")
+    return result.value.text.strip()
+
+
 def reexplain_draft(
     db: Session, who: Principal, message_id: int, body: ReexplainIn, ai: AiRunner, now: datetime
 ) -> ReexplainDraft:
@@ -745,20 +816,35 @@ def nudge(db: Session, who: Principal, message_id: int, body: NudgeIn, now: date
     db.commit()
 
 
-def _task_out(t: Task, assignees: list[int]) -> TaskOut:
-    return TaskOut.model_validate(
-        {
-            "id": str(t.id),
-            "title": t.title,
-            "column": t.board_column,
-            "assignee_ids": [str(a) for a in assignees],
-            "due_at": t.due_at,
-            "machine_id": str(t.machine_id) if t.machine_id else None,
-            "from_message_id": str(t.from_message_id) if t.from_message_id else None,
-            "version": t.version,
-            "updated_at": t.updated_at,
-        }
-    )
+def _tasks_out(db: Session, shop_id: int, tasks: list[Task], assignees: dict[int, list[int]]) -> list[TaskOut]:
+    """Tasks with their assignees' names and the source message's Thread: two queries for the whole page."""
+    names = work_repo.display_names(db, shop_id, sorted({u for t in tasks for u in assignees[t.id]}))
+    threads = repo.message_threads(db, shop_id, [t.from_message_id for t in tasks if t.from_message_id])
+    out: list[TaskOut] = []
+    for t in tasks:
+        thread = threads.get(t.from_message_id) if t.from_message_id else None
+        out.append(
+            TaskOut.model_validate(
+                {
+                    "id": str(t.id),
+                    "title": t.title,
+                    "column": t.board_column,
+                    "assignee_ids": [str(a) for a in assignees[t.id]],
+                    "assignees": [{"user_id": str(a), "display_name": names.get(a, "")} for a in assignees[t.id]],
+                    "due_at": t.due_at,
+                    "machine_id": str(t.machine_id) if t.machine_id else None,
+                    "from_message_id": str(t.from_message_id) if t.from_message_id else None,
+                    "from_thread_id": str(thread) if thread else None,
+                    "version": t.version,
+                    "updated_at": t.updated_at,
+                }
+            )
+        )
+    return out
+
+
+def _task_out(db: Session, shop_id: int, t: Task) -> TaskOut:
+    return _tasks_out(db, shop_id, [t], repo.assignees_of(db, shop_id, [t.id]))[0]
 
 
 def list_tasks(db: Session, who: Principal, page: PageParams, machine_id: int | None = None) -> Page[TaskOut]:
@@ -768,7 +854,7 @@ def list_tasks(db: Session, who: Principal, page: PageParams, machine_id: int | 
     shown = rows[: page.limit]
     assignees = repo.assignees_of(db, shop_id, [t.id for t in shown])
     cursor = encode_cursor(shown[-1].id) if len(rows) > page.limit else None
-    return Page(items=[_task_out(t, assignees[t.id]) for t in shown], next_cursor=cursor)
+    return Page(items=_tasks_out(db, shop_id, shown, assignees), next_cursor=cursor)
 
 
 def create_task(db: Session, who: Principal, body: TaskCreate, key: uuid.UUID | None = None) -> TaskOut:
@@ -776,7 +862,7 @@ def create_task(db: Session, who: Principal, body: TaskCreate, key: uuid.UUID | 
     if key is not None and (done := repo.task_by_key(db, shop_id, key)) is not None:
         if done.created_by != user_id:
             raise ApiError(409, "IDEMPOTENCY_KEY_REUSED", "This Idempotency-Key was already used for another record")
-        return _task_out(done, repo.assignees_of(db, shop_id, [done.id])[done.id])  # a retry returns the first
+        return _task_out(db, shop_id, done)  # a retry returns the first
     people, machine = [int(a) for a in body.assignee_ids], int(body.machine_id) if body.machine_id else None
     _check_people(db, shop_id, people, machine)
     row = Task(
@@ -791,7 +877,7 @@ def create_task(db: Session, who: Principal, body: TaskCreate, key: uuid.UUID | 
     db.flush()
     repo.set_assignees(db, shop_id, row.id, people)
     db.commit()
-    return _task_out(row, list(dict.fromkeys(people)))
+    return _task_out(db, shop_id, row)
 
 
 def update_task(db: Session, who: Principal, task_id: int, body: TaskUpdate, version: int, now: datetime) -> TaskOut:
@@ -814,4 +900,4 @@ def update_task(db: Session, who: Principal, task_id: int, body: TaskUpdate, ver
         repo.set_assignees(db, shop_id, t.id, people)
     t.version, t.updated_at = t.version + 1, now
     db.commit()
-    return _task_out(t, repo.assignees_of(db, shop_id, [t.id])[t.id])
+    return _task_out(db, shop_id, t)

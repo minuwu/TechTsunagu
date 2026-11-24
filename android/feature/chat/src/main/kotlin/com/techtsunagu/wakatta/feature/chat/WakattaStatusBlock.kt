@@ -30,6 +30,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.NotificationsNone
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Visibility
@@ -114,9 +115,15 @@ internal fun ForemanWakattaPill(
                         modifier = Modifier.weight(1f),
                     )
                 } else {
-                    CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.5.dp)
+                    // sent and waiting for answers is not loading: 5 of 6 done, a clock instead of a spinner
+                    val sent = stage >= LAST_STAGE - 1
+                    if (sent) {
+                        Icon(Icons.Default.Schedule, null, Modifier.size(18.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    } else {
+                        CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.5.dp)
+                    }
                     Text(
-                        stringResource(ING[(stage + 1).coerceIn(0, LAST_STAGE)]) + "… ${stage + 2}/6",
+                        if (sent) stringResource(ING[LAST_STAGE]) + " · 5/6" else stringResource(ING[stage + 1]) + "… ${stage + 2}/6",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
@@ -160,7 +167,7 @@ internal fun ForemanWakattaPill(
                             val i = row * 2 + col
                             val dn = if (i == LAST_STAGE) done && allIn else i <= stage
                             val active = !dn && (i == stage + 1 || (i == LAST_STAGE && done))
-                            Step(stringResource(label), dn, active, Modifier.weight(1f))
+                            Step(stringResource(label), dn, active && i < LAST_STAGE, Modifier.weight(1f))
                         }
                     }
                 }

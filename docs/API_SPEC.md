@@ -60,7 +60,7 @@ Foremen and Workers also own personal data that no employer route reads ([ADR 00
 Generated from the code: `cd backend; uv run python -m app.openapi index` (CI fails when it is stale).
 
 <!-- endpoint index: generated -->
-128 operations on 101 paths, all live.
+130 operations on 103 paths, all live.
 
 | Method | Path | Who | What |
 | :--- | :--- | :--- | :--- |
@@ -136,8 +136,10 @@ Generated from the code: `cd backend; uv run python -m app.openapi index` (CI fa
 | `POST` | `/api/threads` | foreman | Create a group Thread; you are its admin |
 | `POST` | `/api/threads/{thread_id}/messages` | foreman, worker | Foreman: voice/text → AI draft. Worker: sent |
 | `GET` | `/api/threads/{thread_id}/messages` | foreman, worker | Poll messages after a cursor; send If-None-Match to get 304 when nothing changed |
+| `POST` | `/api/transcriptions` | foreman, worker | Dictation fallback: a recording in, its text out (personal, never stored) |
 | `PATCH` | `/api/messages/{message_id}` | foreman | Edit an unsent draft's Japanese; the AI translates it again (XREQ-022) |
 | `POST` | `/api/messages/{message_id}/send` | foreman | Send the edited draft; the Tasks kept go on the Task Board |
+| `GET` | `/api/messages/unanswered` | worker | Your unanswered Checks across your Threads, newest first (at most 100) |
 | `POST` | `/api/messages/{message_id}/answers` | worker | Answer a message's questions (-1 = not sure) → Wakatta Status |
 | `GET` | `/api/follow-ups` | foreman | Follow-ups of your shop, newest first |
 | `PATCH` | `/api/follow-ups/{follow_up_id}` | foreman | Mark a Follow-up clarified or understood |

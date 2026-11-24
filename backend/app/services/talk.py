@@ -168,6 +168,9 @@ def add_entry(
 
     e = _explain(ai, me, text, audio, mime, lang, now)
     t = _own_thread(db, me, thread_id, for_update=True)  # deleted meanwhile → 404
+    # Two identical retries at once: the thread lock orders them; the second returns the first one's entry.
+    if key is not None and (done := repo.entry_by_key(db, me, key)) is not None:
+        return _entry_out(done)
     transcript = text or (e.transcript if e else "")
     row = TalkEntry(
         thread_id=t.id,

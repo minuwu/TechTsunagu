@@ -224,3 +224,21 @@ Minhaz mapped the prototype (`prototypes/wakatta/`) and the frontend against `ma
 - Ported the prototype Wakatta fold: status dots and per-status summary, step progress, step grid, numbered question cards, worker rows with marks, read state, status pill and re-explain or nudge.
 - Fixed two send bar bugs found on the emulator: the hidden send circle swallowed mic taps, and the keyboard covered the bar (added `imePadding`).
 - Committed the signed 1.0.0 release APK to `android/release/` and moved compileSdk to 37.1.
+
+## 2026-11-24 (chat: voice fallback, optimistic send, unread divider, worker card)
+
+- Voice: device speech no longer forces the offline model (no pack made it fail). When device speech is missing or fails, the app records an m4a and the new `POST /api/transcriptions` (Gemini, Groq Whisper fallback) fills the composer. Nothing is sent.
+- Optimistic send: the bubble shows at once and is replaced by the server copy; a failed send puts the text back.
+- Chat opens at the first unread with an "N new messages" divider mid-screen, else at the bottom.
+- Status pill: after sending it shows "Waiting for answers · 5/6" with a clock, not a spinner.
+- Worker Wakatta card restyled to the prototype (header with dots, 52dp option rows, result banner, board chips).
+- Bubbles show the original; Workers open "Show translation".
+- Chats top bar: QR button opens Connect.
+
+## 2026-11-24 (crash guard for the submission build)
+
+- Release builds no longer crash in a judge's hands: an unexpected error in a screen's coroutine shows "Something went wrong" and the app keeps running (`CrashGuard`, `MviViewModel` shadows `viewModelScope`). Debug builds and tests still throw.
+- A crash outside screens reopens the app on Home silently; a second crash within 10 s falls back to the system, so it never loops.
+- `safeApiCall` turns any unexpected exception into `AppError.Unknown`.
+- Added the 7 path constants teammates' new routes were missing (`OpenApiContractTest` was red).
+- Voice layer 3: offline or server down keeps the recording, says so, and retries with backoff (about 10 min); the text joins the composer when it lands. Fixed backend CI (API_SPEC endpoint index lacked `/api/transcriptions`), which had blocked the deploy.

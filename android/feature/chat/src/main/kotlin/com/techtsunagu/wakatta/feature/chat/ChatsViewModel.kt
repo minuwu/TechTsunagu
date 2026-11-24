@@ -100,10 +100,11 @@ class ChatsViewModel @Inject constructor(
                 lastMessage = summary.lastMessage ?: "",
                 lastMessageAt = summary.updatedAt,
                 unreadCount = summary.unreadCount,
-                isVoice = summary.lastMessage?.contains("点検") == true || summary.lastMessage?.contains("金型") == true,
-                worstStatus = null,
-                isGroup = false,
-                membersCount = 0,
+                isVoice = summary.isVoice,
+                worstStatus = summary.worstStatus,
+                isGroup = summary.membersCount > 2,
+                membersCount = summary.membersCount,
+                lastFromMe = summary.lastFromMe,
             )
         }
 

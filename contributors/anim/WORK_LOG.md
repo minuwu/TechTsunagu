@@ -18,15 +18,17 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 - **Push sender (XREQ-014)**: FCM HTTP v1, `chat_message` and `nudge`, ids only, after the response. What the phone gets and how Minhaz tests it: the XREQ-014 Fulfillment block. `google-auth[requests]` is now a direct dependency (it was already in the lock through google-genai).
 - Checked after the latest pushes: live API on `d7f6744`, smoke 13/13, Supabase at migration head `21d9f849b5c9` with no drift, security advisor clean, Firebase secret and project id on the Container App. No phone has registered for push yet (`devices` is empty).
 - **XREQ-019 done** (reply to Minhaz): group controls on work Threads, migration `3c7e9a1f5b20` (additive). The title field is `titleJa`, not `title`; every rule and difference is in the XREQ-019 Fulfillment block. After the security review: sending or editing a draft re-checks membership and announce-only; a member added later cannot reach older messages by id, and their unread count starts at the join.
-- **XREQ-025 ready**: Asif registered `Microsoft.Storage`; storage `wakattaapk71923` is up and rehearsed (upload, byte-for-byte HTTPS check, no listing). `downloadUrl` = `https://wakattaapk71923.blob.core.windows.net/apk/wakatta-<version>.apk`. Minhaz: send the signed APK; one command releases it.
+- **XREQ-025 done**: Asif registered `Microsoft.Storage`; storage `wakattaapk71923` rehearsed (upload, byte-for-byte HTTPS check, no listing), then released **1.0.0** and **1.0.1** (Minhaz's builds, SHA-256 checked against the committed `.sha256` first). `GET /api/app/config` offers 1.0.1 (`minVersion` 1.0.0) at `https://wakattaapk71923.blob.core.windows.net/apk/wakatta-1.0.1.apk`.
+- **Asif's list** (`FROM_ASIF_2026-11-24.md`): #1 done (above). #3 checked: the running image `ae48470` has `5b1e0c7d92aa` as head and its start-up `alembic upgrade head` changed nothing, so Supabase is at `5b1e0c7d92aa`; live smoke 13/13; `secret-scan` not checked (the repo is private and `gh` is not installed here). #4 already done by Minhaz in `de6b82a` (a failed PATCH keeps the text as `needsEdit` and the same PATCH repairs it; `test_an_edit_that_lost_the_model_is_repaired_by_the_same_edit`). #8 done (`2ff2b51`): `fromDisplayName` on polled messages, `assignees` with names and `fromThreadId` on Tasks, `displayTitle` on Threads, `GET /api/messages/unanswered`; Minhaz to confirm.
 - **XREQ-007 seam answered**: one chain for all tasks today, model stored on cached results; Whisper-first not built (card item 4: keep AI_PLAN §2 while the real recordings are open). Fixed: Whisper heard every recording as Japanese (now the speaker's language), `translate` got an empty glossary (now the shop glossary plus a one-retry shop-word check), and a Japanese-speaking Worker's voice message was stored empty.
 - **XREQ-026 backend side done**: `/.well-known/assetlinks.json` and the "open in the app" page on the API host (the App Links host). Minhaz: send the debug and release certificate SHA-256 fingerprints; I set `ANDROID_CERT_SHA256`.
 - Closed XREQ-010, 011 and 017 (every item live or done under a newer card). Fixed a pyright strict error in `tests/api/test_auth.py` that would have failed CI. XREQ-019 is live (`c683fe8`, migration ran on Supabase, smoke 13/13).
 
 ### Next
-- Release the first APK when Minhaz sends it (XREQ-025); set `ANDROID_CERT_SHA256` when the fingerprints arrive (XREQ-026).
-- Decide with Minhaz (Asif's note 9): a daily cap on `POST /auth/register` per IP, or a smaller AI allowance for new accounts.
-- XREQ-013 (host the web demo): needs a new Azure resource (Static Web Apps); ask before creating it.
+- Each new APK: `backend\deploy\release-apk.ps1 android\release\wakatta-<v>.apk <v>`. Set `ANDROID_CERT_SHA256` when the fingerprints arrive (XREQ-026).
+- #6: decide with Minhaz (daily cap per IP on `POST /auth/register`, or a smaller AI allowance for new accounts), ADR 0017, then the change.
+- #2 XREQ-013: Static Web App `wakatta-web` (Free, eastasia) not created yet: the create was held for approval on my side.
+- #5 before filming: `reset-demo.ps1`, `set-ai-key.ps1 -Chain demo`, warmup, logs with Galib.
 
 ## 2026-11-23 (evening)
 

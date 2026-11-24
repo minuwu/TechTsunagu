@@ -17,6 +17,7 @@ from app.ai.schemas import (
 )
 from app.domain.ai_checks import (
     GlossaryTerm,
+    added_machine_names,
     glossary_problems,
     language_problems,
     message_problems,
@@ -242,3 +243,21 @@ def test_question_options_are_compared_only_in_the_languages_they_are_written_in
 def test_a_translation_into_japanese_keeps_the_shop_word(source: str, ja: str, ok: bool) -> None:
     lang = "bn" if "মাপ" in source else "en"
     assert (translation_problems(source, ja, GLOSSARY, lang) == []) is ok
+
+
+def test_a_machine_name_the_foreman_never_said_is_rejected() -> None:
+    """Audit A4: "Check the oil on machine 3" came back as "overhead crane (slinging) #3"."""
+    names = [("天井クレーン（玉掛け）3号", "Overhead crane (slinging) #3"), ("2号プレス", "Press #2")]
+    swapped = tri(
+        "天井クレーン（玉掛け）3号の油を点検してください。", "-", "Check the oil on overhead crane (slinging) #3."
+    )
+    kept = tri("3号機の油を点検してください。", "-", "Check the oil on machine 3.")
+
+    assert added_machine_names("Check the oil on machine 3", swapped, names) == ["天井クレーン（玉掛け）3号"]
+    assert added_machine_names("Check the oil on machine 3", kept, names) == []
+    assert added_machine_names("2号プレスの段取り", tri("2号プレスの段取り", "-", "Set-up on Press #2"), names) == []
+
+
+def test_a_greeting_may_have_no_questions() -> None:
+    hello = MessageDraft(transcript_ja="こんにちは", text=tri("こんにちは", "হ্যালো", "Hello"), questions=[], tasks=[])
+    assert message_problems(hello, GLOSSARY, LANGS, MEMBERS, MACHINES) == []
