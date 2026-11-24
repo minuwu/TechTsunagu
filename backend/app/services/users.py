@@ -2,12 +2,14 @@
 
 from datetime import datetime
 
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.api.errors import ApiError
 from app.api.pagination import Page, PageParams, build_page
 from app.domain.pins import pin_problem
+from app.models.chat import Thread, ThreadMember
 from app.models.scopes import User
 from app.repositories import accounts as repo
 from app.schemas.auth import AccountIn, AccountOut, AccountUpdate
@@ -80,6 +82,9 @@ def create_account(db: Session, who: Principal, role: str, body: AccountIn, pepp
     )
     db.add(user)
     _flush_unique(db)
+    # A new account joins the shop's group Threads, so a Worker of a new shop has a chat from the start.
+    groups = db.scalars(select(Thread.id).where(Thread.shop_id == shop_id, Thread.kind == "group"))
+    db.add_all(ThreadMember(thread_id=g, user_id=user.id, shop_id=shop_id) for g in groups)
     db.commit()
     return account_out(user)
 

@@ -108,4 +108,42 @@
     <string name="home_ob_w_q_wrong">Not quite. Try again.</string>
     <string name="home_ob_w_ready_title">You\'re ready!</string>
     <string name="home_ob_w_ready_desc">You can read Notes, take Checks and get signed off on machines.</string>
+    <string name="home_mb_title">Members</string>
+    <string name="home_mb_add">Add</string>
+    <string name="home_mb_workers">Workers (%1$d)</string>
+    <string name="home_mb_foremen">Foremen (%1$d)</string>
+    <string name="home_mb_none">Nobody yet</string>
+    <string name="home_mb_code">Shop code</string>
+    <string name="home_mb_share">Share</string>
+    <string name="home_mb_me">You</string>
+    <string name="home_mb_stopped">Stopped</string>
+    <string name="home_mb_invited">Not signed in yet</string>
+    <string name="home_mb_add_title">Add a member</string>
+    <string name="home_mb_add_note">Type the name only. The app makes a first PIN that they change at first sign-in.</string>
+    <string name="home_mb_name">Name</string>
+    <string name="home_mb_role">Role</string>
+    <string name="home_mb_worker">Worker</string>
+    <string name="home_mb_foreman">Foreman</string>
+    <string name="home_mb_language">Language</string>
+    <string name="home_mb_add_submit">Add and invite</string>
+    <string name="home_mb_save">Save</string>
+    <string name="home_mb_reset_pin">Reset PIN</string>
+    <string name="home_mb_reset_note">Makes a new first PIN and signs them out on every phone.</string>
+    <string name="home_mb_stop">Stop this account</string>
+    <string name="home_mb_resume">Turn this account back on</string>
+    <string name="home_mb_invite_title">Invite %1$s</string>
+    <string name="home_mb_invite_note">Send this to them by LINE or SMS. The PIN works once; they choose their own at sign-in.</string>
+    <string name="home_mb_first_pin">First PIN</string>
+    <string name="home_mb_share_invite">Send the invite</string>
+    <string name="home_mb_copy">Copy</string>
+    <string name="home_mb_done">Done</string>
+    <string name="home_mb_err_offline">No connection. Try again.</string>
+    <string name="home_mb_err_invalid">Check the name and try again.</string>
+    <string name="home_mb_err_last_foreman">You cannot stop yourself or the last foreman.</string>
+    <string name="home_mb_err_unknown">Something went wrong. Try again.</string>
+    <string name="home_mb_me_row">Members</string>
+    <string name="home_mb_me_row_note">Add workers, reset PINs</string>
+    <string name="home_mb_qa">Add member</string>
+    <string name="home_mb_share_code" translatable="false">Wakatta? ショップコード / Shop code: %1$s</string>
+    <string name="home_mb_invite_text" translatable="false">Wakatta? へようこそ / Welcome to Wakatta?\n\nショップコード / Shop code: %2$s\n名前 / Name: %1$s\n最初のPIN / First PIN: %3$s\n\nアプリで役割と名前を選んでサインインし、新しいPINを決めてください。\nPick your role and name to sign in, then choose your own PIN.</string>
 </resources>

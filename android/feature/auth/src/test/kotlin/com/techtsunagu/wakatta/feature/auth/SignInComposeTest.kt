@@ -26,6 +26,7 @@ class SignInComposeTest {
         }
 
 
-        composeTestRule.onNodeWithText("Sign In").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Wakatta?").assertIsDisplayed()
+        composeTestRule.onNodeWithText("新しいショップを登録").assertExists()
     }
 }

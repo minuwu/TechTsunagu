@@ -19,6 +19,9 @@ interface AuthRepository {
     suspend fun signIn(userId: String, pin: String): AppResult<Session>
     suspend fun changePin(currentPin: String, newPin: String): AppResult<Unit>
     suspend fun signOut()
+
+    /** Opens a new shop with this person as its first Foreman, signs them in, and returns the new shop code. */
+    suspend fun register(shopName: String, displayName: String, pin: String): AppResult<String>
 }
 
 internal object AuthRules {
@@ -57,6 +60,11 @@ class FakeAuthRepository(private val store: SessionStore? = null) : AuthReposito
     }
 
     override suspend fun changePin(currentPin: String, newPin: String): AppResult<Unit> = AppResult.Success(Unit)
+
+    override suspend fun register(shopName: String, displayName: String, pin: String): AppResult<String> {
+        store?.save(Session(token = "fake-token", user = User(id = "u_new", displayName = displayName, role = Role.FOREMAN, language = "ja")))
+        return AppResult.Success("NEWSHOP1")
+    }
 
     override suspend fun signOut() {
         store?.clear()

@@ -24,6 +24,10 @@ interface AuthApi {
     @POST(ApiPaths.LOGIN)
     suspend fun login(@Body body: LoginRequest): Response<ApiEnvelope<LoginResponse>>
 
+    /** ADR 0017: a new shop and its first Foreman; answers like [login] plus the new shop code. */
+    @POST(ApiPaths.REGISTER)
+    suspend fun register(@Body body: RegisterRequest): Response<ApiEnvelope<RegisterResponse>>
+
     @GET(ApiPaths.ME)
     suspend fun me(): Response<ApiEnvelope<UserDto>>
 
@@ -41,6 +45,12 @@ data class RosterEntryDto(val id: String, val displayName: String)
 data class LoginRequest(val userId: String, val pin: String)
 
 @Serializable
+data class RegisterRequest(val shopName: String, val displayName: String, val pin: String)
+
+@Serializable
+data class RegisterResponse(val token: String, val expiresAt: String? = null, val user: UserDto, val shopCode: String)
+
+@Serializable
 data class ChangePinRequest(val currentPin: String, val newPin: String)
 
 /** `role` stays a string on the wire; a value this app does not know maps to [Role.UNKNOWN]. */
@@ -52,6 +62,7 @@ data class UserDto(
     val language: String = "ja",
     val shopId: String? = null,
     val districtId: String? = null,
+    val shopCode: String? = null,
 )
 
 @Serializable
@@ -69,6 +80,7 @@ fun UserDto.toUser(): User = User(
     language = appLanguage(language),
     shopId = shopId,
     districtId = districtId,
+    shopCode = shopCode,
 )
 
 fun LoginResponse.toSession(): Session =

@@ -37,7 +37,7 @@ class TabLabelsTest {
         val enStrings = getStringsForLocale("en")
         assertEquals(listOf("Home", "Chats", "Board", "Machines", "Me"), enStrings)
 
-        val bnStrings = getStringsForLocale("bn")
-        assertEquals(listOf("হোম", "চ্যাট", "বোর্ড", "মেশিন", "আমি"), bnStrings)
+        // Bengali is not shipped (ADR 0016): a bn device reads English.
+        assertEquals(enStrings, getStringsForLocale("bn"))
     }
 }

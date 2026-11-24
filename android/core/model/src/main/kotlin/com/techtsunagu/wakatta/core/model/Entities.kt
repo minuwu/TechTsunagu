@@ -12,7 +12,9 @@ data class User(
     val role: Role,
     val language: String,
     val shopId: String? = null,
-    val districtId: String? = null
+    val districtId: String? = null,
+    /** The code Workers sign in with; a Foreman shares it (ADR 0017). */
+    val shopCode: String? = null,
 )
 
 @Serializable

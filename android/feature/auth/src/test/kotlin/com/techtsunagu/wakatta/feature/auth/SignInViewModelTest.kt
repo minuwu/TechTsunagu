@@ -137,4 +137,34 @@ class SignInViewModelTest {
             assertEquals(SignInEffect.NavigateToHome, awaitItem())
         }
     }
+
+    @Test
+    fun demoChipFillsTheFormButDoesNotSignIn() {
+        val foreman = RosterUser("1", "山口 隆", "foreman")
+        repository.rosterResult = AppResult.Success(listOf(foreman))
+        viewModel.onEvent(SignInEvent.PrefillDemo(DEMO_ACCOUNTS.first()))
+        val state = viewModel.state.value
+        assertEquals(Role.FOREMAN, state.role)
+        assertEquals("SASEBO01", state.shopCode)
+        assertEquals(foreman, state.selectedUser)
+        assertTrue(state.isPinValid)
+        assertFalse(state.isSuccess)
+    }
+
+    @Test
+    fun registeringShowsTheNewShopCodeThenGoesHome() = runTest {
+        viewModel.onEvent(SignInEvent.ShowRegister(true))
+        viewModel.onEvent(SignInEvent.OnShopNameChanged("Minato Works"))
+        viewModel.onEvent(SignInEvent.OnOwnerNameChanged("森 太郎"))
+        viewModel.onEvent(SignInEvent.OnOwnerPinChanged("73a9215"))
+        assertEquals("739215", viewModel.state.value.ownerPin)
+
+        viewModel.onEvent(SignInEvent.SubmitRegister)
+        assertEquals("NEWSHOP1", viewModel.state.value.newShopCode)
+
+        viewModel.effects.test {
+            viewModel.onEvent(SignInEvent.FinishRegister)
+            assertEquals(SignInEffect.NavigateToHome, awaitItem())
+        }
+    }
 }

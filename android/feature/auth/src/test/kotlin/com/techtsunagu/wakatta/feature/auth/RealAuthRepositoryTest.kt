@@ -59,7 +59,7 @@ class RealAuthRepositoryTest {
         val saved = store.session.value
         assertEquals("tok-9", saved?.token)
         assertEquals(Role.WORKER, saved?.user?.role)
-        assertEquals("bn", saved?.user?.language)
+        assertEquals("en", saved?.user?.language) // the app ships ja and en only (ADR 0016)
         assertEquals("3", saved?.user?.shopId)
         assertTrue(saved?.mustChangePin == true)
     }

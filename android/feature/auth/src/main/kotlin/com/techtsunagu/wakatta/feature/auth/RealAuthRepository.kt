@@ -7,9 +7,11 @@ import com.techtsunagu.wakatta.core.model.SessionStore
 import com.techtsunagu.wakatta.core.network.AuthApi
 import com.techtsunagu.wakatta.core.network.ChangePinRequest
 import com.techtsunagu.wakatta.core.network.LoginRequest
+import com.techtsunagu.wakatta.core.network.RegisterRequest
 import com.techtsunagu.wakatta.core.network.safeApiCall
 import com.techtsunagu.wakatta.core.network.safeApiCallUnit
 import com.techtsunagu.wakatta.core.network.toSession
+import com.techtsunagu.wakatta.core.network.toUser
 
 /** [api] is a provider so mock builds never construct the HTTP stack. */
 class RealAuthRepository(
@@ -43,6 +45,16 @@ class RealAuthRepository(
         }
         return result
     }
+
+    override suspend fun register(shopName: String, displayName: String, pin: String): AppResult<String> =
+        when (val result = safeApiCall { api().register(RegisterRequest(shopName, displayName, pin)) }) {
+            is AppResult.Success -> {
+                val r = result.value
+                store.save(Session(token = r.token, expiresAt = r.expiresAt, user = r.user.toUser()))
+                AppResult.Success(r.shopCode)
+            }
+            is AppResult.Failure -> result
+        }
 
     /** The local session ends even when the server cannot be reached. */
     override suspend fun signOut() {

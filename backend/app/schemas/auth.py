@@ -30,6 +30,8 @@ class UserOut(CamelModel):
     language: Lang
     shop_id: str | None
     district_id: str | None
+    # The code Workers sign in with, so a Foreman can share it (ADR 0017); None for Posters.
+    shop_code: str | None = None
 
 
 class LoginOut(CamelModel):
@@ -64,3 +66,15 @@ class AccountOut(CamelModel):
     language: Lang
     active: bool
     must_change_pin: bool
+
+
+class RegisterIn(CamelModel):
+    """POST /api/auth/register (ADR 0017): a new shop and its first Foreman."""
+
+    shop_name: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=60)]
+    display_name: DisplayName
+    pin: Pin
+
+
+class RegisterOut(LoginOut):
+    shop_code: str
