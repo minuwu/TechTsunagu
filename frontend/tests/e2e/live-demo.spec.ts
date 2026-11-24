@@ -9,7 +9,7 @@ test('the nav opens the live demo with both phones in a 16:9 stage', async ({
   await page.goto('/')
   await page
     .getByRole('navigation', { name: 'Main menu' })
-    .getByRole('link', { name: 'Live demo' })
+    .getByRole('link', { name: "Nekko's Shift" })
     .click()
   await expect(page).toHaveURL(/\/demo$/)
   await expect(
@@ -48,8 +48,11 @@ test.describe('phone', () => {
       await d.dismiss()
     })
     await page.goto('/prototype/index.html?app=javascript:alert(1)//')
-    // app.html then adds its own #screen
-    await expect(page).toHaveURL(/\/prototype\/app\.html\?role=foreman(#.*)?$/)
+    // The phones still load the bundled app.html
+    await expect(page.locator('iframe#foreman')).toHaveAttribute(
+      'src',
+      /^app\.html\?role=foreman/,
+    )
     expect(ran).toBe(false)
   })
 

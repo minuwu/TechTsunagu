@@ -49,6 +49,13 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 - **Still yours:** send Anim the SHA-256 fingerprints of the debug and release keys (`keytool -list -v -keystore …`); `assetlinks.json` is `[]` until then, so links do not verify yet. The Machine scanner (`QrPayload.parse`) still accepts any host and requires `?s=`; the contract wants it on `UriDeepLinkMatcher` too (2.10 check 8).
 - `?s={shopCode}` on the web QR stickers waits on XREQ-001: the web app gets `shopCode` only from real sign-in. When you do XREQ-001, tell me and I add it, or add it in the same change. We also need to agree which host stickers print: the web `VITE_PUBLIC_URL` opens the web Machine page, the API host opens the app (or its "open in the app" page).
 
+## 2026-11-24 (web: nav trimmed, the story demo is "Nekko's Shift")
+
+- v4 nav: Board (`/foreman`) and Town (`/community`) are out of the header and tab bar; the routes still work. Three tabs: Home, Course, Nekko's Shift (ja: ネッコの現場).
+- `frontend/public/prototype` now holds the latest `prototypes/wakatta` demo end to end: `app.html`, `story.js` (Nekko's gamified story) and `nekko/`. Its page uses the web app's ground (Fuji at Lake Motosu under the day mist) and type (Manrope + Noto Sans JP, Aileron headings, fonts in `prototype/fonts`).
+- The hosted copy still ignores `?app=`, and its relay now takes messages only from its two phones (the security review's second point). @Arjun: copy these two choices back if you re-sync from `prototypes/wakatta`.
+- `tests/e2e/live-demo.spec.ts` follows the new tab name and checks the phones load `app.html`; 3 passed.
+
 ## 2026-11-24 (web: Senpai link calls are safe to open while signed in)
 
 - `frontend/src/services/wakatta.ts`: `senpaiView`, `senpaiReply` and `logMeetup` (Senpai side) build their path with `senpaiPath(token)`, which encodes the link token; `senpaiReply` also encodes `askId`. A crafted link such as `../../tasks/x` can no longer reach another API route.
