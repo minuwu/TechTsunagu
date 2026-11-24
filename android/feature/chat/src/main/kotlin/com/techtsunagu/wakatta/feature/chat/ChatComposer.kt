@@ -31,6 +31,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
@@ -50,6 +51,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -151,7 +153,7 @@ internal fun ChatComposer(
         label = "field",
     )
     Surface(modifier = modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.surfaceContainerLow) {
-        Column(modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 4.dp, bottom = 10.dp)) {
+        Column(modifier = Modifier.imePadding().padding(start = 12.dp, end = 12.dp, top = 4.dp, bottom = 10.dp)) {
             AnimatedVisibility(
                 visible = dictating || (hasPendingAudio && status == ComposerStatus.EDITING),
                 enter = expandVertically(tween(300)) + fadeIn(),
@@ -345,7 +347,15 @@ private fun ActionButton(
         label = "ok",
     )
     val micColor by animateColorAsState(if (recording) StatusColors.Red else primary, label = "m")
-    Box(Modifier.size(56.dp), contentAlignment = Alignment.Center) {
+    // one click target: the hidden circle must not swallow taps meant for the visible one
+    Box(
+        Modifier.size(56.dp).clickable(
+            interactionSource = null,
+            indication = ripple(bounded = false, radius = 28.dp),
+            enabled = !sending,
+        ) { if (showSend) onSend() else onMic() },
+        contentAlignment = Alignment.Center,
+    ) {
         Canvas(Modifier.requiredSize(68.dp).graphicsLayer { alpha = ringAlpha }) {
             val stroke = 4.dp.toPx()
             val topLeft = Offset(stroke / 2, stroke / 2)
@@ -379,8 +389,7 @@ private fun ActionButton(
                     scaleY = s
                     alpha = 1f - sendAlpha
                 }
-                .background(micColor, CircleShape)
-                .clickable(enabled = !showSend, onClick = onMic),
+                .background(micColor, CircleShape),
             contentAlignment = Alignment.Center,
         ) {
             Icon(Icons.Default.Mic, stringResource(R.string.chat_mic), tint = onPrimary, modifier = Modifier.size(28.dp))
@@ -393,8 +402,7 @@ private fun ActionButton(
                     scaleY = sendScale
                     alpha = sendAlpha
                 }
-                .background(primary, CircleShape)
-                .clickable(enabled = showSend && !sending, onClick = onSend),
+                .background(primary, CircleShape),
             contentAlignment = Alignment.Center,
         ) {
             Icon(Icons.AutoMirrored.Filled.Send, stringResource(R.string.chat_send), tint = onPrimary, modifier = Modifier.size(24.dp))
