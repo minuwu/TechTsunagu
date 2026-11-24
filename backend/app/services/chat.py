@@ -77,14 +77,29 @@ def _thread(db: Session, who: Principal, thread_id: int) -> Thread:
     return t
 
 
+def _poster(db: Session, who: Principal, thread_id: int) -> Thread:
+    """A Thread the caller may post in now: a member, and an admin when it is announce-only (XREQ-019)."""
+    shop_id, user_id = _me(who)
+    t = _thread(db, who, thread_id)
+    member = repo.membership(db, shop_id, t.id, user_id)
+    if t.announce_only and (member is None or member.role != "admin"):
+        raise ApiError(403, "FORBIDDEN", "Only the admins post in this Thread; you can still answer its Checks")
+    return t
+
+
 def _sent_message(db: Session, who: Principal, message_id: int, *, for_update: bool = False) -> Message:
-    """A sent message of a Thread the caller is in (a Re-explanation only for its Worker or sender)."""
-    _, user_id = _me(who)
-    m = repo.message(db, who.shop_id or 0, message_id, for_update=for_update)
+    """A sent message of a Thread the caller is in (a Re-explanation only for its Worker or sender), from the
+    caller's history start on: a member added later cannot reach older messages by id."""
+    shop_id, user_id = _me(who)
+    m = repo.message(db, shop_id, message_id, for_update=for_update)
     if m is None or m.sent_at is None:
         raise _not_found()
     _thread(db, who, m.thread_id)
     if m.kind == "reexplain" and user_id not in (m.to_user_id, m.from_user_id):
+        raise _not_found()
+    member = repo.membership(db, shop_id, m.thread_id, user_id)
+    start = member.history_from if member else None
+    if start is not None and m.sent_at < start and m.from_user_id != user_id:
         raise _not_found()
     return m
 
@@ -109,6 +124,7 @@ def _fields(m: Message) -> dict[str, object]:
         "ref_message_id": str(m.ref_message_id) if m.ref_message_id else None,
         "created_at": m.created_at,
         "sent_at": m.sent_at,
+        "event": m.event,
     }
 
 
@@ -173,7 +189,8 @@ def _sender_view(db: Session, m: Message) -> MessageForSender:
 def list_threads(db: Session, who: Principal) -> list[ThreadOut]:
     shop_id, user_id = _me(who)
     rows = repo.threads_of(db, shop_id, user_id)
-    members = repo.member_ids(db, shop_id, [t.id for t, _, _ in rows])
+    ids = [t.id for t, _, _ in rows]
+    members, mine = repo.member_ids(db, shop_id, ids), repo.my_memberships(db, shop_id, user_id, ids)
     return [
         ThreadOut.model_validate(
             {
@@ -183,6 +200,10 @@ def list_threads(db: Session, who: Principal) -> list[ThreadOut]:
                 "member_ids": [str(u) for u in members[t.id]],
                 "unread": unread,
                 "last_message_at": last,
+                "announce_only": t.announce_only,
+                "muted": mine[t.id].muted,
+                "pinned": mine[t.id].pinned,
+                "archived": mine[t.id].archived,
             }
         )
         for t, unread, last in rows
@@ -193,7 +214,8 @@ def messages(db: Session, who: Principal, thread_id: int, after_id: int | None, 
     """The poll (every 2 s, with ETag): messages after the cursor; reading them moves the unread marker."""
     shop_id, user_id = _me(who)
     t = _thread(db, who, thread_id)
-    rows = repo.messages_after(db, shop_id, t.id, user_id, after_id)
+    member = repo.membership(db, shop_id, t.id, user_id)
+    rows = repo.messages_after(db, shop_id, t.id, user_id, after_id, member.history_from if member else None)
     ids = [m.id for m in rows]
     questions = {i: c.questions for i, c in repo.checks_of(db, shop_id, ids).items()}
     items: list[MessageForSender | MessageForWorker]
@@ -205,7 +227,6 @@ def messages(db: Session, who: Principal, thread_id: int, after_id: int | None, 
         nudged, asked = repo.nudged_messages(db, shop_id, user_id, ids), repo.asked_messages(db, shop_id, user_id, ids)
         items = [_for_worker(m, questions.get(m.id, []), mine.get(m.id), m.id in nudged, m.id in asked) for m in rows]
     newest = max((m.sent_at for m in rows if m.sent_at is not None and m.from_user_id != user_id), default=None)
-    member = repo.membership(db, shop_id, t.id, user_id)
     if member is not None and newest is not None and (member.last_read_at is None or member.last_read_at < newest):
         member.last_read_at = now
     db.commit()
@@ -266,7 +287,7 @@ def post_message(
     """A Foreman's message becomes a draft (stage 3, or 0 with needsEdit when the AI is down); a Worker's message is
     translated to Japanese and sent at once."""
     shop_id, user_id = _me(who)
-    t = _thread(db, who, thread_id)
+    t = _poster(db, who, thread_id)
     existing = repo.message_by_key(db, shop_id, user_id, key)
     if existing is not None:
         return _sender_view(db, existing)
@@ -413,6 +434,7 @@ def _own_draft(db: Session, who: Principal, message_id: int, *, for_update: bool
         raise _not_found()
     if m.sent_at is not None:
         raise ApiError(409, "ALREADY_SENT", "This message was already sent")
+    _poster(db, who, m.thread_id)  # still a member, and allowed to post, when the draft is edited
     return m
 
 
@@ -436,11 +458,7 @@ def _check_people(db: Session, shop_id: int, user_ids: list[int], machine_id: in
 def send(db: Session, who: Principal, message_id: int, body: SendIn, now: datetime) -> MessageForSender:
     """The Foreman's edited draft goes to the Thread (stage 4) and the Tasks they kept go on the Task Board."""
     shop_id, user_id = _me(who)
-    m = repo.message(db, shop_id, message_id, for_update=True)
-    if m is None or m.from_user_id != user_id:
-        raise _not_found()
-    if m.sent_at is not None:
-        raise ApiError(409, "ALREADY_SENT", "This message was already sent")
+    m = _own_draft(db, who, message_id, for_update=True)
     tasks: list[tuple[TaskDraft, list[int], int | None]] = []
     for draft in body.tasks:
         people, machine = [int(a) for a in draft.assignee_ids], int(draft.machine_id) if draft.machine_id else None

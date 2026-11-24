@@ -21,7 +21,14 @@ def seed_chat(db: Session, refs: Refs, now: datetime) -> Refs:
         db.flush()
         refs[t["key"]] = thread.id
         db.add_all(
-            ThreadMember(thread_id=thread.id, user_id=refs[u], shop_id=shop_id, last_read_at=now) for u in t["members"]
+            ThreadMember(
+                thread_id=thread.id,
+                user_id=refs[u],
+                shop_id=shop_id,
+                last_read_at=now,
+                role="admin" if u.startswith("f-") else "member",  # Foremen run the seeded Threads
+            )
+            for u in t["members"]
         )
 
     for m in chat["messages"]:

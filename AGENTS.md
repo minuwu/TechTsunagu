@@ -74,7 +74,7 @@ This file is:
 | `XREQ-016` | P0 | AI (Galib) | Frontend (Minhaz, Arjun; Android: Minhaz) | Chatbot screen on the Worker home and the Machine screen: `POST /api/knowledge/asks` (cited answer + self-check; emergency card; not covered → forward to Senpai) | `[IN_PROGRESS]` (web done; Android open) | 2026-11-23 23:00 |
 | `XREQ-017` | P1 | Frontend (Minhaz, Android app) | Backend (Anim), AI (Galib) | Contacts, My QR, Contact Threads (routes now live; Talk Threads and group controls moved to XREQ-018 and 019); notification list stays push-only | `[PENDING]` | 2026-11-23 19:50 |
 | `XREQ-018` | P1 | Frontend (Minhaz, Android app) | Backend (Anim), AI (Galib) | Talk Threads: threads and entries routes plus the two AI pipelines | `[RESOLVED]` | 2026-11-23 23:56 |
-| `XREQ-019` | P2 | Frontend (Minhaz, Android app) | Backend (Anim) | Group controls on work Threads: create, members, roles, mute/pin/archive, leave, announce-only | `[PENDING]` | 2026-11-23 23:56 |
+| `XREQ-019` | P2 | Frontend (Minhaz, Android app) | Backend (Anim) | Group controls on work Threads: create, members, roles, mute/pin/archive, leave, announce-only | `[DONE]` | 2026-11-24 11:06 |
 | `XREQ-020` | P1 | Frontend (Minhaz, Android app) | Backend (Anim) | Worker can read own Follow-ups and Learning History; analytics trend and per-Worker counts | `[DONE]` | 2026-11-24 00:10 |
 | `XREQ-021` | P2 | Frontend (Minhaz, Android app) | Backend (Anim) | Machine gaps: Remind a Worker, Idempotency-Key on overrides, Task filter by Machine | `[RESOLVED]` | 2026-11-23 23:56 |
 | `XREQ-022` | P1 | Frontend (Minhaz, Android app) | Backend (Anim), AI (Galib) | Chat: edit a draft before Send, Re-explanation draft and edit, term-linked Ask the Foreman | `[RESOLVED]` | 2026-11-23 23:56 |
@@ -769,7 +769,7 @@ Split out of XREQ-017 item 3 so it can be answered alone. The Android app has th
 - **Priority**: `P2 (Normal)`
 - **From**: `Frontend (Minhaz, Android app)`
 - **To**: `Backend (Anim)`
-- **Status**: `[PENDING]`
+- **Status**: `[DONE]`
 - **Created**: `2026-11-23 23:56 (UTC+6)`
 - **Target Interface / Endpoint**: `POST /api/threads`, `GET|PATCH /api/threads/{id}`, `/api/threads/{id}/members`, `PUT /api/threads/{id}/me`, `POST /api/threads/{id}/leave` (today only `GET /api/threads` exists)
 
@@ -777,9 +777,9 @@ Split out of XREQ-017 item 3 so it can be answered alone. The Android app has th
 Split out of XREQ-017 item 4. Today a Foreman cannot create a group Thread, rename it or manage members from the app: `GET /threads` is the only thread route. Needed: `POST /threads` `{title, description, memberIds[], announceOnly}` (Foreman, Idempotency-Key) · `GET /threads/{id}` `{id,title,description,announceOnly,locked,members:[{userId,displayName,role admin|member,joinedAt}]}` · `PATCH /threads/{id}` `{title,description,announceOnly}` (409 `THREAD_LOCKED` for a locked Safety-notices thread) · `POST /threads/{id}/members` `{userIds[]}` · `PATCH /threads/{id}/members/{userId}` `{role}` (a thread keeps at least one Foreman admin: 409) · `DELETE /threads/{id}/members/{userId}` (soft removal, history stays, a new member sees messages from the join time) · `PUT /threads/{id}/me` `{muted,pinned,archived}` · `POST /threads/{id}/leave`. Workers get 403 on member changes. In an announce-only thread a Worker cannot post but can still answer Checks. System messages: `kind:"system"` with `{event,actorId,subjectId}` (the client renders the text per language). Mute is notification-only: Nudge and Check deadlines ignore it.
 
 **Fulfillment & Proof (filled by recipient on completion):**
-- **Branch / Commit**: 
-- **Status / Notes**: 
-- **Verification Proof**: 
+- **Branch / Commit**: `main` (this commit), migration `3c7e9a1f5b20`
+- **Status / Notes**: 2026-11-24 Anim. Every route in the card is live, with these differences: **the title is `titleJa`** in bodies and responses (as in `GET /threads`), not `title`; `GET /threads/{id}` also returns `kind` and the caller's own `muted`, `pinned`, `archived`; `GET /threads` items gain `announceOnly`, `muted`, `pinned`, `archived`. **Who may change a Thread:** a Foreman who is an `admin` of that group Thread (Workers 403, a Foreman member 403, a direct Thread 409). The creator is admin; existing Threads made every Foreman member admin. A Thread keeps at least one Foreman admin: demoting, removing or leaving as the last one is 409 `CONFLICT`. **Locked** (`locked: true`; no route sets it yet, it is for a fixed Safety-notices Thread): rename, settings, member changes and leaving are 409 `THREAD_LOCKED`. **Members** must be active Foremen or Workers of your shop (422 otherwise). **Removal and leaving** delete the membership: the person loses access at once (403), their messages, answers and Follow-ups stay. A member added later sees messages sent from the join on; founding members see the whole history. **Announce-only:** only admins post (`POST /threads/{id}/messages` is 403 for others); Workers still answer Checks and ask the Foreman. **System messages** in the poll: `kind: "system"`, `event: {event, actorId, subjectId}` with `event` one of `renamed`, `settings_changed`, `member_added`, `member_removed`, `member_left`, `role_changed`; `text` is empty, the app writes the sentence. **Mute** skips `chat_message` pushes only; a Nudge still arrives. `PUT /threads/{id}/me` and `PATCH`/`POST`/`DELETE` on members return the Thread detail; `POST /leave` returns `data: null`.
+- **Verification Proof**: `tests/api/test_thread_controls.py` (11: create once with roles, Workers 403, members from another shop 422, rename as a system message, join-time history and removal 403, last Foreman admin 409 ×3, a Worker leaves, announce-only on/off, locked 409, flags in the list, another shop 404), `tests/api/test_push.py` (muted: no message push, Nudge still sent); full suite 422 passed incl. the migration up → down → up; ruff, pyright strict, lint-imports clean; `docs/openapi.yaml` and frontend types regenerated.
 
 #### `[XREQ-020]` Worker reads for Follow-ups and Learning History, plus the analytics trend
 

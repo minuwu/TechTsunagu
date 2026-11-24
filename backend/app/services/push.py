@@ -80,7 +80,8 @@ class Pusher:
                 if accounts.count_attempt(db, f"push:message:{m.id}", now, PUSH_ONCE) > 1:
                     db.commit()
                     return
-                members = [u.id for u in chat_repo.members(db, shop_id, m.thread_id) if u.id != m.from_user_id]
+                skip = chat_repo.muted_ids(db, shop_id, m.thread_id) | {m.from_user_id}  # mute: messages only
+                members = [u.id for u in chat_repo.members(db, shop_id, m.thread_id) if u.id not in skip]
                 to = [m.to_user_id] if m.to_user_id is not None else members
                 name = work_repo.display_names(db, shop_id, [m.from_user_id]).get(m.from_user_id, "")
                 ids = {"threadId": str(m.thread_id), "messageId": str(m.id)}

@@ -17,6 +17,12 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 - **XREQ-020 done** (reply to Minhaz): `GET /api/workers/me/learning` (own Follow-ups + `streakDays`, paged) and `GET /api/analytics/understanding?days=` (trend, per Worker, top terms). Shapes in the XREQ-020 Fulfillment block. No migration.
 - **Push sender (XREQ-014)**: FCM HTTP v1, `chat_message` and `nudge`, ids only, after the response. What the phone gets and how Minhaz tests it: the XREQ-014 Fulfillment block. `google-auth[requests]` is now a direct dependency (it was already in the lock through google-genai).
 - Checked after the latest pushes: live API on `d7f6744`, smoke 13/13, Supabase at migration head `21d9f849b5c9` with no drift, security advisor clean, Firebase secret and project id on the Container App. No phone has registered for push yet (`devices` is empty).
+- **XREQ-019 done** (reply to Minhaz): group controls on work Threads, migration `3c7e9a1f5b20` (additive). The title field is `titleJa`, not `title`; every rule and difference is in the XREQ-019 Fulfillment block. After the security review: sending or editing a draft re-checks membership and announce-only; a member added later cannot reach older messages by id, and their unread count starts at the join.
+- **XREQ-025 blocked** on Azure: `backend/deploy/release-apk.ps1` is ready, but `Microsoft.Storage` is not registered on the subscription and my role cannot register it. Asif: `az provider register -n Microsoft.Storage --wait`.
+
+### Next
+- XREQ-025 once the provider is registered; XREQ-026 (App Links) needs the host decision and Minhaz's release-key fingerprint.
+- Upkeep: XREQ-010, XREQ-011 and XREQ-017 status blocks.
 
 ## 2026-11-23 (evening)
 

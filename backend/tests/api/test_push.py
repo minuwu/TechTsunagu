@@ -165,3 +165,15 @@ def test_an_unsent_foreman_draft_pushes_nothing(api: TestClient, refs: Refs, rec
     draft = _say(api, _login(api, refs["f-yamaguchi"], "246810"), refs["t-line2"], "明日の朝礼は8時")
 
     assert draft["stage"] < 4 and recorder.sent == []
+
+
+def test_a_muted_thread_gets_no_message_push_but_still_a_nudge(api: TestClient, refs: Refs, recorder: Recorder) -> None:
+    rahim, foreman = _login(api, refs["w-rahim"], "2468"), _login(api, refs["f-yamaguchi"], "246810")
+    _phone(api, rahim, "tok-rahim")
+    flags = {"muted": True, "pinned": False, "archived": False}
+    assert api.put(f"/api/threads/{refs['t-line2']}/me", headers=rahim, json=flags).status_code == 200
+
+    _say(api, _login(api, refs["w-sadia"], "2468"), refs["t-line2"], "hi")
+    api.post(f"/api/messages/{refs['m1']}/nudge", headers=foreman, json={"userId": str(refs["w-rahim"])})
+
+    assert [m["data"]["type"] for _, m in recorder.sent] == ["nudge"]  # mute is notification-only for messages

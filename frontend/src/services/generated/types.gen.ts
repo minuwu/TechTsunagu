@@ -1974,6 +1974,21 @@ export type EnvelopeTaskOut = {
 };
 
 /**
+ * Envelope[ThreadDetail]
+ */
+export type EnvelopeThreadDetail = {
+    /**
+     * Success
+     */
+    success?: true;
+    data: ThreadDetail;
+    /**
+     * Message
+     */
+    message?: string;
+};
+
+/**
  * Envelope[TodayWord]
  */
 export type EnvelopeTodayWord = {
@@ -2896,6 +2911,38 @@ export type MeetupOut = {
 };
 
 /**
+ * MemberOut
+ */
+export type MemberOut = {
+    /**
+     * Userid
+     */
+    userId: string;
+    /**
+     * Displayname
+     */
+    displayName: string;
+    /**
+     * Role
+     */
+    role: 'admin' | 'member';
+    /**
+     * Joinedat
+     */
+    joinedAt: string;
+};
+
+/**
+ * MembersIn
+ */
+export type MembersIn = {
+    /**
+     * Userids
+     */
+    userIds: Array<string>;
+};
+
+/**
  * MessageForSender
  *
  * The Foreman's view: the answer key, and the Task drafts of an unsent message (empty once it is sent).
@@ -2916,7 +2963,7 @@ export type MessageForSender = {
     /**
      * Kind
      */
-    kind: 'voice' | 'text' | 'ask' | 'reexplain';
+    kind: 'voice' | 'text' | 'ask' | 'reexplain' | 'system';
     /**
      * Language
      */
@@ -2955,6 +3002,7 @@ export type MessageForSender = {
      * Sentat
      */
     sentAt: string | null;
+    event?: SystemEvent | null;
     /**
      * Questions
      */
@@ -2988,7 +3036,7 @@ export type MessageForWorker = {
     /**
      * Kind
      */
-    kind: 'voice' | 'text' | 'ask' | 'reexplain';
+    kind: 'voice' | 'text' | 'ask' | 'reexplain' | 'system';
     /**
      * Language
      */
@@ -3027,6 +3075,7 @@ export type MessageForWorker = {
      * Sentat
      */
     sentAt: string | null;
+    event?: SystemEvent | null;
     /**
      * Questions
      */
@@ -3061,6 +3110,24 @@ export type MessagesPage = {
      * Items
      */
     items: Array<MessageForSender | MessageForWorker>;
+};
+
+/**
+ * MySettingsIn
+ */
+export type MySettingsIn = {
+    /**
+     * Muted
+     */
+    muted: boolean;
+    /**
+     * Pinned
+     */
+    pinned: boolean;
+    /**
+     * Archived
+     */
+    archived: boolean;
 };
 
 /**
@@ -4062,6 +4129,16 @@ export type ReplyOptionOut = {
 };
 
 /**
+ * RoleIn
+ */
+export type RoleIn = {
+    /**
+     * Role
+     */
+    role: 'admin' | 'member';
+};
+
+/**
  * RosterEntry
  */
 export type RosterEntry = {
@@ -4361,6 +4438,26 @@ export type StepEdit = {
 };
 
 /**
+ * SystemEvent
+ *
+ * What a `system` message records (XREQ-019); the app writes the sentence in the reader's language.
+ */
+export type SystemEvent = {
+    /**
+     * Event
+     */
+    event: 'renamed' | 'member_added' | 'member_removed' | 'member_left' | 'role_changed' | 'settings_changed';
+    /**
+     * Actorid
+     */
+    actorId: string;
+    /**
+     * Subjectid
+     */
+    subjectId: string | null;
+};
+
+/**
  * TalkEntryOut
  */
 export type TalkEntryOut = {
@@ -4600,6 +4697,74 @@ export type TermCount = {
 };
 
 /**
+ * ThreadCreate
+ */
+export type ThreadCreate = {
+    /**
+     * Titleja
+     */
+    titleJa: string;
+    /**
+     * Description
+     */
+    description?: string;
+    /**
+     * Memberids
+     */
+    memberIds?: Array<string>;
+    /**
+     * Announceonly
+     */
+    announceOnly?: boolean;
+};
+
+/**
+ * ThreadDetail
+ */
+export type ThreadDetail = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Titleja
+     */
+    titleJa: string;
+    /**
+     * Description
+     */
+    description: string;
+    /**
+     * Kind
+     */
+    kind: 'group' | 'direct';
+    /**
+     * Announceonly
+     */
+    announceOnly: boolean;
+    /**
+     * Locked
+     */
+    locked: boolean;
+    /**
+     * Members
+     */
+    members: Array<MemberOut>;
+    /**
+     * Muted
+     */
+    muted: boolean;
+    /**
+     * Pinned
+     */
+    pinned: boolean;
+    /**
+     * Archived
+     */
+    archived: boolean;
+};
+
+/**
  * ThreadOut
  */
 export type ThreadOut = {
@@ -4627,6 +4792,40 @@ export type ThreadOut = {
      * Lastmessageat
      */
     lastMessageAt: string | null;
+    /**
+     * Announceonly
+     */
+    announceOnly?: boolean;
+    /**
+     * Muted
+     */
+    muted?: boolean;
+    /**
+     * Pinned
+     */
+    pinned?: boolean;
+    /**
+     * Archived
+     */
+    archived?: boolean;
+};
+
+/**
+ * ThreadUpdate
+ */
+export type ThreadUpdate = {
+    /**
+     * Titleja
+     */
+    titleJa?: string | null;
+    /**
+     * Description
+     */
+    description?: string | null;
+    /**
+     * Announceonly
+     */
+    announceOnly?: boolean | null;
 };
 
 /**
@@ -6754,6 +6953,37 @@ export type ListThreadsApiThreadsGetResponses = {
 
 export type ListThreadsApiThreadsGetResponse = ListThreadsApiThreadsGetResponses[keyof ListThreadsApiThreadsGetResponses];
 
+export type CreateThreadApiThreadsPostData = {
+    body: ThreadCreate;
+    headers: {
+        /**
+         * Idempotency-Key
+         */
+        'Idempotency-Key': string;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/threads';
+};
+
+export type CreateThreadApiThreadsPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type CreateThreadApiThreadsPostError = CreateThreadApiThreadsPostErrors[keyof CreateThreadApiThreadsPostErrors];
+
+export type CreateThreadApiThreadsPostResponses = {
+    /**
+     * Successful Response
+     */
+    201: EnvelopeThreadDetail;
+};
+
+export type CreateThreadApiThreadsPostResponse = CreateThreadApiThreadsPostResponses[keyof CreateThreadApiThreadsPostResponses];
+
 export type PollMessagesApiThreadsThreadIdMessagesGetData = {
     body?: never;
     path: {
@@ -7209,6 +7439,224 @@ export type UpdateTaskApiTasksTaskIdPatchResponses = {
 };
 
 export type UpdateTaskApiTasksTaskIdPatchResponse = UpdateTaskApiTasksTaskIdPatchResponses[keyof UpdateTaskApiTasksTaskIdPatchResponses];
+
+export type GetThreadApiThreadsThreadIdGetData = {
+    body?: never;
+    path: {
+        /**
+         * Thread Id
+         */
+        thread_id: string;
+    };
+    query?: never;
+    url: '/api/threads/{thread_id}';
+};
+
+export type GetThreadApiThreadsThreadIdGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetThreadApiThreadsThreadIdGetError = GetThreadApiThreadsThreadIdGetErrors[keyof GetThreadApiThreadsThreadIdGetErrors];
+
+export type GetThreadApiThreadsThreadIdGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeThreadDetail;
+};
+
+export type GetThreadApiThreadsThreadIdGetResponse = GetThreadApiThreadsThreadIdGetResponses[keyof GetThreadApiThreadsThreadIdGetResponses];
+
+export type UpdateThreadApiThreadsThreadIdPatchData = {
+    body: ThreadUpdate;
+    path: {
+        /**
+         * Thread Id
+         */
+        thread_id: string;
+    };
+    query?: never;
+    url: '/api/threads/{thread_id}';
+};
+
+export type UpdateThreadApiThreadsThreadIdPatchErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type UpdateThreadApiThreadsThreadIdPatchError = UpdateThreadApiThreadsThreadIdPatchErrors[keyof UpdateThreadApiThreadsThreadIdPatchErrors];
+
+export type UpdateThreadApiThreadsThreadIdPatchResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeThreadDetail;
+};
+
+export type UpdateThreadApiThreadsThreadIdPatchResponse = UpdateThreadApiThreadsThreadIdPatchResponses[keyof UpdateThreadApiThreadsThreadIdPatchResponses];
+
+export type AddMembersApiThreadsThreadIdMembersPostData = {
+    body: MembersIn;
+    path: {
+        /**
+         * Thread Id
+         */
+        thread_id: string;
+    };
+    query?: never;
+    url: '/api/threads/{thread_id}/members';
+};
+
+export type AddMembersApiThreadsThreadIdMembersPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type AddMembersApiThreadsThreadIdMembersPostError = AddMembersApiThreadsThreadIdMembersPostErrors[keyof AddMembersApiThreadsThreadIdMembersPostErrors];
+
+export type AddMembersApiThreadsThreadIdMembersPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeThreadDetail;
+};
+
+export type AddMembersApiThreadsThreadIdMembersPostResponse = AddMembersApiThreadsThreadIdMembersPostResponses[keyof AddMembersApiThreadsThreadIdMembersPostResponses];
+
+export type RemoveMemberApiThreadsThreadIdMembersUserIdDeleteData = {
+    body?: never;
+    path: {
+        /**
+         * Thread Id
+         */
+        thread_id: string;
+        /**
+         * User Id
+         */
+        user_id: string;
+    };
+    query?: never;
+    url: '/api/threads/{thread_id}/members/{user_id}';
+};
+
+export type RemoveMemberApiThreadsThreadIdMembersUserIdDeleteErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type RemoveMemberApiThreadsThreadIdMembersUserIdDeleteError = RemoveMemberApiThreadsThreadIdMembersUserIdDeleteErrors[keyof RemoveMemberApiThreadsThreadIdMembersUserIdDeleteErrors];
+
+export type RemoveMemberApiThreadsThreadIdMembersUserIdDeleteResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeThreadDetail;
+};
+
+export type RemoveMemberApiThreadsThreadIdMembersUserIdDeleteResponse = RemoveMemberApiThreadsThreadIdMembersUserIdDeleteResponses[keyof RemoveMemberApiThreadsThreadIdMembersUserIdDeleteResponses];
+
+export type SetRoleApiThreadsThreadIdMembersUserIdPatchData = {
+    body: RoleIn;
+    path: {
+        /**
+         * Thread Id
+         */
+        thread_id: string;
+        /**
+         * User Id
+         */
+        user_id: string;
+    };
+    query?: never;
+    url: '/api/threads/{thread_id}/members/{user_id}';
+};
+
+export type SetRoleApiThreadsThreadIdMembersUserIdPatchErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type SetRoleApiThreadsThreadIdMembersUserIdPatchError = SetRoleApiThreadsThreadIdMembersUserIdPatchErrors[keyof SetRoleApiThreadsThreadIdMembersUserIdPatchErrors];
+
+export type SetRoleApiThreadsThreadIdMembersUserIdPatchResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeThreadDetail;
+};
+
+export type SetRoleApiThreadsThreadIdMembersUserIdPatchResponse = SetRoleApiThreadsThreadIdMembersUserIdPatchResponses[keyof SetRoleApiThreadsThreadIdMembersUserIdPatchResponses];
+
+export type MySettingsApiThreadsThreadIdMePutData = {
+    body: MySettingsIn;
+    path: {
+        /**
+         * Thread Id
+         */
+        thread_id: string;
+    };
+    query?: never;
+    url: '/api/threads/{thread_id}/me';
+};
+
+export type MySettingsApiThreadsThreadIdMePutErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type MySettingsApiThreadsThreadIdMePutError = MySettingsApiThreadsThreadIdMePutErrors[keyof MySettingsApiThreadsThreadIdMePutErrors];
+
+export type MySettingsApiThreadsThreadIdMePutResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeThreadDetail;
+};
+
+export type MySettingsApiThreadsThreadIdMePutResponse = MySettingsApiThreadsThreadIdMePutResponses[keyof MySettingsApiThreadsThreadIdMePutResponses];
+
+export type LeaveApiThreadsThreadIdLeavePostData = {
+    body?: never;
+    path: {
+        /**
+         * Thread Id
+         */
+        thread_id: string;
+    };
+    query?: never;
+    url: '/api/threads/{thread_id}/leave';
+};
+
+export type LeaveApiThreadsThreadIdLeavePostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type LeaveApiThreadsThreadIdLeavePostError = LeaveApiThreadsThreadIdLeavePostErrors[keyof LeaveApiThreadsThreadIdLeavePostErrors];
+
+export type LeaveApiThreadsThreadIdLeavePostResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeNoneType;
+};
+
+export type LeaveApiThreadsThreadIdLeavePostResponse = LeaveApiThreadsThreadIdLeavePostResponses[keyof LeaveApiThreadsThreadIdLeavePostResponses];
 
 export type DraftBriefingApiBriefingsDraftPostData = {
     body?: BodyDraftBriefingApiBriefingsDraftPost;

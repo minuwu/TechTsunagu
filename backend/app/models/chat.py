@@ -30,7 +30,9 @@ class Thread(Base):
     __table_args__ = (
         CheckConstraint("kind IN ('group','direct')", name="kind"),
         CheckConstraint("char_length(title_ja) BETWEEN 1 AND 100", name="title_length"),
+        CheckConstraint("char_length(description) <= 500", name="description_length"),
         UniqueConstraint("shop_id", "id"),
+        UniqueConstraint("shop_id", "created_by", "idempotency_key"),
         shop_fk("created_by", "users"),
     )
 
@@ -40,11 +42,18 @@ class Thread(Base):
     kind: Mapped[str] = mapped_column(Text)
     created_by: Mapped[int] = mapped_column(BigInteger)
     created_at: Mapped[CreatedAt]
+    description: Mapped[str] = mapped_column(Text, server_default="")
+    # Only admins post; Workers still answer Checks (XREQ-019).
+    announce_only: Mapped[bool] = mapped_column(Boolean, server_default=sql_text("false"))
+    # A fixed Thread (e.g. Safety notices): no rename, member change or leaving.
+    locked: Mapped[bool] = mapped_column(Boolean, server_default=sql_text("false"))
+    idempotency_key: Mapped[uuid.UUID | None] = mapped_column(Uuid)
 
 
 class ThreadMember(Base):
     __tablename__ = "thread_members"
     __table_args__ = (
+        CheckConstraint("role IN ('admin','member')", name="role"),
         shop_fk("thread_id", "threads", ondelete="CASCADE"),
         shop_fk("user_id", "users"),
         Index("ix_thread_members_shop_user", "shop_id", "user_id"),
@@ -56,12 +65,19 @@ class ThreadMember(Base):
     joined_at: Mapped[CreatedAt]
     # Unread = messages sent after this; null means nothing read yet.
     last_read_at: Mapped[TimestampOrNone]
+    role: Mapped[str] = mapped_column(Text, server_default="member")
+    # Messages from here on; null = the whole history (founding members). Leaving deletes the row.
+    history_from: Mapped[TimestampOrNone]
+    muted: Mapped[bool] = mapped_column(Boolean, server_default=sql_text("false"))  # no chat_message push only
+    pinned: Mapped[bool] = mapped_column(Boolean, server_default=sql_text("false"))
+    archived: Mapped[bool] = mapped_column(Boolean, server_default=sql_text("false"))
 
 
 class Message(Base):
     __tablename__ = "messages"
     __table_args__ = (
-        CheckConstraint("kind IN ('voice','text','ask','reexplain')", name="kind"),
+        CheckConstraint("kind IN ('voice','text','ask','reexplain','system')", name="kind"),
+        CheckConstraint("(kind = 'system') = (event IS NOT NULL)", name="system_has_event"),
         CheckConstraint(f"language IN {LANGS}", name="language"),
         CheckConstraint("stage BETWEEN 0 AND 5", name="stage"),
         # Stages 4 (Sent to Workers) and 5 (Answers in) are exactly the sent ones.
@@ -101,6 +117,8 @@ class Message(Base):
     idempotency_key: Mapped[uuid.UUID | None] = mapped_column(Uuid)
     created_at: Mapped[CreatedAt]
     sent_at: Mapped[TimestampOrNone]
+    # A system message (XREQ-019): {event, actorId, subjectId}; the app writes the text per language.
+    event: Mapped[dict[str, str | None] | None] = mapped_column(JSONB)
 
 
 class MessageCheck(Base):

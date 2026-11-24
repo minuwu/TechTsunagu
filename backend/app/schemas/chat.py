@@ -8,7 +8,20 @@ from pydantic import AwareDatetime, Field, StringConstraints
 from app.domain.chat import FollowUpStatus, WakattaStatus
 from app.schemas.common import CamelModel, CheckQuestion, CheckQuestionForWorker, IdIn, Translated
 
-MessageKind = Literal["voice", "text", "ask", "reexplain"]
+MessageKind = Literal["voice", "text", "ask", "reexplain", "system"]
+SystemEventKind = Literal[
+    "renamed", "member_added", "member_removed", "member_left", "role_changed", "settings_changed"
+]
+
+
+class SystemEvent(CamelModel):
+    """What a `system` message records (XREQ-019); the app writes the sentence in the reader's language."""
+
+    event: SystemEventKind
+    actor_id: str
+    subject_id: str | None
+
+
 TaskColumn = Literal["todo", "doing", "done"]
 TermJa = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=100)]
 
@@ -20,6 +33,11 @@ class ThreadOut(CamelModel):
     member_ids: list[str]
     unread: int
     last_message_at: AwareDatetime | None
+    announce_only: bool = False
+    # The caller's own settings for this Thread (PUT /threads/{id}/me).
+    muted: bool = False
+    pinned: bool = False
+    archived: bool = False
 
 
 class TaskDraft(CamelModel):
@@ -47,6 +65,8 @@ class _MessageOut(CamelModel):
     ref_message_id: str | None
     created_at: AwareDatetime
     sent_at: AwareDatetime | None
+    event: SystemEvent | None = None
+    """Set on `system` messages only."""
 
 
 class WorkerResult(CamelModel):
