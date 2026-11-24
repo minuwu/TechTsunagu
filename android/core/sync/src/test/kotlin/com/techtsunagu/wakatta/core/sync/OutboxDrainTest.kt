@@ -11,7 +11,9 @@ import com.techtsunagu.wakatta.core.model.SessionStore
 import com.techtsunagu.wakatta.core.model.User
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -45,10 +47,8 @@ class OutboxDrainTest {
         }
     }
 
-    private class Sessions : SessionStore {
-        override val session = MutableStateFlow<Session?>(
-            Session("t", user = User(id = "12", displayName = "R", role = Role.WORKER, language = "bn")),
-        )
+    private class Sessions(initial: Session? = SIGNED_IN) : SessionStore {
+        override val session = MutableStateFlow(initial)
         override suspend fun save(session: Session) = Unit
         override suspend fun clear() = Unit
         override fun getCachedToken(): String? = null
@@ -57,6 +57,30 @@ class OutboxDrainTest {
     private val store = Store()
 
     private fun drain(sender: Sender) = OutboxDrain(store, setOf(sender), Sessions())
+
+    @Test
+    fun aSessionThatLoadsAfterTheStartIsWaitedFor() = runTest {
+        // A cold start from WorkManager: the encrypted session is still loading when the drain runs.
+        val sessions = Sessions(initial = null)
+        val sender = Sender(AppResult.Success(Unit))
+        store.enqueue("nearmiss:12", "k1", "{}")
+        launch {
+            delay(1_000)
+            sessions.session.value = SIGNED_IN
+        }
+        assertFalse(OutboxDrain(store, setOf(sender), sessions).run())
+        assertEquals(listOf("k1"), sender.keys)
+        assertTrue(store.rows.isEmpty())
+    }
+
+    @Test
+    fun aSignedOutPhoneSendsNothingAndDoesNotHang() = runTest {
+        val sender = Sender(AppResult.Success(Unit))
+        store.enqueue("nearmiss:12", "k1", "{}")
+        assertFalse(OutboxDrain(store, setOf(sender), Sessions(initial = null)).run())
+        assertTrue(sender.keys.isEmpty())
+        assertEquals(setOf("k1"), store.rows.keys)
+    }
 
     @Test
     fun aNetworkErrorKeepsTheRowAndTheKey() = runTest {
@@ -88,5 +112,9 @@ class OutboxDrainTest {
         assertEquals(listOf("mine"), sender.keys)
         assertEquals(setOf("other", "mine"), store.rows.keys)
         assertTrue(store.rows.values.all { it.state == OutboxEntity.STATE_PENDING })
+    }
+
+    private companion object {
+        val SIGNED_IN = Session("t", user = User(id = "12", displayName = "R", role = Role.WORKER, language = "bn"))
     }
 }

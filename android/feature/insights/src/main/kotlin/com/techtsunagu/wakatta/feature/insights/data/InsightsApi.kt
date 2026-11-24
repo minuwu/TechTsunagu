@@ -6,7 +6,9 @@ import kotlinx.serialization.Serializable
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.PATCH
 import retrofit2.http.POST
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 /**
@@ -41,6 +43,13 @@ internal interface InsightsApi {
         @Query("limit") limit: Int? = null,
         @Query("cursor") cursor: String? = null,
     ): Response<ApiEnvelope<FollowUpPageDto>>
+
+    /** Foreman: mark a Follow-up clarified (or understood); it only moves forward, else 409. */
+    @PATCH(ApiPaths.FOLLOW_UP)
+    suspend fun updateFollowUp(
+        @Path("follow_up_id") id: String,
+        @Body body: FollowUpUpdateDto,
+    ): Response<ApiEnvelope<FollowUpDto>>
 
     @POST(ApiPaths.GLOSSARY)
     suspend fun addGlossaryTerm(
@@ -181,6 +190,13 @@ internal data class FollowUpDto(
     val note: String = "",
     val createdAt: String = "",
     val resolvedAt: String? = null,
+)
+
+/** `PATCH /follow-ups/{id}`: `status` is "clarified" or "understood"; `note` at most 500 characters. */
+@Serializable
+internal data class FollowUpUpdateDto(
+    val status: String,
+    val note: String = "",
 )
 
 @Serializable
