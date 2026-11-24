@@ -4,6 +4,20 @@ Owner: Asif (`MdAsif-Hossain`) — Role: Backend (lead) / Services / Database
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-24 — S3: unanswered Checks carry the text and the Thread title
+
+### Changed (`2f16153`, on `main`)
+- `GET /api/messages/unanswered` items (`UnansweredCheck`) now also carry `threadTitle` (string, required, never null) and `text` (object of language code to string, required). Existing fields: `messageId`, `threadId`, `sentAt`, `deadline` (date-time or `null`). Additive only; listing does not mark the Thread as read.
+- `docs/openapi.yaml` and `frontend/src/services/generated/types.gen.ts` updated in the same commit.
+
+### Verified (on `main` after merging origin, 590 tests collected)
+- `uv run ruff check .` clean; `ruff format --check .` 199 files already formatted; `pyright` 0 errors; `lint-imports` 4 kept, 0 broken.
+- `uv run pytest --cov -q` exit 0, total coverage 90.36% (gate 80%), including `tests/test_contract.py` (OpenAPI matches the app).
+- `npm run gen:api` in `frontend/`: no diff in `src/services/generated`.
+
+### For Anim
+- N2 is unblocked: pull main and use `GET /messages/unanswered` in `HomeBoardSource.kt` instead of polling all messages; the live API has it after the next backend deploy.
+
 ## 2026-11-24 (from Arjun: task 2)
 
 - Question on my task 2 (Task Board against the live API): `frontend/` has no Task Board; only the Android app (`feature/board`) has one. Which client failed on `If-Match`? If it was Android, it is Minhaz's.
