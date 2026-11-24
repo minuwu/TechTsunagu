@@ -358,14 +358,15 @@ def message_threads(db: Session, shop_id: int, message_ids: list[int]) -> dict[i
     return {i: t for i, t in db.execute(stmt)}
 
 
-def unanswered(db: Session, shop_id: int, user_id: int, limit: int) -> list[tuple[Message, MessageCheck]]:
+def unanswered(db: Session, shop_id: int, user_id: int, limit: int) -> list[tuple[Message, MessageCheck, Thread]]:
     """Sent messages with a Check in the user's Threads (from their history start) that they have not answered."""
     answered = select(MessageAnswer.id).where(
         MessageAnswer.shop_id == shop_id, MessageAnswer.message_id == Message.id, MessageAnswer.user_id == user_id
     )
     stmt = (
-        select(Message, MessageCheck)
+        select(Message, MessageCheck, Thread)
         .join(MessageCheck, (MessageCheck.message_id == Message.id) & (MessageCheck.shop_id == Message.shop_id))
+        .join(Thread, (Thread.id == Message.thread_id) & (Thread.shop_id == Message.shop_id))
         .join(
             ThreadMember,
             (ThreadMember.thread_id == Message.thread_id)
@@ -383,7 +384,7 @@ def unanswered(db: Session, shop_id: int, user_id: int, limit: int) -> list[tupl
         .order_by(Message.sent_at.desc())
         .limit(limit)
     )
-    return [(m, c) for m, c in db.execute(stmt)]
+    return [(m, c, t) for m, c, t in db.execute(stmt)]
 
 
 def assignees_of(db: Session, shop_id: int, task_ids: list[int]) -> dict[int, list[int]]:
