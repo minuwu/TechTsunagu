@@ -23,6 +23,7 @@ import {
 import { CommunityScreen } from './screens/community/CommunityScreen'
 import { SenpaiScreen } from './screens/senpai/SenpaiScreen'
 import { CourseScreen } from './screens/course/CourseScreen'
+import { DemoScreen } from './screens/demo/DemoScreen'
 import { NotFoundScreen } from './screens/not-found/NotFoundScreen'
 
 export default {
@@ -47,6 +48,7 @@ export default {
     community: CommunityScreen,
     senpai: SenpaiScreen,
     course: CourseScreen,
+    demo: DemoScreen,
     notFound: NotFoundScreen,
   },
 } satisfies UiKit

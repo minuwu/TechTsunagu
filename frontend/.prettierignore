@@ -3,3 +3,4 @@ src/i18n/paraglide/
 src/services/generated/
 src/routeTree.gen.ts
 .output/
+public/prototype/

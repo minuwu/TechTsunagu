@@ -26,16 +26,19 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         { charSet: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
         { title: 'Wakatta?' },
-        { name: 'description', content: m.lp_lead({}, { locale: 'ja' }) },
+        { name: 'description', content: m.home_lead({}, { locale: 'ja' }) },
         // The browser bar matches the kit's harbour-navy header
         { name: 'theme-color', content: '#16223b' },
         { property: 'og:type', content: 'website' },
         { property: 'og:site_name', content: 'Wakatta?' },
         {
           property: 'og:title',
-          content: `Wakatta? ${m.lp_h1({}, { locale: 'ja' })}`,
+          content: `Wakatta? ${m.home_h1({}, { locale: 'ja' })}`,
         },
-        { property: 'og:description', content: m.lp_h1({}, { locale: 'en' }) },
+        {
+          property: 'og:description',
+          content: m.home_h1({}, { locale: 'en' }),
+        },
         {
           property: 'og:image',
           content: `${SITE}/brand/images/social/og-default-1200.png`,

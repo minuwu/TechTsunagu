@@ -48,5 +48,7 @@ export default {
     senpai: SenpaiScreen,
     course: CourseScreen,
     notFound: NotFoundScreen,
+    // the two-phone live demo is linked from v4 only; here its URL is a plain 404
+    demo: NotFoundScreen,
   },
 } satisfies UiKit

@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Wakatta? — Foreman ↔ Worker demo</title>
+<style>
+  body{margin:0;min-height:100vh;display:grid;place-items:center;background:linear-gradient(180deg,#d6e8f8 0,#f2f7fc 60%) fixed;font:14px/1.4 Roboto,system-ui,sans-serif;color:#14213d}
+  .stage{display:flex;gap:56px;align-items:flex-start}
+  .side{display:flex;flex-direction:column;align-items:center;gap:12px}
+  .side b{font-size:15px}
+  .side span{color:#4a5a78}
+  .phone{width:412px;height:892px;border:12px solid #111;border-radius:48px;overflow:hidden;background:#111;box-shadow:0 30px 80px rgba(0,0,0,.22)}
+  iframe{width:100%;height:100%;border:0;display:block;border-radius:36px}
+  /* real phone: show one side only (?role=worker for the other) */
+  @media (max-width:900px){ body{display:block} .stage{display:block} .side{display:none} }
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+  <div class="side"><div><b>田中 健一</b> <span>· Foreman · 日本語</span></div><div class="phone"><iframe id="foreman" src="" title="Foreman phone"></iframe></div></div>
+  <div class="side"><div><b>Rahim Uddin</b> <span>· Worker · English</span></div><div class="phone"><iframe id="worker" src="" title="Worker phone"></iframe></div></div>
+</div>
+<script>
+  // ?app=parts/preview-X.html loads a preview build instead of app.html
+  const APP = new URLSearchParams(location.search).get('app') || 'app.html';
+  foreman.src = APP + '?role=foreman&embed=1#chats';
+  worker.src = APP + '?role=worker&embed=1#chats';
+  // Narrow screens: open one role full screen instead of two phones.
+  if (matchMedia('(max-width:900px)').matches) location.replace(APP + '?role=' + (new URLSearchParams(location.search).get('role') || 'foreman'));
+  // Zoom both phones to fit the window height.
+  const fit = () => { document.getElementById('stage').style.zoom = Math.min(1, (innerHeight - 24) / 950, (innerWidth - 24) / 940); };
+  fit(); addEventListener('resize', fit);
+  // Relay Bus events between the two phones.
+  const frames = [foreman, worker];
+  addEventListener('message', e => {
+    if (!e.data || !e.data.wk) return;
+    frames.forEach(f => { if (f.contentWindow !== e.source) f.contentWindow.postMessage(e.data, '*'); });
+  });
+</script>
+</body>
+</html>

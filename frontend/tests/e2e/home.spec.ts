@@ -14,7 +14,7 @@ test('home renders in English by default and passes axe', async ({ page }) => {
   await expect(
     page.getByRole('heading', {
       level: 1,
-      name: 'Understood at work. Understood at home.',
+      name: '“Understood” is easy to say. Wakatta? makes it true.',
     }),
   ).toBeVisible()
   await expectNoBrokenText(page)
@@ -52,7 +52,7 @@ test.describe('Japanese browser', () => {
     await expect(
       page.getByRole('heading', {
         level: 1,
-        name: '職場でも、くらしでも、わかった。',
+        name: '「わかりました」を、本当の理解に。',
       }),
     ).toBeVisible()
     await expectNoBrokenText(page)
@@ -68,7 +68,7 @@ test('the language toggle switches to Japanese', async ({ page }) => {
   await expect(
     page.getByRole('heading', {
       level: 1,
-      name: '職場でも、くらしでも、わかった。',
+      name: '「わかりました」を、本当の理解に。',
     }),
   ).toBeVisible()
 })

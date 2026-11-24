@@ -43,6 +43,7 @@ const ICONS = {
   course: 'M5 4h9a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM9 8h5M9 12h5',
   board: 'M4 5h16v14H4zM10 5v14M15 5v14',
   town: 'M3 20h18M5 20V9l5-3 5 3v11M15 20v-7h4v7M8 12h4',
+  demo: 'M3 5h18v12H3zM8 21h8M12 17v4M10 8.5v5l4-2.5z',
 } as const
 
 const TABS = [
@@ -65,6 +66,12 @@ const TABS = [
     label: m.tab_community,
     match: (p: string) => p.startsWith('/community'),
   },
+  {
+    to: '/demo',
+    icon: 'demo',
+    label: m.tab_demo,
+    match: (p: string) => p.startsWith('/demo'),
+  },
 ] as const
 
 /** Phones: a flat bar on the bottom edge, the current tab filled cobalt. */
@@ -72,7 +79,7 @@ function TabBar({ path, sound }: { path: string; sound: boolean }) {
   const active = TABS.findIndex((t) => t.match(path))
   return (
     <nav aria-label={m.tabs_label()} className="tabbar">
-      <ul className="grid grid-cols-4">
+      <ul className="grid grid-cols-5">
         {TABS.map((t, i) => (
           <li
             key={t.to}
@@ -110,7 +117,7 @@ function TabBar({ path, sound }: { path: string; sound: boolean }) {
   )
 }
 
-/** Desktop: the same four destinations as text links in the header. */
+/** Desktop: the same five destinations as text links in the header. */
 function HeaderLinks({ path, sound }: { path: string; sound: boolean }) {
   const active = TABS.findIndex((t) => t.match(path))
   return (
