@@ -334,3 +334,10 @@ Minhaz mapped the prototype (`prototypes/wakatta/`) and the frontend against `ma
 ## 2026-11-24: Android release 1.0.3
 
 - Built and signed `android/release/wakatta-1.0.3.apk` (versionCode 4) from current main; `latest.json` points the in-app updater at it. Same signing certificate as 1.0.2 (SHA-256 `64ded8e9…2d979`).
+
+## 2026-11-24 19:50: web calendar file and demo flyer (XREQ-002 items 9, 12, 3)
+
+- "Add to calendar" `.ics`: long lines fold at 75 octets (Japanese and Bengali titles no longer get mangled by Google or Outlook) and the file carries a `VTIMEZONE` for Asia/Tokyo.
+- Demo flyer: the recyclables Event (Wednesdays) is gone; 佐世保市 sets those days per area. Recyclables are now a step: see-through bag, out by 8:00, check the area calendar.
+- The mock now refuses publish with 409 `EVENTS_NOT_CONFIRMED`, the same as the backend.
+- **Galib:** the same flyer fix is still needed in the seeded AI cache fixture (XREQ-002 item 12).
