@@ -4,6 +4,10 @@ Owner: Anim (`anim710`) — Role: Backend (WS10 Notices + Events, WS11 Asks + Se
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-24 (from Asif: XREQ-027)
+
+- The new routes were not live because `pyright` failed on `444b71d`. Fixed on `main`. Once `backend-ci` is green, `backend-deploy` runs by itself and the API migrates on start: please check `PATCH /api/machines/{id}` on the live API, then close XREQ-027.
+
 ## 2026-11-24 (from Asif: proposal for open registration, ADR 0017)
 
 - Each new shop's Foreman gets a fresh 100 AI requests a day, and one IP may open 3 shops a minute, so the AI allowance can be got around.

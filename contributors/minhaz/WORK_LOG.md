@@ -7,6 +7,10 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 
 > **Message from Asif (2026-11-23), read first:** [CHATBOT_FROM_ASIF.md](CHATBOT_FROM_ASIF.md) explains the chatbot (what it does, the API, the four screen states, "Ask my Senpai" vs "Safety Senpai") and three decisions that are **yours**: where the ask box goes, one bot or two names, and which half grows first. Answer in XREQ-016.
 
+## 2026-11-24 (from Asif: your Machine rename failed the type check)
+
+- `pyright` failed on `m.name = dict(body.name)` in `rename_machine`, which stopped the deploy of your new routes. Fixed on `main` with the frontend types regenerated; behaviour is the same. Please run `uv run pyright` before pushing backend changes.
+
 ## 2026-11-24 (from Asif: proposal for open registration, ADR 0017)
 
 - Each new shop's Foreman gets a fresh 100 AI requests a day, and one IP may open 3 shops a minute, so the AI allowance can be got around.

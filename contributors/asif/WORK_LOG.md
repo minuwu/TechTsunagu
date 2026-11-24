@@ -4,6 +4,12 @@ Owner: Asif (`MdAsif-Hossain`) — Role: Backend (lead) / Services / Database
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-24 — Backend type check fixed (it would hold back XREQ-027)
+
+- `444b71d` failed `pyright` (`rename_machine` in `services/floor.py`), a step of `backend-ci`, and the deploy only runs after a green CI. At 17:34 the live API still had 131 operations, without `PATCH` and `DELETE /machines/{id}`. One line fixed; frontend types regenerated (they missed the same routes).
+- Verified: ruff, format, pyright 0 errors, lint-imports 4 kept, `pytest --cov` exit 0 at 90.40% (local Postgres), OpenAPI in sync, frontend typecheck clean. I could not see the CI pages.
+- Both migrations in XREQ-027 are additive; the API migrates on start, so the next green CI on `main` deploys and migrates the live database.
+
 ## 2026-11-24 — R4: a direct Thread has the other person's name (for Arjun)
 
 ### Changed
