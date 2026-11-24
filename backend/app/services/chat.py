@@ -8,6 +8,7 @@ import hashlib
 import json
 import uuid
 from datetime import datetime, timedelta
+from typing import Literal
 
 from sqlalchemy.orm import Session
 
@@ -255,7 +256,16 @@ def _question(q: AiQuestion, n: int, terms: list[AiTerm], languages: tuple[str, 
     }
 
 
-def to_japanese(ai: AiRunner, parts: list[Part], source: str, scope: str, key: bytes, now: datetime) -> str | None:
+def to_japanese(
+    ai: AiRunner,
+    parts: list[Part],
+    source: str,
+    scope: str,
+    key: bytes,
+    caller: str,
+    now: datetime,
+    over_limit: Literal["refuse", "degrade"] = "degrade",
+) -> str | None:
     request = AiRequest(
         pipeline="translate",
         prompt=render(
@@ -269,6 +279,8 @@ def to_japanese(ai: AiRunner, parts: list[Part], source: str, scope: str, key: b
         schema=Translation,
         scope=scope,
         cache_input=key,
+        caller=caller,
+        over_limit=over_limit,
     )
     result = ai.run(request, lambda _: [], now)
     return result.value.text if result.value else None
@@ -305,7 +317,10 @@ def post_message(
         text_ja = text
     else:
         parts = source or [Part.text(f"<source_text>{text}</source_text>")]
-        text_ja = to_japanese(ai, parts, language, f"shop:{shop_id}", audio or (text or "").encode(), now)
+        source_bytes, caller = audio or (text or "").encode(), f"user:{user_id}"
+        # A typed message is sent untranslated over the limit; a recording would arrive empty, so it is refused (429).
+        over_limit = "refuse" if audio else "degrade"
+        text_ja = to_japanese(ai, parts, language, f"shop:{shop_id}", source_bytes, caller, now, over_limit)
     row = Message(
         shop_id=shop_id,
         thread_id=t.id,
@@ -334,7 +349,7 @@ def _draft_ai(
     now: datetime,
 ) -> tuple[MessageDraft | None, list[AiTerm], tuple[str, ...]]:
     """The draft_message pipeline on a Foreman's text or recording. Commits first: no transaction during the call."""
-    shop_id, _ = _me(who)
+    shop_id, user_id = _me(who)
     terms = _glossary(db, shop_id)
     people = repo.members(db, shop_id, thread_id)
     machines = work_repo.all_machines(db, shop_id)
@@ -362,6 +377,7 @@ def _draft_ai(
         schema=MessageDraft,
         scope=f"shop:{shop_id}",
         cache_input=(audio or (text or "").encode()) + context,
+        caller=f"user:{user_id}",
         languages=languages,
     )
     member_ids, machine_ids = {str(u.id) for u in people}, {str(m.id) for m in machines}
@@ -593,7 +609,7 @@ def _reexplain_target(db: Session, who: Principal, message_id: int, body: Reexpl
 def _reexplain_ai(
     db: Session, who: Principal, m: Message, term_ja: str, ai: AiRunner, now: datetime
 ) -> tuple[Reexplanation, list[AiTerm], tuple[str, ...]]:
-    shop_id, _ = _me(who)
+    shop_id, user_id = _me(who)
     terms = _glossary(db, shop_id)
     languages = ai_languages(db, shop_id)
     original, message_id = m.text_ja or "", m.id
@@ -611,6 +627,7 @@ def _reexplain_ai(
         schema=Reexplanation,
         scope=f"shop:{shop_id}",
         cache_input=f"{message_id}:{term_ja}:{original}".encode(),
+        caller=f"user:{user_id}",
         languages=languages,
     )
     result = ai.run(request, lambda r: reexplain_problems(r, term_ja, terms, languages), now)

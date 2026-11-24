@@ -212,6 +212,7 @@ def create_draft(
         scope=f"district:{district_id}",
         # Without today: a flyer states absolute dates, so the same flyer gives the same draft (demo cache).
         cache_input=image or audio or (text or "").encode(),
+        caller=f"user:{who.user_id}",
         languages=AI_LANGUAGES,
     )
     result = ai.run(request, _draft_problems, now)

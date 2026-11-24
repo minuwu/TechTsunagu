@@ -56,7 +56,9 @@ def _glossary_block(terms: list[AiTerm]) -> str:
     return json.dumps([{"ja": t.ja, "reading": t.reading, **t.translations} for t in terms], ensure_ascii=False)
 
 
-def _english(ai: AiRunner, shop_id: int, part: Part, source_lang: str, key: bytes, now: datetime) -> str | None:
+def _english(
+    ai: AiRunner, shop_id: int, worker_id: int, part: Part, source_lang: str, key: bytes, now: datetime
+) -> str | None:
     """The question in English, for searching the English guides (a voice question is transcribed on the way)."""
     request = AiRequest(
         pipeline="translate",
@@ -67,6 +69,7 @@ def _english(ai: AiRunner, shop_id: int, part: Part, source_lang: str, key: byte
         schema=Translation,
         scope=f"shop:{shop_id}",
         cache_input=b"knowledge-q:" + key,
+        caller=f"user:{worker_id}",
     )
     result = ai.run(request, lambda _: [], now)
     return result.value.text if result.value else None
@@ -159,12 +162,14 @@ def ask(
     query = text or ""
     search_text = query
     if audio and mime:
-        english = _english(ai, shop_id, Part.blob(audio, mime), spoken, hashlib.sha256(audio).digest(), now)
+        key = hashlib.sha256(audio).digest()
+        english = _english(ai, shop_id, worker_id, Part.blob(audio, mime), spoken, key, now)
         if english is None:
             return _out("", False, None, [], None)
         query = search_text = english
     elif any(not ch.isascii() for ch in query) and tokens(query):
-        english = _english(ai, shop_id, Part.text(f"<source_text>{query}</source_text>"), spoken, query.encode(), now)
+        part = Part.text(f"<source_text>{query}</source_text>")
+        english = _english(ai, shop_id, worker_id, part, spoken, query.encode(), now)
         if english:
             query, search_text = f"{query} ({english})", english
     if is_emergency(query):
@@ -208,6 +213,7 @@ def ask(
         scope=f"shop:{shop_id}",
         cache_input=f"{query}|{','.join(sent)}".encode()
         + hashlib.sha256((glossary + ",".join(languages)).encode()).digest(),
+        caller=f"user:{worker_id}",
         languages=languages,
     )
     d = ai.run(request, problems, now).value

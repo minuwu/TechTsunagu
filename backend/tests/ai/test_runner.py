@@ -1,16 +1,21 @@
 """WS0 step 5: the AI fallback ladder (architecture §10.3, §10.4). Every case runs FakeAiClient; nothing hits Gemini."""
 
 import time
-from datetime import UTC, datetime
+from dataclasses import replace
+from datetime import UTC, datetime, timedelta
+from typing import Literal
 
 import pytest
 from pydantic import BaseModel
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.ai.chains import BUDGETS, Tier
 from app.ai.client import AiUnavailable, Part, Prompt, QuotaExhausted
 from app.ai.fake import FakeAiClient
-from app.models.platform import AiUsage
-from app.services.ai_runner import AiLimits, AiRequest, AiRunner, pacific_day
+from app.api.errors import ApiError
+from app.models.platform import AiCache, AiUsage
+from app.services.ai_runner import USER_LIMITS, AiLimits, AiRequest, AiRunner, pacific_day
 
 
 class Echo(BaseModel):
@@ -21,9 +26,18 @@ PROMPT = Prompt(name="echo", version=1, text="Say a word.")
 NOW = datetime(2026, 11, 22, 12, 0, tzinfo=UTC)
 
 
-def _request(text: str = "hello") -> AiRequest[Echo]:
+def _request(
+    text: str = "hello", caller: str = "user:1", over_limit: Literal["refuse", "degrade"] = "refuse"
+) -> AiRequest[Echo]:
     return AiRequest(
-        pipeline="echo", prompt=PROMPT, parts=[Part.text(text)], schema=Echo, scope="shop:1", cache_input=text.encode()
+        pipeline="echo",
+        prompt=PROMPT,
+        parts=[Part.text(text)],
+        schema=Echo,
+        scope="shop:1",
+        cache_input=text.encode(),
+        caller=caller,
+        over_limit=over_limit,
     )
 
 
@@ -107,9 +121,7 @@ def test_a_daily_quota_error_is_never_retried_and_blocks_the_rest_of_the_day(db:
 def test_the_cache_is_separate_per_scope(db: Session) -> None:
     client = FakeAiClient({"echo": [{"word": "shop one"}, {"word": "shop two"}]})
     runner = _runner(db, client)
-    other = AiRequest(
-        pipeline="echo", prompt=PROMPT, parts=[Part.text("hello")], schema=Echo, scope="shop:2", cache_input=b"hello"
-    )
+    other = replace(_request(), scope="shop:2")
 
     runner.run(_request(), _no_problems, NOW)
     result = runner.run(other, _no_problems, NOW)
@@ -197,3 +209,83 @@ def test_every_model_failing_still_degrades_without_an_error(db: Session) -> Non
     down = [_named(n, {"echo": [AiUnavailable("down")]}) for n in ("a", "b", "c")]
 
     assert _chain(db, *down).run(_request(), _no_problems, NOW).outcome == "degraded"
+
+
+def _limited(db: Session, client: FakeAiClient, per_minute: int, per_day: int) -> AiRunner:
+    limits = AiLimits(max_concurrent=2, per_minute=100, daily_budget=100, wait_seconds=1)
+    return AiRunner(client, db.info["factory"], limits, user_limits=(per_minute, per_day))
+
+
+def test_one_user_over_the_minute_limit_is_refused_and_others_still_answered(db: Session) -> None:
+    client = FakeAiClient({"echo": [{"word": w} for w in "abc"]})
+    runner = _limited(db, client, per_minute=2, per_day=50)
+    for text in ("one", "two"):
+        runner.run(_request(text), _no_problems, NOW)
+
+    with pytest.raises(ApiError) as refused:
+        runner.run(_request("three"), _no_problems, NOW)
+    other = runner.run(_request("three", caller="user:2"), _no_problems, NOW)
+
+    assert (refused.value.status, refused.value.code) == (429, "RATE_LIMITED")
+    assert refused.value.headers == {"Retry-After": "60"}
+    assert other.value == Echo(word="c") and client.calls == 3
+
+
+def test_a_cached_answer_does_not_spend_the_users_allowance(db: Session) -> None:
+    runner = _limited(db, FakeAiClient({"echo": [{"word": "a"}]}), per_minute=1, per_day=1)
+    runner.run(_request(), _no_problems, NOW)
+
+    assert [runner.run(_request(), _no_problems, NOW).outcome for _ in range(3)] == ["cached"] * 3
+
+
+def test_the_user_is_answered_again_after_the_minute(db: Session) -> None:
+    runner = _limited(db, FakeAiClient({"echo": [{"word": "a"}, {"word": "b"}]}), per_minute=1, per_day=50)
+    runner.run(_request("one"), _no_problems, NOW)
+
+    later = runner.run(_request("two"), _no_problems, NOW + timedelta(seconds=61))
+
+    assert later.value == Echo(word="b")
+
+
+def test_one_user_cannot_spend_the_whole_day_for_everyone(db: Session) -> None:
+    runner = _limited(db, FakeAiClient({"echo": [{"word": "a"}]}), per_minute=10, per_day=1)
+    runner.run(_request("one"), _no_problems, NOW)
+
+    with pytest.raises(ApiError) as refused:
+        runner.run(_request("two"), _no_problems, NOW + timedelta(minutes=5))
+
+    assert refused.value.status == 429 and refused.value.headers == {"Retry-After": "3600"}
+
+
+def test_a_message_that_must_not_be_lost_degrades_instead_of_being_refused(db: Session) -> None:
+    client = FakeAiClient({"echo": [{"word": "a"}]})
+    runner = _limited(db, client, per_minute=1, per_day=50)
+    runner.run(_request("one"), _no_problems, NOW)
+
+    assert runner.run(_request("two", over_limit="degrade"), _no_problems, NOW).outcome == "degraded"
+    assert client.calls == 1
+
+
+@pytest.mark.parametrize("tier", ["free", "paid"])
+def test_no_user_can_spend_a_models_daily_budget_even_if_every_answer_is_retried(tier: Tier) -> None:
+    flash_lite = BUDGETS[tier]["gemini-3.5-flash-lite"][0]
+
+    assert USER_LIMITS[tier][1] * 2 < flash_lite
+
+
+def test_a_shop_request_must_name_its_caller() -> None:
+    with pytest.raises(ValueError, match="must name its caller"):
+        _request(caller="")
+
+
+def test_a_personal_request_is_never_cached_and_spends_its_owners_allowance(db: Session) -> None:
+    client = FakeAiClient({"echo": [{"word": "one"}, {"word": "two"}]})
+    runner = _limited(db, client, per_minute=2, per_day=50)
+    personal = replace(_request(), scope="user:7", caller="")
+
+    words = [runner.run(personal, _no_problems, NOW).value for _ in range(2)]
+
+    assert words == [Echo(word="one"), Echo(word="two")]
+    assert db.scalars(select(AiCache)).all() == []
+    with pytest.raises(ApiError):
+        runner.run(replace(_request(), caller="user:7"), _no_problems, NOW)

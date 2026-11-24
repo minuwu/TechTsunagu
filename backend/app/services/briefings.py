@@ -124,6 +124,7 @@ def create_draft(
         scope=f"shop:{shop_id}",
         cache_input=(audio or (text or "").encode())
         + hashlib.sha256((glossary + ",".join(languages)).encode()).digest(),
+        caller=f"user:{who.user_id}",
         languages=languages,
     )
     result = ai.run(

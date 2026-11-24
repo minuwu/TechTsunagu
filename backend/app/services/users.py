@@ -14,7 +14,7 @@ from app.models.scopes import User
 from app.repositories import accounts as repo
 from app.schemas.auth import AccountIn, AccountOut, AccountUpdate
 from app.services.auth import Principal
-from app.services.credentials import hash_pin
+from app.services.credentials import hash_pin, new_pin
 
 
 def account_out(user: User) -> AccountOut:
@@ -56,6 +56,35 @@ def _flush_unique(db: Session) -> None:
             db.flush()
     except IntegrityError as exc:
         raise ApiError(409, "CONFLICT", "Someone in this shop already has that name") from exc
+
+
+def _set_first_pin(db: Session, user: User, pin: str, pepper: str, actor_id: int | None, now: datetime) -> None:
+    """The person must choose their own PIN next; a lockout is cleared and every session of theirs ends."""
+    user.pin_hash = hash_pin(pepper, pin)
+    user.pin_must_change = True
+    user.pin_failed_count = 0
+    user.pin_locked_until = None
+    repo.revoke_sessions_of(db, user.id, now)
+    district_id = user.district_id if user.shop_id is None else None
+    repo.audit(db, "pin_reset", actor_id, user.shop_id, district_id, subject_id=user.id)
+
+
+def reset_pin(db: Session, code: str, role: str, name: str, pepper: str, now: datetime) -> str:
+    """Operator last resort (app.cli): a new first PIN for an active person found by scope code, role and roster name.
+    The audit row has no actor: nobody is signed in."""
+    if role == "poster":
+        district = repo.district_by_code(db, code)
+        people = repo.roster_of_district(db, district.id) if district else []
+    else:
+        shop = repo.shop_by_code(db, code)
+        people = repo.roster_of_shop(db, shop.id, role) if shop else []
+    user = next((u for u in people if u.display_name == name), None)
+    if user is None:
+        raise ApiError(404, "NOT_FOUND", f"No active {role} named {name!r} under code {code!r}")
+    pin = new_pin(role)
+    _set_first_pin(db, user, pin, pepper, None, now)
+    db.commit()
+    return pin
 
 
 def list_accounts(db: Session, who: Principal, role: str, page: PageParams) -> Page[AccountOut]:
@@ -103,12 +132,7 @@ def update_account(
         user.language = body.language
     if body.pin is not None:
         _check_pin(role, body.pin)
-        user.pin_hash = hash_pin(pepper, body.pin)
-        user.pin_must_change = True
-        user.pin_failed_count = 0
-        user.pin_locked_until = None
-        repo.revoke_sessions_of(db, user.id, now)
-        repo.audit(db, "pin_reset", who.user_id, shop_id, subject_id=user.id)
+        _set_first_pin(db, user, body.pin, pepper, who.user_id, now)
     if body.active is False and user.active:
         if role == "foreman" and user.id == who.user_id:
             raise ApiError(409, "CONFLICT", "You cannot deactivate yourself")

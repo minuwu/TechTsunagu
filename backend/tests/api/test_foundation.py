@@ -1,5 +1,6 @@
 """WS0 step 1: envelope, errors, request id, CORS, headers (architecture §9.1, §9.2, §12, §13)."""
 
+import json
 import logging
 
 import pytest
@@ -10,6 +11,7 @@ from pydantic import BaseModel
 from app.api.errors import ApiError
 from app.config import Settings
 from app.main import create_app
+from app.openapi import contract
 from tests.conftest import FRONTEND
 
 
@@ -134,6 +136,19 @@ def test_cors_allows_every_listed_origin_so_local_dev_and_the_hosted_frontend_bo
         for origin in (FRONTEND, hosted):
             res = c.options("/api/health", headers={"Origin": origin, **preflight})
             assert res.headers["access-control-allow-origin"] == origin
+
+
+def test_a_browser_may_send_every_header_the_contract_declares(client: TestClient) -> None:
+    paths = json.loads(contract())["paths"].values()
+    declared = {
+        p["name"] for path in paths for op in path.values() for p in op.get("parameters", []) if p["in"] == "header"
+    }
+    assert {"If-Match", "Idempotency-Key"} <= declared  # the Task Board and the retried creates
+
+    for header in declared:
+        preflight = {"Origin": FRONTEND, "Access-Control-Request-Method": "PATCH"}
+        res = client.options("/api/tasks/1", headers=preflight | {"Access-Control-Request-Headers": header})
+        assert res.status_code == 200, f"CORS refuses {header}: add it to allow_headers in app/main.py"
 
 
 def test_frontend_origin_reads_a_comma_separated_list() -> None:

@@ -1,4 +1,5 @@
-# Backend checks (AGENTS.md quality bar): lint → format → types → import layers → tests against a real PostgreSQL 16.
+# Backend checks (AGENTS.md quality bar): lint → format → types → import layers → tests with a coverage floor against a
+# real PostgreSQL 16. The secret scanner is its own workflow (secret-scan.yml): it runs on every path.
 # The image build is a separate workflow (backend-deploy.yml, which runs after this one passes on main).
 name: backend-ci
 
@@ -60,4 +61,4 @@ jobs:
       - run: uv run ruff format --check .
       - run: uv run pyright
       - run: uv run lint-imports
-      - run: uv run pytest
+      - run: uv run pytest --cov # fails below the coverage floor in pyproject.toml

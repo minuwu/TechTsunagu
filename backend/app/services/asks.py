@@ -69,8 +69,9 @@ def _out(a: Ask, worker_name: str) -> AskOut:
     )
 
 
-def translate(ai: AiRunner, text: str, source: str, target: str, scope: str, now: datetime) -> str | None:
-    """One faithful translation, or None when the model is unavailable (the caller keeps the original)."""
+def translate(ai: AiRunner, text: str, source: str, target: str, scope: str, caller: str, now: datetime) -> str | None:
+    """One faithful translation, or None when the model is unavailable or the caller is over their AI allowance
+    (either way the original is kept, never an error)."""
     request = AiRequest(
         pipeline="translate",
         prompt=render(
@@ -84,6 +85,8 @@ def translate(ai: AiRunner, text: str, source: str, target: str, scope: str, now
         schema=Translation,
         scope=scope,
         cache_input=f"{source}>{target}:{text}".encode(),
+        caller=caller,
+        over_limit="degrade",
     )
     result = ai.run(request, lambda _: [], now)
     return result.value.text if result.value else None
@@ -132,6 +135,7 @@ def create(
         schema=AskDraft,
         scope=f"shop:{shop_id}",
         cache_input=(audio or (text or "").encode()) + hashlib.sha256((block + ",".join(languages)).encode()).digest(),
+        caller=f"user:{worker_id}",
         languages=languages,
     )
     # A cited Notice that was never sent is worth one retry; ground() below is the rule either way.
@@ -195,7 +199,8 @@ def forward(db: Session, who: Principal, ask_id: int, ai: AiRunner, now: datetim
     if language == "ja" or not text:
         text_ja = text or None
     else:
-        text_ja = translate(ai, text, language, "ja", f"shop:{shop_id}", now)  # None: the Senpai sees the original
+        # None: the Senpai sees the original
+        text_ja = translate(ai, text, language, "ja", f"shop:{shop_id}", f"user:{worker_id}", now)
 
     a = repo.ask(db, shop_id, worker_id, ask_id, for_update=True)
     if a is None:

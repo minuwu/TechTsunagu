@@ -93,3 +93,21 @@ def send_message(
 ) -> Envelope[ContactMessageOut]:
     ai: AiRunner = request.app.state.ai
     return Envelope(data=contacts.send(db, who, int(contact_id), body, key, ai, now_utc()))
+
+
+@router.delete(
+    "/contacts/{contact_id}/messages/{message_id}",
+    summary="Delete a message: one you sent goes for both of you, one you received only on your side",
+)
+def delete_message(who: Person, contact_id: IdIn, message_id: IdIn, db: DbSession) -> Envelope[None]:
+    contacts.delete_message(db, who, int(contact_id), int(message_id))
+    return Envelope(data=None)
+
+
+@router.delete(
+    "/contacts/{contact_id}/messages",
+    summary="Delete the whole Contact Thread: all you sent, and your copy of what you received",
+)
+def delete_thread(who: Person, contact_id: IdIn, db: DbSession) -> Envelope[None]:
+    contacts.delete_thread(db, who, int(contact_id))
+    return Envelope(data=None)
