@@ -590,29 +590,32 @@ fun AddTaskBottomSheet(
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
             )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = stringResource(R.string.board_add_task_assignees),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp)
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                users.forEach { user ->
-                    val isSelected = selectedAssignees.contains(user.id)
-                    WakattaChip(
-                        selected = isSelected,
-                        onClick = {
-                            if (isSelected) selectedAssignees.remove(user.id)
-                            else selectedAssignees.add(user.id)
-                        },
-                        label = { Text(user.displayName) },
-                    )
+            // a Worker sees no people to pick: their own Task is always theirs
+            if (users.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = stringResource(R.string.board_add_task_assignees),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp)
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    users.forEach { user ->
+                        val isSelected = selectedAssignees.contains(user.id)
+                        WakattaChip(
+                            selected = isSelected,
+                            onClick = {
+                                if (isSelected) selectedAssignees.remove(user.id)
+                                else selectedAssignees.add(user.id)
+                            },
+                            label = { Text(user.displayName) },
+                        )
+                    }
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))

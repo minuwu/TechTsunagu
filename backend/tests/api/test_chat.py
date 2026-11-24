@@ -720,3 +720,11 @@ def test_a_recording_is_transcribed_for_the_composer_and_nothing_is_sent(
     assert (empty.status_code, odd.status_code, unavailable.status_code) == (422, 422, 503)
     msgs = client.get(f"/api/threads/{line.thread_id}/messages", headers=line.foreman).json()["data"]["items"]
     assert msgs == []
+
+
+def test_a_worker_adds_a_task_that_is_only_theirs(client: TestClient, line: Line) -> None:
+    body = {"title": {"ja": "工具を片付ける", "en": "Put the tools away"}, "assigneeIds": [str(line.sadia_id)]}
+    res = client.post("/api/tasks", headers=line.rahim, json=body)
+
+    assert res.status_code == 201
+    assert res.json()["data"]["assigneeIds"] == [str(line.rahim_id)]

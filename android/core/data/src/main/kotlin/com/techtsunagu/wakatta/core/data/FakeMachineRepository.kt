@@ -8,6 +8,7 @@ import com.techtsunagu.wakatta.core.model.Machine
 import com.techtsunagu.wakatta.core.model.MachineDetail
 import com.techtsunagu.wakatta.core.model.MachineRepository
 import com.techtsunagu.wakatta.core.model.Step
+import com.techtsunagu.wakatta.core.model.Tri
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.delay
@@ -26,6 +27,24 @@ class FakeMachineRepository(
     override suspend fun getMachines(): AppResult<List<Machine>> {
         if (delayMs > 0) delay(delayMs)
         return AppResult.Success(machines.toList())
+    }
+
+    override suspend fun addMachine(code: String, name: Tri): AppResult<Machine> {
+        if (machines.any { it.code == code }) return AppResult.Failure(AppError.Conflict("CONFLICT"))
+        val m = Machine(id = "m-$code", code = code, name = name)
+        machines += m
+        return AppResult.Success(m)
+    }
+
+    override suspend fun renameMachine(id: String, name: Tri): AppResult<Machine> {
+        val i = machines.indexOfFirst { it.id == id }.takeIf { it >= 0 } ?: return AppResult.Failure(AppError.NotFound)
+        machines[i] = machines[i].copy(name = name)
+        return AppResult.Success(machines[i])
+    }
+
+    override suspend fun archiveMachine(id: String): AppResult<Unit> {
+        machines.removeAll { it.id == id }
+        return AppResult.Success(Unit)
     }
 
     override suspend fun getMachine(id: String): AppResult<MachineDetail> {

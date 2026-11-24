@@ -204,4 +204,58 @@ class ChatComposeTest {
         composeTestRule.onNodeWithText("Machine 3 Oil").assertExists()
         composeTestRule.onNodeWithText("Not sure").assertExists()
     }
+
+    @Test
+    fun chatOpensAtTheNewestMessage() {
+        val many = (1..50).map { i ->
+            ChatMessageUiModel(
+                id = "m$i",
+                threadId = "t1",
+                fromUserId = "u1",
+                fromUserName = "Rahim",
+                isMine = false,
+                kind = MessageKind.TEXT,
+                text = mapOf("ja" to "メッセージ $i"),
+                originalText = "メッセージ $i",
+                translatedText = "Message $i",
+                time = "08:00",
+                stage = 5,
+            )
+        }
+        composeTestRule.setContent {
+            ChatContent(
+                state = ChatUiState(threadId = "t1", title = "Line 2", currentRole = Role.WORKER, messages = many),
+                onEvent = {},
+            )
+        }
+        composeTestRule.waitForIdle()
+
+        composeTestRule.onNodeWithText("50", substring = true).assertIsDisplayed()
+        composeTestRule.onNodeWithText("ジ 1", substring = true).assertDoesNotExist()
+    }
+
+    @Test
+    fun foremanCanNudgeAWorkerOnceTheMessageIsSent() {
+        val sent = ChatMessageUiModel(
+            id = "m1",
+            threadId = "t1",
+            fromUserId = "u_tanaka",
+            fromUserName = "Tanaka",
+            isMine = true,
+            kind = MessageKind.TEXT,
+            text = mapOf("ja" to "点検してください"),
+            originalText = "点検してください",
+            translatedText = "Please inspect",
+            time = "08:00",
+            hasCheck = true,
+            workerStatuses = mapOf("u_rahim" to WakattaStatus.WAIT),
+            stage = 4,
+            isWkFoldExpanded = true,
+        )
+        composeTestRule.setContent {
+            ChatContent(state = ChatUiState(threadId = "t1", title = "Line 2", currentRole = Role.FOREMAN, messages = listOf(sent)), onEvent = {})
+        }
+
+        composeTestRule.onNodeWithText("Nudge").assertExists()
+    }
 }

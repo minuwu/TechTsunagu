@@ -73,6 +73,8 @@ CALLS: dict[str, Call] = {
     "PATCH /api/workers/{user_id}": Call(json={}, rows={"user_id": "worker"}),
     "PATCH /api/foremen/{user_id}": Call(json={}, rows={"user_id": "foreman"}),
     "GET /api/machines/{machine_id}": Call(),
+    "PATCH /api/machines/{machine_id}": Call(json={"name": {"ja": "プレス", "en": "Press"}}),
+    "DELETE /api/machines/{machine_id}": Call(),
     "POST /api/machines/{machine_id}/scan": Call(),
     "GET /api/machines/{machine_id}/panel": Call(),
     "POST /api/machines/{machine_id}/panel-token": Call(),

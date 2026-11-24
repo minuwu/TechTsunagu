@@ -26,14 +26,17 @@ def machine(db: Session, shop_id: int, machine_id: int, *, for_update: bool = Fa
 
 
 def machines_page(db: Session, shop_id: int, after_id: int | None, limit: int) -> list[Machine]:
-    stmt = select(Machine).where(Machine.shop_id == shop_id)
+    stmt = select(Machine).where(Machine.shop_id == shop_id, Machine.archived_at.is_(None))
     if after_id is not None:
         stmt = stmt.where(Machine.id > after_id)
     return list(db.scalars(stmt.order_by(Machine.id).limit(limit + 1)))
 
 
-def all_machines(db: Session, shop_id: int) -> list[Machine]:
-    return list(db.scalars(select(Machine).where(Machine.shop_id == shop_id).order_by(Machine.code)))
+def all_machines(db: Session, shop_id: int, *, with_archived: bool = False) -> list[Machine]:
+    stmt = select(Machine).where(Machine.shop_id == shop_id)
+    if not with_archived:
+        stmt = stmt.where(Machine.archived_at.is_(None))
+    return list(db.scalars(stmt.order_by(Machine.code)))
 
 
 def note(db: Session, shop_id: int, note_id: int, *, for_update: bool = False) -> NoteVersion | None:

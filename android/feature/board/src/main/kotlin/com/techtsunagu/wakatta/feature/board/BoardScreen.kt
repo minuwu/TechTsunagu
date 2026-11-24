@@ -144,7 +144,7 @@ class BoardViewModel @Inject constructor(
         }
     }
 
-    /** Foreman only: a Worker may not list accounts, and only a Foreman can add a card. */
+    /** Foreman only: a Worker may not list accounts; a Worker's own card is assigned to them. */
     private fun loadForemanUsers() {
         viewModelScope.launch {
             val sessionUser = sessionStore.session.value?.user
@@ -331,17 +331,15 @@ fun BoardContent(
             )
         },
         floatingActionButton = {
-            if (state.isForeman) {
-                FloatingActionButton(
-                    onClick = { onEvent(BoardEvent.OpenAddTaskSheet) },
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary,
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = stringResource(R.string.board_add_task),
-                    )
-                }
+            FloatingActionButton(
+                onClick = { onEvent(BoardEvent.OpenAddTaskSheet) },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = stringResource(R.string.board_add_task),
+                )
             }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },

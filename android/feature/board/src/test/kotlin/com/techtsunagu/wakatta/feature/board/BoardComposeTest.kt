@@ -122,6 +122,9 @@ class BoardComposeTest {
                 state = BoardUiState(
                     isLoading = false,
                     isAddTaskSheetOpen = true,
+                    sheetUsers = listOf(
+                        com.techtsunagu.wakatta.core.model.User("w1", "Rahim", com.techtsunagu.wakatta.core.model.Role.WORKER, "en"),
+                    ),
                 ),
                 onEvent = {},
             )
@@ -132,5 +135,15 @@ class BoardComposeTest {
         composeTestRule.onNodeWithText("Assignees").assertIsDisplayed()
         composeTestRule.onNodeWithText("Due").assertIsDisplayed()
         composeTestRule.onNodeWithText("Add task").assertExists()
+    }
+
+    @Test
+    fun aWorkersAddTaskSheetHasNoAssigneePicker() {
+        composeTestRule.setContent {
+            BoardContent(state = BoardUiState(isLoading = false, isAddTaskSheetOpen = true), onEvent = {})
+        }
+
+        composeTestRule.onNodeWithText("New task").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Assignees").assertDoesNotExist()
     }
 }

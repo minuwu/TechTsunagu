@@ -89,6 +89,8 @@ Desktop.ini
 graphify-out/
 
 # Coding-agent local state (machine-specific; shared rules live in AGENTS.md)
+.agents/
+.codex/
 .claude/settings.local.json
 .claude/worktrees/
 CLAUDE.local.md

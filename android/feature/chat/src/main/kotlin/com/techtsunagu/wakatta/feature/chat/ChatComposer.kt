@@ -9,12 +9,10 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -46,6 +44,7 @@ import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
@@ -63,7 +62,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -146,7 +144,8 @@ internal fun ChatComposer(
     val counting = status == ComposerStatus.COUNTDOWN
     val sending = status == ComposerStatus.SENDING
     val dictating = recording || counting || sending
-    val showSend = counting || sending || inputText.isNotBlank() || hasPendingAudio
+    // while recording the button stops (M1): a tap must not send half a sentence
+    val showSend = !recording && (counting || sending || inputText.isNotBlank() || hasPendingAudio)
     val fieldColor by animateColorAsState(
         if (recording) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
         tween(300),
@@ -243,7 +242,7 @@ private fun HintRow(status: ComposerStatus, countdownSeconds: () -> Int, onEvent
                     color = muted,
                 )
                 ComposerStatus.SENDING -> {
-                    Icon(Icons.Default.Check, null, tint = StatusColors.Green, modifier = Modifier.size(18.dp))
+                    CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
                     Spacer(Modifier.width(6.dp))
                     Text(stringResource(R.string.chat_sending), style = MaterialTheme.typography.bodyMedium, color = muted)
                 }
@@ -254,7 +253,7 @@ private fun HintRow(status: ComposerStatus, countdownSeconds: () -> Int, onEvent
                 }
             }
         }
-        if (status == ComposerStatus.COUNTDOWN || status == ComposerStatus.EDITING) {
+        if (status == ComposerStatus.COUNTDOWN || status == ComposerStatus.EDITING || status == ComposerStatus.RECORDING) {
             Row(
                 Modifier
                     .height(32.dp)
@@ -341,11 +340,6 @@ private fun ActionButton(
     val track = MaterialTheme.colorScheme.primaryContainer
     val sendScale by animateFloatAsState(if (showSend) 1f else 0.4f, tween(280), label = "s")
     val ringAlpha by animateFloatAsState(if (counting || sending) 1f else 0f, tween(200), label = "r")
-    val okScale by animateFloatAsState(
-        if (sending) 1f else 0f,
-        spring(dampingRatio = 0.45f, stiffness = Spring.StiffnessMedium),
-        label = "ok",
-    )
     val micColor by animateColorAsState(if (recording) StatusColors.Red else primary, label = "m")
     // one click target: the hidden circle must not swallow taps meant for the visible one
     Box(
@@ -405,18 +399,8 @@ private fun ActionButton(
                 .background(primary, CircleShape),
             contentAlignment = Alignment.Center,
         ) {
+            // no green check here: SENDING is only the transcription, nothing is sent yet (M6)
             Icon(Icons.AutoMirrored.Filled.Send, stringResource(R.string.chat_send), tint = onPrimary, modifier = Modifier.size(24.dp))
-            Box(
-                Modifier
-                    .size(56.dp)
-                    .graphicsLayer {
-                        scaleX = okScale
-                        scaleY = okScale
-                        alpha = okScale.coerceIn(0f, 1f)
-                    }
-                    .background(StatusColors.Green, CircleShape),
-                contentAlignment = Alignment.Center,
-            ) { Icon(Icons.Default.Check, null, tint = Color.White, modifier = Modifier.size(28.dp)) }
         }
         if (counting) {
             Box(

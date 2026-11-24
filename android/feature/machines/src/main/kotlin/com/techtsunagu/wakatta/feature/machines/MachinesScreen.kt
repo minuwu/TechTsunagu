@@ -3,7 +3,12 @@ package com.techtsunagu.wakatta.feature.machines
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -56,7 +61,17 @@ fun MachinesContent(
         topBar = {
             WakattaTopBar(title = stringResource(R.string.machines_screen_title))
         },
+        floatingActionButton = {
+            if (state.isForeman) {
+                ExtendedFloatingActionButton(
+                    onClick = { onEvent(MachinesEvent.OpenDialog(MachineDialog.Add)) },
+                    icon = { Icon(Icons.Default.Add, null) },
+                    text = { Text(stringResource(R.string.machines_add)) },
+                )
+            }
+        },
     ) { innerPadding ->
+        MachineDialogs(state, onEvent)
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -85,7 +100,9 @@ fun MachinesContent(
                         onMachineClick = { id ->
                             onEvent(MachinesEvent.MachineClicked(id))
                             onMachineClick(id)
-                        }
+                        },
+                        onRename = { onEvent(MachinesEvent.OpenDialog(MachineDialog.Rename(it))) },
+                        onArchive = { onEvent(MachinesEvent.OpenDialog(MachineDialog.Archive(it))) },
                     )
                 }
                 else -> {

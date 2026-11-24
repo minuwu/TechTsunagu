@@ -29,7 +29,15 @@ data class MachineItemUiState(
     val status: SkillStatus,
     val lockedWorkerCount: Int,
     val workerStatuses: List<MachineWorkerChipState> = emptyList(),
+    val name: Map<String, String> = emptyMap(),
 )
+
+/** The Foreman's add / rename / archive dialog; null = closed. */
+sealed interface MachineDialog {
+    data object Add : MachineDialog
+    data class Rename(val machine: MachineItemUiState) : MachineDialog
+    data class Archive(val machine: MachineItemUiState) : MachineDialog
+}
 
 data class MachinesUiState(
     val isLoading: Boolean = false,
@@ -38,6 +46,9 @@ data class MachinesUiState(
     val isForeman: Boolean = false,
     val currentUserId: String = "",
     val machines: List<MachineItemUiState> = emptyList(),
+    val dialog: MachineDialog? = null,
+    val isSaving: Boolean = false,
+    val saveError: AppError? = null,
 )
 
 sealed interface MachinesEvent {
@@ -45,6 +56,10 @@ sealed interface MachinesEvent {
     data object Refresh : MachinesEvent
     data class MachineClicked(val machineId: String) : MachinesEvent
     data class TakeCheckClicked(val machineId: String) : MachinesEvent
+    data class OpenDialog(val dialog: MachineDialog?) : MachinesEvent
+    data class Add(val code: String, val nameJa: String, val nameEn: String) : MachinesEvent
+    data class Rename(val id: String, val nameJa: String, val nameEn: String) : MachinesEvent
+    data class Archive(val id: String) : MachinesEvent
 }
 
 sealed interface MachinesEffect {
@@ -70,6 +85,27 @@ class MachinesViewModel @Inject constructor(
             is MachinesEvent.Refresh -> loadMachines(isRefresh = true)
             is MachinesEvent.MachineClicked -> sendEffect(MachinesEffect.NavigateToMachine(event.machineId))
             is MachinesEvent.TakeCheckClicked -> sendEffect(MachinesEffect.NavigateToCheck(event.machineId))
+            is MachinesEvent.OpenDialog -> updateState { it.copy(dialog = event.dialog, saveError = null) }
+            is MachinesEvent.Add -> save { machineRepository.addMachine(event.code, tri(event.nameJa, event.nameEn)) }
+            is MachinesEvent.Rename -> save { machineRepository.renameMachine(event.id, tri(event.nameJa, event.nameEn)) }
+            is MachinesEvent.Archive -> save { machineRepository.archiveMachine(event.id) }
+        }
+    }
+
+    private fun tri(ja: String, en: String) = mapOf("ja" to ja.trim(), "en" to en.trim().ifEmpty { ja.trim() })
+
+    /** Runs one Foreman change; on success the dialog closes and the list reloads. */
+    private fun save(call: suspend () -> AppResult<*>) {
+        if (state.value.isSaving) return
+        viewModelScope.launch {
+            updateState { it.copy(isSaving = true, saveError = null) }
+            when (val r = call()) {
+                is AppResult.Success -> {
+                    updateState { it.copy(isSaving = false, dialog = null) }
+                    loadMachines(isRefresh = true)
+                }
+                is AppResult.Failure -> updateState { it.copy(isSaving = false, saveError = r.error) }
+            }
         }
     }
 
@@ -97,7 +133,7 @@ class MachinesViewModel @Inject constructor(
                 is AppResult.Success -> {
                     val machineList = result.value
                     if (machineList.isEmpty()) {
-                        updateState { it.copy(isLoading = false, isEmpty = true, machines = emptyList()) }
+                        updateState { it.copy(isLoading = false, isEmpty = true, isForeman = isForeman, machines = emptyList()) }
                         return@launch
                     }
 
@@ -123,6 +159,7 @@ class MachinesViewModel @Inject constructor(
                             status = skillStatus,
                             lockedWorkerCount = workerChips.count { !it.isReady },
                             workerStatuses = workerChips,
+                            name = m.name,
                         )
                     }
 
