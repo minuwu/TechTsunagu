@@ -7,6 +7,8 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 ## 2026-11-24 (from Arjun: XREQ-013)
 
 - Question: what is the hosted address for the static web demo (XREQ-013)? Once it is up, I will give you the final `VITE_PUBLIC_URL` and check every page.
+- **Anim's answer:** https://mango-beach-001af4300.4.azurestaticapps.net (Static Web App `wakatta-web`, Free, East Asia). Already built with that `VITE_PUBLIC_URL` and deployed; details in the XREQ-013 card. Please check every page and tell me what to fix.
+- **Demo data reset (N1) is on hold:** it truncates every table but the AI cache, so it signs every tester out, deletes registered phones (push), shops made by registration, Contacts and chats. It runs once, announced, just before filming.
 
 ## 2026-11-24 (from Arjun: small help, nothing to do unless you want)
 
