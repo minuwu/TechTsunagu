@@ -80,7 +80,7 @@ This file is:
 | `XREQ-022` | P1 | Frontend (Minhaz, Android app) | Backend (Anim), AI (Galib) | Chat: edit a draft before Send, Re-explanation draft and edit, term-linked Ask the Foreman | `[RESOLVED]` | 2026-11-23 23:56 |
 | `XREQ-023` | P2 | Frontend (Minhaz, Android app) | Backend (Anim) | Near-miss: Worker's own list, severity, Foreman translation, photo mark | `[RESOLVED]` | 2026-11-23 23:56 |
 | `XREQ-024` | P2 | Frontend (Minhaz, Android app) | Backend (Anim) | Foreman reads Asks; set Today's Word; Support Log JSON summary; transcript of voice Asks | `[RESOLVED]` | 2026-11-23 23:56 |
-| `XREQ-025` | P1 | Frontend (Minhaz, Android app) | Backend (Anim, Azure) | Host the release APK and run the release routine behind GET /app/config | `[RESOLVED]` | 2026-11-24 11:52 |
+| `XREQ-025` | P1 | Frontend (Minhaz, Android app) | Backend (Anim, Azure) | Host the release APK and run the release routine behind GET /app/config | `[DONE]` | 2026-11-24 12:12 |
 | `XREQ-026` | P2 | Frontend (Minhaz, Android app) | Backend (Anim, Azure) | App Links: a host, assetlinks.json and a web fallback for QR and share links | `[RESOLVED]` | 2026-11-24 11:27 |
 *(When adding a request: append a row above AND add a detailed card in 2.2. Never insert in the middle.)*
 
@@ -871,7 +871,7 @@ Live: `POST /near-misses` (machineId, text, audio, photo), `GET /near-misses` (F
 - **Priority**: `P1 (High)`
 - **From**: `Frontend (Minhaz, Android app)`
 - **To**: `Backend (Anim, Azure)`
-- **Status**: `[RESOLVED]`
+- **Status**: `[DONE]`
 - **Created**: `2026-11-23 23:56 (UTC+6)`
 - **Target Interface / Endpoint**: Azure Blob Storage (or static hosting), env `APP_MIN_VERSION`, `APP_LATEST_VERSION`, `APP_DOWNLOAD_URL`, `APP_SHA256`
 
@@ -881,7 +881,7 @@ The app updates itself from `GET /app/config` (`minVersion, latestVersion, downl
 **Fulfillment & Proof (filled by recipient on completion):**
 - **Branch / Commit**: `main` `c03c7be`: `backend/deploy/release-apk.ps1`
 - **Status / Notes**: 2026-11-24 Anim. **Release routine ready, host blocked.** A release is one command: `powershell -ExecutionPolicy Bypass -File backend\deploy\release-apk.ps1 <wakatta-1.2.0.apk> 1.2.0 [-MinVersion 1.1.0]`. It creates (first run) a Standard_LRS storage account `wakattaapk<n>` in `wakatta-rg` with one container `apk` (anonymous read of blobs only, no listing, HTTPS, TLS 1.2), uploads `wakatta-<version>.apk` with `Content-Type: application/vnd.android.package-archive`, refuses to overwrite a published version, downloads it back over anonymous HTTPS and checks the SHA-256 and Content-Type, then sets `APP_LATEST_VERSION`, `APP_DOWNLOAD_URL`, `APP_SHA256` (and `APP_MIN_VERSION` with `-MinVersion`), waits for the new revision and checks `GET /api/app/config`. `-SkipConfig` uploads and verifies without changing the API. **Blocked:** the `Microsoft.Storage` resource provider is not registered on the Azure for Students subscription, and Anim's Contributor on `wakatta-rg` cannot register it (`AuthorizationFailed` on `Microsoft.Storage/register/action`). **Asif (subscription owner), one command:** `az provider register -n Microsoft.Storage --wait`. Then Anim rehearses with `-SkipConfig` and replies here with the real `downloadUrl` form (`https://wakattaapk<n>.blob.core.windows.net/apk/wakatta-<version>.apk`). 2026-11-24 11:52 Anim: **unblocked and ready** (Asif registered the provider). Storage account **`wakattaapk71923`**, container `apk`. **`downloadUrl` = `https://wakattaapk71923.blob.core.windows.net/apk/wakatta-<version>.apk`** (e.g. `…/wakatta-1.0.0.apk`). **Minhaz:** send Anim the signed APK named `wakatta-<version>.apk` (or run the script yourself if you have Contributor on `wakatta-rg`) and say whether it raises `minVersion`; one command publishes it and `GET /api/app/config` offers it. The app should check the downloaded file against `sha256` before installing.
-- **Verification Proof**: 2026-11-24 rehearsal with a dummy `wakatta-0.0.1.apk` and `-SkipConfig`: account and container created, upload done, anonymous HTTPS download matched the SHA-256 and `Content-Type: application/vnd.android.package-archive`; anonymous container listing refused (404); the dummy blob deleted afterwards (404). `GET /api/app/config` unchanged.
+- **Verification Proof**: 2026-11-24 rehearsal with a dummy `wakatta-0.0.1.apk` and `-SkipConfig`: account and container created, upload done, anonymous HTTPS download matched the SHA-256 and `Content-Type: application/vnd.android.package-archive`; anonymous container listing refused (404); the dummy blob deleted afterwards (404). `GET /api/app/config` unchanged. **Released** 2026-11-24 with the script: 1.0.0 (11:55), then **1.0.1** (12:11; Minhaz's `a49a447`, SHA-256 `d06a9426…9041` checked against `android/release/wakatta-1.0.1.apk.sha256` first). Live: `GET /api/app/config` → `latestVersion` 1.0.1, `minVersion` 1.0.0, `downloadUrl` `https://wakattaapk71923.blob.core.windows.net/apk/wakatta-1.0.1.apk`, `sha256` as above.
 
 #### `[XREQ-026]` App Links host, `assetlinks.json` and web fallback
 
