@@ -3078,6 +3078,10 @@ export type MessageForSender = {
      */
     fromDisplayName?: string | null;
     /**
+     * Fromrole
+     */
+    fromRole?: string | null;
+    /**
      * Questions
      */
     questions: Array<CheckQuestion>;
@@ -3154,6 +3158,10 @@ export type MessageForWorker = {
      * Fromdisplayname
      */
     fromDisplayName?: string | null;
+    /**
+     * Fromrole
+     */
+    fromRole?: string | null;
     /**
      * Questions
      */
