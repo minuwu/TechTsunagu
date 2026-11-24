@@ -171,16 +171,17 @@ def test_security_headers_are_on_every_response(client: TestClient) -> None:
     assert res.headers["Referrer-Policy"] == "no-referrer"
 
 
-def test_signed_in_answers_are_never_stored_by_a_cache(client: TestClient, db: Session) -> None:
+def test_api_answers_are_never_stored_by_a_cache(client: TestClient, db: Session) -> None:
     worker = f.user(db, f.shop(db), pin="2468", must_change=False)
-    token = client.post("/api/auth/login", json={"userId": str(worker.id), "pin": "2468"}).json()["data"]["token"]
-    signed_in = {"Authorization": f"Bearer {token}"}
+    login = client.post("/api/auth/login", json={"userId": str(worker.id), "pin": "2468"})
+    signed_in = {"Authorization": f"Bearer {login.json()['data']['token']}"}
 
     plain = client.get("/api/auth/me", headers=signed_in)
     polled = client.get("/api/tasks", headers=signed_in)
     unchanged = client.get("/api/tasks", headers=signed_in | {"If-None-Match": polled.headers["ETag"]})
 
-    assert plain.headers["Cache-Control"] == "no-store"
+    assert login.headers["Cache-Control"] == plain.headers["Cache-Control"] == "no-store"
+    assert client.get(f"/api/senpai/{'x' * 22}").headers["Cache-Control"] == "no-store"  # the link is the credential
     assert polled.headers["Cache-Control"] == "no-cache"  # an ETag route keeps its own rule
     assert (unchanged.status_code, unchanged.headers.get("Cache-Control")) == (304, None)
 

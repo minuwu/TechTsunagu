@@ -54,8 +54,7 @@ class RequestContextMiddleware:
         if scope["type"] != "http":
             await self.app(scope, receive, send)
             return
-        sent = Headers(scope=scope)
-        rid, signed_in = _request_id(sent.get("x-request-id")), "authorization" in sent
+        rid = _request_id(Headers(scope=scope).get("x-request-id"))
         # Not reset on exit: the 500 handler runs after this middleware unwinds and still needs the id.
         request_id_var.set(rid)
         status = 500
@@ -69,8 +68,8 @@ class RequestContextMiddleware:
                 headers["X-Request-ID"] = rid
                 headers["X-Content-Type-Options"] = "nosniff"
                 headers["Referrer-Policy"] = "no-referrer"
-                # Signed-in data is never stored; ETag routes and photos set their own rule, and a 304 changes nothing.
-                if signed_in and status != 304:
+                # API data is never stored; ETag routes and photos set their own rule, and a 304 changes nothing.
+                if scope["path"].startswith("/api/") and status != 304:
                     headers.setdefault("Cache-Control", "no-store")
             await send(message)
 
