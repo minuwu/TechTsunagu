@@ -15,8 +15,9 @@ VITE_API_URL=https://wakatta-api.agreeablestone-840cfb57.japaneast.azurecontaine
 - Health: `GET https://wakatta-api.agreeablestone-840cfb57.japaneast.azurecontainerapps.io/api/health/ready` → `{"success":true,"data":{"status":"ok"}}`.
 - Check the whole connection from the frontend side with `cd frontend && npm run check:api` (health, database, CORS for
   `http://localhost:3000`, deployed contract vs `docs/openapi.yaml`, and a demo sign-in round trip that signs out again).
-- CORS allows `http://localhost:3000` (your `npm run dev` port). When the frontend is hosted, send Asif the exact
-  origin (`https://host`, no trailing slash); one command adds it (`backend/deploy/set-cors.ps1`).
+- CORS allows `http://localhost:3000` (your `npm run dev` port) and the hosted sites listed in `$FrontendOrigins`
+  (`backend/deploy/common.ps1`). For a new site, add its exact origin there (`https://host`, no trailing slash), then
+  run `backend/deploy/set-cors.ps1` with no arguments. Firebase preview channels have their own host, so they are blocked.
 - Every response is `{"success":true,"data":…}` or `{"success":false,"error":{"code","message","details"}}`.
 
 ## 2. Sign-in (replaces the shared PINs and "pick who you are")

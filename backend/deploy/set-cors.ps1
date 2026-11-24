@@ -1,5 +1,6 @@
 # Set the browser origins the API accepts (CORS), e.g. local dev plus the hosted frontend.
-# Usage: powershell -ExecutionPolicy Bypass -File backend\deploy\set-cors.ps1 "http://localhost:3000,https://<frontend host>"
+# Usage: add the site to $FrontendOrigins in common.ps1, then: powershell -ExecutionPolicy Bypass -File backend\deploy\set-cors.ps1
+# An argument (comma-separated list) replaces the whole list for this run.
 # Exact origins only: scheme://host[:port], no path, no trailing slash, no wildcard (the API refuses to start otherwise).
 param([string]$Origins)
 . "$PSScriptRoot\common.ps1"

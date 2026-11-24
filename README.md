@@ -10,7 +10,7 @@ A shop-floor messenger for Japanese factories and their foreign workers.
 The foreman speaks Japanese. Each worker reads it in their own language,
 answers three private questions, and the foreman sees who truly understood.
 
-[Demo video (coming soon)](#demo-video) · [Web app](https://mango-beach-001af4300.4.azurestaticapps.net) · [Android APK 1.0.3](https://wakattaapk71923.blob.core.windows.net/apk/wakatta-1.0.3.apk) · [Interactive demo](#try-it)
+[Demo video (coming soon)](#demo-video) · [Web app](https://wakatta.web.app) · [Android APK 1.0.3](https://wakattaapk71923.blob.core.windows.net/apk/wakatta-1.0.3.apk) · [Interactive demo](#try-it)
 
 Team **TechTsunagu** · Theme: *TSUNAGU, update the way we connect*
 
@@ -86,7 +86,7 @@ Translation tools stop at translating. Wakatta checks the answer and repairs the
 | :--- | :--- |
 | **Interactive story demo** (two phones, side by side) | Open [`prototypes/wakatta/index.html`](prototypes/wakatta/index.html) in a browser. Nekko, our guide, walks you through five chapters; every tap in either phone moves the story. No install, no network. |
 | **Android app** | Download [APK 1.0.3](https://wakattaapk71923.blob.core.windows.net/apk/wakatta-1.0.3.apk) (SHA-256 `8f2e2ab5…e789e81a`) and install it on Android 8.0 or later. |
-| **Web app** (foreman PC and landing page) | [mango-beach-001af4300.4.azurestaticapps.net](https://mango-beach-001af4300.4.azurestaticapps.net) |
+| **Web app** (foreman PC and landing page) | [wakatta.web.app](https://wakatta.web.app) |
 
 <a id="demo-video"></a>
 **Demo video:** coming soon.

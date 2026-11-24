@@ -4,6 +4,22 @@ Owner: Asif (`MdAsif-Hossain`) — Role: Backend (lead) / Services / Database
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-24 23:45 — README links to the new web app
+
+- `README.md`: both web app links now open https://wakatta.web.app (checked: 200, its bundle calls the live API). The proposal still has the Azure link.
+
+## 2026-11-24 23:30 — CORS opened for the hosted web sites (Minhaz was blocked)
+
+### Changed
+- The live API accepted only `http://localhost:3000`, so `https://wakatta.web.app` got 400 on the CORS check. `f1d5092`: `$FrontendOrigins` in `backend/deploy/common.ps1` now lists every team site (localhost:3000, wakatta.web.app, wakatta.firebaseapp.com, the Azure Static Web App). Applied live with `set-cors.ps1`.
+- A new site: add it to that list and run `set-cors.ps1` with no arguments (an argument replaces the whole list). `docs/FRONTEND_API_HANDOVER.md` says the same.
+
+### Verified on the live API
+- Preflight 200 and the matching `Access-Control-Allow-Origin` for all four; an unknown origin is refused (400, no header).
+
+### Left
+- `wakatta.web.app` itself returned 404 (not deployed yet). Sign-in from the hosted site not tried.
+
 ## 2026-11-24 21:30 — No Bangla anywhere in the live demo; demo reset done (N1)
 
 ### Changed

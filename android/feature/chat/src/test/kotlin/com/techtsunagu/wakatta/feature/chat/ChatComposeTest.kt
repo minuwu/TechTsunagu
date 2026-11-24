@@ -370,6 +370,13 @@ class ChatComposeTest {
     }
 
     @Test
+    fun aSentMessageCarriesNoDraftMark() { // M4
+        showDraft(draft().copy(isDraft = false, stage = 5), mutableListOf())
+        composeTestRule.onNodeWithText("Draft, not sent", substring = true).assertDoesNotExist()
+        composeTestRule.onNodeWithText("Check before sending").assertDoesNotExist()
+    }
+
+    @Test
     fun foremanEditsTheDraftsJapanese() {
         val events = mutableListOf<ChatEvent>()
         showDraft(draft(needsEdit = true, en = null), events)
