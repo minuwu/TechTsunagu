@@ -1,0 +1,47 @@
+# Android checks (contributors/ANDROID_FIX_PLAN.md N3): unit tests, the module graph rules (module-rules.json) and a debug
+# build, on every change to the app. No secrets: the debug build needs no signing key or Firebase config. The signed
+# release stays manual (android-release.yml).
+name: android-ci
+
+on:
+  pull_request:
+    paths: ["android/**", ".github/workflows/android-ci.yml"]
+  push:
+    branches: [main]
+    paths: ["android/**", ".github/workflows/android-ci.yml"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: android
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      # `bash gradlew`: the wrapper is committed without the executable bit (mode 100644).
+      - name: Unit tests, module graph, debug build
+        run: bash gradlew --no-daemon testDebugUnitTest checkModuleGraph :app:assembleDebug
+
+      - name: Keep the test reports when a test fails
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-test-reports
+          path: android/**/build/reports/tests/
+          if-no-files-found: ignore
