@@ -96,6 +96,8 @@ class Message(Base):
     to_user_id: Mapped[int | None] = mapped_column(BigInteger)
     stage: Mapped[int] = mapped_column(SmallInteger, server_default=sql_text("0"))
     needs_edit: Mapped[bool] = mapped_column(Boolean, server_default=sql_text("false"))
+    # The AI's Task drafts of an unsent message (API shape), so a retried POST returns them; Send clears them.
+    task_drafts: Mapped[list[dict[str, object]]] = mapped_column(JSONB, server_default=sql_text("'[]'::jsonb"))
     idempotency_key: Mapped[uuid.UUID | None] = mapped_column(Uuid)
     created_at: Mapped[CreatedAt]
     sent_at: Mapped[TimestampOrNone]

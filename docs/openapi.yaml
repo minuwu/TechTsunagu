@@ -1262,6 +1262,23 @@
               "pattern": "^[1-9][0-9]{0,18}$",
               "title": "Machine Id"
             }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
           }
         ],
         "requestBody": {
@@ -1281,6 +1298,67 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Envelope_OverrideOut_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "foreman"
+        ]
+      }
+    },
+    "/api/machines/{machine_id}/remind": {
+      "post": {
+        "tags": [
+          "work"
+        ],
+        "summary": "Remind a Worker to take the Machine's Check (rate-limited)",
+        "operationId": "remind_api_machines__machine_id__remind_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "machine_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Machine Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RemindIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NoneType_"
                 }
               }
             }
@@ -2607,7 +2685,7 @@
         "tags": [
           "life"
         ],
-        "summary": "Your own Asks, newest first",
+        "summary": "Asks, newest first: a Worker's own, or the shop's for a Foreman",
         "operationId": "list_asks_api_asks_get",
         "security": [
           {
@@ -2668,6 +2746,7 @@
           }
         },
         "x-roles": [
+          "foreman",
           "worker"
         ]
       }
@@ -4776,7 +4855,7 @@
         "tags": [
           "work"
         ],
-        "summary": "Near-miss Reports of your shop, newest first; If-None-Match gives 304",
+        "summary": "Near-miss Reports, newest first (a Worker: only their own); If-None-Match gives 304",
         "operationId": "list_reports_api_near_misses_get",
         "security": [
           {
@@ -4831,6 +4910,120 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Envelope_Page_NearMissOut__"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "foreman",
+          "worker"
+        ]
+      }
+    },
+    "/api/near-misses/{report_id}": {
+      "get": {
+        "tags": [
+          "work"
+        ],
+        "summary": "One Near-miss Report (a Worker: only their own)",
+        "operationId": "get_report_api_near_misses__report_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "report_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Report Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NearMissOut_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "x-roles": [
+          "foreman",
+          "worker"
+        ]
+      }
+    },
+    "/api/near-misses/{report_id}/task": {
+      "put": {
+        "tags": [
+          "work"
+        ],
+        "summary": "Link the Task made from a Near-miss Report",
+        "operationId": "link_task_api_near_misses__report_id__task_put",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "report_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Report Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NearMissTaskIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_NearMissOut_"
                 }
               }
             }
@@ -6679,9 +6872,24 @@
             "type": "string",
             "title": "Workerid"
           },
+          "workerName": {
+            "type": "string",
+            "title": "Workername"
+          },
           "text": {
             "type": "string",
             "title": "Text"
+          },
+          "textJa": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Textja"
           },
           "covered": {
             "type": "boolean",
@@ -6754,6 +6962,18 @@
             ],
             "title": "Senpaireply"
           },
+          "repliedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Repliedat"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time",
@@ -6765,12 +6985,15 @@
         "required": [
           "id",
           "workerId",
+          "workerName",
           "text",
+          "textJa",
           "covered",
           "answer",
           "sourceNoticeIds",
           "forwarded",
           "senpaiReply",
+          "repliedAt",
           "createdAt"
         ],
         "title": "AskOut"
@@ -7290,6 +7513,48 @@
               }
             ],
             "title": "Photo"
+          },
+          "severity": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "low",
+                  "mid",
+                  "high"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Severity"
+          },
+          "photoMarkX": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Photomarkx"
+          },
+          "photoMarkY": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Photomarky"
           }
         },
         "type": "object",
@@ -11547,7 +11812,7 @@
           "questions"
         ],
         "title": "MessageForSender",
-        "description": "The Foreman's view: the answer key, and the Task drafts on the response to POST (they are not stored)."
+        "description": "The Foreman's view: the answer key, and the Task drafts of an unsent message (empty once it is sent)."
       },
       "MessageForWorker": {
         "properties": {
@@ -11726,6 +11991,10 @@
             "type": "string",
             "title": "Workerid"
           },
+          "workerName": {
+            "type": "string",
+            "title": "Workername"
+          },
           "machineId": {
             "type": "string",
             "title": "Machineid"
@@ -11751,6 +12020,37 @@
             "type": "object",
             "title": "Text"
           },
+          "textJa": {
+            "type": "string",
+            "title": "Textja"
+          },
+          "lang": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lang"
+          },
+          "severity": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "low",
+                  "mid",
+                  "high"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Severity"
+          },
           "photo": {
             "anyOf": [
               {
@@ -11761,6 +12061,27 @@
               }
             ],
             "title": "Photo"
+          },
+          "photoMark": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PhotoMark"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "taskId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Taskid"
           },
           "createdAt": {
             "type": "string",
@@ -11785,13 +12106,35 @@
         "required": [
           "id",
           "workerId",
+          "workerName",
           "machineId",
           "text",
+          "textJa",
+          "lang",
+          "severity",
           "photo",
+          "photoMark",
+          "taskId",
           "createdAt",
           "acknowledgedAt"
         ],
         "title": "NearMissOut"
+      },
+      "NearMissTaskIn": {
+        "properties": {
+          "taskId": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]{0,18}$",
+            "title": "Taskid"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "taskId"
+        ],
+        "title": "NearMissTaskIn",
+        "description": "PUT /near-misses/{id}/task: the Task the Foreman made from the report."
       },
       "NoteForWorker": {
         "properties": {
@@ -13245,6 +13588,30 @@
         "title": "Passport",
         "description": "GET /workers/{id}/passport: one Worker's Sign-off status on every Machine of the shop."
       },
+      "PhotoMark": {
+        "properties": {
+          "x": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "X"
+          },
+          "y": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Y"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "x",
+          "y"
+        ],
+        "title": "PhotoMark",
+        "description": "Where the danger is on the photo: fractions of its width and height (0 to 1)."
+      },
       "PinChangeIn": {
         "properties": {
           "currentPin": {
@@ -13489,6 +13856,22 @@
         ],
         "title": "ReexplainIn",
         "description": "POST /messages/{id}/reexplain. With `text` and `question` (the Foreman's edited draft from\n/reexplain/draft) it is sent as written and no model is called; without them the AI writes it (XREQ-022)."
+      },
+      "RemindIn": {
+        "properties": {
+          "workerId": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]{0,18}$",
+            "title": "Workerid"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "workerId"
+        ],
+        "title": "RemindIn",
+        "description": "POST /machines/{id}/remind: the Worker who should take the Machine's Check."
       },
       "ReplyOptionOut": {
         "properties": {

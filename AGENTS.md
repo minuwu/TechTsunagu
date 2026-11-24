@@ -76,10 +76,10 @@ This file is:
 | `XREQ-018` | P1 | Frontend (Minhaz, Android app) | Backend (Anim), AI (Galib) | Talk Threads: threads and entries routes plus the two AI pipelines | `[RESOLVED]` | 2026-11-23 23:56 |
 | `XREQ-019` | P2 | Frontend (Minhaz, Android app) | Backend (Anim) | Group controls on work Threads: create, members, roles, mute/pin/archive, leave, announce-only | `[PENDING]` | 2026-11-23 23:56 |
 | `XREQ-020` | P1 | Frontend (Minhaz, Android app) | Backend (Anim) | Worker can read own Follow-ups and Learning History; analytics trend and per-Worker counts | `[DONE]` | 2026-11-24 00:10 |
-| `XREQ-021` | P2 | Frontend (Minhaz, Android app) | Backend (Anim) | Machine gaps: Remind a Worker, Idempotency-Key on overrides, Task filter by Machine | `[PENDING]` | 2026-11-23 23:56 |
+| `XREQ-021` | P2 | Frontend (Minhaz, Android app) | Backend (Anim) | Machine gaps: Remind a Worker, Idempotency-Key on overrides, Task filter by Machine | `[RESOLVED]` | 2026-11-23 23:56 |
 | `XREQ-022` | P1 | Frontend (Minhaz, Android app) | Backend (Anim), AI (Galib) | Chat: edit a draft before Send, Re-explanation draft and edit, term-linked Ask the Foreman | `[RESOLVED]` | 2026-11-23 23:56 |
-| `XREQ-023` | P2 | Frontend (Minhaz, Android app) | Backend (Anim) | Near-miss: Worker's own list, severity, Foreman translation, photo mark | `[PENDING]` | 2026-11-23 23:56 |
-| `XREQ-024` | P2 | Frontend (Minhaz, Android app) | Backend (Anim) | Foreman reads Asks; set Today's Word; Support Log JSON summary; transcript of voice Asks | `[PENDING]` | 2026-11-23 23:56 |
+| `XREQ-023` | P2 | Frontend (Minhaz, Android app) | Backend (Anim) | Near-miss: Worker's own list, severity, Foreman translation, photo mark | `[RESOLVED]` | 2026-11-23 23:56 |
+| `XREQ-024` | P2 | Frontend (Minhaz, Android app) | Backend (Anim) | Foreman reads Asks; set Today's Word; Support Log JSON summary; transcript of voice Asks | `[RESOLVED]` | 2026-11-23 23:56 |
 | `XREQ-025` | P1 | Frontend (Minhaz, Android app) | Backend (Anim, Azure) | Host the release APK and run the release routine behind GET /app/config | `[PENDING]` | 2026-11-23 23:56 |
 | `XREQ-026` | P2 | Frontend (Minhaz, Android app) | Backend (Anim, Azure) | App Links: a host, assetlinks.json and a web fallback for QR and share links | `[PENDING]` | 2026-11-23 23:56 |
 *(When adding a request: append a row above AND add a detailed card in 2.2. Never insert in the middle.)*
@@ -803,7 +803,7 @@ The still-open item 1 of XREQ-011. (1) `GET /follow-ups` is Foreman-only, so a W
 - **Priority**: `P2 (Normal)`
 - **From**: `Frontend (Minhaz, Android app)`
 - **To**: `Backend (Anim)`
-- **Status**: `[PENDING]`
+- **Status**: `[RESOLVED]`
 - **Created**: `2026-11-23 23:56 (UTC+6)`
 - **Target Interface / Endpoint**: new `POST /api/machines/{machine_id}/remind`, `POST /api/machines/{machine_id}/overrides`, `GET /api/tasks`
 
@@ -811,9 +811,9 @@ The still-open item 1 of XREQ-011. (1) `GET /follow-ups` is Foreman-only, so a W
 (1) **Remind a Worker** (Panel, Foreman): the button "remind this Worker to take the Check" has no route; propose `POST /machines/{id}/remind` `{workerId}` that sends one generic push (same rules as Nudge: ids only, no text). (2) **Idempotency-Key on `POST /machines/{id}/overrides`**: `OverrideIn` has `workerId, minutes, reason` and no key; a retry on a bad network can create two overrides. Please accept an optional `Idempotency-Key` header like `/tasks` and `/meetups` do. (3) **`GET /tasks?machineId=`** filter (the Machine screen lists a Machine's Tasks; it fetches all today). Not a gap, FYI: `PanelOut` already has `versionNo`; the app will use it.
 
 **Fulfillment & Proof (filled by recipient on completion):**
-- **Branch / Commit**: 
-- **Status / Notes**: 
-- **Verification Proof**: 
+- **Branch / Commit**: `main` (Minhaz, 2026-11-24, built in the backend so the Android app can finish).
+- **Status / Notes**: All three. (1) **`POST /api/machines/{id}/remind` `{workerId}`** (Foreman): one generic push to the Worker's phones, data type `check_due` with `machineId`, channel `safety`, no text from the app; again for the same Worker and Machine within 10 minutes is `429`. (2) `POST /api/machines/{id}/overrides` takes an optional `Idempotency-Key`; the same key returns the first override (older apps that send no key keep working). (3) `GET /api/tasks?machineId=` already existed.
+- **Verification Proof**: `tests/api/test_work.py` (override retry), `tests/api/test_push.py` (remind, 429, roles); full backend suite, ruff, pyright strict and import-linter green; migration `a445952485bc` runs up and down; `docs/openapi.yaml` and the frontend types regenerated.
 
 #### `[XREQ-022]` Chat: edit the draft before Send, Re-explanation draft, "ask the Foreman" message
 
@@ -837,7 +837,7 @@ The Foreman's flow is: dictate, see the transcript, edit, then send (Auto-send C
 - **Priority**: `P2 (Normal)`
 - **From**: `Frontend (Minhaz, Android app)`
 - **To**: `Backend (Anim)`
-- **Status**: `[PENDING]`
+- **Status**: `[RESOLVED]`
 - **Created**: `2026-11-23 23:56 (UTC+6)`
 - **Target Interface / Endpoint**: `GET /api/near-misses`, `POST /api/near-misses`, `NearMissOut`
 
@@ -845,16 +845,16 @@ The Foreman's flow is: dictate, see the transcript, edit, then send (Auto-send C
 Live: `POST /near-misses` (machineId, text, audio, photo), `GET /near-misses` (Foreman only), `POST .../ack`, `GET .../photo`. Missing for the prototype's screens: (1) a Worker must list and open their own reports ("My reports"): allow `GET /near-misses` for a Worker filtered to themselves, and a get-by-id `GET /near-misses/{id}`; (2) `NearMissOut` (`id, workerId, machineId, text, photo, createdAt, acknowledgedAt`) has no **translation for the Foreman**: add `textJa` (and the original `text` with its `lang`); (3) `severity` (`low|mid|high`) on create and in the output, and the photo mark position `{x,y}` (0 to 1); (4) the Task created from a Near-miss: `taskId` or a route; (5) the reporter's display name for the Foreman list.
 
 **Fulfillment & Proof (filled by recipient on completion):**
-- **Branch / Commit**: 
-- **Status / Notes**: 
-- **Verification Proof**: 
+- **Branch / Commit**: `main` (Minhaz, 2026-11-24, built in the backend so the Android app can finish).
+- **Status / Notes**: All five. `NearMissOut` gains `workerName`, `textJa`, `lang`, `severity` (`low`, `mid`, `high` or null), `photoMark {x, y}` (0 to 1, or null) and `taskId`. `POST /api/near-misses` takes the form fields `severity`, `photoMarkX`, `photoMarkY` (both or neither, and only with a photo, else 422). `GET /api/near-misses` lists a Worker's own reports, and the shop's for a Foreman. New `GET /api/near-misses/{id}` (own or shop, else 404) and **`PUT /api/near-misses/{id}/task` `{taskId}`** (Foreman; a retry changes nothing; a second, different Task is `409`).
+- **Verification Proof**: `tests/api/test_near_misses.py` (own list and get, bad severity and mark, Task link, other shop 404); full backend suite, ruff, pyright strict and import-linter green; migration `a445952485bc` runs up and down; `docs/openapi.yaml` and the frontend types regenerated.
 
 #### `[XREQ-024]` Asks for the Foreman, Today's Word setter, Support Log summary, voice Ask transcript
 
 - **Priority**: `P2 (Normal)`
 - **From**: `Frontend (Minhaz, Android app)`
 - **To**: `Backend (Anim)`, `AI (Galib)` for item 4
-- **Status**: `[PENDING]`
+- **Status**: `[RESOLVED]`
 - **Created**: `2026-11-23 23:56 (UTC+6)`
 - **Target Interface / Endpoint**: `GET /api/asks`, `GET /api/today-word`, new `GET /api/support-log/summary`
 
@@ -862,9 +862,9 @@ Live: `POST /near-misses` (machineId, text, audio, photo), `GET /near-misses` (F
 (1) `GET /asks` is `worker` only (`x-roles`): the Foreman's Ask screen (Asks forwarded to the Senpai, covered or not) cannot read them. Allow the Foreman to list the shop's Asks. (2) **Today's Word:** `GET /today-word` is Foreman-only and nothing sets it. Add `PUT /today-word` `{word, reading, meaning}` for a Worker (one word of their language, shown to the Japanese side), keeping the Foreman read. (3) **Support Log JSON summary** `GET /support-log/summary?month=YYYY-MM` (Foreman): `{meetups, noticeChecks, interviews, perWorker:[{workerId,displayName,meetups,noticeChecks,interviews}]}` so the screen does not parse the CSV (`GET /support-log.csv` stays for the file). (4) **Voice Asks** are saved with an empty `text` (contract D-11): keep the transcript in `AskOut.text` (add to `AskDraft`).
 
 **Fulfillment & Proof (filled by recipient on completion):**
-- **Branch / Commit**: 
-- **Status / Notes**: 
-- **Verification Proof**: 
+- **Branch / Commit**: `main` (Minhaz, 2026-11-24, built in the backend so the Android app can finish).
+- **Status / Notes**: (1) `GET /api/asks` answers a Foreman with the shop's Asks; `AskOut` gains `workerName`, `textJa`, `repliedAt`. (4) The transcript of a voice Ask was already kept. **Not built:** (2) `PUT /api/today-word`, because the app has no screen that sets it (the server gives an automatic word), and (3) the JSON summary, because the app reads `support-log.csv`. File a new request if a screen needs one of them.
+- **Verification Proof**: `tests/api/test_asks_senpai.py`; full backend suite, ruff, pyright strict and import-linter green; migration `a445952485bc` runs up and down; `docs/openapi.yaml` and the frontend types regenerated.
 
 #### `[XREQ-025]` Host the release APK; update `GET /app/config` on each release
 

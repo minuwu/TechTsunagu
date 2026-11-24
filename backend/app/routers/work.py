@@ -4,7 +4,7 @@ import uuid
 from datetime import date
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, File, Form, Header, Request, Response, UploadFile
+from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, Header, Request, Response, UploadFile
 
 from app.api.auth import DbSession, now_utc, require
 from app.api.conditional import conditional_json
@@ -32,12 +32,14 @@ from app.schemas.work import (
     OverrideOut,
     PanelOut,
     PanelToken,
+    RemindIn,
     SignOffOut,
     StepEdit,
 )
 from app.services import briefings, floor, notes, notices, records
 from app.services.ai_runner import AiRunner
 from app.services.auth import Principal
+from app.services.push import Pusher
 
 router = APIRouter(prefix="/api", tags=["work"])
 Foreman = Annotated[Principal, Depends(require("foreman"))]
@@ -46,6 +48,7 @@ ShopMember = Annotated[Principal, Depends(require("foreman", "worker"))]
 PanelViewer = Annotated[Principal, Depends(require("panel", "foreman"))]
 Paging = Annotated[PageParams, Depends(page_params)]
 IdempotencyKey = Annotated[uuid.UUID, Header(alias="Idempotency-Key")]
+OptionalKey = Annotated[uuid.UUID | None, Header(alias="Idempotency-Key")]  # optional: the web app sends none yet
 
 
 def _ai(request: Request) -> AiRunner:
@@ -128,8 +131,22 @@ def submit_check(who: Worker, body: CheckIn, key: IdempotencyKey, db: DbSession)
 
 
 @router.post("/machines/{machine_id}/overrides", status_code=201, summary="Panel Override: allow without a Sign-off")
-def start_override(who: Foreman, machine_id: IdIn, body: OverrideIn, db: DbSession) -> Envelope[OverrideOut]:
-    return Envelope(data=records.start_override(db, who, int(machine_id), body, now_utc()))
+def start_override(
+    who: Foreman, machine_id: IdIn, body: OverrideIn, db: DbSession, key: OptionalKey = None
+) -> Envelope[OverrideOut]:
+    return Envelope(data=records.start_override(db, who, int(machine_id), body, now_utc(), key))
+
+
+@router.post("/machines/{machine_id}/remind", summary="Remind a Worker to take the Machine's Check (rate-limited)")
+def remind(
+    who: Foreman, machine_id: IdIn, body: RemindIn, db: DbSession, request: Request, later: BackgroundTasks
+) -> Envelope[None]:
+    records.remind(db, who, int(machine_id), int(body.worker_id), now_utc())
+    pusher: Pusher = request.app.state.push
+    if who.shop_id is not None:
+        db.close()  # the push opens its own session
+        later.add_task(pusher.check_due, who.shop_id, int(machine_id), int(body.worker_id))
+    return Envelope(data=None)
 
 
 @router.delete("/machines/{machine_id}/overrides/{override_id}", summary="End a Panel Override early")

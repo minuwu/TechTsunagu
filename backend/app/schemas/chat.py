@@ -50,7 +50,7 @@ class _MessageOut(CamelModel):
 
 
 class MessageForSender(_MessageOut):
-    """The Foreman's view: the answer key, and the Task drafts on the response to POST (they are not stored)."""
+    """The Foreman's view: the answer key, and the Task drafts of an unsent message (empty once it is sent)."""
 
     questions: list[CheckQuestion]
     task_drafts: list[TaskDraft] = []

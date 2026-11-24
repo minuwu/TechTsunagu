@@ -56,9 +56,9 @@ def create_ask(
     return Envelope(data=asks.create(db, who, text, voice, key, _ai(request), now_utc()))
 
 
-@router.get("/asks", summary="Your own Asks, newest first")
-def list_asks(who: Worker, db: DbSession, page: Paging) -> Envelope[Page[AskOut]]:
-    return Envelope(data=asks.list_own(db, who, page))
+@router.get("/asks", summary="Asks, newest first: a Worker's own, or the shop's for a Foreman")
+def list_asks(who: ShopMember, db: DbSession, page: Paging) -> Envelope[Page[AskOut]]:
+    return Envelope(data=asks.list_asks(db, who, page))
 
 
 @router.post("/asks/{ask_id}/forward", summary="Send an Ask to your Senpai; 409 NO_ACTIVE_PAIR without one")

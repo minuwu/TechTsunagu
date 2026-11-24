@@ -161,9 +161,17 @@ export type AskOut = {
      */
     workerId: string;
     /**
+     * Workername
+     */
+    workerName: string;
+    /**
      * Text
      */
     text: string;
+    /**
+     * Textja
+     */
+    textJa: string | null;
     /**
      * Covered
      */
@@ -188,6 +196,10 @@ export type AskOut = {
     senpaiReply: {
         [key: string]: string;
     } | null;
+    /**
+     * Repliedat
+     */
+    repliedAt: string | null;
     /**
      * Createdat
      */
@@ -458,6 +470,18 @@ export type BodyReportApiNearMissesPost = {
      * Photo
      */
     photo?: Blob | File | null;
+    /**
+     * Severity
+     */
+    severity?: 'low' | 'mid' | 'high' | null;
+    /**
+     * Photomarkx
+     */
+    photoMarkX?: number | null;
+    /**
+     * Photomarky
+     */
+    photoMarkY?: number | null;
 };
 
 /**
@@ -2851,7 +2875,7 @@ export type MeetupOut = {
 /**
  * MessageForSender
  *
- * The Foreman's view: the answer key, and the Task drafts on the response to POST (they are not stored).
+ * The Foreman's view: the answer key, and the Task drafts of an unsent message (empty once it is sent).
  */
 export type MessageForSender = {
     /**
@@ -3013,6 +3037,10 @@ export type NearMissOut = {
      */
     workerId: string;
     /**
+     * Workername
+     */
+    workerName: string;
+    /**
      * Machineid
      */
     machineId: string;
@@ -3023,9 +3051,26 @@ export type NearMissOut = {
         [key: string]: string;
     };
     /**
+     * Textja
+     */
+    textJa: string;
+    /**
+     * Lang
+     */
+    lang: string | null;
+    /**
+     * Severity
+     */
+    severity: 'low' | 'mid' | 'high' | null;
+    /**
      * Photo
      */
     photo: string | null;
+    photoMark: PhotoMark | null;
+    /**
+     * Taskid
+     */
+    taskId: string | null;
     /**
      * Createdat
      */
@@ -3034,6 +3079,18 @@ export type NearMissOut = {
      * Acknowledgedat
      */
     acknowledgedAt: string | null;
+};
+
+/**
+ * NearMissTaskIn
+ *
+ * PUT /near-misses/{id}/task: the Task the Foreman made from the report.
+ */
+export type NearMissTaskIn = {
+    /**
+     * Taskid
+     */
+    taskId: string;
 };
 
 /**
@@ -3741,6 +3798,22 @@ export type Passport = {
 };
 
 /**
+ * PhotoMark
+ *
+ * Where the danger is on the photo: fractions of its width and height (0 to 1).
+ */
+export type PhotoMark = {
+    /**
+     * X
+     */
+    x: number;
+    /**
+     * Y
+     */
+    y: number;
+};
+
+/**
  * PinChangeIn
  */
 export type PinChangeIn = {
@@ -3871,6 +3944,18 @@ export type ReexplainIn = {
         [key: string]: string;
     } | null;
     question?: CheckQuestion | null;
+};
+
+/**
+ * RemindIn
+ *
+ * POST /machines/{id}/remind: the Worker who should take the Machine's Check.
+ */
+export type RemindIn = {
+    /**
+     * Workerid
+     */
+    workerId: string;
 };
 
 /**
@@ -5274,6 +5359,12 @@ export type SubmitCheckApiChecksPostResponse = SubmitCheckApiChecksPostResponses
 
 export type StartOverrideApiMachinesMachineIdOverridesPostData = {
     body: OverrideIn;
+    headers?: {
+        /**
+         * Idempotency-Key
+         */
+        'Idempotency-Key'?: string | null;
+    };
     path: {
         /**
          * Machine Id
@@ -5301,6 +5392,36 @@ export type StartOverrideApiMachinesMachineIdOverridesPostResponses = {
 };
 
 export type StartOverrideApiMachinesMachineIdOverridesPostResponse = StartOverrideApiMachinesMachineIdOverridesPostResponses[keyof StartOverrideApiMachinesMachineIdOverridesPostResponses];
+
+export type RemindApiMachinesMachineIdRemindPostData = {
+    body: RemindIn;
+    path: {
+        /**
+         * Machine Id
+         */
+        machine_id: string;
+    };
+    query?: never;
+    url: '/api/machines/{machine_id}/remind';
+};
+
+export type RemindApiMachinesMachineIdRemindPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type RemindApiMachinesMachineIdRemindPostError = RemindApiMachinesMachineIdRemindPostErrors[keyof RemindApiMachinesMachineIdRemindPostErrors];
+
+export type RemindApiMachinesMachineIdRemindPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeNoneType;
+};
+
+export type RemindApiMachinesMachineIdRemindPostResponse = RemindApiMachinesMachineIdRemindPostResponses[keyof RemindApiMachinesMachineIdRemindPostResponses];
 
 export type EndOverrideApiMachinesMachineIdOverridesOverrideIdDeleteData = {
     body?: never;
@@ -7134,6 +7255,66 @@ export type ReportApiNearMissesPostResponses = {
 };
 
 export type ReportApiNearMissesPostResponse = ReportApiNearMissesPostResponses[keyof ReportApiNearMissesPostResponses];
+
+export type GetReportApiNearMissesReportIdGetData = {
+    body?: never;
+    path: {
+        /**
+         * Report Id
+         */
+        report_id: string;
+    };
+    query?: never;
+    url: '/api/near-misses/{report_id}';
+};
+
+export type GetReportApiNearMissesReportIdGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetReportApiNearMissesReportIdGetError = GetReportApiNearMissesReportIdGetErrors[keyof GetReportApiNearMissesReportIdGetErrors];
+
+export type GetReportApiNearMissesReportIdGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeNearMissOut;
+};
+
+export type GetReportApiNearMissesReportIdGetResponse = GetReportApiNearMissesReportIdGetResponses[keyof GetReportApiNearMissesReportIdGetResponses];
+
+export type LinkTaskApiNearMissesReportIdTaskPutData = {
+    body: NearMissTaskIn;
+    path: {
+        /**
+         * Report Id
+         */
+        report_id: string;
+    };
+    query?: never;
+    url: '/api/near-misses/{report_id}/task';
+};
+
+export type LinkTaskApiNearMissesReportIdTaskPutErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type LinkTaskApiNearMissesReportIdTaskPutError = LinkTaskApiNearMissesReportIdTaskPutErrors[keyof LinkTaskApiNearMissesReportIdTaskPutErrors];
+
+export type LinkTaskApiNearMissesReportIdTaskPutResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeNearMissOut;
+};
+
+export type LinkTaskApiNearMissesReportIdTaskPutResponse = LinkTaskApiNearMissesReportIdTaskPutResponses[keyof LinkTaskApiNearMissesReportIdTaskPutResponses];
 
 export type AcknowledgeApiNearMissesReportIdAckPostData = {
     body?: never;

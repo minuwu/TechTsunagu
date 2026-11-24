@@ -124,6 +124,22 @@ def test_a_nudge_pushes_to_that_worker_only(api: TestClient, refs: Refs, recorde
     assert message["data"]["messageId"] == str(refs["m1"]) and "山口 隆" in message["notification"]["body"]
 
 
+def test_a_check_reminder_pushes_to_that_worker_only(api: TestClient, refs: Refs, recorder: Recorder) -> None:
+    foreman = _login(api, refs["f-yamaguchi"], "246810")
+    _phone(api, _login(api, refs["w-rahim"], "2468"), "tok-rahim")
+    _phone(api, _login(api, refs["w-sadia"], "2468"), "tok-sadia")
+    machine = api.get("/api/machines", headers=foreman).json()["data"]["items"][0]
+
+    res = api.post(f"/api/machines/{machine['id']}/remind", headers=foreman, json={"workerId": str(refs["w-rahim"])})
+
+    assert res.status_code == 200
+    [(target, message)] = recorder.sent
+    assert target == "tok-rahim" and message["data"]["type"] == "check_due"
+    assert message["data"]["machineId"] == machine["id"] and message["android"]["notification"] == {
+        "channel_id": "safety"
+    }
+
+
 def test_a_dead_token_is_removed(api: TestClient, db: Session, refs: Refs, recorder: Recorder) -> None:
     _phone(api, _login(api, refs["f-yamaguchi"], "246810"), "tok-dead")
     recorder.answers["tok-dead"] = "gone"

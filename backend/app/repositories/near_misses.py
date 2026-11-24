@@ -20,11 +20,15 @@ def report_by_key(db: Session, shop_id: int, key: uuid.UUID) -> NearMissReport |
     return db.scalar(stmt)
 
 
-def reports_page(db: Session, shop_id: int, open_only: bool, after_id: int | None, limit: int) -> list[NearMissReport]:
+def reports_page(
+    db: Session, shop_id: int, open_only: bool, after_id: int | None, limit: int, worker_id: int | None = None
+) -> list[NearMissReport]:
     """Newest first; `open_only` uses the partial index on unacknowledged reports."""
     stmt = select(NearMissReport).where(NearMissReport.shop_id == shop_id)
     if open_only:
         stmt = stmt.where(NearMissReport.acknowledged_at.is_(None))
+    if worker_id is not None:
+        stmt = stmt.where(NearMissReport.worker_id == worker_id)
     if after_id is not None:
         stmt = stmt.where(NearMissReport.id < after_id)
     return list(db.scalars(stmt.order_by(NearMissReport.id.desc()).limit(limit + 1)))

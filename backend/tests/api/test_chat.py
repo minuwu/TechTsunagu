@@ -361,6 +361,37 @@ def test_an_edit_without_the_model_keeps_the_foremans_text(client: TestClient, l
     assert res.status_code == 200 and data["needsEdit"] is True and data["text"] == {"ja": "清掃は10時"}
 
 
+def test_an_edit_that_lost_the_model_is_repaired_by_the_same_edit(
+    client: TestClient, line: Line, fake_ai: FakeAiClient
+) -> None:
+    fake_ai.queue("draft_message", draft_answer(line))
+    res = client.post(
+        f"/api/threads/{line.thread_id}/messages", headers=line.foreman | _key(), data={"text": "金型交換"}
+    )
+    path, edit = f"/api/messages/{res.json()['data']['id']}", {"textJa": "明日9時に金型交換"}
+    degraded = client.patch(path, headers=line.foreman, json=edit).json()["data"]
+    assert degraded["needsEdit"] is True and degraded["taskDrafts"] == []  # not the old text's Tasks
+
+    fake_ai.queue("draft_message", draft_answer(line))
+    again = client.patch(path, headers=line.foreman, json=edit).json()["data"]
+
+    assert again["needsEdit"] is False and again["questions"] and again["taskDrafts"]
+
+
+def test_a_retried_post_returns_the_task_drafts_until_send(
+    client: TestClient, line: Line, fake_ai: FakeAiClient
+) -> None:
+    fake_ai.queue("draft_message", draft_answer(line))
+    path, headers, form = f"/api/threads/{line.thread_id}/messages", line.foreman | _key(), {"text": "金型交換"}
+    first = client.post(path, headers=headers, data=form).json()["data"]
+    again = client.post(path, headers=headers, data=form).json()["data"]
+    assert first["taskDrafts"] and again == first
+
+    body = {"text": first["text"], "questions": first["questions"]}
+    client.post(f"/api/messages/{first['id']}/send", headers=line.foreman, json=body)
+    assert client.post(path, headers=headers, data=form).json()["data"]["taskDrafts"] == []
+
+
 def test_the_foreman_reads_and_edits_a_reexplanation_before_it_is_sent(
     client: TestClient, line: Line, fake_ai: FakeAiClient
 ) -> None:

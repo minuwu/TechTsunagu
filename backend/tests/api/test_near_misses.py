@@ -135,7 +135,9 @@ def test_another_shop_sees_none_of_it(client: TestClient, db: Session, floor: Fl
     assert client.post(f"/api/near-misses/{report['id']}/ack", headers=other.foreman).status_code == 404
     form = {"machineId": str(floor.machine_id), "text": "x"}
     assert client.post("/api/near-misses", headers=other.worker | _key(), data=form).status_code == 404
-    assert client.get("/api/near-misses", headers=floor.worker).status_code == 403  # Foremen read the list
+    assert client.get(f"/api/near-misses/{report['id']}", headers=other.foreman).status_code == 404
+    body = {"taskId": "1"}
+    assert client.put(f"/api/near-misses/{report['id']}/task", headers=other.foreman, json=body).status_code == 404
 
 
 def test_another_workers_key_does_not_return_their_report(
@@ -148,3 +150,73 @@ def test_another_workers_key_does_not_return_their_report(
     res = client.post("/api/near-misses", headers=floor.other_worker | key, data=form)
 
     assert res.status_code == 409 and res.json()["error"]["code"] == "IDEMPOTENCY_KEY_REUSED"
+
+
+JPEG = b"\xff\xd8\xff\xda\x00\x02img\xff\xd9"
+
+
+def test_a_worker_lists_and_opens_only_their_own_reports(
+    client: TestClient, floor: Floor, fake_ai: FakeAiClient
+) -> None:
+    """XREQ-023: My reports, with severity, the photo mark and the reporter's name."""
+    fake_ai.queue("translate", {"text": "油漏れ"})
+    res = client.post(
+        "/api/near-misses",
+        headers=floor.worker | _key(),
+        data={
+            "machineId": str(floor.machine_id),
+            "text": "oil leak",
+            "severity": "high",
+            "photoMarkX": "0.5",
+            "photoMarkY": "0.25",
+        },
+        files={"photo": ("p.jpg", JPEG, "image/jpeg")},
+    )
+    assert res.status_code == 201, res.text
+    mine = res.json()["data"]
+    assert mine["severity"] == "high" and mine["photoMark"] == {"x": 0.5, "y": 0.25}
+    assert mine["textJa"] == "油漏れ" and mine["lang"] == "bn" and mine["workerName"] and mine["taskId"] is None
+
+    assert [r["id"] for r in client.get("/api/near-misses", headers=floor.worker).json()["data"]["items"]] == [
+        mine["id"]
+    ]
+    assert client.get("/api/near-misses", headers=floor.other_worker).json()["data"]["items"] == []
+    path = f"/api/near-misses/{mine['id']}"
+    assert client.get(path, headers=floor.worker).json()["data"] == mine
+    assert client.get(path, headers=floor.foreman).json()["data"] == mine
+    assert client.get(path, headers=floor.other_worker).status_code == 404
+
+
+@pytest.mark.parametrize(
+    "extra",
+    [
+        {"severity": "huge"},
+        {"photoMarkX": "0.5", "photoMarkY": "0.5"},
+        {"photoMarkX": "nan", "photoMarkY": "0.5"},
+        {"photoMarkX": "1.5", "photoMarkY": "0.5"},
+    ],
+)
+def test_a_bad_severity_or_a_mark_without_a_photo_is_refused(
+    client: TestClient, floor: Floor, extra: dict[str, str]
+) -> None:
+    form = {"machineId": str(floor.machine_id), "text": "x"} | extra
+    assert client.post("/api/near-misses", headers=floor.worker | _key(), data=form).status_code == 422
+
+
+def test_the_foreman_links_one_task_to_a_report(client: TestClient, floor: Floor, fake_ai: FakeAiClient) -> None:
+    fake_ai.queue("translate", {"text": "油漏れ"})
+    form = {"machineId": str(floor.machine_id), "text": "oil leak"}
+    report = client.post("/api/near-misses", headers=floor.worker | _key(), data=form).json()["data"]
+    title = {"ja": "点検", "bn": "পরীক্ষা", "en": "Check"}
+    first, second = (
+        client.post("/api/tasks", headers=floor.foreman | _key(), json={"title": title}).json()["data"]["id"]
+        for _ in range(2)
+    )
+    path = f"/api/near-misses/{report['id']}/task"
+
+    assert client.put(path, headers=floor.worker, json={"taskId": first}).status_code == 403
+    for _ in range(2):  # a retry changes nothing
+        linked = client.put(path, headers=floor.foreman, json={"taskId": first})
+        assert linked.status_code == 200 and linked.json()["data"]["taskId"] == first
+    assert client.put(path, headers=floor.foreman, json={"taskId": second}).status_code == 409
+    assert client.put(path, headers=floor.foreman, json={"taskId": "999999"}).status_code == 404

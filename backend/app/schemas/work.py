@@ -122,6 +122,12 @@ class OverrideIn(CamelModel):
     reason: Annotated[str, StringConstraints(strip_whitespace=True, min_length=3, max_length=200)]
 
 
+class RemindIn(CamelModel):
+    """POST /machines/{id}/remind: the Worker who should take the Machine's Check."""
+
+    worker_id: IdIn
+
+
 class OverrideOut(CamelModel):
     id: str
     machine_id: str

@@ -112,10 +112,8 @@ def _fields(m: Message) -> dict[str, object]:
     }
 
 
-def _for_sender(
-    m: Message, questions: list[dict[str, object]], drafts: list[TaskDraft] | None = None
-) -> MessageForSender:
-    return MessageForSender.model_validate({**_fields(m), "questions": questions, "task_drafts": drafts or []})
+def _for_sender(m: Message, questions: list[dict[str, object]]) -> MessageForSender:
+    return MessageForSender.model_validate({**_fields(m), "questions": questions, "task_drafts": m.task_drafts})
 
 
 def _for_worker(m: Message, questions: list[dict[str, object]], status: str | None, nudged: bool) -> MessageForWorker:
@@ -125,9 +123,9 @@ def _for_worker(m: Message, questions: list[dict[str, object]], status: str | No
     )
 
 
-def _sender_view(db: Session, m: Message, drafts: list[TaskDraft] | None = None) -> MessageForSender:
+def _sender_view(db: Session, m: Message) -> MessageForSender:
     check = repo.checks_of(db, m.shop_id, [m.id]).get(m.id)
-    return _for_sender(m, check.questions if check else [], drafts)
+    return _for_sender(m, check.questions if check else [])
 
 
 def list_threads(db: Session, who: Principal) -> list[ThreadOut]:
@@ -314,11 +312,6 @@ def _apply_draft(
     row.translations = {lang: getattr(d.text, lang) or "" for lang in languages} if d else {}
     row.stage = 3 if d else 0
     row.needs_edit = d is None  # degraded (§10.4): the Foreman finishes the message before sending
-    db.flush()
-    questions = [_question(q, n, terms, languages) for n, q in enumerate(d.questions, start=1)] if d else []
-    repo.set_check(db, row.shop_id, row.id, questions)
-    db.commit()
-    # shortcut: Task drafts live only in this response (no column); a retried POST returns none. Store them if needed.
     drafts = [
         TaskDraft.model_validate(
             {
@@ -330,7 +323,12 @@ def _apply_draft(
         )
         for task in (d.tasks if d else [])
     ]
-    return _for_sender(row, questions, drafts)
+    row.task_drafts = [t.model_dump(mode="json", by_alias=True) for t in drafts]
+    db.flush()
+    questions = [_question(q, n, terms, languages) for n, q in enumerate(d.questions, start=1)] if d else []
+    repo.set_check(db, row.shop_id, row.id, questions)
+    db.commit()
+    return _for_sender(row, questions)
 
 
 def _draft(
@@ -421,7 +419,7 @@ def send(db: Session, who: Principal, message_id: int, body: SendIn, now: dateti
         db.add(row)
         db.flush()
         repo.set_assignees(db, shop_id, row.id, people)
-    m.stage, m.sent_at, m.needs_edit = 4, now, False
+    m.stage, m.sent_at, m.needs_edit, m.task_drafts = 4, now, False, []
     db.commit()
     return _for_sender(m, questions)
 

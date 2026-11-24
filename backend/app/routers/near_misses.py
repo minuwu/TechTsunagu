@@ -12,7 +12,7 @@ from app.api.envelope import Envelope
 from app.api.pagination import Page, PageParams, page_params
 from app.media import MAX_AUDIO_BYTES, MAX_PHOTO_BYTES
 from app.schemas.common import IdIn
-from app.schemas.near_misses import NearMissOut
+from app.schemas.near_misses import Fraction, NearMissOut, NearMissTaskIn, Severity
 from app.services import near_misses
 from app.services.ai_runner import AiRunner
 from app.services.auth import Principal
@@ -40,19 +40,35 @@ def report(
     text: Annotated[str | None, Form(max_length=1000)] = None,
     audio: Annotated[UploadFile | None, File()] = None,
     photo: Annotated[UploadFile | None, File()] = None,
+    severity: Annotated[Severity | None, Form()] = None,
+    mark_x: Annotated[Fraction | None, Form(alias="photoMarkX")] = None,
+    mark_y: Annotated[Fraction | None, Form(alias="photoMarkY")] = None,
 ) -> Envelope[NearMissOut]:
     ai: AiRunner = request.app.state.ai
     voice, image = _read(audio, MAX_AUDIO_BYTES), _read(photo, MAX_PHOTO_BYTES)
-    return Envelope(data=near_misses.create(db, who, int(machine_id), text, voice, image, key, ai, now_utc()))
+    out = near_misses.create(
+        db, who, int(machine_id), text, voice, image, key, ai, now_utc(), severity, (mark_x, mark_y)
+    )
+    return Envelope(data=out)
 
 
 @router.get(
     "/near-misses",
-    summary="Near-miss Reports of your shop, newest first; If-None-Match gives 304",
+    summary="Near-miss Reports, newest first (a Worker: only their own); If-None-Match gives 304",
     response_model=Envelope[Page[NearMissOut]],
 )
-def list_reports(who: Foreman, db: DbSession, page: Paging, request: Request, open: bool = False) -> Response:
+def list_reports(who: ShopMember, db: DbSession, page: Paging, request: Request, open: bool = False) -> Response:
     return conditional_json(request, Envelope(data=near_misses.list_reports(db, who, open, page)))
+
+
+@router.get("/near-misses/{report_id}", summary="One Near-miss Report (a Worker: only their own)")
+def get_report(who: ShopMember, report_id: IdIn, db: DbSession) -> Envelope[NearMissOut]:
+    return Envelope(data=near_misses.read(db, who, int(report_id)))
+
+
+@router.put("/near-misses/{report_id}/task", summary="Link the Task made from a Near-miss Report")
+def link_task(who: Foreman, report_id: IdIn, body: NearMissTaskIn, db: DbSession) -> Envelope[NearMissOut]:
+    return Envelope(data=near_misses.link_task(db, who, int(report_id), int(body.task_id)))
 
 
 @router.post("/near-misses/{report_id}/ack", summary="Acknowledge a Near-miss Report")

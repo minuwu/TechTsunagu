@@ -7,6 +7,13 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 
 > **Message from Asif (2026-11-23), read first:** [CHATBOT_FROM_ASIF.md](CHATBOT_FROM_ASIF.md) explains the chatbot (what it does, the API, the four screen states, "Ask my Senpai" vs "Safety Senpai") and three decisions that are **yours**: where the ask box goes, one bot or two names, and which half grows first. Answer in XREQ-016.
 
+## 2026-11-24 (backend gaps for the Android app: XREQ-021, 023, 024)
+
+- Built in the backend, with tests and one migration (`a445952485bc`): Machine reminders and override retries (XREQ-021), Near-miss severity, photo mark, Worker's own list and Task link (XREQ-023), Asks for the Foreman (XREQ-024, items 2 and 3 not built, see the card).
+- Chat: a retried message POST now returns its `taskDrafts` until the Send (stored in `messages.task_drafts`); an edit that lost the model is repaired by the same `PATCH` again.
+- `docs/openapi.yaml` and the frontend types are regenerated. New push type `check_due` (`machineId` in the data, channel `safety`).
+- Still open for Anim: XREQ-019 (group controls), XREQ-025, XREQ-026, XREQ-014 key.
+
 ## 2026-11-23 (chatbot decisions answered)
 
 - Answered Asif's three decisions in XREQ-016 (`AGENTS.md`): pinned "Ask Wakatta" chat-list entry (history on the phone only) plus the Machine-screen button with `machineId`; one "Ask Wakatta" bot, no Safety Senpai / Life Guide names on screen; Life Guide grows first after the hackathon.
