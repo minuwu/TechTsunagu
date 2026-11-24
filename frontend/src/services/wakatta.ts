@@ -379,7 +379,7 @@ export async function publishNotice(noticeId: string) {
       n.events.some((e) => !e.confirmed || (e.rrule && !isValidRrule(e.rrule)))
     )
       throw new ApiError(
-        422,
+        409,
         'EVENTS_NOT_CONFIRMED',
         'Confirm every date first',
       )

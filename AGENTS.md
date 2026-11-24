@@ -163,8 +163,8 @@ Errors: `404 NOT_FOUND` (wrong or revoked Senpai token), `409 NO_ACTIVE_PAIR` (f
 
 **Fulfillment & Proof (filled by recipient on completion):**
 - **Branch / Commit**: 
-- **Status / Notes**:  2026-11-24 Galib (Minhaz's task 10, checked): **not done on the web.** `frontend/src/services/wakatta.ts` still sends `credentials: 'include'` (no Bearer token) and the web runs with `VITE_USE_MOCK=true`; the hackathon demo uses the mock web and the Android app on the live API. Left for after the hackathon.
-- **Verification Proof**: 
+- **Status / Notes**:  2026-11-24 Galib (Minhaz's task 10, checked): **not done on the web.** `frontend/src/services/wakatta.ts` still sends `credentials: 'include'` (no Bearer token) and the web runs with `VITE_USE_MOCK=true`; the hackathon demo uses the mock web and the Android app on the live API. Left for after the hackathon. 2026-11-24 19:50 Minhaz: items 9, 12 and the 409 of item 3 done (they show in the mock demo too): `toIcs` folds every line at 75 octets without splitting a UTF-8 character and adds a `VTIMEZONE` for `Asia/Tokyo` (one `STANDARD`, `+0900`); the demo flyer has no recyclables Event, recyclables are a step with the verified wording; the mock publish refuses with 409 `EVENTS_NOT_CONFIRMED`. The real-API items follow in the next commits.
+- **Verification Proof**: `src/domain/wakatta.test.ts` (fold: every line ≤ 75 octets, continuation lines start with a space, unfolding gives the exact Bengali/Japanese text; VTIMEZONE present); frontend 112 tests, typecheck, lint, `check:api` pass.
 
 #### `[XREQ-003]` Review the free-AI plan (model chain, budgets, Whisper, settings)
 - **Priority**: `P1 (High)`

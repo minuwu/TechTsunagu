@@ -57,6 +57,28 @@ const icsText = (s: string) =>
     .replace(/,/g, '\\,')
     .replace(/\n/g, '\\n')
 
+const utf8 = new TextEncoder()
+
+/** RFC 5545 §3.1: lines longer than 75 octets continue on a line starting with a space, never splitting a character. */
+export function foldIcsLine(line: string): string {
+  const out: string[] = []
+  let current = ''
+  let octets = 0
+  for (const ch of line) {
+    const size = utf8.encode(ch).length
+    // A continuation line's leading space counts toward its 75 octets
+    if (octets + size > (out.length === 0 ? 75 : 74)) {
+      out.push(current)
+      current = ''
+      octets = 0
+    }
+    current += ch
+    octets += size
+  }
+  out.push(current)
+  return out.join('\r\n ')
+}
+
 /** One .ics file for all events; titles in the Worker's language. */
 export function toIcs(
   events: {
@@ -73,6 +95,16 @@ export function toIcs(
     'VERSION:2.0',
     'PRODID:-//Wakatta//Life//EN',
     'CALSCALE:GREGORIAN',
+    // Japan has no daylight saving: one STANDARD block at +0900
+    'BEGIN:VTIMEZONE',
+    'TZID:Asia/Tokyo',
+    'BEGIN:STANDARD',
+    'DTSTART:19700101T000000',
+    'TZOFFSETFROM:+0900',
+    'TZOFFSETTO:+0900',
+    'TZNAME:JST',
+    'END:STANDARD',
+    'END:VTIMEZONE',
     ...events.flatMap((e) => [
       'BEGIN:VEVENT',
       `UID:${e.id}@wakatta`,
@@ -90,5 +122,5 @@ export function toIcs(
     ]),
     'END:VCALENDAR',
   ]
-  return lines.join('\r\n') + '\r\n'
+  return lines.map(foldIcsLine).join('\r\n') + '\r\n'
 }
