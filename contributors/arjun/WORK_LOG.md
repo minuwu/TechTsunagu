@@ -4,6 +4,14 @@ Owner: Arjun Saha (`sillyfellow21`) — Role: Frontend design
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-24 (small fixes)
+
+### Done
+- `c9d3f76` On phones, the demo-state switcher was hidden under "Ask Wakatta" (axe target-size on `/me/w-rahim`). It now sits above that row. Checked: axe clean at 375 px on `/`, `/me/w-rahim`, `/me/w-rahim/life`.
+- `7455256` R1 (ANDROID_FIX_PLAN): the read timeout is 60 s, with `ReadTimeoutTest`. Not compiled here (no JDK); Minhaz's Gradle run checks it.
+- `d0cb894` The journey map shows only Japan and Nagasaki: no 47-prefecture picker. It glides into Nagasaki, with two buttons for All Japan and Nagasaki.
+- Sweep: every demo route at 1440 and 375 px is axe clean with no console errors and no sideways scroll; unit tests 109/109 (run from a `D:\` path).
+
 ## 2026-11-24 (Android App Links switched on, with Minhaz's OK)
 
 ### Done
