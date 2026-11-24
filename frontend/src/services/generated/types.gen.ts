@@ -493,6 +493,20 @@ export type BodyReportApiNearMissesPost = {
 };
 
 /**
+ * Body_transcribe_api_transcriptions_post
+ */
+export type BodyTranscribeApiTranscriptionsPost = {
+    /**
+     * Language
+     */
+    language: string;
+    /**
+     * Audio
+     */
+    audio?: Blob | File | null;
+};
+
+/**
  * BriefingForForeman
  */
 export type BriefingForForeman = {
@@ -2004,6 +2018,21 @@ export type EnvelopeTodayWord = {
 };
 
 /**
+ * Envelope[Transcription]
+ */
+export type EnvelopeTranscription = {
+    /**
+     * Success
+     */
+    success?: true;
+    data: Transcription;
+    /**
+     * Message
+     */
+    message?: string;
+};
+
+/**
  * Envelope[Understanding]
  */
 export type EnvelopeUnderstanding = {
@@ -2722,6 +2751,29 @@ export type KnowledgeSource = {
      * Attribution
      */
     attribution: string | null;
+};
+
+/**
+ * LastMessage
+ *
+ * The newest message the caller can see, for the Chats list row.
+ */
+export type LastMessage = {
+    /**
+     * Fromuserid
+     */
+    fromUserId: string;
+    /**
+     * Kind
+     */
+    kind: 'voice' | 'text' | 'ask' | 'reexplain' | 'system';
+    /**
+     * Text
+     */
+    text: {
+        [key: string]: string;
+    };
+    event?: SystemEvent | null;
 };
 
 /**
@@ -4856,6 +4908,11 @@ export type ThreadOut = {
      * Archived
      */
     archived?: boolean;
+    lastMessage?: LastMessage | null;
+    /**
+     * Wkstatus
+     */
+    wkStatus?: 'green' | 'orange' | 'red' | 'wait' | null;
     /**
      * Displaytitle
      */
@@ -4904,6 +4961,16 @@ export type TodayWord = {
      * Meaningja
      */
     meaningJa: string;
+};
+
+/**
+ * Transcription
+ */
+export type Transcription = {
+    /**
+     * Text
+     */
+    text: string;
 };
 
 /**
@@ -7130,6 +7197,31 @@ export type PostMessageApiThreadsThreadIdMessagesPostResponses = {
 };
 
 export type PostMessageApiThreadsThreadIdMessagesPostResponse = PostMessageApiThreadsThreadIdMessagesPostResponses[keyof PostMessageApiThreadsThreadIdMessagesPostResponses];
+
+export type TranscribeApiTranscriptionsPostData = {
+    body: BodyTranscribeApiTranscriptionsPost;
+    path?: never;
+    query?: never;
+    url: '/api/transcriptions';
+};
+
+export type TranscribeApiTranscriptionsPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type TranscribeApiTranscriptionsPostError = TranscribeApiTranscriptionsPostErrors[keyof TranscribeApiTranscriptionsPostErrors];
+
+export type TranscribeApiTranscriptionsPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: EnvelopeTranscription;
+};
+
+export type TranscribeApiTranscriptionsPostResponse = TranscribeApiTranscriptionsPostResponses[keyof TranscribeApiTranscriptionsPostResponses];
 
 export type EditDraftApiMessagesMessageIdPatchData = {
     body: DraftEdit;
