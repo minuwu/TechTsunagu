@@ -122,6 +122,10 @@ class _Link:
     limiter: _Limiter
 
 
+# The last model always gets one call, waiting at most this long for its per-minute slot.
+_LAST_TURN_SECONDS = 1.0
+
+
 class AiRunner:
     def __init__(
         self,
@@ -130,11 +134,12 @@ class AiRunner:
         limits: AiLimits,
         backups: Sequence[tuple[AiClient, AiLimits]] = (),
         user_limits: tuple[int, int] = USER_LIMITS["free"],
-        chain_seconds: float = 25.0,
+        chain_seconds: float = 20.0,
     ) -> None:
         """`client` answers first; each backup is tried in order when the one before it gives no valid answer.
         `user_limits`: AI requests per minute and per day for one caller. `chain_seconds`: no new model call starts
-        after this long, so a request ends (degraded) before the Android app's 30 s timeout (audit A1)."""
+        after this long, except the last model's one turn (the Groq backup, another provider: when every Gemini model
+        is slow and busy, it still answers). Worst case ~20 + 15 + 1 + 15 s, inside the app's 60 s timeout (A1)."""
         self._sessions = sessions
         self._user_limits = user_limits
         self._chain_seconds = chain_seconds
@@ -229,7 +234,9 @@ class AiRunner:
 
         ends = time.monotonic() + self._chain_seconds
         for link in self._chain:
-            raw = self._call(link, req, [], now, wait=link is self._chain[-1], left=ends - time.monotonic())
+            last = link is self._chain[-1]
+            left = ends - time.monotonic()
+            raw = self._call(link, req, [], now, wait=last, left=max(left, _LAST_TURN_SECONDS) if last else left)
             if raw is None:
                 continue  # unavailable, out of budget or busy: the next model, at once
             value, problems = self._parse(req, raw, validate)
