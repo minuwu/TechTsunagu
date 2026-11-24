@@ -25,13 +25,15 @@ from tests import factories as f
 Json = dict[str, Any]
 ROLES = ("foreman", "worker", "poster", "panel")
 
-# No session: the version gate, health, the sign-in itself, and the Senpai link, whose token is the credential.
+# No session: the version gate, health, the sign-in, opening a shop (ADR 0017), and the Senpai link (its token is the
+# credential).
 PUBLIC = {
     "GET /api/health",
     "GET /api/health/ready",
     "GET /api/app/config",
     "GET /api/auth/roster",
     "POST /api/auth/login",
+    "POST /api/auth/register",
     "GET /api/senpai/{token}",
     "POST /api/senpai/{token}/asks/{ask_id}/reply",
     "POST /api/senpai/{token}/meetups",
@@ -93,6 +95,9 @@ CALLS: dict[str, Call] = {
     "POST /api/messages/{message_id}/nudge": Call(json={"userId": "{worker}"}),
     "PATCH /api/tasks/{task_id}": Call(json={"column": "doing"}, headers={"If-Match": "1"}),
     "GET /api/briefings/{briefing_id}/receipts": Call(),
+    "POST /api/machines/{machine_id}/remind": Call(json={"workerId": "{worker}"}),
+    "GET /api/near-misses/{report_id}": Call(),
+    "PUT /api/near-misses/{report_id}/task": Call(json={"taskId": "{task_id}"}),
     "POST /api/near-misses/{report_id}/ack": Call(),
     "GET /api/near-misses/{report_id}/photo": Call(),
     "GET /api/workers/{worker_id}/interviews": Call(),
@@ -122,6 +127,7 @@ COLLEAGUE_REFUSED: dict[str, int] = {
     "POST /api/threads/{thread_id}/messages": 403,
     "GET /api/threads/{thread_id}/messages": 403,
     "POST /api/messages/{message_id}/answers": 403,
+    "GET /api/near-misses/{report_id}": 404,
     "GET /api/near-misses/{report_id}/photo": 404,
     "PUT /api/contacts/{contact_id}": 404,
     "DELETE /api/blocks/{contact_id}": 404,
@@ -309,7 +315,7 @@ def _send(client: TestClient, op: str, headers: dict[str, str], rows: dict[str, 
         path = path.replace(f"{{{name}}}", str(rows[call.rows.get(name, name)]))
     body = call.json
     if body:
-        body = {k: str(rows["worker"]) if v == "{worker}" else v for k, v in body.items()}
+        body = {k: str(rows[v[1:-1]]) if isinstance(v, str) and v.startswith("{") else v for k, v in body.items()}
     return client.request(method, path, headers=headers | call.headers, json=body, data=call.data).status_code
 
 

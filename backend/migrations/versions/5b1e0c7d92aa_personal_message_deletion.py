@@ -1,7 +1,7 @@
 """personal: message deletion, no personal texts in the AI cache
 
 Revision ID: 5b1e0c7d92aa
-Revises: f440ca5739ea
+Revises: a445952485bc
 Create Date: 2026-11-24 00:40:00.000000
 
 """
@@ -13,7 +13,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "5b1e0c7d92aa"
-down_revision: str | Sequence[str] | None = "f440ca5739ea"
+down_revision: str | Sequence[str] | None = "a445952485bc"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

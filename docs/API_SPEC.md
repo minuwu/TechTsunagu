@@ -60,7 +60,7 @@ Foremen and Workers also own personal data that no employer route reads ([ADR 00
 Generated from the code: `cd backend; uv run python -m app.openapi index` (CI fails when it is stale).
 
 <!-- endpoint index: generated -->
-116 operations on 92 paths, all live.
+120 operations on 96 paths, all live.
 
 | Method | Path | Who | What |
 | :--- | :--- | :--- | :--- |
@@ -68,6 +68,7 @@ Generated from the code: `cd backend; uv run python -m app.openapi index` (CI fa
 | `GET` | `/api/health/ready` | **public** | Readiness: the database answers |
 | `GET` | `/api/auth/roster` | **public** | Names to pick from, for a shop or district code (public, rate-limited) |
 | `POST` | `/api/auth/login` | **public** | Name + PIN → Bearer token |
+| `POST` | `/api/auth/register` | **public** | Open a new shop; you become its first Foreman (rate-limited) |
 | `GET` | `/api/auth/me` | foreman, worker, poster | The signed-in user |
 | `PUT` | `/api/auth/me/pin` | foreman, worker, poster | Change your own PIN; your other sessions are signed out |
 | `POST` | `/api/auth/logout` | foreman, worker, poster | Revoke this session |
@@ -89,6 +90,7 @@ Generated from the code: `cd backend; uv run python -m app.openapi index` (CI fa
 | `POST` | `/api/note-versions/{note_id}/approve` | foreman | Approve: safety change (re-check) or wording change |
 | `POST` | `/api/checks` | worker | Answer a Note Version's Check; graded on the server |
 | `POST` | `/api/machines/{machine_id}/overrides` | foreman | Panel Override: allow without a Sign-off |
+| `POST` | `/api/machines/{machine_id}/remind` | foreman | Remind a Worker to take the Machine's Check (rate-limited) |
 | `DELETE` | `/api/machines/{machine_id}/overrides/{override_id}` | foreman | End a Panel Override early |
 | `GET` | `/api/machines/{machine_id}/versions` | foreman | Knowledge Library: a Machine's Note Versions, newest first |
 | `GET` | `/api/metrics/effort` | foreman | Effort metrics: time to approve, edits, clean AI drafts, first-try Checks |
@@ -113,7 +115,7 @@ Generated from the code: `cd backend; uv run python -m app.openapi index` (CI fa
 | `POST` | `/api/receipts` | worker | The Worker opened a Notice or a Briefing (idempotent) |
 | `GET` | `/api/blobs/{blob_id}` | poster, worker | A flyer photo of your district (JPEG, EXIF removed) |
 | `POST` | `/api/asks` | worker | Ask by text or voice; answered only from published Notices |
-| `GET` | `/api/asks` | worker | Your own Asks, newest first |
+| `GET` | `/api/asks` | foreman, worker | Asks, newest first: a Worker's own, or the shop's for a Foreman |
 | `POST` | `/api/asks/{ask_id}/forward` | worker | Send an Ask to your Senpai; 409 NO_ACTIVE_PAIR without one |
 | `GET` | `/api/senpai-pairs` | foreman | Senpai pairs of your shop |
 | `POST` | `/api/senpai-pairs` | foreman | Pair a Worker with a Senpai; the link token is shown once |
@@ -150,7 +152,9 @@ Generated from the code: `cd backend; uv run python -m app.openapi index` (CI fa
 | `GET` | `/api/briefings` | foreman, worker | Foremen: every Briefing with answers; Workers: published ones with their receipt |
 | `GET` | `/api/briefings/{briefing_id}/receipts` | foreman | Who understood, who only opened it, who has not opened it |
 | `POST` | `/api/near-misses` | worker | Report a near miss by text or voice, with an optional photo |
-| `GET` | `/api/near-misses` | foreman | Near-miss Reports of your shop, newest first; If-None-Match gives 304 |
+| `GET` | `/api/near-misses` | foreman, worker | Near-miss Reports, newest first (a Worker: only their own); If-None-Match gives 304 |
+| `GET` | `/api/near-misses/{report_id}` | foreman, worker | One Near-miss Report (a Worker: only their own) |
+| `PUT` | `/api/near-misses/{report_id}/task` | foreman | Link the Task made from a Near-miss Report |
 | `POST` | `/api/near-misses/{report_id}/ack` | foreman | Acknowledge a Near-miss Report |
 | `GET` | `/api/near-misses/{report_id}/photo` | foreman, worker | The report's photo (JPEG, EXIF removed) |
 | `GET` | `/api/interviews/due` | foreman | Periodic Interviews (support item 10): next due date per Worker |
