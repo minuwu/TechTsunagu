@@ -12,6 +12,8 @@ One folder per teammate: `contributors/<name>/WORK_LOG.md`. Lower-case folder na
 
 **Current team task (2026-11-22):** review and improve the Wakatta? plan before WS0 starts. Steps are in [minhaz/WORK_LOG.md](minhaz/WORK_LOG.md#blockers--handoff).
 
+**Android fixes (2026-11-24):** who does what, and the pull, test, push loop: [ANDROID_FIX_PLAN.md](ANDROID_FIX_PLAN.md).
+
 **Pushing:** always `git pull origin main` first, then push to `origin main`.
 
 Start your log: `cp -r contributors/_template contributors/<name>`.
