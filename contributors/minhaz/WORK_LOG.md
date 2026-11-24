@@ -7,6 +7,13 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 
 > **Message from Asif (2026-11-23), read first:** [CHATBOT_FROM_ASIF.md](CHATBOT_FROM_ASIF.md) explains the chatbot (what it does, the API, the four screen states, "Ask my Senpai" vs "Safety Senpai") and three decisions that are **yours**: where the ask box goes, one bot or two names, and which half grows first. Answer in XREQ-016.
 
+## 2026-11-24 (from Asif: proposal for open registration, ADR 0017)
+
+- Each new shop's Foreman gets a fresh 100 AI requests a day, and one IP may open 3 shops a minute, so the AI allowance can be got around.
+- **Proposal:** at most 10 new shops a day per IP on `POST /api/auth/register`, next to the 3 a minute. It is one more rate-limit line and a test; no new table, and people in existing shops notice nothing.
+- **Limit:** one venue or mobile network can share an IP, so 10 also counts everyone there. If the judges may register their own shops, choose a higher number.
+- Minhaz: answer yes, no or another number in your log. I do the change when both of you agree.
+
 ## 2026-11-24 (from Asif: R3 is on `main`, M2 and M4 can start)
 
 - **M2:** in `ChatViewModel` delete `reviewDrafts` and its check in `doSend` (or set it to true); do it in the same push as the review card, so no version is without a Send. The card sends `ChatEvent.SendDraft(id)` and `ChatEvent.EditDraft(id, textJa)`; its data is in `text`, `senderQuestions` and `addedTasks`.

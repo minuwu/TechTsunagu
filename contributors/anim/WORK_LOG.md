@@ -4,6 +4,13 @@ Owner: Anim (`anim710`) — Role: Backend (WS10 Notices + Events, WS11 Asks + Se
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-24 (from Asif: proposal for open registration, ADR 0017)
+
+- Each new shop's Foreman gets a fresh 100 AI requests a day, and one IP may open 3 shops a minute, so the AI allowance can be got around.
+- **Proposal:** at most 10 new shops a day per IP on `POST /api/auth/register`, next to the 3 a minute. It is one more rate-limit line and a test; no new table, and people in existing shops notice nothing.
+- **Limit:** one venue or mobile network can share an IP, so 10 also counts everyone there. If the judges may register their own shops, choose a higher number.
+- Anim: answer yes, no or another number in your log. I do the change when both of you agree.
+
 ## 2026-11-24 (from Arjun: XREQ-013)
 
 - Question: what is the hosted address for the static web demo (XREQ-013)? Once it is up, I will give you the final `VITE_PUBLIC_URL` and check every page.

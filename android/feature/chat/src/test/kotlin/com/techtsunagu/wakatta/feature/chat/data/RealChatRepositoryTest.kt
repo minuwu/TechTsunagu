@@ -417,6 +417,28 @@ class RealChatRepositoryTest {
     }
 
     @Test
+    fun aDirectThreadIsCalledByTheNameTheServerGives() = runBlocking {
+        val rows = """[{"id":"7","titleJa":"Rahim","displayTitle":"Yamaguchi","kind":"direct"},{"id":"8","titleJa":"Line 2","displayTitle":"Line 2"}]"""
+        ok(rows)
+        ok(rows)
+        assertEquals(listOf("Yamaguchi", "Line 2"), repo(worker).getThreads().first().map { it.titleJa })
+        assertEquals(listOf("Yamaguchi", "Line 2"), repo(worker).getThreadSummaries().first().map { it.title["ja"] })
+    }
+
+    @Test
+    fun aWorkersMessageWithoutJapaneseShowsTheWorkersOwnWordsAndName() = runBlocking {
+        ok(
+            """{"items":[{"id":"92","threadId":"7","fromUserId":"13","fromDisplayName":"Siti","fromRole":"worker","kind":"text",""" +
+                """"language":"en","text":{"en":"It is hot"},"createdAt":"2026-11-23T08:00:00Z","sentAt":"2026-11-23T08:00:00Z"}]}""",
+            etag = "e1",
+        )
+        val message = repo(foreman).getMessages("7").first().single()
+        assertEquals("It is hot", message.originalText)
+        assertEquals("Siti", message.fromUserName)
+        assertFalse(message.isDraft)
+    }
+
+    @Test
     fun threadListMapsAndAFailureShowsAnEmptyList() = runBlocking {
         ok("""[{"id":"7","titleJa":"Line 2","kind":"group","memberIds":["12"],"unread":2,"lastMessageAt":null}]""")
         val rows = repo(worker).getThreadSummaries().first()

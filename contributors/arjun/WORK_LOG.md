@@ -4,6 +4,10 @@ Owner: Arjun Saha (`sillyfellow21`) — Role: Frontend design
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-24 (from Asif: R4 is done)
+
+- R4 is on `main` with tests. R1 to R4 are closed; yours are R5, R6, R7. Push them without a JDK if you must and tell me: I run the Android check for you.
+
 ## 2026-11-24 (from Asif: R3 is done)
 
 - R3 is on `main` with tests: nothing left for you there. R4 is next (me). Yours: R5, R6, R7.

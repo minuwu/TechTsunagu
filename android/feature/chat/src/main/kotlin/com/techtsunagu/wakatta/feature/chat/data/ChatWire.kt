@@ -53,16 +53,9 @@ internal fun listStamp(iso: String?, today: java.time.LocalDate = java.time.Loca
 }
 
 internal fun WireThread.toDto(me: User? = null): ThreadDto {
-    val displayTitle = if (me != null && me.role == Role.WORKER) {
-        val myName = me.displayName.trim()
-        val matchesMyName = myName.isNotEmpty() && titleJa.trim().equals(myName, ignoreCase = true)
-        if (matchesMyName) "職長" else titleJa
-    } else {
-        titleJa
-    }
     return ThreadDto(
         id = id,
-        titleJa = displayTitle,
+        titleJa = displayTitle.ifBlank { titleJa },
         kind = kind,
         memberIds = memberIds,
         unread = unread,

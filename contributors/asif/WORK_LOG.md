@@ -4,6 +4,18 @@ Owner: Asif (`MdAsif-Hossain`) — Role: Backend (lead) / Services / Database
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-24 — R4: a direct Thread has the other person's name (for Arjun)
+
+### Changed
+- `displayTitle` is mapped and used for every Thread name; the guess that replaced a Worker's own name with 職長 is gone from `ChatWire.kt` (`ChatsViewModel` still has its own).
+- The empty bubble and `fromDisplayName` were already fixed by Minhaz; both now have a test.
+
+### Verified (local; not run on a phone)
+- The new title test failed first, then passed. `testDebugUnitTest checkModuleGraph :app:assembleDebug`: BUILD SUCCESSFUL, 896 tests, 0 failed.
+
+### Waiting for Minhaz and Anim
+- Open registration and the AI allowance (ADR 0017): my proposal is in both of your logs. I change nothing until you answer.
+
 ## 2026-11-24 — R3: the AI draft can wait for the Foreman (for Arjun)
 
 ### Changed
