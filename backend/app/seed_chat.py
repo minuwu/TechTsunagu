@@ -5,9 +5,9 @@ from datetime import datetime, time, timedelta
 
 from sqlalchemy.orm import Session
 
-from app.domain.chat import wakatta_status
+from app.domain.chat import follow_up_term, missed, wakatta_status
 from app.domain.recurrence import TOKYO
-from app.models.chat import Message, MessageAnswer, MessageCheck, Task, TaskAssignee, Thread, ThreadMember
+from app.models.chat import FollowUp, Message, MessageAnswer, MessageCheck, Task, TaskAssignee, Thread, ThreadMember
 from app.seed import Refs, _key, _load  # pyright: ignore[reportPrivateUsage]  # one seed, split by flow
 
 
@@ -61,6 +61,16 @@ def seed_chat(db: Session, refs: Refs, now: datetime) -> Refs:
                 MessageAnswer(
                     shop_id=shop_id, message_id=row.id, user_id=refs[a["worker"]], answers=a["answers"], status=status
                 )
+            )
+            # What the answer route does; the seeded questions are not about a Glossary Term.
+            db.add_all(
+                FollowUp(
+                    shop_id=shop_id,
+                    message_id=row.id,
+                    user_id=refs[a["worker"]],
+                    term_ja=follow_up_term(None, m["questions"][i]["prompt"]["ja"]),
+                )
+                for i in missed(correct, a["answers"])
             )
 
     today = now.astimezone(TOKYO).date()

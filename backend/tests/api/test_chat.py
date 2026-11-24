@@ -12,6 +12,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.ai.fake import FakeAiClient
+from app.models.chat import Thread, ThreadMember
 from app.models.scopes import Shop, User
 from app.models.work import Confusion, GlossaryTerm
 from tests import factories as f
@@ -179,6 +180,111 @@ def test_a_reexplanation_reaches_one_worker_and_closes_the_follow_up(
     assert passed["status"] == "green"
     [follow] = client.get("/api/follow-ups", headers=line.foreman).json()["data"]["items"]
     assert follow["status"] == "understood"
+
+
+def test_a_missed_question_without_a_term_can_be_explained_again(
+    client: TestClient, db: Session, line: Line, fake_ai: FakeAiClient
+) -> None:
+    """Most questions are about a time or a place, not a Glossary Term: the Foreman follows up on the question."""
+    sent = _sent(client, line, fake_ai)
+
+    result = client.post(f"/api/messages/{sent['id']}/answers", headers=line.rahim, json={"answers": [0, 2]}).json()
+
+    [follow] = client.get("/api/follow-ups?status=open", headers=line.foreman).json()["data"]["items"]
+    assert result["data"]["followUpIds"] == [follow["id"]]
+    assert (follow["messageId"], follow["termJa"]) == (sent["id"], "何時?")
+    assert db.scalar(select(Confusion).where(Confusion.message_id == int(sent["id"]))) is None  # needs a Term
+
+    question = _q("何時?", "交換は何時?", ["8時", "9時", "10時"])
+    fake_ai.queue("reexplain", {"text": _tri("8時です"), "question": question})
+    res = client.post(
+        f"/api/messages/{sent['id']}/reexplain/draft",
+        headers=line.foreman,
+        json={"userId": follow["userId"], "termJa": follow["termJa"]},
+    )
+    assert res.status_code == 200, res.text
+    assert res.json()["data"]["text"]["ja"] == "8時です"
+
+
+def test_the_follow_up_on_a_private_reexplanation_stays_with_its_sender(
+    client: TestClient, db: Session, line: Line, fake_ai: FakeAiClient
+) -> None:
+    """A Follow-up can quote the question, so it is as visible as its message (poll: Re-explanation, history start)."""
+    sent = _sent(client, line, fake_ai)
+    thread = db.get_one(Thread, line.thread_id)
+    other = f.user(db, db.get_one(Shop, thread.shop_id), role="foreman", pin="739215", must_change=False)
+    member = ThreadMember(thread_id=thread.id, user_id=other.id, shop_id=thread.shop_id)
+    db.add(member)
+    db.flush()
+    second = _login(client, other.id, "739215")
+    options = [_tri("8時"), _tri("9時"), _tri("10時")]
+    question = {"id": "q1", "termId": None, "prompt": _tri("秘密の質問?"), "options": options, "correctIndex": 0}
+    body = {"userId": str(line.rahim_id), "termJa": "何時?", "text": _tri("8時です"), "question": question}
+    re = client.post(f"/api/messages/{sent['id']}/reexplain", headers=line.foreman, json=body).json()["data"]
+    [fid] = client.post(f"/api/messages/{re['id']}/answers", headers=line.rahim, json={"answers": [1]}).json()["data"][
+        "followUpIds"
+    ]
+
+    def seen(who: dict[str, str]) -> list[str]:
+        return [x["termJa"] for x in client.get("/api/follow-ups", headers=who).json()["data"]["items"]]
+
+    assert seen(line.foreman) == ["秘密の質問?"] and seen(second) == []
+    move = {"status": "clarified"}
+    assert client.patch(f"/api/follow-ups/{fid}", headers=second, json=move).status_code == 404
+    assert client.patch(f"/api/follow-ups/{fid}", headers=line.foreman, json=move).status_code == 200
+
+    client.post(f"/api/messages/{sent['id']}/answers", headers=line.sadia, json={"answers": [1, 0]})
+    assert seen(second) == ["金型"]
+    member.history_from = datetime.now(UTC) + timedelta(hours=1)  # added after the message
+    db.flush()
+    assert seen(second) == []
+
+
+def test_two_misses_on_one_term_make_one_follow_up(client: TestClient, line: Line, fake_ai: FakeAiClient) -> None:
+    answer = draft_answer(line)
+    answer["questions"] = [
+        _q("金型", "何を交換?", ["金型", "電源", "靴"]),
+        _q("金型", "どの型?", ["2号", "1号", "3号"]),
+    ]
+    fake_ai.queue("draft_message", answer)
+    url = f"/api/threads/{line.thread_id}/messages"
+    draft = client.post(url, headers=line.foreman | _key(), data={"text": "金型交換"}).json()["data"]
+    body = {"text": draft["text"], "questions": draft["questions"]}
+    assert client.post(f"/api/messages/{draft['id']}/send", headers=line.foreman, json=body).status_code == 200
+
+    res = client.post(f"/api/messages/{draft['id']}/answers", headers=line.rahim, json={"answers": [1, -1]})
+
+    assert res.status_code == 200, res.text
+    [follow] = client.get("/api/follow-ups", headers=line.foreman).json()["data"]["items"]
+    assert res.json()["data"]["followUpIds"] == [follow["id"]] and follow["termJa"] == "金型"
+
+
+def test_asking_before_answering_keeps_one_follow_up(client: TestClient, line: Line, fake_ai: FakeAiClient) -> None:
+    sent = _sent(client, line, fake_ai)
+    client.post(f"/api/messages/{sent['id']}/ask", headers=line.rahim, json={"termJa": "金型"})
+
+    res = client.post(f"/api/messages/{sent['id']}/answers", headers=line.rahim, json={"answers": [1, 0]})
+
+    assert res.status_code == 200, res.text
+    [follow] = client.get("/api/follow-ups", headers=line.foreman).json()["data"]["items"]
+    assert res.json()["data"]["followUpIds"] == [follow["id"]]
+
+
+def test_asking_again_after_understanding_still_reaches_the_foreman(
+    client: TestClient, line: Line, fake_ai: FakeAiClient
+) -> None:
+    sent = _sent(client, line, fake_ai)
+    [fid] = client.post(f"/api/messages/{sent['id']}/answers", headers=line.rahim, json={"answers": [1, 0]}).json()[
+        "data"
+    ]["followUpIds"]
+    client.patch(f"/api/follow-ups/{fid}", headers=line.foreman, json={"status": "understood"})
+
+    res = client.post(f"/api/messages/{sent['id']}/ask", headers=line.rahim, json={"termJa": "金型"})
+
+    assert res.status_code == 201, res.text
+    assert "ask" in [m["kind"] for m in _poll(client, line, line.foreman)]
+    [follow] = client.get("/api/follow-ups", headers=line.foreman).json()["data"]["items"]
+    assert follow["status"] == "understood"  # Follow-ups only move forward
 
 
 def test_follow_ups_only_move_forward_and_reach_the_support_log(

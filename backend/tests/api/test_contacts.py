@@ -204,6 +204,7 @@ def test_personal_texts_are_never_kept_in_the_ai_cache(
 
 def test_my_qr_is_a_short_code_typed_any_way(client: TestClient, people: People) -> None:
     code = _qr(client, people.nguyen, rotate=True)
+    assert code is not None
     assert re.fullmatch(r"WK-[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{6}", code)
     typed = code.lower().replace("-", " ")  # "wk 7kq4m2"
     assert client.get("/api/contacts/resolve", params={"token": typed}, headers=people.rahim).status_code == 200

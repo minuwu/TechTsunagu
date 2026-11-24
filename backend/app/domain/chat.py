@@ -6,6 +6,7 @@ from typing import Literal
 WakattaStatus = Literal["green", "orange", "red"]
 FollowUpStatus = Literal["open", "clarified", "understood"]
 NOT_SURE = -1
+FOLLOW_UP_TERM_MAX = 100  # follow_ups.term_ja
 
 _NEXT: dict[FollowUpStatus, frozenset[FollowUpStatus]] = {
     "open": frozenset({"clarified", "understood"}),
@@ -27,6 +28,11 @@ def wakatta_status(correct: Sequence[int], answers: Sequence[int]) -> WakattaSta
     if wrong == 0:
         return "green"
     return "red" if wrong == len(correct) else "orange"
+
+
+def follow_up_term(term_ja: str | None, prompt_ja: str) -> str:
+    """What a Follow-up is about: the Glossary Term of the missed question, else the question itself."""
+    return term_ja or prompt_ja.strip()[:FOLLOW_UP_TERM_MAX]
 
 
 def can_move(current: FollowUpStatus, new: FollowUpStatus) -> bool:

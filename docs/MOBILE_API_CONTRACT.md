@@ -480,7 +480,7 @@ Errors: `409 ALREADY_SENT`; `404` not the author's; `422` assignees or Machine n
 
 #### E-055 `POST /api/messages/{id}/answers`
 Status: `live` · Roles: W · Idempotency: one answer per message and user (a repeat is idempotent) · Screens: `chat`, `home` (Checks waiting) · Bus: `check:answer`, `followup:new`
-Request: `{"answers":[1,1,-1]}` (1 to 3 values; each 0 to 2, or `-1` for "not sure"; this route accepts `-1`, `POST /checks` does not). Response 200: `{"status":"orange","followUpIds":["4"],"answers":[1,1,-1],"answerKey":[1,0,2]}`; `status` `green|orange|red`. The answer key is revealed only after answering; a repeat returns the first answers. A wrong or "not sure" answer on a question with a term creates a Confusion and a Follow-up.
+Request: `{"answers":[1,1,-1]}` (1 to 3 values; each 0 to 2, or `-1` for "not sure"; this route accepts `-1`, `POST /checks` does not). Response 200: `{"status":"orange","followUpIds":["4"],"answers":[1,1,-1],"answerKey":[1,0,2]}`; `status` `green|orange|red`. The answer key is revealed only after answering; a repeat returns the first answers. A wrong or "not sure" answer creates a Follow-up (`termJa` is the Glossary Term, or the question's Japanese text, up to 100 characters), and a Confusion when the question has a term.
 Errors: `403`; `404`; `422` the message has no questions, or a wrong answer count.
 
 #### E-056 `GET /api/follow-ups`
