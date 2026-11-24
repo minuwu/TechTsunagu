@@ -77,6 +77,15 @@ def test_learning_history_pages_by_cursor(client: TestClient, db: Session, refs:
     assert rest["nextCursor"] is None
 
 
+def test_the_seeded_wrong_answer_has_its_follow_up(client: TestClient, refs: Refs) -> None:
+    foreman = _login(client, refs["f-yamaguchi"], "246810")
+
+    [follow] = client.get("/api/follow-ups", headers=foreman).json()["data"]["items"]
+
+    assert (follow["messageId"], follow["userId"]) == (str(refs["m1"]), str(refs["w-sadia"]))
+    assert (follow["termJa"], follow["status"]) == ("今日最初に何を点検しますか？", "open")
+
+
 def test_the_foreman_reads_the_trend_per_worker_and_top_terms(client: TestClient, db: Session, refs: Refs) -> None:
     _follow_up(db, refs, "w-sadia", "金型", "open", None)
     _follow_up(db, refs, "w-rahim", "金型", "open", None)

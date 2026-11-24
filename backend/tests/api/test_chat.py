@@ -181,6 +181,77 @@ def test_a_reexplanation_reaches_one_worker_and_closes_the_follow_up(
     assert follow["status"] == "understood"
 
 
+def test_a_missed_question_without_a_term_can_be_explained_again(
+    client: TestClient, db: Session, line: Line, fake_ai: FakeAiClient
+) -> None:
+    """Most questions are about a time or a place, not a Glossary Term: the Foreman follows up on the question."""
+    sent = _sent(client, line, fake_ai)
+
+    result = client.post(f"/api/messages/{sent['id']}/answers", headers=line.rahim, json={"answers": [0, 2]}).json()
+
+    [follow] = client.get("/api/follow-ups?status=open", headers=line.foreman).json()["data"]["items"]
+    assert result["data"]["followUpIds"] == [follow["id"]]
+    assert (follow["messageId"], follow["termJa"]) == (sent["id"], "何時?")
+    assert db.scalar(select(Confusion).where(Confusion.message_id == int(sent["id"]))) is None  # needs a Term
+
+    question = _q("何時?", "交換は何時?", ["8時", "9時", "10時"])
+    fake_ai.queue("reexplain", {"text": _tri("8時です"), "question": question})
+    res = client.post(
+        f"/api/messages/{sent['id']}/reexplain/draft",
+        headers=line.foreman,
+        json={"userId": follow["userId"], "termJa": follow["termJa"]},
+    )
+    assert res.status_code == 200, res.text
+    assert res.json()["data"]["text"]["ja"] == "8時です"
+
+
+def test_two_misses_on_one_term_make_one_follow_up(client: TestClient, line: Line, fake_ai: FakeAiClient) -> None:
+    answer = draft_answer(line)
+    answer["questions"] = [
+        _q("金型", "何を交換?", ["金型", "電源", "靴"]),
+        _q("金型", "どの型?", ["2号", "1号", "3号"]),
+    ]
+    fake_ai.queue("draft_message", answer)
+    url = f"/api/threads/{line.thread_id}/messages"
+    draft = client.post(url, headers=line.foreman | _key(), data={"text": "金型交換"}).json()["data"]
+    body = {"text": draft["text"], "questions": draft["questions"]}
+    assert client.post(f"/api/messages/{draft['id']}/send", headers=line.foreman, json=body).status_code == 200
+
+    res = client.post(f"/api/messages/{draft['id']}/answers", headers=line.rahim, json={"answers": [1, -1]})
+
+    assert res.status_code == 200, res.text
+    [follow] = client.get("/api/follow-ups", headers=line.foreman).json()["data"]["items"]
+    assert res.json()["data"]["followUpIds"] == [follow["id"]] and follow["termJa"] == "金型"
+
+
+def test_asking_before_answering_keeps_one_follow_up(client: TestClient, line: Line, fake_ai: FakeAiClient) -> None:
+    sent = _sent(client, line, fake_ai)
+    client.post(f"/api/messages/{sent['id']}/ask", headers=line.rahim, json={"termJa": "金型"})
+
+    res = client.post(f"/api/messages/{sent['id']}/answers", headers=line.rahim, json={"answers": [1, 0]})
+
+    assert res.status_code == 200, res.text
+    [follow] = client.get("/api/follow-ups", headers=line.foreman).json()["data"]["items"]
+    assert res.json()["data"]["followUpIds"] == [follow["id"]]
+
+
+def test_asking_again_after_understanding_still_reaches_the_foreman(
+    client: TestClient, line: Line, fake_ai: FakeAiClient
+) -> None:
+    sent = _sent(client, line, fake_ai)
+    [fid] = client.post(f"/api/messages/{sent['id']}/answers", headers=line.rahim, json={"answers": [1, 0]}).json()[
+        "data"
+    ]["followUpIds"]
+    client.patch(f"/api/follow-ups/{fid}", headers=line.foreman, json={"status": "understood"})
+
+    res = client.post(f"/api/messages/{sent['id']}/ask", headers=line.rahim, json={"termJa": "金型"})
+
+    assert res.status_code == 201, res.text
+    assert "ask" in [m["kind"] for m in _poll(client, line, line.foreman)]
+    [follow] = client.get("/api/follow-ups", headers=line.foreman).json()["data"]["items"]
+    assert follow["status"] == "understood"  # Follow-ups only move forward
+
+
 def test_follow_ups_only_move_forward_and_reach_the_support_log(
     client: TestClient, line: Line, fake_ai: FakeAiClient
 ) -> None:
