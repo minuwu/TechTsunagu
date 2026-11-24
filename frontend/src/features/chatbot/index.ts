@@ -37,6 +37,8 @@ export function useChatbot(workerId: string | null, machineId: string | null) {
     turns,
     asking: ask.isPending,
     failed: ask.isError,
+    /** The last question's error (a 429 carries when to try again) */
+    error: ask.error,
     canAsk: !!(text.trim() || recorder.audio) && !ask.isPending,
     send: async () => {
       const reply = await ask.mutateAsync({
