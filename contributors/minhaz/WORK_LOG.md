@@ -7,6 +7,14 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 
 > **Message from Asif (2026-11-23), read first:** [CHATBOT_FROM_ASIF.md](CHATBOT_FROM_ASIF.md) explains the chatbot (what it does, the API, the four screen states, "Ask my Senpai" vs "Safety Senpai") and three decisions that are **yours**: where the ask box goes, one bot or two names, and which half grows first. Answer in XREQ-016.
 
+## 2026-11-24 (prototype demo: interactive story beside the two phones)
+
+- `prototypes/wakatta/index.html` is now a guided journey: a story rail on the left (Nekko as guide, 5 chapters, choices) and a "behind the scenes" rail on the right (AI pipeline, Wakatta Status, live feed). Logic is in `story.js`.
+- Chapters: the nod (trust it or ask again, then the injury), Tanaka speaks, Rahim answers (understood or misread 金型交換), close the gap (Follow-up, Re-explanation), what changed.
+- The story follows the real Bus events, so visitors can tap freely; off-script answers take their own branch. "Do this step for me" drives the phones for passive visitors.
+- Phone splash now shows the Nekko icon instead of the bridge mark (`parts/skeleton.html`, `app.html` rebuilt with `merge.py`). Nekko expressions copied to `prototypes/wakatta/nekko/`.
+- Limits: under 900px it still opens one phone without the story; on `file://` the in-phone highlights do not show.
+
 ## 2026-11-24 (from Asif: proposal for open registration, ADR 0017)
 
 - Each new shop's Foreman gets a fresh 100 AI requests a day, and one IP may open 3 shops a minute, so the AI allowance can be got around.
