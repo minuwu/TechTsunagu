@@ -1,6 +1,13 @@
 package com.techtsunagu.wakatta.feature.connect
 
+import com.techtsunagu.wakatta.core.media.DictationErrorKind
 import com.techtsunagu.wakatta.core.media.DictationEvent
+import com.techtsunagu.wakatta.core.media.DictationSource
+import com.techtsunagu.wakatta.core.model.AppError
+import com.techtsunagu.wakatta.core.model.AppResult
+import com.techtsunagu.wakatta.feature.connect.domain.PersonalThreadRepository
+import com.techtsunagu.wakatta.feature.connect.domain.TalkEntryDto
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.first
@@ -175,8 +182,87 @@ class ChatViewModelsTest {
         val vm = talkVm(dictation = StubDictationSource(available = false))
         vm.onEvent(TalkEvent.Init("tt_demo", "en"))
         vm.onEvent(TalkEvent.Listen)
-        assertEquals(TalkEffect.Failed(ConnectError.NO_SPEECH), vm.effects.first())
+        assertEquals(TalkEffect.Failed(ConnectError.DICTATION_UNAVAILABLE), vm.effects.first())
         assertEquals(1, vm.state.value.entries.size)
+    }
+
+    @Test
+    fun talkDictationErrorsSayWhatWentWrong() = runTest {
+        val shown = mapOf(
+            DictationErrorKind.NETWORK to ConnectError.OFFLINE,
+            DictationErrorKind.NO_SPEECH to ConnectError.DICTATION_NO_SPEECH,
+            DictationErrorKind.UNAVAILABLE to ConnectError.DICTATION_UNAVAILABLE,
+        )
+        shown.forEach { (kind, error) ->
+            val vm = talkVm(dictation = StubDictationSource(events = flowOf(DictationEvent.Error(kind))))
+            vm.onEvent(TalkEvent.Init("tt_demo", "en"))
+            vm.onEvent(TalkEvent.Listen)
+            assertEquals(TalkEffect.Failed(error), vm.effects.first())
+        }
+    }
+
+    /** Saves what [answers] says, in order; after the last answer it saves. */
+    private inner class Saves(vararg answers: AppError?) : PersonalThreadRepository by repo {
+        private val left = ArrayDeque(answers.toList())
+        val tried = mutableListOf<String>()
+        override suspend fun addEntry(talkId: String, text: String): AppResult<TalkEntryDto> {
+            tried += text
+            return left.removeFirstOrNull()?.let { AppResult.Failure(it) } ?: repo.addEntry(talkId, text)
+        }
+    }
+
+    private class Says(vararg words: String) : DictationSource {
+        private val left = ArrayDeque(words.toList())
+        override fun isAvailable() = true
+        override fun start(languageTag: String) = flowOf(DictationEvent.Final(left.removeFirst()))
+        override fun stop() = Unit
+    }
+
+    @Test
+    fun talkKeepsWordsThatCouldNotBeSavedAndSendsThemFirst() = runTest {
+        val saves = Saves(AppError.Offline)
+        val vm = TalkViewModel(saves, RecordingSpeaker(), Says("一", "二"))
+        vm.onEvent(TalkEvent.Init("tt_demo", "en"))
+
+        vm.onEvent(TalkEvent.Listen)
+        assertEquals(TalkEffect.Failed(ConnectError.OFFLINE), vm.effects.first())
+        assertEquals(1, vm.state.value.entries.size)
+
+        vm.onEvent(TalkEvent.Listen)
+        assertEquals(listOf("一", "一", "二"), saves.tried)
+        assertEquals(listOf("一", "二"), vm.state.value.entries.takeLast(2).map { it.said })
+    }
+
+    @Test
+    fun talkDropsWordsTheServerRefuses() = runTest {
+        val saves = Saves(AppError.Validation())
+        val vm = TalkViewModel(saves, RecordingSpeaker(), Says("一", "二"))
+        vm.onEvent(TalkEvent.Init("tt_demo", "en"))
+
+        vm.onEvent(TalkEvent.Listen)
+        vm.onEvent(TalkEvent.Listen)
+
+        assertEquals(listOf("一", "二"), saves.tried)
+        assertEquals("二", vm.state.value.entries.last().said)
+    }
+
+    @Test
+    fun talkListeningAgainDoesNotCutASaveShort() = runTest {
+        val gate = CompletableDeferred<Unit>()
+        val slow = object : PersonalThreadRepository by repo {
+            override suspend fun addEntry(talkId: String, text: String): AppResult<TalkEntryDto> {
+                gate.await()
+                return repo.addEntry(talkId, text)
+            }
+        }
+        val vm = TalkViewModel(slow, RecordingSpeaker(), Says("一", "二"))
+        vm.onEvent(TalkEvent.Init("tt_demo", "en"))
+
+        vm.onEvent(TalkEvent.Listen)
+        vm.onEvent(TalkEvent.Listen)
+        gate.complete(Unit)
+
+        assertEquals(listOf("一", "二"), vm.state.value.entries.takeLast(2).map { it.said })
     }
 
     @Test

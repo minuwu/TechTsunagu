@@ -2,6 +2,7 @@ package com.techtsunagu.wakatta.core.media
 
 import android.Manifest
 import android.content.pm.PackageManager
+import androidx.annotation.StringRes
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
@@ -63,11 +64,7 @@ fun rememberDictation(language: String, text: String, onText: (String) -> Unit):
                 when (event) {
                     is DictationEvent.Partial -> currentOnText(event.text)
                     is DictationEvent.Final -> currentOnText(event.text)
-                    is DictationEvent.Error -> error = when (event.kind) {
-                        DictationErrorKind.NO_SPEECH -> R.string.media_dictation_no_speech
-                        DictationErrorKind.NO_PERMISSION -> R.string.media_mic_denied
-                        else -> R.string.media_dictation_unavailable
-                    }
+                    is DictationEvent.Error -> error = dictationMessage(event.kind)
                     DictationEvent.Listening -> Unit
                 }
             }
@@ -90,6 +87,14 @@ fun rememberDictation(language: String, text: String, onText: (String) -> Unit):
             else -> ask.launch(Manifest.permission.RECORD_AUDIO)
         }
     }
+}
+
+@StringRes
+internal fun dictationMessage(kind: DictationErrorKind): Int = when (kind) {
+    DictationErrorKind.NO_SPEECH -> R.string.media_dictation_no_speech
+    DictationErrorKind.NO_PERMISSION -> R.string.media_mic_denied
+    DictationErrorKind.NETWORK -> R.string.media_dictation_network
+    DictationErrorKind.UNAVAILABLE, DictationErrorKind.BUSY, DictationErrorKind.OTHER -> R.string.media_dictation_unavailable
 }
 
 /** The recognizer ends at each pause; this starts it again, and every event carries the whole text so far. */
