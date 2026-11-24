@@ -60,7 +60,8 @@ def test_garbage_notice_states_no_collection_day() -> None:
 
 def test_message_cases_cover_the_audit_and_task_extraction() -> None:
     """XREQ-006 item 5 and the Android fix plan G2: ten messages, greetings without questions, Tasks scored."""
-    assert len(MESSAGES) == 10
+    assert len(MESSAGES) == 11
+    assert any("ignore all previous instructions" in c["input"].lower() for c in MESSAGES)  # one injection
     assert all(c["questions"] in ("some", "none") for c in MESSAGES)
     assert sum(c["questions"] == "none" for c in MESSAGES) >= 3
     assert sum(bool(c.get("tasks")) for c in MESSAGES) >= 3
