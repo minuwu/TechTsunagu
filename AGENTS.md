@@ -54,12 +54,12 @@ This file is:
 
 | Request ID | Priority | From | To | Target / Title | Status | Updated (UTC+6) |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| `XREQ-001` | P1 | Backend (Asif) | Frontend (Minhaz) | Auth, ids and list shape for the real API ([BACKEND_ARCHITECTURE.md §17](docs/BACKEND_ARCHITECTURE.md#17-frontend-contract-changes)) | `[PENDING]` | 2026-11-22 19:10 |
-| `XREQ-002` | P1 | Backend (Anim) | Frontend (Minhaz) | Life contract: Notices, Events, Asks, Senpai, Meet-ups (`backend/app/schemas/`) | `[PENDING]` | 2026-11-22 20:06 |
+| `XREQ-001` | P1 | Backend (Asif) | Frontend (Minhaz) | Auth, ids and list shape for the real API ([BACKEND_ARCHITECTURE.md §17](docs/BACKEND_ARCHITECTURE.md#17-frontend-contract-changes)) | `[RESOLVED]` | 2026-11-24 20:40 |
+| `XREQ-002` | P1 | Backend (Anim) | Frontend (Minhaz) | Life contract: Notices, Events, Asks, Senpai, Meet-ups (`backend/app/schemas/`) | `[RESOLVED]` | 2026-11-24 20:40 |
 | `XREQ-003` | P1 | AI (Galib) | Backend (Asif) | Review the free-AI plan: model chain, budgets, Groq Whisper, settings; Briefing receipts route ([AI_PLAN.md](contributors/galib/AI_PLAN.md)) | `[DONE]` | 2026-11-22 22:40 |
-| `XREQ-004` | P2 | AI (Galib) | Frontend (Minhaz, Arjun) | "Dictate instead" fallback, degraded-draft message, provenance line ([AI_PLAN.md](contributors/galib/AI_PLAN.md) §2, §8) | `[PENDING]` | 2026-11-22 22:40 |
+| `XREQ-004` | P2 | AI (Galib) | Frontend (Minhaz, Arjun) | "Dictate instead" fallback, degraded-draft message, provenance line ([AI_PLAN.md](contributors/galib/AI_PLAN.md) §2, §8) | `[RESOLVED]` | 2026-11-24 18:35 |
 | `XREQ-005` | P1 | Frontend (Minhaz) | Backend (Anim, Asif) | Chat API: Threads, Messages (voice/text), Wakatta Status answers, Follow-ups, Re-explanation, Nudge, Tasks + Task Board | `[DONE]` | 2026-11-22 17:55 |
-| `XREQ-006` | P1 | Frontend (Minhaz) | AI (Galib) | Chat AI: voice → transcript → translation → Check Questions → Task extraction (`build_message`), Worker reply translation, Re-explanation | `[IN_PROGRESS]` | 2026-11-22 17:55 |
+| `XREQ-006` | P1 | Frontend (Minhaz) | AI (Galib) | Chat AI: voice → transcript → translation → Check Questions → Task extraction (`build_message`), Worker reply translation, Re-explanation | `[DONE]` | 2026-11-24 17:10 |
 | `XREQ-007` | P1 | Frontend (Minhaz) | AI (Galib), Backend (Asif, Anim) | Pick the Japanese ⇄ English transcription and translation models by a bake-off on our own audio, not on free-tier quota | `[DONE]` | 2026-11-23 03:48 |
 
 | `XREQ-008` | P0 | Frontend (Minhaz, Android app) | Backend (Asif) | Hosted API: public base URL, test shop and accounts, health check, Bearer scheme in `openapi.yaml` | `[DONE]` | 2026-11-23 08:25 |
@@ -69,9 +69,9 @@ This file is:
 | `XREQ-012` | P1 | Backend (Anim, database) | Backend (Asif, deploy) | Point the Azure API at the Supabase database (`backend/deploy/SUPABASE.md`), reseed, smoke, then delete Azure PostgreSQL | `[DONE]` | 2026-11-23 17:30 |
 
 | `XREQ-013` | P1 | Frontend (Arjun) | Backend (Asif, deploy) | Host the frontend demo on Azure Static Web Apps (static build, `npm run build:static`) and reply with the live URL | `[DONE]` | 2026-11-24 17:17 |
-| `XREQ-014` | P1 | Backend (Anim) | Frontend (Minhaz, Android + Firebase) | Firebase for push: project, Android app, FCM token upload to `PUT /api/devices/me`, service-account key to Anim privately | `[PENDING]` | 2026-11-23 19:30 |
+| `XREQ-014` | P1 | Backend (Anim) | Frontend (Minhaz, Android + Firebase) | Firebase for push: project, Android app, FCM token upload to `PUT /api/devices/me`, service-account key to Anim privately | `[RESOLVED]` | 2026-11-24 19:45 |
 | `XREQ-015` | P0 | Backend (Anim) | Backend (Asif, Azure owner) | Give Anim's Azure account Contributor on the Wakatta resource group (Asif is off the project; Anim runs deploy now) | `[RESOLVED]` | 2026-11-23 19:30 |
-| `XREQ-016` | P0 | AI (Galib) | Frontend (Minhaz, Arjun; Android: Minhaz) | Chatbot screen on the Worker home and the Machine screen: `POST /api/knowledge/asks` (cited answer + self-check; emergency card; not covered → forward to Senpai) | `[IN_PROGRESS]` (web done; Android open) | 2026-11-23 23:00 |
+| `XREQ-016` | P0 | AI (Galib) | Frontend (Minhaz, Arjun; Android: Minhaz) | Chatbot screen on the Worker home and the Machine screen: `POST /api/knowledge/asks` (cited answer + self-check; emergency card; not covered → forward to Senpai) | `[RESOLVED]` | 2026-11-24 19:15 |
 | `XREQ-017` | P1 | Frontend (Minhaz, Android app) | Backend (Anim), AI (Galib) | Contacts, My QR, Contact Threads (routes now live; Talk Threads and group controls moved to XREQ-018 and 019); notification list stays push-only | `[DONE]` | 2026-11-24 11:20 |
 | `XREQ-018` | P1 | Frontend (Minhaz, Android app) | Backend (Anim), AI (Galib) | Talk Threads: threads and entries routes plus the two AI pipelines | `[RESOLVED]` | 2026-11-23 23:56 |
 | `XREQ-019` | P2 | Frontend (Minhaz, Android app) | Backend (Anim) | Group controls on work Threads: create, members, roles, mute/pin/archive, leave, announce-only | `[DONE]` | 2026-11-24 11:06 |
@@ -82,7 +82,7 @@ This file is:
 | `XREQ-024` | P2 | Frontend (Minhaz, Android app) | Backend (Anim) | Foreman reads Asks; set Today's Word; Support Log JSON summary; transcript of voice Asks | `[RESOLVED]` | 2026-11-23 23:56 |
 | `XREQ-025` | P1 | Frontend (Minhaz, Android app) | Backend (Anim, Azure) | Host the release APK and run the release routine behind GET /app/config | `[DONE]` | 2026-11-24 12:12 |
 | `XREQ-026` | P2 | Frontend (Minhaz, Android app) | Backend (Anim, Azure) | App Links: a host, assetlinks.json and a web fallback for QR and share links | `[RESOLVED]` | 2026-11-24 11:27 |
-| `XREQ-027` | P0 | Frontend (Minhaz, Android app) | Backend (Anim, Azure) | Deploy the backend and run migrations `8e3b5d0a2f41` and `9a4c6e2b8d13`: Machine rename/archive, Worker's own Task, shop find and chosen codes, My QR short codes | `[PENDING]` | 2026-11-24 18:30 |
+| `XREQ-027` | P0 | Frontend (Minhaz, Android app) | Backend (Anim, Azure) | Deploy the backend and run migrations `8e3b5d0a2f41` and `9a4c6e2b8d13`: Machine rename/archive, Worker's own Task, shop find and chosen codes, My QR short codes | `[RESOLVED]` | 2026-11-24 18:02 |
 *(When adding a request: append a row above AND add a detailed card in 2.2. Never insert in the middle.)*
 
 ### 2.2 Detailed Request Cards
@@ -118,8 +118,8 @@ Errors: `401 UNAUTHORIZED` (wrong PIN), `423 PIN_LOCKED` (`details.until`), `429
 
 **Fulfillment & Proof (filled by recipient on completion):**
 - **Branch / Commit**: 
-- **Status / Notes**: 2026-11-23 Asif: the backend side is live on Azure and verified from outside (CORS from localhost:3000, roster, login, `/auth/me`, authenticated lists). Everything Minhaz needs is in [docs/FRONTEND_API_HANDOVER.md](docs/FRONTEND_API_HANDOVER.md): URL, sign-in flow, headers, list shape, the 5 path changes, demo accounts.
-- **Verification Proof**: 
+- **Status / Notes**: 2026-11-23 Asif: the backend side is live on Azure and verified from outside (CORS from localhost:3000, roster, login, `/auth/me`, authenticated lists). Everything Minhaz needs is in [docs/FRONTEND_API_HANDOVER.md](docs/FRONTEND_API_HANDOVER.md): URL, sign-in flow, headers, list shape, the 5 path changes, demo accounts. 2026-11-24 Galib (Minhaz's task 10, checked): **not done on the web.** `frontend/src/services/wakatta.ts` still sends `credentials: 'include'` (no Bearer token) and the web runs with `VITE_USE_MOCK=true`; the hackathon demo uses the mock web and the Android app on the live API. Left for after the hackathon. 2026-11-24 20:40 Minhaz: **done on the web** (run with `VITE_USE_MOCK=false`; the mock demo is unchanged). `services/api.ts`: Bearer token from login (`wakatta.auth`, expiry checked, cleared on 401), `Idempotency-Key` per action, `requestAll` pages `{items, nextCursor}`, `requestBlob` for `/blobs` and CSV. `shell/AuthGate.tsx`: shop or district code → name → PIN; `mustChangePin` shows "choose your PIN" first; a Worker's link always opens their own pages; a Machine QR prefills the code (`?s=`). `services/live.ts` maps every list per role; writes drop `workerId`; Briefings draft → publish by id; photos and audio are multipart files. Foreman accounts card (create Worker/Foreman, reset PIN, deactivate) under the Skill Matrix in the v4 kit. Shortcuts left: the Panel uses a Foreman session, not the device Panel token; the accounts card is in v4 only; the SWA origin is not in the API CORS list yet (line 556).
+- **Verification Proof**: `src/services/api.test.ts` (Bearer sent, 401 clears the session, expired session is signed out, cursor paging); frontend 116 tests, typecheck, lint pass; `npm run check:api` against the live API passes (roster, login, `/auth/me` with Bearer, `{items, nextCursor}`, logout); in Chrome on `localhost:3000` with the live API, `/foreman` shows the sign-in and `SASEBO01` lists the Foreman. Not yet run: a signed-in walk through every screen on the live API (`src/services/live.smoke.test.ts`, local only, needs the demo PINs in env).
 
 #### `[XREQ-002]` Life contract: Notices, Events, Asks, Senpai, Meet-ups
 - **Priority**: `P1 (High)`
@@ -163,8 +163,8 @@ Errors: `404 NOT_FOUND` (wrong or revoked Senpai token), `409 NO_ACTIVE_PAIR` (f
 
 **Fulfillment & Proof (filled by recipient on completion):**
 - **Branch / Commit**: 
-- **Status / Notes**: 
-- **Verification Proof**: 
+- **Status / Notes**:  2026-11-24 Galib (Minhaz's task 10, checked): **not done on the web.** `frontend/src/services/wakatta.ts` still sends `credentials: 'include'` (no Bearer token) and the web runs with `VITE_USE_MOCK=true`; the hackathon demo uses the mock web and the Android app on the live API. Left for after the hackathon. 2026-11-24 19:50 Minhaz: items 9, 12 and the 409 of item 3 done (they show in the mock demo too): `toIcs` folds every line at 75 octets without splitting a UTF-8 character and adds a `VTIMEZONE` for `Asia/Tokyo` (one `STANDARD`, `+0900`); the demo flyer has no recyclables Event, recyclables are a step with the verified wording; the mock publish refuses with 409 `EVENTS_NOT_CONFIRMED`. The real-API items follow in the next commits. 2026-11-24 20:40 Minhaz: real-API items done: Notices multipart with one source (`sourceKind`), Events show the backend's `nextDates` (COUNT/UNTIL respected), receipts `{target:{kind,id}}`, Asks multipart, Senpai reply `{replyJa}`, the Senpai link reads `GET /api/senpai/{token}` and logs Meet-ups through it, the Poster sees counts only from `GET /notices/{id}/reach`, the Support Log is the backend CSV (`from`/`to`, last 12 months). Shortcut: glossary `bn` is sent as the English text until the backend makes it optional (**Anim**).
+- **Verification Proof**: `src/domain/wakatta.test.ts` (fold: every line ≤ 75 octets, continuation lines start with a space, unfolding gives the exact Bengali/Japanese text; VTIMEZONE present); frontend 112 tests, typecheck, lint, `check:api` pass. Real API: `upcomingDates` test (backend dates win, an ended rule shows none); 116 tests, typecheck, lint, `check:api` pass.
 
 #### `[XREQ-003]` Review the free-AI plan (model chain, budgets, Whisper, settings)
 - **Priority**: `P1 (High)`
@@ -208,7 +208,7 @@ Errors: `403 FORBIDDEN` (not a Foreman), `404 NOT_FOUND` (another shop's Briefin
 - **Priority**: `P2 (Normal)`
 - **From**: AI (Galib)
 - **To**: Frontend (Minhaz, Arjun)
-- **Status**: `[PENDING]`
+- **Status**: `[RESOLVED]`
 - **Created**: `2026-11-22 22:40 (UTC+6)`
 - **Target Interface / Endpoint**: Foreman record and Briefing screens, Poster voice notice (`frontend/src/ui/v2/screens/foreman/ForemanRecordScreen.tsx`, `community/CommunityScreen.tsx`), shared draft view
 
@@ -230,9 +230,9 @@ POST /api/machines/3/notes   (multipart: text = what the browser heard, Idempote
 No new error codes.
 
 **Fulfillment & Proof (filled by recipient on completion):**
-- **Branch / Commit**: 
-- **Status / Notes**: 
-- **Verification Proof**: 
+- **Branch / Commit**: `main` `960f89e`, `a0bf2ef`, `cefb7b3` (Galib, at the user's request, as Arjun's and Minhaz's queue was full)
+- **Status / Notes**: 2026-11-24 Galib. **Web (v4), Foreman record screen and library: all three items.** (1) "Dictate instead": `src/lib/dictation.ts` (`SpeechRecognition` / `webkitSpeechRecognition`, `ja-JP`, final results only), offered on the record step after a `needsEdit` draft (it goes back with what the AI heard and starts listening) or when offline; hidden where the API is missing. (2) A `needsEdit` draft shows an "AI unavailable" card (ja / en) instead of an empty form. (3) Provenance: "AI draft · checked against the back-translation below" on a good draft; the library shows "approved by …" (`approvedBy`). Later the same day (`cefb7b3`), the **Briefing** and **Poster notice** screens too: the card, "Dictate instead" (the Briefing sends the dictated text; a Notice switches to text) and "AI draft · check before publishing". All screens of the card are done. Android's "not translated" for Chat drafts is in the fix plan (M2, M4, Minhaz).
+- **Verification Proof**: `src/lib/dictation.test.ts` (2 tests); 109/109 unit tests, `tsc`, ESLint, build; a sample draft on `/foreman/record/m-press` shows the provenance line (Playwright, 390 px); 111/111 unit tests after the Briefing and Notice; sample drafts on `/foreman/briefing` and `/community` show the line, no page errors.
 
 #### `[XREQ-005]` Chat API: Threads, Messages, Wakatta Status, Follow-ups, Tasks
 - **Priority**: `P1 (High)`
@@ -313,7 +313,7 @@ Fallback outcome `degraded`: `{ "transcriptJa": "…" , "needsEdit": true }` (`t
 
 **Fulfillment & Proof (filled by recipient on completion):**
 - **Branch / Commit**: `main`: Anim's Chat AI `e702961` (schemas, `draft_message` and `reexplain` prompts, service); Galib's checks `10ed785` (PR #9); per-shop languages `0fe468f`; demo cache `b8b51df`
-- **Status / Notes**: 2026-11-23 Galib: items 1, 2, 4 done (Anim's pipelines + `message_problems`, `task_problems`, `reexplain_problems`: glossary lock, assignees and Machines checked, a due time only when one was said, the Re-explanation question on the missed term; the draft cache key includes the Tokyo date). Item 3: the chain ends with the Groq backup (Whisper → gpt-oss-120b); the bake-off (XREQ-007) recommends Whisper turbo as its own first step, still to build. Item 6: `app/ai/demo_warmup.py` warms the die-change message with the other filmed takes. **Left:** item 5, the 10 Chat eval messages scoring Task extraction.
+- **Status / Notes**: 2026-11-23 Galib: items 1, 2, 4 done (Anim's pipelines + `message_problems`, `task_problems`, `reexplain_problems`: glossary lock, assignees and Machines checked, a due time only when one was said, the Re-explanation question on the missed term; the draft cache key includes the Tokyo date). Item 3: the chain ends with the Groq backup (Whisper → gpt-oss-120b); the bake-off (XREQ-007) recommends Whisper turbo as its own first step, still to build. Item 6: `app/ai/demo_warmup.py` warms the die-change message with the other filmed takes. **Left:** item 5, the 10 Chat eval messages scoring Task extraction. 2026-11-24 Galib: **item 5 done, card closed.** 10 Chat eval messages in `tests/fixtures/ai/eval/messages.json` (Task extraction scored: people, due time said or not, Machine), results in `docs/ai-eval.md` §Chat messages. The run found a real bug: both free Gemini models put the Machine code in `machine_id`, so a message naming a Machine had no draft; fixed by `draft_message.v4` (Machines listed as `id | ja | en`). On v4, 3.1-flash-lite: 10/10 valid, 7/10 passed.
 - **Verification Proof**: `tests/domain/test_ai_checks.py` (Chat cases), `tests/api/test_chat.py`; local rehearsal with real AI: the die-change message drafted in 7.9 s, then 0.0 s from the cache, also after `app.seed --reset`.
 
 #### `[XREQ-007]` Pick the Japanese ⇄ English transcription and translation models by a bake-off
@@ -577,7 +577,7 @@ GET https://<name>.azurestaticapps.net/panel/m-press → 200, the Machine Panel
 - **Priority**: `P1 (High)`
 - **From**: `Backend (Anim)`
 - **To**: `Frontend (Minhaz, Android app; owner of the Firebase part)`
-- **Status**: `[PENDING]`
+- **Status**: `[RESOLVED]`
 - **Created**: `2026-11-23 19:30 (UTC+6)`
 - **Target Interface / Endpoint**: Firebase console; Android app; `PUT /api/devices/me`, `DELETE /api/devices/me?installId=`
 
@@ -604,9 +604,9 @@ PUT /api/devices/me
 ```
 
 **Fulfillment & Proof (filled by recipient on completion):**
-- **Branch / Commit**: 
+- **Branch / Commit**: `main` (this commit: `:app` applies `google-services`; `WakattaApp` builds the device registrar at start)
 - **Status / Notes**: 2026-11-23 Minhaz: steps 1-3 partly done. Used the existing Firebase project **`daily-wizdom`** (number 206569521303; Spark, shared with the Pocket Japanese app) instead of a new `wakatta` project. Android app registered: package `com.techtsunagu.wakatta`, app id `1:206569521303:android:7afa3e8321fc042f9e29d2`. `android/app/google-services.json` downloaded (gitignored). Catalog already has `firebase-bom` 35.2.0 (latest) and `firebase-messaging`; `google-services` plugin bumped to 4.6.0 and declared in the root `build.gradle.kts`. **Not done:** the `:app` module is not scaffolded yet (WP-0A), so the plugin is not applied and steps 4-6 (token upload service, permission, channel) wait for it. Step 7 (service-account key) is the user's to generate and send to Anim privately. **Anim:** project id for the sender is `daily-wizdom`; note the key from this project can reach the Pocket Japanese app's Firebase data too, so store it only as the Azure secret. A dedicated project was tried and failed (Google project quota exceeded); to limit the risk, generate the key for a new service account with only the role "Firebase Cloud Messaging API Admin" (Google Cloud console → IAM & Admin → Service accounts), not the default Firebase Admin SDK account. 2026-11-23 Anim: key received privately; stored only as the Container App secret `firebase-service-account` (env `FIREBASE_SERVICE_ACCOUNT_B64`, `FIREBASE_PROJECT_ID=daily-wizdom`) with `backend/deploy/set-firebase-key.ps1` (checks type and project id without printing, refuses a file inside the repo). App package `com.techtsunagu.wakatta`. Next: the FCM sender in the backend. 2026-11-24 Anim: **sender live in the backend** (`app/push.py`, `app/services/push.py`). FCM HTTP v1 with the service account; push is off when `FIREBASE_*` is unset. Sent after the response (never delays the API), to phones with `notificationsEnabled` and a live session only. **What the phone gets** (notification + data, ids only, never message text): `chat_message` when a message is sent into a work Thread (Worker message, Foreman Send, Re-explanation to that Worker only, ask-the-Foreman), to every member but the sender, channel `messages`, TTL 24 h; `nudge` to that Worker, channel `safety`, TTL 2 h. `data` = `{v:"1", type, eventId, sentAt, threadId, messageId}` (all strings; drop a repeated `eventId`). Title/body in the account language (ja or en; other languages fall back to en until reviewed), e.g. 「山口 隆さんからメッセージ」. A retried POST pushes once; a token FCM calls UNREGISTERED or invalid is deleted. No `link` yet: the host is XREQ-026. Contact and Talk Threads never push (contract §1.4). **Minhaz, to test end to end:** create channels `messages` and `safety`, register with `PUT /api/devices/me` after sign-in, then have a Worker post in the Line 2 Thread: the Foreman's phone gets one push.
-- **Verification Proof**: `tests/api/test_push.py` (6: ids only and never the text, sender and muted phones skipped, one push per retried POST, Nudge to one Worker, dead token removed, signed-out phone skipped, unsent draft skipped), `tests/test_push_client.py` (7: FCM answers → sent/gone/retry/failed, both-or-neither settings, key for another project refused at startup); full suite 389 passed; ruff, pyright strict, lint-imports clean. The live call to FCM is not tested yet: no phone has registered (`devices` empty).
+- **Verification Proof**: `tests/api/test_push.py` (6: ids only and never the text, sender and muted phones skipped, one push per retried POST, Nudge to one Worker, dead token removed, signed-out phone skipped, unsent draft skipped), `tests/test_push_client.py` (7: FCM answers → sent/gone/retry/failed, both-or-neither settings, key for another project refused at startup); full suite 389 passed; ruff, pyright strict, lint-imports clean. The live call to FCM is not tested yet: no phone has registered (`devices` empty). 2026-11-24 19:45 Minhaz: **end to end on the live API.** The gap was that `:app` never applied the `google-services` plugin, so Firebase never started and no token existed; it is now applied when `android/app/google-services.json` is present (a clone without it still builds, push off). The registrar is now built at app start, so every sign-in and cold start sends `PUT /api/devices/me` (200). Test on the Pixel 9 Pro emulator signed in as Foreman 山口 隆: Rahim posted in Thread 1 (2号ライン) through the API and the phone showed one notification on channel `messages`, 「Rahim Uddinさんからメッセージ」 / 「Wakatta?を開いて確認してください」, no message text. A first try got nothing because notifications were off on that emulator (`notificationsEnabled:false`, which the server rightly skips). Not wired: `DELETE /api/devices/me` before logout (sign-out lives in `feature:auth`/`feature:home`, which do not depend on `feature:notifications`); the server already skips phones without a live session.
 
 #### `[XREQ-015]` Azure access for Anim (Contributor on the Wakatta resource group)
 - **Priority**: `P0 (Blocker)`
@@ -641,7 +641,7 @@ Anim: az group show -n <rg> → succeeds
 - **Priority**: `P0 (Blocker for the demo feature)`
 - **From**: `AI (Galib)`
 - **To**: `Frontend (Minhaz, Arjun; Android: Minhaz)`
-- **Status**: `[PENDING]`
+- **Status**: `[RESOLVED]`
 - **Created**: `2026-11-23 20:00 (UTC+6)`
 - **Target Interface / Endpoint**: `POST /api/knowledge/asks` (on `main`, in `docs/openapi.yaml`; plan: [RAG_PLAN.md](contributors/galib/RAG_PLAN.md))
 
@@ -676,6 +676,7 @@ Errors: `403` (not a Worker), `413` / `415` (recording too long or wrong format)
 - **Branch / Commit**: `main` (Galib, 2026-11-23, at the user's request so the demo has it tonight): `frontend/src/ui/v4/components/Chatbot.tsx`, `features/chatbot`, `services/wakatta.ts` `askChatbot`, `services/mocks/ai.ts` `answerKnowledge`, `domain/wakatta.ts` `KnowledgeAnswer`, en/ja messages.
 - **Status / Notes**: Web (v4 kit) done: a floating **Ask Wakatta** button bottom right on the Worker Work and Life tabs and on the Machine screen (sends `machineId`), above the phone tab bar. Covered answer with source chips (page, link to the guide) and the attribution line; practice question graded on the phone; red emergency card; not covered → **Ask my Senpai** (`POST /asks` + `/forward`). Mock answers mirror the backend for the filmed questions. Japanese + English only. Minhaz: restyle freely; **Android is still open**. 2026-11-23 Minhaz decisions: (1) placement: a pinned "Ask Wakatta" entry in the chat list (general and life questions, history kept on the phone only) plus the Machine-screen button that sends `machineId`; (2) one "Ask Wakatta" bot everywhere, no Safety Senpai / Life Guide names on screen; (3) after the hackathon, Life Guide gets more sources first.
 - **Status / Notes (Android data layer)**: 2026-11-24 Galib, Android fix plan G4 (`d623e0b`): `feature/asks` has `ChatbotRepository` (Real = `POST /api/knowledge/asks` with `text` or `audio` and `machineId`; Fake = the filmed answers offline) and `ChatbotViewModel` (per turn COVERED / NOT_COVERED / EMERGENCY, `sending`, `error`; "Ask my Senpai" through the Asks route, once). Tests: `ChatbotViewModelTest` (6), `RealChatbotRepositoryTest` (2); `:app:assembleDebug` green. **Left: the Android screen (Minhaz, M7)**, which sends `SetMachine(id)` from the Machine screen.
+- **Status / Notes (Android screen)**: 2026-11-24 Galib, for Minhaz (fix plan M7, `939dc9b`): `ChatbotScreen` on `ChatbotViewModel`: covered answer with source chips (page; opens the guide) and the attribution, the practice question graded on the phone, the red emergency card, "Ask my Senpai" when not covered; typed or dictated. Pinned "Ask Wakatta" on the Worker home; the Machine screen's button sends its id. 4 Compose tests; `:app:assembleDebug` green. Web and Android both done: resolved.
 - **Verification Proof**: `npm run typecheck`, `npm run lint`, `npm test` (98 passed, incl. `services/mocks/chatbot.test.ts`); Playwright screenshots at 390 px and 1280 px: answer + sources + practice question, emergency card, not covered + Ask my Senpai.
 
 #### `[XREQ-017]` Contacts, My QR, Contact Threads, Talk Threads and group controls (the part of XREQ-010 still open)
@@ -908,7 +909,7 @@ Machine QR stickers and shared links open the app directly (Android App Links, s
 - **Priority**: `P0 (Blocker)`
 - **From**: `Frontend (Minhaz, Android app)`
 - **To**: `Backend (Anim, Azure)`
-- **Status**: `[PENDING]`
+- **Status**: `[RESOLVED]`
 - **Created**: `2026-11-24 18:30 (UTC+6)`
 - **Target Interface / Endpoint**: `PATCH /api/machines/{id}`, `DELETE /api/machines/{id}`, `POST /api/tasks` (Worker), `POST /api/auth/find`, My QR short codes
 
@@ -923,9 +924,9 @@ What the code does (written by Minhaz with tests, outside the usual Backend owne
 - `POST /api/tasks` now accepts a Worker; a Worker's Task is always assigned to that Worker alone (other `assigneeIds` are ignored).
 
 **Fulfillment & Proof (filled by recipient on completion):**
-- **Branch / Commit**:
-- **Status / Notes**:
-- **Verification Proof**: local before handoff: full backend suite passed (new tests `test_a_foreman_renames_and_archives_a_machine_and_history_keeps_it`, `test_a_worker_adds_a_task_that_is_only_theirs`, route-guard cases for PATCH/DELETE); ruff clean; `docs/openapi.yaml` regenerated.
+- **Branch / Commit**: `main` `4bed1c4` (Galib's pyright fix on `rename_machine` let CI pass, and the deploy followed)
+- **Status / Notes**: 2026-11-24 18:02 Anim: **deployed and migrated.** The live image is `4bed1c4`; it contains `8e3b5d0a2f41` and `9a4c6e2b8d13`, and the container runs `alembic upgrade head` before it serves, so Supabase is at head `9a4c6e2b8d13`. Also released APK **1.0.2** (Minhaz's `803087f`, SHA-256 checked first): `GET /api/app/config` offers it, `minVersion` still 1.0.0. **Code review (Anim, 2026-11-24; 155 tests pass, migrations round-trip):** authorization, the Worker-only Task rule and rename are correct. **Fixed by Anim 2026-11-24:** #1 and #2 (`/auth/find`: one exact match only, rate limit first, dummy check, the same 401 for nobody, namesakes and locked; test `test_find_never_signs_in_a_namesake`), #3 and #4 (archive revokes the Panel sessions; Panel, notes, approval, overrides, reminders and Checks answer 409 `MACHINE_ARCHIVED`; Tasks cannot point at it; test `test_an_archived_machine_stops_its_panel_and_takes_no_writes`). **Still open (low):** the items after #4 below. Original list: (1) **high**: `POST /auth/find` (`services/auth.py:125`) checks every namesake's PIN but counts failures only on the first, so a second same-named user can be guessed with no lockout; count and lock per candidate, or 401 when the name is ambiguous. (2) medium: `/auth/find` hashes PINs before the rate limit and its timing and 423 reveal whether a shop+person exists, and anyone can lock a named person out; rate-limit first, one dummy Argon2 check on no match, the same 401 for no-match and locked. (3) medium: archiving does not revoke the machine's 180-day Panel sessions, so its Panel keeps answering (`floor.py:117`, `:149`). (4) medium: an archived machine still takes notes/drafts/approve (`notes.py:81,138,192`), overrides and reminders (`records.py:45,70`), Checks (`floor.py:229`) and Tasks (`repositories/chat.py:416` has no `archived_at` filter). Low: shift assignments of an archived machine stay listed (`work.py:153`); its code can never be reused (`UniqueConstraint` on archived rows; intended?); the `WK-` QR code is ~30 bits, a bare SHA-256, rate-limited per account only; `8e3b5d0a2f41` downgrade aborts once a non-8-character code exists; a register race on a chosen code gives 500, not 409; a concurrent double archive writes two audit rows.
+- **Verification Proof**: live `GET /api/health/ready` 200, `PATCH /api/machines/1` without a token 401 (the route exists), smoke 13/13. Before handoff (Minhaz): full backend suite passed (new tests `test_a_foreman_renames_and_archives_a_machine_and_history_keeps_it`, `test_a_worker_adds_a_task_that_is_only_theirs`, route-guard cases for PATCH/DELETE); ruff clean; `docs/openapi.yaml` regenerated.
 
 ### 2.3 Blank XREQ Template (copy & paste)
 

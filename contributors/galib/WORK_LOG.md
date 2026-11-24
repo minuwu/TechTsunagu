@@ -4,6 +4,36 @@ Owner: Galib (`Ga-lib`) — Role: AI / LLM
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-24 night (Minhaz's open items, at the user's request)
+
+- **M7 / XREQ-016 resolved** (`939dc9b`): the Android "Ask Wakatta" screen, pinned on the Worker home and on the
+  Machine screen. **M4** (`6c52cda`) "Draft, not sent" and "Japanese only" labels. **M9** (`0f18500`) read-aloud for
+  every message in its language. **M10** (`dc26fa6`) "I explained it" on Follow-ups. **M11** (`877e65a`) the new shop
+  code no longer vanishes after registering. **Message delete** (`c8222b0`, ADR 0014).
+- Docs: the 429 row in the platform contract; XREQ-001 and 002 checked (the web still runs on mock data).
+- Not done (need a phone, keys or a person): M8 Firebase push, XREQ-025 install test, M12 a new signed release,
+  the README and making the repository public (Minhaz).
+
+## 2026-11-24 evening (Arjun's open items, at the user's request)
+
+- **Frontend CI was red on main** (stale API types after the Machine admin routes): regenerated (`4cdde01`).
+- **429:** already handled by Arjun's write-failure toast; the chatbot panel now says busy / today's limit too (`ed88957`).
+- **XREQ-004, web record screen** (`960f89e`, `a0bf2ef`): "Dictate instead", the "AI unavailable" card, the
+  provenance line and "approved by"; then the Briefing and Poster notice screens (`cefb7b3`). XREQ-004 resolved.
+- **Android R5, R6, R7** for Arjun (`181fd94`, `8986a32`, `3236809`), tests green (chat 90, nearmiss 44, connect 79).
+- Hero checked at 1440 / 768 / 375 px, motion on and off: no horizontal scroll, no console errors.
+  Course drawings were already recoloured (`53c59db`).
+
+## 2026-11-24 evening (after filming)
+
+- **XREQ-006 item 5, closed** (`98ddf84`, `c9d2ba7`): the Chat message eval found both free Gemini models putting
+  the Machine code (`press-brake-2`) in `machine_id`, so the die-change message had no draft. Fixed by
+  `draft_message.v4` (`7bf5ef8`); 3.1-flash-lite went from 2/10 to 7/10 passed, 10/10 valid. Prompt injection case
+  m11 added and passing (`89246da`).
+- **G1 proven live**: 10 drafts all under 45 s. Fix found on the way (`86c69e6`): Groq always gets its turn.
+- **G3 decided**: free tier for filming; `AI_TIER=paid` for a real shop.
+- **backend-ci was red on main** (pyright, `floor.py`, the Machine admin merge), so nothing deployed; fixed (`4bed1c4`).
+
 ## 2026-11-24 (from Arjun: AI checks, with your OK)
 
 - **Checked:** `tests/ai`, `tests/fixtures/ai` and `test_ai_checks` pass (81 tests); ruff, format and pyright are clean on `app/ai`. On this PC, run pytest and pyright as `uv run python -m pytest` and `uv run python -m pyright` (Windows Application Control blocks the `.exe` launchers).

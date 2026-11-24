@@ -30,6 +30,12 @@ AppSettings = Annotated[Settings, Depends(get_settings)]
 
 
 def client_ip(request: Request) -> str:
+    """The address the rate limits count. Only Azure's ingress reaches the container, and it appends the real caller
+    as the last X-Forwarded-For hop; earlier hops are whatever the caller sent, so never trust the first."""
+    forwarded = request.headers.get("x-forwarded-for", "")
+    last = forwarded.rsplit(",", 1)[-1].strip()
+    if last:
+        return last
     return request.client.host if request.client else "unknown"
 
 

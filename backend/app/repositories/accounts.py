@@ -84,6 +84,17 @@ def revoke_sessions_of(db: Session, user_id: int, now: datetime, keep: bytes | N
     db.execute(stmt.values(revoked_at=now))
 
 
+def revoke_panel_sessions(db: Session, shop_id: int, machine_id: int, now: datetime) -> None:
+    """An archived Machine's Panel device signs out (its session would otherwise live 180 days)."""
+    stmt = update(SessionRow).where(
+        SessionRow.kind == "panel",
+        SessionRow.shop_id == shop_id,
+        SessionRow.machine_id == machine_id,
+        SessionRow.revoked_at.is_(None),
+    )
+    db.execute(stmt.values(revoked_at=now))
+
+
 def audit(
     db: Session,
     action: str,

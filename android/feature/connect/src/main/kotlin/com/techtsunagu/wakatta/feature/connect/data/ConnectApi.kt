@@ -76,6 +76,17 @@ internal interface ConnectApi {
         @Query("after") after: String? = null,
     ): Response<ResponseBody>
 
+    /** Delete one message (ADR 0014). */
+    @DELETE(ApiPaths.CONTACT_MESSAGE)
+    suspend fun deleteMessage(
+        @Path("contact_id") contactId: String,
+        @Path("message_id") messageId: String,
+    ): Response<ApiEnvelope<Unit>>
+
+    /** Delete the whole Contact Thread on this side (ADR 0014). */
+    @DELETE(ApiPaths.CONTACT_MESSAGES)
+    suspend fun clearMessages(@Path("contact_id") contactId: String): Response<ApiEnvelope<Unit>>
+
     /** Send a message in a Contact Thread. */
     @POST(ApiPaths.CONTACT_MESSAGES)
     suspend fun sendMessage(

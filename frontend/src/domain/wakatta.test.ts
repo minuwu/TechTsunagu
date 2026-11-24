@@ -1,6 +1,12 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { isValidRrule, nextOccurrences, toIcs } from './calendar'
+import {
+  foldIcsLine,
+  isValidRrule,
+  nextOccurrences,
+  toIcs,
+  upcomingDates,
+} from './calendar'
 import {
   gradeCheck,
   skillStatus,
@@ -119,5 +125,45 @@ describe('calendar', () => {
     expect(ics).toContain('DTSTART;TZID=Asia/Tokyo:20261102T080000')
     expect(ics).toContain('RRULE:FREQ=WEEKLY;BYDAY=MO,TH')
     expect(ics).toContain('SUMMARY:Burnable\\, bag')
+    expect(ics).toContain('BEGIN:VTIMEZONE\r\nTZID:Asia/Tokyo')
+    expect(ics).toContain('TZOFFSETTO:+0900')
+  })
+  it('folds long lines at 75 octets without splitting a character', () => {
+    const title = 'বর্জ্য ফেলার দিন — 可燃ごみの日、市の指定袋で朝8時まで'.repeat(
+      3,
+    )
+    const folded = foldIcsLine(`SUMMARY:${title}`)
+    const lines = folded.split('\r\n')
+    expect(lines.length).toBeGreaterThan(2)
+    for (const line of lines)
+      expect(new TextEncoder().encode(line).length).toBeLessThanOrEqual(75)
+    expect(lines.slice(1).every((l) => l.startsWith(' '))).toBe(true)
+    // Unfolding gives back the exact text, so no character was cut
+    expect(folded.replace(/\r\n /g, '')).toBe(`SUMMARY:${title}`)
+    expect(foldIcsLine('VERSION:2.0')).toBe('VERSION:2.0')
+  })
+})
+
+describe('upcomingDates', () => {
+  const event = {
+    id: 'e',
+    title: { ja: '', en: '' },
+    startsAt: '2026-11-02T08:00:00+09:00',
+    rrule: 'FREQ=WEEKLY;BYDAY=MO;COUNT=1',
+    confirmed: true,
+  }
+  it("uses the backend's dates when it sent them (an ended rule shows none)", () => {
+    const from = new Date('2026-11-20T00:00:00Z')
+    expect(upcomingDates({ ...event, nextDates: [] }, from, 3)).toEqual([])
+    expect(
+      upcomingDates(
+        {
+          ...event,
+          nextDates: ['2026-11-10T08:00:00+09:00', '2026-11-23T08:00:00+09:00'],
+        },
+        from,
+        3,
+      ),
+    ).toEqual([new Date('2026-11-23T08:00:00+09:00')])
   })
 })

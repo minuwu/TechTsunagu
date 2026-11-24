@@ -57,15 +57,23 @@ class RealAuthRepository(
             is AppResult.Failure -> result
         }
 
+    // Held until the owner has seen the new shop code (M11); then [finishRegister] saves it
+    private var pending: Session? = null
+
     override suspend fun register(shopName: String, displayName: String, pin: String, shopCode: String?): AppResult<String> =
         when (val result = safeApiCall { api().register(RegisterRequest(shopName, displayName, pin, shopCode)) }) {
             is AppResult.Success -> {
                 val r = result.value
-                store.save(Session(token = r.token, expiresAt = r.expiresAt, user = r.user.toUser()))
+                pending = Session(token = r.token, expiresAt = r.expiresAt, user = r.user.toUser())
                 AppResult.Success(r.shopCode)
             }
             is AppResult.Failure -> result
         }
+
+    override suspend fun finishRegister() {
+        pending?.let { store.save(it) }
+        pending = null
+    }
 
     /** The local session ends even when the server cannot be reached. */
     override suspend fun signOut() {

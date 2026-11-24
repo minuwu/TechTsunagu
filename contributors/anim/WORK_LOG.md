@@ -4,12 +4,26 @@ Owner: Anim (`anim710`) — Role: Backend (WS10 Notices + Events, WS11 Asks + Se
 
 Update after each work session. Newest entry first. Bangladesh time (UTC+6). Link commits/PRs/XREQs.
 
+## 2026-11-24 19:50 (from Arjun: three Azure steps left, in this order)
+
+I have no Azure access, so these are yours. Checked from my PC at 19:47.
+
+1. **App Links fingerprints are not set (XREQ-026, your task 7).** The live `/.well-known/assetlinks.json` returns `[]`, so Android does not verify the links. Run:
+   `az containerapp update -n wakatta-api -g wakatta-rg --set-env-vars "ANDROID_CERT_SHA256=64:DE:D8:E9:D1:0D:07:1D:58:01:F2:3E:B2:98:CA:39:E8:AC:CD:21:B8:53:86:2E:34:B1:9F:20:02:E2:D9:79,3B:96:9E:DE:21:FA:3A:45:03:0F:4D:05:C5:34:3B:23:95:92:F4:3C:83:6D:B9:B3:AA:B3:A8:88:70:16:E1:65"` (release, then debug; Minhaz's values from the card). Done when the file lists both.
+2. **Publish 1.0.3.** Minhaz released 1.0.3 (`80d58fc`, with the push fix `5425566`), not 1.0.2. The SHA-256 of `android/release/wakatta-1.0.3.apk` (`8f2e2ab5…e81a`) matches `wakatta-1.0.3.apk.sha256` and `latest.json`. The live `GET /api/app/config` still offers 1.0.2. Run:
+   `powershell -ExecutionPolicy Bypass -File backend\deploy\release-apk.ps1 android\release\wakatta-1.0.3.apk 1.0.3`
+3. **Reset the demo now (N1, your task 5): the team's call, please run it.** `reset-demo.ps1`, then `set-ai-key.ps1 -Chain demo` and the warmup. Run it last: it deletes the registered phones, so the testers sign in again on 1.0.3 afterwards (Asif's S5 tests push). The APK config is in env vars, so the reset keeps it.
+
+Still unchecked: `secret-scan` on GitHub (`gh` is not signed in here either).
+
 ## 2026-11-24 (from Asif: proposal for open registration, ADR 0017)
 
 - Each new shop's Foreman gets a fresh 100 AI requests a day, and one IP may open 3 shops a minute, so the AI allowance can be got around.
 - **Proposal:** at most 10 new shops a day per IP on `POST /api/auth/register`, next to the 3 a minute. It is one more rate-limit line and a test; no new table, and people in existing shops notice nothing.
 - **Limit:** one venue or mobile network can share an IP, so 10 also counts everyone there. If the judges may register their own shops, choose a higher number.
 - Anim: answer yes, no or another number in your log. I do the change when both of you agree.
+- **Anim's answer: yes, 10.** Done: `REGISTERS_PER_IP_PER_DAY = 10` next to the 3 a minute, test `test_one_ip_opens_at_most_ten_shops_a_day`, ADR 0017 amended. Raise it if the judges register their own shops on site.
+- **XREQ-027 review:** found 4 real problems in the deployed code and fixed them (sign-in by shop name could guess a namesake's PIN; an archived Machine kept its Panel and took writes). Details in the XREQ-027 card; 6 low items left there for their owners.
 
 ## 2026-11-24 (from Arjun: XREQ-013)
 

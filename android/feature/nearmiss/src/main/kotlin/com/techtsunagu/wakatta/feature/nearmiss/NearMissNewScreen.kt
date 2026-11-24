@@ -160,17 +160,8 @@ class NearMissNewViewModel @Inject constructor(
     override fun onEvent(event: NearMissNewEvent) {
         when (event) {
             is NearMissNewEvent.Init -> loadInitialData(event.machineId)
-            is NearMissNewEvent.SelectMachine -> {
-                updateState {
-                    it.copy(
-                        machineId = event.machineId,
-                        text = "",
-                        hasPhoto = false,
-                        photoFile = null,
-                        photoUrl = null,
-                    )
-                }
-            }
+            // R6: picking another Machine keeps what the Worker already wrote and the photo
+            is NearMissNewEvent.SelectMachine -> updateState { it.copy(machineId = event.machineId) }
             is NearMissNewEvent.UpdateText -> updateState { it.copy(text = event.text) }
             is NearMissNewEvent.SelectSeverity -> updateState { it.copy(severity = event.severity) }
             is NearMissNewEvent.AddPhoto -> {

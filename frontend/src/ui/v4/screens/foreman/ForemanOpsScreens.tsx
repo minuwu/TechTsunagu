@@ -33,9 +33,43 @@ export function ForemanBriefingScreen() {
           {b.step === 'record' && (
             <div className="space-y-3">
               <RecorderButton recorder={b.recorder} />
+              {b.showDictation && (
+                <div className="space-y-2">
+                  <label className="block space-y-1">
+                    <span>{m.or_type_ja()}</span>
+                    <textarea
+                      className={inputClass}
+                      rows={3}
+                      lang="ja"
+                      value={b.text}
+                      onChange={(e) => b.setText(e.target.value)}
+                    />
+                  </label>
+                  <Button
+                    variant="outline"
+                    onClick={
+                      b.dictation.listening
+                        ? b.dictation.stop
+                        : b.dictation.start
+                    }
+                  >
+                    {b.dictation.listening
+                      ? m.dictate_stop()
+                      : m.dictate_instead()}
+                  </Button>
+                  {b.dictation.listening && (
+                    <p
+                      aria-live="polite"
+                      className="text-sm text-muted-foreground"
+                    >
+                      {m.dictate_listening()}
+                    </p>
+                  )}
+                </div>
+              )}
               <div className="flex flex-wrap gap-2">
                 <Button
-                  disabled={!b.recorder.audio}
+                  disabled={!b.canProcess}
                   onClick={() => void b.process(false)}
                 >
                   {m.make_draft()}
@@ -51,6 +85,19 @@ export function ForemanBriefingScreen() {
           )}
           {b.step === 'review' && b.draft && (
             <div className="space-y-3">
+              {b.draft.needsEdit ? (
+                <div className="space-y-2 inset-card p-3" role="status">
+                  <p className="font-bold">{m.degraded_title()}</p>
+                  <p>{m.degraded_body()}</p>
+                  {b.dictation.supported && (
+                    <Button variant="outline" onClick={b.dictateInstead}>
+                      {m.dictate_instead()}
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <p className="text-sm font-bold">{m.provenance_ai_check()}</p>
+              )}
               <p lang="ja" className="font-bold">
                 {b.draft.text.ja}
               </p>
@@ -193,6 +240,7 @@ export function ForemanLibraryScreen() {
             >
               <p className="mb-2 text-sm text-muted-foreground">
                 {v.recordedBy}
+                {v.approvedBy && ` · ${m.approved_by({ name: v.approvedBy })}`}
                 {' · '}
                 {fmtDate(v.approvedAt ?? v.createdAt, lang)}
               </p>

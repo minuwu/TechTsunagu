@@ -318,6 +318,44 @@ class ChatViewModelTest {
     }
 
     @Test
+    fun dictationListensInTheScreenLanguage_notTheAccountLanguage() = runTest {
+        val vm = viewModel() // the Foreman's account language is ja
+        vm.init()
+        vm.onEvent(ChatEvent.ScreenLanguage("en"))
+
+        vm.onEvent(ChatEvent.StartRecording)
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals("en-US", fakeDictation.lastTag)
+    }
+
+    @Test
+    fun withoutAScreenLanguage_dictationFallsBackToTheAccountLanguage() = runTest {
+        val vm = viewModel()
+        vm.init()
+
+        vm.onEvent(ChatEvent.StartRecording)
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals("ja-JP", fakeDictation.lastTag)
+    }
+
+    @Test
+    fun dictationAddsToTextAlreadyInTheBox() = runTest {
+        val vm = viewModel()
+        vm.init()
+        vm.onEvent(ChatEvent.OnInputTextChanged("2号機:"))
+
+        vm.onEvent(ChatEvent.StartRecording)
+        testDispatcher.scheduler.advanceUntilIdle()
+        fakeDictation.events.send(DictationEvent.Partial("止めてください"))
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertTrue(vm.state.value.inputText.startsWith("2号機:"))
+        assertTrue(vm.state.value.inputText.endsWith("止めてください"))
+    }
+
+    @Test
     fun dictationPartial_updatesInputTextLive_andSetsStatusRecording() = runTest {
         val vm = viewModel()
         vm.init()
@@ -500,7 +538,7 @@ class ChatViewModelTest {
     }
 
     @Test
-    fun untilTheReviewCardExistsEveryDraftIsSentAtOnce() = runTest {
+    fun noDraftGoodOrUntranslatedGoesOutWithoutTheForemansSend() = runTest {
         val vm = viewModel()
         vm.init()
 
@@ -508,13 +546,15 @@ class ChatViewModelTest {
         repository.needsEdit = true
         vm.write("untranslated one")
 
-        assertEquals(2, repository.sentDrafts.size)
-        assertTrue(vm.state.value.messages.filter { it.originalText.endsWith(" one") }.none { it.isDraft })
+        assertTrue(repository.sentDrafts.isEmpty())
+        val drafts = vm.state.value.messages.filter { it.originalText.endsWith(" one") }
+        assertEquals(2, drafts.size)
+        assertTrue(drafts.all { it.isDraft })
     }
 
     @Test
     fun aGoodDraftWaitsForTheForemanAndGoesOutOnSendDraft() = runTest {
-        val vm = viewModel().apply { reviewDrafts = true }
+        val vm = viewModel()
         vm.init()
 
         vm.write("good one")
@@ -533,7 +573,7 @@ class ChatViewModelTest {
     @Test
     fun anUntranslatedDraftIsNeverSentByItselfButTheForemanMaySendIt() = runTest {
         repository.needsEdit = true
-        val vm = viewModel().apply { reviewDrafts = true }
+        val vm = viewModel()
         vm.init()
 
         vm.write("untranslated one")
@@ -548,7 +588,7 @@ class ChatViewModelTest {
     @Test
     fun aDraftThatCouldNotBeSentStaysAndCanBeSentAgain() = runTest {
         repository.failSendDraft = AppError.Timeout
-        val vm = viewModel().apply { reviewDrafts = true }
+        val vm = viewModel()
         vm.init()
         vm.write("good one")
         val id = vm.state.value.messages.single { it.originalText == "good one" }.id
@@ -562,22 +602,6 @@ class ChatViewModelTest {
         vm.onEvent(ChatEvent.SendDraft(id))
         testDispatcher.scheduler.advanceUntilIdle()
         assertFalse(vm.state.value.messages.single { it.id == id }.isDraft)
-    }
-
-    @Test
-    fun whenTheSendAfterTheDraftFailsTheWordsComeBackAndTheRetryUsesTheSameKey() = runTest {
-        repository.failSendDraft = AppError.Offline
-        val vm = viewModel()
-        vm.init()
-        vm.write("good one")
-
-        assertEquals("good one", vm.state.value.inputText)
-        assertEquals(ChatEffect.ShowError(AppError.Offline), vm.effects.first())
-
-        repository.failSendDraft = null
-        vm.onEvent(ChatEvent.SendNow)
-        testDispatcher.scheduler.advanceUntilIdle()
-        assertEquals(repository.sendKeys[0], repository.sendKeys[1])
     }
 
     @Test

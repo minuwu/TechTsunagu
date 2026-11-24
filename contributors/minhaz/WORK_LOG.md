@@ -319,3 +319,34 @@ Minhaz mapped the prototype (`prototypes/wakatta/`) and the frontend against `ma
 - Machines tab (Foreman): "Add machine" button (code + ja/en name), menu per card to rename or archive.
 - Backend (by me, with tests): `PATCH /api/machines/{id}` rename, `DELETE /api/machines/{id}` archive (soft delete, migration `9a4c6e2b8d13`), Worker may `POST /api/tasks` for themself only. Task Board FAB now shows for Workers too (no assignee picker).
 - **Anim:** deploy and run the migrations, XREQ-027. Until then rename, archive and the Worker FAB fail against the live API.
+
+## 2026-11-24: hackathon proposal draft
+
+- Added `submission/TechTsunagu_Proposal.md`, the proposal draft for the submission (problem, evidence, solution). Review and edit it there.
+
+## 2026-11-24 19:45: push notifications work end to end (XREQ-014 resolved)
+
+- `:app` now applies the `google-services` plugin when `android/app/google-services.json` exists. Before, Firebase never started, so the phone had no FCM token and never registered.
+- `WakattaApp` builds the device registrar at start: every sign-in and cold start sends `PUT /api/devices/me`.
+- Verified on the emulator against the live API: a Worker message in Thread 1 shows 「Rahim Uddinさんからメッセージ」 on the Foreman's phone, without the message text.
+- Notifications must be allowed on the phone (Android 13+ asks); with them off the server skips the phone.
+
+## 2026-11-24: Android release 1.0.3
+
+- Built and signed `android/release/wakatta-1.0.3.apk` (versionCode 4) from current main; `latest.json` points the in-app updater at it. Same signing certificate as 1.0.2 (SHA-256 `64ded8e9…2d979`).
+
+## 2026-11-24 19:50: web calendar file and demo flyer (XREQ-002 items 9, 12, 3)
+
+- "Add to calendar" `.ics`: long lines fold at 75 octets (Japanese and Bengali titles no longer get mangled by Google or Outlook) and the file carries a `VTIMEZONE` for Asia/Tokyo.
+- Demo flyer: the recyclables Event (Wednesdays) is gone; 佐世保市 sets those days per area. Recyclables are now a step: see-through bag, out by 8:00, check the area calendar.
+- The mock now refuses publish with 409 `EVENTS_NOT_CONFIRMED`, the same as the backend.
+- **Galib:** the same flyer fix is still needed in the seeded AI cache fixture (XREQ-002 item 12).
+
+## 2026-11-24 20:40: web runs on the real API (XREQ-001, XREQ-002 resolved)
+
+- With `VITE_USE_MOCK=false` the web signs in for real: shop or district code, your name, your PIN; a first PIN must be changed. The mock demo is unchanged.
+- Every list and write goes through the live API with the Bearer token, `Idempotency-Key` and `{items, nextCursor}` paging. Photos and voice go as files.
+- Machine Panel, Senpai link, Poster reach and the Support Log CSV now come from their backend routes. QR stickers carry the shop code.
+- Foreman: new accounts card under the Skill Matrix (create Worker or Foreman, reset PIN, deactivate).
+- Left: the Panel uses a Foreman sign-in, not the device token; glossary `bn` is sent as English; the SWA origin still needs adding to the API CORS list.
+- **Anim:** make glossary `bn` optional; add the SWA origin to CORS (`backend/deploy/set-cors.ps1`) when the web goes live.

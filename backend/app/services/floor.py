@@ -42,7 +42,7 @@ from app.schemas.work import (
 )
 from app.services.auth import SESSION_TTL, Principal
 from app.services.credentials import new_token
-from app.services.notes import shop_of
+from app.services.notes import active_machine, shop_of
 
 PRESENCE = timedelta(minutes=10)
 
@@ -62,12 +62,6 @@ def _machine(db: Session, who: Principal, machine_id: int) -> Machine:
     m = repo.machine(db, shop_of(who), machine_id)
     if m is None:
         raise ApiError(404, "NOT_FOUND", "Machine not found")
-    return m
-
-
-def _active(m: Machine) -> Machine:
-    if m.archived_at is not None:
-        raise ApiError(409, "MACHINE_ARCHIVED", "This machine is archived")
     return m
 
 
@@ -107,8 +101,8 @@ def create_machine(db: Session, who: Principal, body: MachineIn, now: datetime) 
 
 
 def rename_machine(db: Session, who: Principal, machine_id: int, body: MachineRename, now: datetime) -> MachineOut:
-    m = _active(_machine(db, who, machine_id))
-    m.name = dict(body.name)
+    m = active_machine(_machine(db, who, machine_id))
+    m.name = {str(k): v for k, v in body.name.items()}
     db.commit()
     return machine_out(m, now)
 
@@ -118,6 +112,7 @@ def archive_machine(db: Session, who: Principal, machine_id: int, now: datetime)
     m = _machine(db, who, machine_id)
     if m.archived_at is None:
         m.archived_at, m.present_worker_id, m.present_at = now, None, None
+        accounts.revoke_panel_sessions(db, m.shop_id, m.id, now)
         accounts.audit(db, "machine_archived", who.user_id, m.shop_id, subject_id=m.id)
         db.commit()
 
@@ -141,13 +136,13 @@ def machine_detail(db: Session, who: Principal, machine_id: int, now: datetime) 
 
 
 def scan(db: Session, who: Principal, machine_id: int, now: datetime) -> None:
-    m = _active(_machine(db, who, machine_id))
+    m = active_machine(_machine(db, who, machine_id))
     m.present_worker_id, m.present_at = who.user_id, now
     db.commit()
 
 
 def panel(db: Session, who: Principal, machine_id: int, now: datetime) -> PanelOut:
-    m = _machine(db, who, machine_id)
+    m = active_machine(_machine(db, who, machine_id))
     tz = _shop_tz(db, m.shop_id)
     worker_id = _present(m, now)
     if worker_id is None:
@@ -176,7 +171,7 @@ def panel(db: Session, who: Principal, machine_id: int, now: datetime) -> PanelO
 
 
 def issue_panel_token(db: Session, who: Principal, machine_id: int, now: datetime) -> PanelToken:
-    m = _active(_machine(db, who, machine_id))
+    m = active_machine(_machine(db, who, machine_id))
     token, digest = new_token()
     expires_at = now + SESSION_TTL["panel"]
     db.add(SessionRow(token_hash=digest, kind="panel", machine_id=m.id, shop_id=m.shop_id, expires_at=expires_at))
@@ -227,6 +222,8 @@ def submit_check(db: Session, who: Principal, body: CheckIn, key: uuid.UUID, now
         raise ApiError(404, "NOT_FOUND", "Not found")
     correct = [int(q["correctIndex"]) for q in n.questions]  # pyright: ignore[reportArgumentType]
     m = repo.machine(db, shop_id, n.machine_id)
+    if m is not None:
+        active_machine(m)
     if m is None or n.status != "approved" or m.current_version_id != n.id:
         raise ApiError(409, "VERSION_CHANGED", "This instruction was updated; read the new version")
     try:
@@ -349,7 +346,7 @@ def set_assignment(db: Session, who: Principal, body: AssignmentIn, now: datetim
     m = repo.machine(db, shop_id, int(body.machine_id))
     if m is None:
         raise ApiError(404, "NOT_FOUND", "Machine not found")
-    _active(m)
+    active_machine(m)
     day = body.date or _today(now, _shop_tz(db, shop_id))
     if body.worker_id is None:
         repo.clear_assignment(db, shop_id, m.id, day, body.shift)

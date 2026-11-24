@@ -177,7 +177,7 @@ export function noticeDraft(
     category: 'garbage',
     sourceKind,
     sourceJa:
-      '【家庭ごみの出し方】燃やせるごみ：毎週 月・木 朝8時までに、市の指定袋で。資源物（缶・びん・ペットボトル）：毎週 水 朝8時まで。粗大ごみ：事前に電話で申し込み、処理券を貼って出してください。',
+      '【家庭ごみの出し方】燃やせるごみ：毎週 月・木 朝8時までに、市の指定袋で。資源物（缶・びん・ペットボトル）：透明か半透明の袋に入れて、朝8時まで。日にちは地区のカレンダーで確認。粗大ごみ：事前に電話で申し込み、処理券を貼って出してください。',
     photo,
     title: t('ごみの出し方', 'How to put out garbage'),
     steps: [
@@ -185,9 +185,10 @@ export function noticeDraft(
         '可燃ごみ：月・木の朝8:00まで。市の指定袋を使います。',
         "Burnable: Mon/Thu before 8:00, use the city's designated bag.",
       ),
+      // Not a fixed weekday: 佐世保市 sets recyclable days per area (XREQ-002 item 12), so no Event
       t(
-        '缶・びん・ペットボトル：水曜の朝8:00まで。',
-        'Cans, bottles, PET bottles: Wednesday before 8:00.',
+        '資源物（缶・びん・ペットボトル）：透明か半透明の袋に入れて、朝8時まで。日にちは地区のカレンダーで確認。',
+        'Recyclables (cans, bottles, PET bottles): in a clear or see-through bag, out by 8:00. Check the day on your area calendar.',
       ),
       t(
         '粗大ごみ（扇風機・いすなど）：先に電話で申し込み、処理券をはって出します。',
@@ -200,13 +201,6 @@ export function noticeDraft(
         title: t('可燃ごみの日', 'Burnable garbage day'),
         startsAt: '2026-11-02T08:00:00+09:00',
         rrule: 'FREQ=WEEKLY;BYDAY=MO,TH',
-        confirmed: false,
-      },
-      {
-        id: id('ev'),
-        title: t('資源物の日', 'Recyclables day'),
-        startsAt: '2026-11-04T08:00:00+09:00',
-        rrule: 'FREQ=WEEKLY;BYDAY=WE',
         confirmed: false,
       },
     ],

@@ -1,11 +1,20 @@
 import { useEffect, useId, useRef } from 'react'
 import { pick, type Lang } from '@/domain/wakatta'
 import { useChatbot, type ChatTurn } from '@/features/chatbot'
+import { writeFailure } from '@/features/health'
 import { m } from '@/i18n/paraglide/messages'
 import { inputClass } from './Card'
 import { Mark } from './Icon'
 import { RecorderButton } from './RecorderButton'
 import { Button } from './ui/button'
+
+// The 429 from the AI allowance says when to try again (Asif's task 3); a lost connection says so
+const FAILURE = {
+  busy: m.write_busy,
+  limit: m.write_limit,
+  offline: m.chat_failed,
+  failed: m.chat_failed,
+} as const
 
 /** The floating "Ask Wakatta" chatbot (XREQ-016), bottom right on the Worker's screens and the Machine screen. */
 export function Chatbot({
@@ -82,7 +91,11 @@ export function Chatbot({
                 {m.chat_thinking()}
               </p>
             )}
-            {c.failed && <p className="text-destructive">{m.chat_failed()}</p>}
+            {c.failed && (
+              <p className="text-destructive">
+                {FAILURE[writeFailure(c.error, navigator.onLine)]()}
+              </p>
+            )}
             <div ref={end} />
           </div>
 

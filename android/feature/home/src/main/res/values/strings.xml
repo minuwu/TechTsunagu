@@ -146,4 +146,6 @@
     <string name="home_mb_qa">Add member</string>
     <string name="home_mb_share_code" translatable="false">Wakatta? ショップコード / Shop code: %1$s</string>
     <string name="home_mb_invite_text" translatable="false">Wakatta? へようこそ / Welcome to Wakatta?\n\nショップコード / Shop code: %2$s\n名前 / Name: %1$s\n最初のPIN / First PIN: %3$s\n\nアプリで役割と名前を選んでサインインし、新しいPINを決めてください。\nPick your role and name to sign in, then choose your own PIN.</string>
+    <string name="home_ask_wakatta">Ask Wakatta</string>
+    <string name="home_ask_wakatta_sub">Safety at work or life in town, with the source page</string>
 </resources>

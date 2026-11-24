@@ -525,7 +525,7 @@ Errors (app behaviour):
 | 404 `NOT_FOUND` on resolve (unknown, revoked, rotated token) | "This code is no longer valid. Ask them to show their current code." |
 | `relation = connected` | toast "Already connected", open the existing Contact Thread (prototype `D.js:790`) |
 | `relation = self` | "This is your own code" |
-| 429 `RATE_LIMITED` | "Too many tries. Wait a minute." honour `Retry-After` |
+| 429 `RATE_LIMITED` | Sign-in: "Too many tries. Wait a minute." AI routes: 10 a minute and 100 a day per user (500 paid); `Retry-After` is 60 (wait a minute) or 3600 (today's limit). Always honour `Retry-After` |
 | 401 | sign in, resume the same token from `pendingLink` |
 | Scanned person blocked you, or you blocked them | the server must give the same answer as an invalid code (see open question 6); the app shows "This code is no longer valid" |
 | `POST /contacts` network failure | retry with the **same** Idempotency-Key; no duplicate (handoff: Idempotency-Key on creates) |

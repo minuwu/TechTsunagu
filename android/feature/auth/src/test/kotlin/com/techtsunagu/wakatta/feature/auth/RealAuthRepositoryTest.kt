@@ -52,6 +52,20 @@ class RealAuthRepositoryTest {
             """"user":{"id":"12","displayName":"Rahim Uddin","role":"worker","language":"bn","shopId":"3","districtId":null}}"""
 
     @Test
+    fun registeringKeepsTheSessionUntilTheOwnerHasSeenTheCode() = runBlocking { // M11
+        ok(
+            """{"token":"tok-new","expiresAt":null,"shopCode":"MINATO7",""" +
+                """"user":{"id":"40","displayName":"Mori","role":"foreman","language":"ja","shopId":"9","districtId":null}}""",
+        )
+        val result = repository.register("Minato Works", "Mori", "739215")
+        assertEquals(AppResult.Success("MINATO7"), result)
+        assertNull(store.session.value) // a session would switch the app to Home and hide the code
+
+        repository.finishRegister()
+        assertEquals("tok-new", store.session.value?.token)
+    }
+
+    @Test
     fun loginSuccessSavesTheSession() = runBlocking {
         ok(loginBody(mustChangePin = true))
         val result = repository.signIn("12", "9137")

@@ -67,7 +67,7 @@ Browser speech recognition is the frontend's fallback (XREQ-004): when the backe
 
 - Budgets stay just under each free limit, as Asif's §10.3 already does for 3.8 Flash. `ai_usage` is already keyed by `(day, model)` with an `exhausted` flag, so **no schema change** is needed for the budgets.
 - `AI_MAX_CONCURRENT=2`, 10 AI requests a minute and 100 a day per user (Asif's `USER_LIMITS`), one API replica.
-- *Updated 2026-11-24 (Android audit A1):* `AI_TIMEOUT_SECONDS=15` for one model call (was 45) and `AI_CHAIN_SECONDS=25` for the whole chain: no new model starts after 25 s and the request degrades, so the answer always comes before the app's timeout. Drafts had taken 51–61 s.
+- *Updated 2026-11-24 (Android audit A1):* `AI_TIMEOUT_SECONDS=15` for one model call (was 45) and `AI_CHAIN_SECONDS=25` for the whole chain: no new model starts after 25 s and the request degrades, so the answer always comes before the app's timeout. Drafts had taken 51–61 s. *Later the same day:* `AI_CHAIN_SECONDS=20`, and the last model (the Groq backup) always gets one call, because Gemini 504s used up the time before Groq was tried (worst case ~51 s; the app waits 60 s).
 - Settings: `AI_MODE=fake|gemini` (unchanged), **`AI_CHAIN=dev|demo`** (replaces `GEMINI_MODEL` and `GEMINI_MODEL_DEV`), `GEMINI_API_KEY`, **`GROQ_API_KEY`** (optional; empty turns step 5 off). The model lists and budgets live in one table in `app/ai/`, so changing a model is one line.
 - Groq needs an HTTP client at runtime. Proposal: `httpx` (the client FastAPI's test client is built on). Asif decides dependencies.
 

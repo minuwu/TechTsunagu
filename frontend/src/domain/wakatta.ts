@@ -68,6 +68,9 @@ export interface NoteVersion {
   questions: CheckQuestion[]
   createdAt: string
   approvedAt: string | null
+  /** The AI could not draft it (busy or down): the steps are empty or the raw transcript (XREQ-004) */
+  needsEdit?: boolean
+  approvedBy?: string | null
 }
 
 /** Where a chatbot answer came from (POST /api/knowledge/asks, XREQ-016). */
@@ -139,6 +142,8 @@ export interface Briefing {
   text: Tri
   question: CheckQuestion
   createdAt: string
+  /** The AI could not draft it (busy or down): check or rewrite before publishing (XREQ-004) */
+  needsEdit?: boolean
 }
 
 export interface Receipt {
@@ -174,6 +179,8 @@ export interface NoticeEvent {
   startsAt: string // ISO with +09:00
   rrule: string | null // only FREQ=WEEKLY;BYDAY=… is supported
   confirmed: boolean
+  /** Real API: the next dates the backend expanded, with COUNT and UNTIL applied (XREQ-002 item 2) */
+  nextDates?: string[]
 }
 
 export interface Notice {
@@ -189,6 +196,8 @@ export interface Notice {
   question: CheckQuestion
   status: 'draft' | 'published'
   createdAt: string
+  /** The AI could not draft it (busy or down): check before publishing (XREQ-004) */
+  needsEdit?: boolean
 }
 
 export type SenpaiKind = 'coworker' | 'jichikai'

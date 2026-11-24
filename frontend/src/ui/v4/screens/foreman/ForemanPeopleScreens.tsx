@@ -1,5 +1,6 @@
 import { pick } from '@/domain/wakatta'
 import {
+  useAccountsAdmin,
   useAssign,
   useGlossaryAdmin,
   useHeatmap,
@@ -148,7 +149,131 @@ export function ForemanSkillsScreen() {
           </tbody>
         </table>
       </div>
+      <Accounts />
     </ForemanPage>
+  )
+}
+
+/** Real API only: who can sign in to this shop (XREQ-001). */
+function Accounts() {
+  const a = useAccountsAdmin()
+  const lang = uiLang()
+  if (!a.enabled) return null
+  const langName = (code: string) =>
+    new Intl.DisplayNames([lang], { type: 'language' }).of(code) ?? code
+  const roleName = (k: 'worker' | 'foreman') =>
+    k === 'worker' ? m.role_worker() : m.role_foreman()
+  return (
+    <Card id="accounts" title={m.accounts_title()} className="mt-4">
+      <form
+        className="grid gap-3 sm:grid-cols-5 sm:items-end"
+        onSubmit={(e) => {
+          e.preventDefault()
+          void a.create()
+        }}
+      >
+        <label className="block space-y-1">
+          <span>{m.accounts_role()}</span>
+          <select
+            className={inputClass}
+            value={a.form.kind}
+            onChange={(e) => a.setKind(e.target.value as 'worker' | 'foreman')}
+          >
+            <option value="worker">{m.role_worker()}</option>
+            <option value="foreman">{m.role_foreman()}</option>
+          </select>
+        </label>
+        <label className="block space-y-1">
+          <span>{m.accounts_name()}</span>
+          <input
+            className={inputClass}
+            value={a.form.displayName}
+            onChange={(e) => a.setName(e.target.value)}
+          />
+        </label>
+        <label className="block space-y-1">
+          <span>{m.accounts_language()}</span>
+          <select
+            className={inputClass}
+            value={a.form.language}
+            onChange={(e) => a.setLanguage(e.target.value)}
+          >
+            {a.languages.map((l) => (
+              <option key={l} value={l}>
+                {langName(l)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="block space-y-1">
+          <span>{m.accounts_first_pin()}</span>
+          <input
+            className={inputClass}
+            inputMode="numeric"
+            autoComplete="off"
+            value={a.form.pin}
+            onChange={(e) => a.setPin(e.target.value)}
+          />
+        </label>
+        <Button type="submit" disabled={!a.canCreate || a.creating}>
+          {m.accounts_add()}
+        </Button>
+      </form>
+      {a.failed && (
+        <p role="alert" className="mt-3 text-destructive">
+          {m.accounts_failed()}
+        </p>
+      )}
+      <ul className="mt-4 divide-y divide-border">
+        {a.accounts.map((p) => (
+          <li
+            key={`${p.kind}-${p.id}`}
+            className="flex flex-wrap items-center gap-3 py-3"
+          >
+            <span className="font-bold">{p.displayName}</span>
+            <span className="text-sm text-muted-foreground">
+              {roleName(p.kind)} · {langName(p.language)}
+            </span>
+            {!p.active && (
+              <span className="text-sm text-destructive">
+                {m.accounts_inactive()}
+              </span>
+            )}
+            {p.mustChangePin && (
+              <span className="text-sm text-muted-foreground">
+                {m.accounts_must_change()}
+              </span>
+            )}
+            <span className="ms-auto flex flex-wrap items-center gap-2">
+              <input
+                className={`${inputClass} w-28`}
+                inputMode="numeric"
+                autoComplete="off"
+                aria-label={`${m.accounts_reset_pin()}: ${p.displayName}`}
+                value={a.resetPin(p.id)}
+                onChange={(e) => a.setResetPin(p.id, e.target.value)}
+              />
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={a.resetPin(p.id).length < 4 || a.saving}
+                onClick={() => void a.saveResetPin(p)}
+              >
+                {m.accounts_reset_pin()}
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={a.saving}
+                onClick={() => a.setActive(p, !p.active)}
+              >
+                {p.active ? m.accounts_deactivate() : m.accounts_activate()}
+              </Button>
+            </span>
+          </li>
+        ))}
+      </ul>
+    </Card>
   )
 }
 

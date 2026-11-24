@@ -1,13 +1,17 @@
 import { useState } from 'react'
-import { isValidRrule, nextOccurrences } from '@/domain/calendar'
+import { useQueries } from '@tanstack/react-query'
+import { isValidRrule, upcomingDates } from '@/domain/calendar'
 import type { Notice } from '@/domain/wakatta'
 import { useAction } from '@/lib/action'
+import { useDictation } from '@/lib/dictation'
 import { imageToDataUrl } from '@/lib/files'
 import { useRecorder } from '@/lib/recorder'
+import { USE_MOCK } from '@/services/api'
 import { useList } from '@/services/queries/wakatta'
 import {
   confirmEvent,
   createNoticeDraft,
+  noticeReach,
   publishNotice,
 } from '@/services/wakatta'
 
@@ -27,6 +31,11 @@ export function useCommunity() {
   const [step, setStep] = useState<PostStep>('source')
   const [draftId, setDraftId] = useState<string | null>(null)
   const recorder = useRecorder(60)
+  // "Dictate instead" (XREQ-004): after a voice draft the AI could not make, or offline
+  const [offerDictation, setOfferDictation] = useState(false)
+  const dictation = useDictation((heard) =>
+    setText((t) => (t ? `${t}${heard}` : heard)),
+  )
   const create = useAction(createNoticeDraft)
   const confirm = useAction((a: { eventId: string; confirmed: boolean }) =>
     confirmEvent(draftId ?? '', a.eventId, a.confirmed),
@@ -45,6 +54,16 @@ export function useCommunity() {
     })),
   }
   const now = new Date()
+  const published = notices.filter((n) => n.status === 'published')
+  // Real API: the Poster sees counts per Notice, never who (GET /api/notices/{id}/reach)
+  const liveReach = useQueries({
+    queries: published.map((n) => ({
+      queryKey: ['wakatta', 'reach', n.id],
+      queryFn: () => noticeReach(n.id),
+      enabled: !USE_MOCK,
+      refetchInterval: 5000,
+    })),
+  })
 
   return {
     posters,
@@ -58,6 +77,22 @@ export function useCommunity() {
     setPhotoFile: async (file: File | undefined) =>
       setPhoto(file ? await imageToDataUrl(file) : null),
     recorder,
+    dictation,
+    showDictation:
+      kind !== 'photo' &&
+      dictation.supported &&
+      (offerDictation ||
+        (typeof navigator !== 'undefined' && !navigator.onLine)),
+    /** Back to the source step as text, with what the AI heard, the browser listening */
+    dictateInstead: () => {
+      recorder.reset()
+      setKind('text')
+      setText(draft?.sourceJa ?? '')
+      setDraftId(null)
+      setOfferDictation(true)
+      setStep('source')
+      dictation.start()
+    },
     canProcess:
       (kind === 'text' && !!text.trim()) ||
       (kind === 'photo' && !!photo) ||
@@ -65,15 +100,20 @@ export function useCommunity() {
     step,
     process: async () => {
       setStep('processing')
-      const d = await create.mutateAsync({
-        posterId: poster,
-        sourceKind: kind,
-        text: text.trim(),
-        audio: recorder.audio,
-        photo,
-      })
-      setDraftId(d.id)
-      setStep('review')
+      try {
+        const d = await create.mutateAsync({
+          posterId: poster,
+          sourceKind: kind,
+          text: text.trim(),
+          audio: recorder.audio,
+          photo,
+        })
+        setDraftId(d.id)
+        setStep('review')
+      } catch {
+        if (!navigator.onLine) setOfferDictation(true)
+        setStep('source')
+      }
     },
     /** Demo path: the cached garbage-flyer take. */
     useSample: async () => {
@@ -92,7 +132,7 @@ export function useCommunity() {
     draftEvents: (draft?.events ?? []).map((e) => ({
       event: e,
       valid: !e.rrule || isValidRrule(e.rrule),
-      next: nextOccurrences(e, now, 3),
+      next: upcomingDates(e, now, 3),
     })),
     setConfirmed: (eventId: string, confirmed: boolean) => {
       setTicks((t) => ({ ...t, [eventId]: confirmed }))
@@ -118,18 +158,26 @@ export function useCommunity() {
       setTicks({})
       setStep('source')
     },
-    reach: notices
-      .filter((n) => n.status === 'published')
-      .map((n) => {
-        const rs = receipts.filter((r) => r.targetId === n.id)
+    reach: published.map((n, i) => {
+      const live = liveReach[i]?.data
+      if (!USE_MOCK)
         return {
           notice: n,
           poster: posters.find((p) => p.id === n.posterId)?.name ?? '',
-          understood: rs.filter((r) => r.passed).length,
-          opened: rs.filter((r) => !r.passed).length,
-          notOpened: Math.max(0, workers.length - rs.length),
-          total: workers.length,
+          understood: live?.understood ?? 0,
+          opened: Math.max(0, (live?.opened ?? 0) - (live?.understood ?? 0)),
+          notOpened: live?.notOpened ?? 0,
+          total: live?.workers ?? 0,
         }
-      }),
+      const rs = receipts.filter((r) => r.targetId === n.id)
+      return {
+        notice: n,
+        poster: posters.find((p) => p.id === n.posterId)?.name ?? '',
+        understood: rs.filter((r) => r.passed).length,
+        opened: rs.filter((r) => !r.passed).length,
+        notOpened: Math.max(0, workers.length - rs.length),
+        total: workers.length,
+      }
+    }),
   }
 }

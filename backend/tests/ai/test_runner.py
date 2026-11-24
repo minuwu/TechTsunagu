@@ -306,18 +306,30 @@ class _Slow(FakeAiClient):
         return super().generate(prompt, parts, schema, languages)
 
 
-def test_no_new_model_starts_after_the_chain_time_is_used(db: Session) -> None:
-    """The request ends degraded instead of running past the Android app's 30 s timeout."""
+def test_after_the_chain_time_only_the_last_model_gets_its_turn(db: Session) -> None:
+    """Every Gemini model slow and busy (504s): the middle models are skipped, the Groq backup still answers."""
     slow = _Slow("slow", 0.4, {"echo": [AiUnavailable("504 after a long wait")]})
-    backup = _named("backup", {"echo": [{"word": "too late"}]})
+    middle = _named("middle", {"echo": [{"word": "skipped"}]})
+    backup = _named("backup", {"echo": [{"word": "last turn"}]})
     limits = AiLimits(max_concurrent=2, per_minute=4, daily_budget=18, wait_seconds=1)
-    runner = AiRunner(slow, db.info["factory"], limits, [(backup, limits)], chain_seconds=0.2)
+    runner = AiRunner(slow, db.info["factory"], limits, [(middle, limits), (backup, limits)], chain_seconds=0.2)
 
     started = time.monotonic()
     result = runner.run(_request(), _no_problems, NOW)
 
-    assert result.outcome == "degraded" and backup.calls == 0
+    assert result.value == Echo(word="last turn") and middle.calls == 0
     assert time.monotonic() - started < 1
+
+
+def test_a_wrong_last_answer_is_not_retried_after_the_chain_time(db: Session) -> None:
+    """The last turn is one call: a bad answer then degrades instead of running longer."""
+    slow = _Slow("slow", 0.4, {"echo": [AiUnavailable("504 after a long wait")]})
+    backup = _named("backup", {"echo": [{"nope": 1}, {"word": "too late"}]})
+    limits = AiLimits(max_concurrent=2, per_minute=4, daily_budget=18, wait_seconds=1)
+    runner = AiRunner(slow, db.info["factory"], limits, [(backup, limits)], chain_seconds=0.2)
+
+    assert runner.run(_request(), _no_problems, NOW).outcome == "degraded"
+    assert backup.calls == 1
 
 
 def test_a_backup_still_answers_within_the_chain_time(db: Session) -> None:

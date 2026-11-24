@@ -22,7 +22,12 @@ export function imageToDataUrl(file: File, maxSide = 1280): Promise<string> {
 
 /** Save text as a file download. */
 export function downloadText(filename: string, text: string, mime: string) {
-  const url = URL.createObjectURL(new Blob([text], { type: mime }))
+  downloadBlob(filename, new Blob([text], { type: mime }))
+}
+
+/** Save a Blob (a file the API sent) as a download. */
+export function downloadBlob(filename: string, blob: Blob) {
+  const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
   a.download = filename

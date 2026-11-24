@@ -74,4 +74,24 @@
     <string name="asks_pair_kind_jichikai">自治会</string>
     <string name="asks_pair_meetups">面談 %1$d件 · 最後 %2$s</string>
     <string name="asks_share_link">リンクを共有</string>
+    <!-- Ask Wakatta, the chatbot (XREQ-016, M7) -->
+    <string name="asks_bot_title">わかった？に聞く</string>
+    <string name="asks_bot_intro">仕事の安全や町のくらしについて聞いてください。お店の手順と公式ガイドだけから答え、ページを見せます。</string>
+    <string name="asks_bot_placeholder">質問</string>
+    <string name="asks_bot_send">送信</string>
+    <string name="asks_bot_mic">声で質問する</string>
+    <string name="asks_bot_thinking">調べています…</string>
+    <string name="asks_bot_emergency_title">緊急</string>
+    <string name="asks_bot_sources">出典</string>
+    <string name="asks_bot_page">%1$dページ</string>
+    <string name="asks_bot_check">確認しよう</string>
+    <string name="asks_bot_right">正解！</string>
+    <string name="asks_bot_wrong">ちがいます。正解：%1$s</string>
+    <string name="asks_bot_not_covered">この質問に答えるガイドがありません。</string>
+    <string name="asks_bot_ask_senpai">先輩に聞く</string>
+    <string name="asks_bot_sent_senpai">先輩に送りました。</string>
+    <string name="asks_bot_error">回答を取得できませんでした。もう一度ためしてください。</string>
+    <string name="asks_bot_busy">AIが混み合っています。1分後にもう一度ためしてください。</string>
+    <string name="asks_bot_limit">今日のAIの利用上限に達しました。時間をおいてためしてください。</string>
+    <string name="asks_bot_ok">OK</string>
 </resources>
