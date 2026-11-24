@@ -1,6 +1,7 @@
 package com.techtsunagu.wakatta.core.network
 
 import com.techtsunagu.wakatta.core.model.Role
+import com.techtsunagu.wakatta.core.model.appLanguage
 import com.techtsunagu.wakatta.core.model.Session
 import com.techtsunagu.wakatta.core.model.User
 import com.techtsunagu.wakatta.core.network.ApiConfig.ApiPaths
@@ -65,7 +66,7 @@ fun UserDto.toUser(): User = User(
     id = id,
     displayName = displayName,
     role = Role.entries.firstOrNull { it.name.equals(role, ignoreCase = true) } ?: Role.UNKNOWN,
-    language = language,
+    language = appLanguage(language),
     shopId = shopId,
     districtId = districtId,
 )

@@ -156,7 +156,7 @@ class ChatComposeTest {
         composeTestRule.onNodeWithText("Line 2 · プレス班").assertIsDisplayed()
         composeTestRule.onNodeWithText("3号機の油圧オイルを点検してください。").assertIsDisplayed()
         composeTestRule.onNodeWithText("Foreman").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Wakatta? Check").assertIsDisplayed()
+        composeTestRule.onNodeWithText("1/1 understood").assertIsDisplayed()
     }
 
     @Test
@@ -200,7 +200,7 @@ class ChatComposeTest {
         composeTestRule.onNodeWithText("Check the oil first.").assertIsDisplayed()
         composeTestRule.onNodeWithText("Worker").assertIsDisplayed()
         composeTestRule.onNodeWithText("Wakatta? 1 quick questions").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Machine 3 Oil").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Machine 3 Oil").assertExists()
         composeTestRule.onNodeWithText("Not sure").assertExists()
     }
 }

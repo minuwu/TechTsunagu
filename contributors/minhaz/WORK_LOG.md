@@ -7,6 +7,13 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 
 > **Message from Asif (2026-11-23), read first:** [CHATBOT_FROM_ASIF.md](CHATBOT_FROM_ASIF.md) explains the chatbot (what it does, the API, the four screen states, "Ask my Senpai" vs "Safety Senpai") and three decisions that are **yours**: where the ask box goes, one bot or two names, and which half grows first. Answer in XREQ-016.
 
+## 2026-11-24 (Wakatta cards work end to end; Home crash; Japanese and English only)
+
+- Backend chat: the Foreman's message carries `results` (each Worker's status, answers, read, nudged); the Worker's carries `myAnswers`, `answerKey` (only after answering) and `asked`; the answer response returns the key; a repeated ask on the same term sends nothing new. Contract in `docs/MOBILE_API_CONTRACT.md` and `docs/openapi.yaml`; tests green.
+- Android: Worker Check card asks one question at a time and shows right and wrong after the last answer (with Retry if the send fails); Foreman card shows the understood count, live steps, the answer key and each Worker's read state, score, Nudge and Re-explain.
+- Fixed: Home crashed on scroll (duplicate LazyColumn keys across sections). Foreman Machines no longer calls the Worker-only sign-offs route.
+- App icon and splash use the brand Nekko on #246DD4. Bengali removed from the app (ADR 0016).
+
 ## 2026-11-24 (Android app on the live backend)
 
 - The native app in `android/` runs on the live API for every screen: Asks and Senpai pairs (Worker and Foreman), Panel Check reminders and override end by id, Chat and Panel ETag bodies kept in Room, pushes that show the server's text and open their thread or Machine.

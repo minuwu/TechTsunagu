@@ -98,7 +98,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private companion object {
-        val LANGUAGES = setOf("ja", "en", "bn")
+        val LANGUAGES = setOf("ja", "en")
         const val LARGE_TEXT_SCALE = 1.3f
     }
 }

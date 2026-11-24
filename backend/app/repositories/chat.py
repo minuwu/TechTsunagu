@@ -116,13 +116,59 @@ def answer_of(db: Session, shop_id: int, message_id: int, user_id: int) -> Messa
     return db.scalar(stmt)
 
 
-def statuses_of(db: Session, shop_id: int, user_id: int, message_ids: list[int]) -> dict[int, str]:
+def answers_of(db: Session, shop_id: int, message_ids: list[int], user_id: int | None = None) -> list[MessageAnswer]:
+    """Every Worker's answers to these messages, or only one Worker's."""
     if not message_ids:
-        return {}
-    stmt = select(MessageAnswer.message_id, MessageAnswer.status).where(
-        MessageAnswer.shop_id == shop_id, MessageAnswer.user_id == user_id, MessageAnswer.message_id.in_(message_ids)
+        return []
+    stmt = select(MessageAnswer).where(MessageAnswer.shop_id == shop_id, MessageAnswer.message_id.in_(message_ids))
+    if user_id is not None:
+        stmt = stmt.where(MessageAnswer.user_id == user_id)
+    return list(db.scalars(stmt))
+
+
+def worker_members(db: Session, shop_id: int, thread_id: int) -> list[tuple[int, datetime | None]]:
+    """(Worker id, last read) for the Workers of a Thread, by id."""
+    stmt = (
+        select(ThreadMember.user_id, ThreadMember.last_read_at)
+        .join(User, (ThreadMember.user_id == User.id) & (ThreadMember.shop_id == User.shop_id))
+        .where(ThreadMember.shop_id == shop_id, ThreadMember.thread_id == thread_id, User.role == "worker")
     )
-    return {m: s for m, s in db.execute(stmt)}
+    return [(u, r) for u, r in db.execute(stmt.order_by(ThreadMember.user_id))]
+
+
+def nudges_of(db: Session, shop_id: int, message_ids: list[int]) -> set[tuple[int, int]]:
+    """(message id, Worker id) pairs the Foreman nudged (audit action `nudge:<user id>`)."""
+    if not message_ids:
+        return set()
+    stmt = select(AuditEvent.subject_id, AuditEvent.action).where(
+        AuditEvent.shop_id == shop_id, AuditEvent.action.like("nudge:%"), AuditEvent.subject_id.in_(message_ids)
+    )
+    return {(s, int(a.split(":", 1)[1])) for s, a in db.execute(stmt) if s is not None}
+
+
+def asked_messages(db: Session, shop_id: int, user_id: int, message_ids: list[int]) -> set[int]:
+    """Messages this Worker already sent an `ask` about."""
+    if not message_ids:
+        return set()
+    stmt = select(Message.ref_message_id).where(
+        Message.shop_id == shop_id,
+        Message.from_user_id == user_id,
+        Message.kind == "ask",
+        Message.ref_message_id.in_(message_ids),
+    )
+    return {r for r in db.scalars(stmt) if r is not None}
+
+
+def ask_of(db: Session, shop_id: int, user_id: int, message_id: int, text_ja: str) -> Message | None:
+    """This Worker's earlier `ask` with the same text about a message."""
+    stmt = select(Message).where(
+        Message.shop_id == shop_id,
+        Message.from_user_id == user_id,
+        Message.kind == "ask",
+        Message.ref_message_id == message_id,
+        Message.text_ja == text_ja,
+    )
+    return db.scalar(stmt.limit(1))
 
 
 def nudged_messages(db: Session, shop_id: int, user_id: int, message_ids: list[int]) -> set[int]:

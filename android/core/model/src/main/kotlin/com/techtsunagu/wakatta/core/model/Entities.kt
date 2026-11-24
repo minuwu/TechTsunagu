@@ -2,6 +2,9 @@ package com.techtsunagu.wakatta.core.model
 
 import kotlinx.serialization.Serializable
 
+/** The app ships Japanese and English only; any other profile language (e.g. "bn") reads in English. */
+fun appLanguage(tag: String?): String = if (tag == "ja") "ja" else "en"
+
 @Serializable
 data class User(
     val id: String,

@@ -156,7 +156,18 @@ internal data class WireSenderMessage(
     override val sentAt: String? = null,
     val questions: List<WireSenderQuestion> = emptyList(),
     val taskDrafts: List<WireTask> = emptyList(),
+    val results: List<WireWorkerResult> = emptyList(),
 ) : WireMessage
+
+/** One Worker's state on a sent message, for the Foreman's Wakatta card. */
+@Serializable
+internal data class WireWorkerResult(
+    val userId: String,
+    val status: String? = null,
+    val answers: List<Int>? = null,
+    val read: Boolean = false,
+    val nudged: Boolean = false,
+)
 
 @Serializable
 internal data class WireWorkerMessage(
@@ -172,6 +183,9 @@ internal data class WireWorkerMessage(
     val questions: List<WireQuestion> = emptyList(),
     val myStatus: String? = null,
     val nudged: Boolean = false,
+    val myAnswers: List<Int>? = null,
+    val answerKey: List<Int>? = null,
+    val asked: Boolean = false,
 ) : WireMessage
 
 @Serializable

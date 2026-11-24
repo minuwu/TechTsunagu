@@ -112,14 +112,56 @@ def _fields(m: Message) -> dict[str, object]:
     }
 
 
-def _for_sender(m: Message, questions: list[dict[str, object]]) -> MessageForSender:
-    return MessageForSender.model_validate({**_fields(m), "questions": questions, "task_drafts": m.task_drafts})
+def _for_sender(
+    m: Message, questions: list[dict[str, object]], results: list[dict[str, object]] | None = None
+) -> MessageForSender:
+    return MessageForSender.model_validate(
+        {**_fields(m), "questions": questions, "task_drafts": m.task_drafts, "results": results or []}
+    )
 
 
-def _for_worker(m: Message, questions: list[dict[str, object]], status: str | None, nudged: bool) -> MessageForWorker:
-    hidden = [{k: v for k, v in q.items() if k != "correctIndex"} for q in questions]  # never the answer key
+def _results(db: Session, shop_id: int, thread_id: int, rows: list[Message]) -> dict[int, list[dict[str, object]]]:
+    """Per message, each Worker's answer, read state and nudge, for the Foreman's Wakatta card."""
+    if not rows:
+        return {}
+    ids = [m.id for m in rows]
+    answers = {(a.message_id, a.user_id): a for a in repo.answers_of(db, shop_id, ids)}
+    nudges, workers = repo.nudges_of(db, shop_id, ids), repo.worker_members(db, shop_id, thread_id)
+    out: dict[int, list[dict[str, object]]] = {}
+    for m in rows:
+        sent = m.sent_at
+        out[m.id] = [
+            {
+                "user_id": str(u),
+                "status": a.status if (a := answers.get((m.id, u))) else None,
+                "answers": list(a.answers) if a else None,
+                "read": a is not None or (read_at is not None and sent is not None and read_at >= sent),
+                "nudged": (m.id, u) in nudges and a is None,
+            }
+            for u, read_at in workers
+            if m.to_user_id is None or m.to_user_id == u
+        ]
+    return out
+
+
+def _key(questions: list[dict[str, object]]) -> list[int]:
+    return [int(str(q["correctIndex"])) for q in questions]
+
+
+def _for_worker(
+    m: Message, questions: list[dict[str, object]], mine: MessageAnswer | None, nudged: bool, asked: bool = False
+) -> MessageForWorker:
+    hidden = [{k: v for k, v in q.items() if k != "correctIndex"} for q in questions]  # the key only once answered
     return MessageForWorker.model_validate(
-        {**_fields(m), "questions": hidden, "my_status": status, "nudged": nudged and status is None}
+        {
+            **_fields(m),
+            "questions": hidden,
+            "my_status": mine.status if mine else None,
+            "nudged": nudged and mine is None,
+            "my_answers": list(mine.answers) if mine else None,
+            "answer_key": _key(questions) if mine else None,
+            "asked": asked,
+        }
     )
 
 
@@ -154,11 +196,14 @@ def messages(db: Session, who: Principal, thread_id: int, after_id: int | None, 
     rows = repo.messages_after(db, shop_id, t.id, user_id, after_id)
     ids = [m.id for m in rows]
     questions = {i: c.questions for i, c in repo.checks_of(db, shop_id, ids).items()}
+    items: list[MessageForSender | MessageForWorker]
     if who.role == "foreman":
-        items: list[MessageForSender | MessageForWorker] = [_for_sender(m, questions.get(m.id, [])) for m in rows]
+        results = _results(db, shop_id, t.id, [m for m in rows if questions.get(m.id) and m.sent_at is not None])
+        items = [_for_sender(m, questions.get(m.id, []), results.get(m.id, [])) for m in rows]
     else:
-        statuses, nudged = repo.statuses_of(db, shop_id, user_id, ids), repo.nudged_messages(db, shop_id, user_id, ids)
-        items = [_for_worker(m, questions.get(m.id, []), statuses.get(m.id), m.id in nudged) for m in rows]
+        mine = {a.message_id: a for a in repo.answers_of(db, shop_id, ids, user_id)}
+        nudged, asked = repo.nudged_messages(db, shop_id, user_id, ids), repo.asked_messages(db, shop_id, user_id, ids)
+        items = [_for_worker(m, questions.get(m.id, []), mine.get(m.id), m.id in nudged, m.id in asked) for m in rows]
     newest = max((m.sent_at for m in rows if m.sent_at is not None and m.from_user_id != user_id), default=None)
     member = repo.membership(db, shop_id, t.id, user_id)
     if member is not None and newest is not None and (member.last_read_at is None or member.last_read_at < newest):
@@ -430,10 +475,17 @@ def answer(db: Session, who: Principal, message_id: int, body: AnswersIn, now: d
     shop_id, user_id = _me(who)
     m = _sent_message(db, who, message_id, for_update=True)
     done = repo.answer_of(db, shop_id, m.id, user_id)
+    check = repo.checks_of(db, shop_id, [m.id]).get(m.id)
     if done is not None:
         follow_ups = repo.follow_ups_of(db, shop_id, m.id, user_id)
-        return AnswerResult.model_validate({"status": done.status, "follow_up_ids": [str(f.id) for f in follow_ups]})
-    check = repo.checks_of(db, shop_id, [m.id]).get(m.id)
+        return AnswerResult.model_validate(
+            {
+                "status": done.status,
+                "follow_up_ids": [str(f.id) for f in follow_ups],
+                "answers": list(done.answers),
+                "answer_key": _key(check.questions) if check else [],
+            }
+        )
     if check is None:
         raise ApiError(422, "VALIDATION_ERROR", "This message has no questions")
     questions = [CheckQuestion.model_validate(q) for q in check.questions]
@@ -461,7 +513,14 @@ def answer(db: Session, who: Principal, message_id: int, body: AnswersIn, now: d
     m.stage = 5
     db.flush()
     db.commit()
-    return AnswerResult.model_validate({"status": status, "follow_up_ids": [str(f.id) for f in follow_ups]})
+    return AnswerResult.model_validate(
+        {
+            "status": status,
+            "follow_up_ids": [str(f.id) for f in follow_ups],
+            "answers": body.answers,
+            "answer_key": correct,
+        }
+    )
 
 
 def _follow_up_out(f: FollowUp, name: str) -> FollowUpOut:
@@ -605,6 +664,8 @@ def ask_foreman(db: Session, who: Principal, message_id: int, body: AskForemanIn
     m = _sent_message(db, who, message_id)
     language = next((u.language for u in repo.members(db, shop_id, m.thread_id) if u.id == user_id), "en")
     texts = {lang: t.format(term=body.term_ja) for lang, t in ASK_TEXT.items()}
+    if (same := repo.ask_of(db, shop_id, user_id, m.id, texts["ja"])) is not None:
+        return _for_sender(same, [])  # a second tap on the same term sends nothing new
     row = Message(
         shop_id=shop_id,
         thread_id=m.thread_id,

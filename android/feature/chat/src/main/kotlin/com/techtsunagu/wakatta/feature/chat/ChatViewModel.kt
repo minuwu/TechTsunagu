@@ -71,7 +71,6 @@ sealed interface ChatEvent {
     data object StopRecording : ChatEvent
     data object CancelCountdown : ChatEvent
     data object SendNow : ChatEvent
-    data class AnswerQuestion(val messageId: String, val questionIndex: Int, val answerOptionIndex: Int) : ChatEvent
     data class SubmitAnswers(val messageId: String, val answers: List<Int>) : ChatEvent
     data class ToggleWkFold(val messageId: String) : ChatEvent
     data class NudgeWorker(val messageId: String, val workerId: String) : ChatEvent
@@ -116,7 +115,6 @@ class ChatViewModel @Inject constructor(
     private var countdownJob: Job? = null
     private var messagesJob: Job? = null
     private var dictationJob: Job? = null
-    private val pendingAnswersMap = mutableMapOf<String, MutableMap<Int, Int>>()
 
     // One idempotency key per user action (rule R-5): kept until the call succeeds, reused on every retry.
     private var sendKey: String? = null
@@ -165,7 +163,6 @@ class ChatViewModel @Inject constructor(
                 cancelCountdownTimer()
                 doSend()
             }
-            is ChatEvent.AnswerQuestion -> answerQuestion(event)
             is ChatEvent.SubmitAnswers -> submitAnswers(event.messageId, event.answers)
             is ChatEvent.NudgeWorker -> launchReported { chatRepository.nudge(event.messageId, event.workerId) }
             is ChatEvent.AskExplainAgain -> {
@@ -449,17 +446,6 @@ class ChatViewModel @Inject constructor(
         dictationJob?.cancel()
     }
 
-    private fun answerQuestion(event: ChatEvent.AnswerQuestion) {
-        val questionMap = pendingAnswersMap.getOrPut(event.messageId) { mutableMapOf() }
-        questionMap[event.questionIndex] = event.answerOptionIndex
-
-        val msg = state.value.messages.find { it.id == event.messageId }
-        val totalQuestions = msg?.workerQuestions?.size ?: 1
-        if (questionMap.size >= totalQuestions) {
-            submitAnswers(event.messageId, (0 until totalQuestions).map { questionMap[it] ?: -1 })
-        }
-    }
-
     private fun submitAnswers(messageId: String, answers: List<Int>) {
         // Same answers reuse the key; changed answers are a new action.
         val key = answerKeys[messageId]?.takeIf { it.first == answers }?.second
@@ -472,7 +458,6 @@ class ChatViewModel @Inject constructor(
                 idempotencyKey = key,
             )
             if (result.isSuccess) {
-                pendingAnswersMap.remove(messageId)
                 answerKeys.remove(messageId)
             } else {
                 report(result)

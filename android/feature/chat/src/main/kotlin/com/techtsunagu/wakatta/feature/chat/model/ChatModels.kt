@@ -48,9 +48,16 @@ data class ChatMessageUiModel(
     val workerAnswerStatus: WakattaStatus? = null,
     val workerAnswers: List<Int> = emptyList(),
     val isNudged: Boolean = false,
+    /** The correct option of each question; the server sends it only after this Worker answered. */
+    val answerKey: List<Int> = emptyList(),
+    /** This Worker already asked the Foreman to explain the message again. */
+    val asked: Boolean = false,
     val addedTasks: List<String> = emptyList(),
     // Foreman specific
     val workerStatuses: Map<String, WakattaStatus> = emptyMap(),
+    val workerAnswerMap: Map<String, List<Int>> = emptyMap(),
+    val workerRead: Set<String> = emptySet(),
+    val workerNudged: Set<String> = emptySet(),
     val isWkFoldExpanded: Boolean = false,
     val workerNames: Map<String, String> = emptyMap(),
     val senderQuestions: List<CheckQuestionForSender> = emptyList(),

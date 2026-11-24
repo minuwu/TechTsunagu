@@ -101,7 +101,8 @@ class MachinesViewModel @Inject constructor(
                         return@launch
                     }
 
-                    val signOffs = (signOffRepository.getSignOffs(userId) as? AppResult.Success)?.value.orEmpty()
+                    // A Foreman has no Skill Passport of their own (404), so only a Worker's list reads one.
+                    val signOffs = if (isForeman) emptyList() else (signOffRepository.getSignOffs(userId) as? AppResult.Success)?.value.orEmpty()
                     // Only the Foreman's list shows every Worker; a Worker's list has no Worker chips.
                     val workerSignOffs = if (isForeman) loadWorkerSignOffs(workerRepository, signOffRepository) else emptyList()
 

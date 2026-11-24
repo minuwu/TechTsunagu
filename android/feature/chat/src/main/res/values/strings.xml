@@ -43,7 +43,7 @@
     <string name="chat_wk_step_5">Sent to workers</string>
     <string name="chat_wk_step_6">Answers in</string>
 
-    <string name="chat_wk_progress_title">Progress (6/6 done)</string>
+    <string name="chat_wk_progress_title">Progress</string>
     <string name="chat_wk_worker_status">Worker understanding</string>
 
     <string name="chat_status_green">Understood</string>
@@ -81,4 +81,14 @@
     <string name="chat_dictation_type_instead">Voice recognition unavailable. Please type your message instead.</string>
     <string name="chat_mic_rationale">Wakatta? needs the microphone to turn your voice into text. The audio is not saved.</string>
     <string name="chat_type_instead">Type instead</string>
+    <string name="chat_question_n_of">Question %1$d of %2$d</string>
+    <string name="chat_correct_count">%1$d of %2$d correct</string>
+    <string name="chat_your_answer">Your answer: %1$s</string>
+    <string name="chat_right_answer">Answer: %1$s</string>
+    <string name="chat_asked">Asked the Foreman to explain again</string>
+    <string name="chat_reexplain_for_you">Explained again, just for you</string>
+    <string name="chat_wk_summary">%1$d/%2$d understood</string>
+    <string name="chat_wk_read">Read</string>
+    <string name="chat_wk_unread">Unread</string>
+    <string name="chat_wk_questions">Check questions (%1$d)</string>
 </resources>

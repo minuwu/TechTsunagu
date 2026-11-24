@@ -43,7 +43,7 @@
     <string name="chat_wk_step_5">作業員へ送信</string>
     <string name="chat_wk_step_6">回答集約</string>
 
-    <string name="chat_wk_progress_title">進捗ステップ (6/6 完了)</string>
+    <string name="chat_wk_progress_title">進行状況</string>
     <string name="chat_wk_worker_status">作業員の理解状況</string>
 
     <string name="chat_status_green">理解（わかった）</string>
@@ -53,7 +53,7 @@
 
     <string name="chat_nudge">催促する</string>
     <string name="chat_nudged">催促済み</string>
-    <string name="chat_nudged_notice">田中さんが回答を待っています</string>
+    <string name="chat_nudged_notice">職長が回答を待っています</string>
     <string name="chat_reexplain">再説明する</string>
 
     <string name="chat_questions_title">わかった？確認質問（%1$d問）</string>
@@ -63,7 +63,7 @@
     <string name="chat_result_orange">一部確認が必要です</string>
     <string name="chat_result_red">理解できませんでした。再説明します</string>
     <string name="chat_added_to_board">タスクボードに追加されました</string>
-    <string name="chat_ask_again">田中さんに再説明をお願いする</string>
+    <string name="chat_ask_again">職長に再説明をお願いする</string>
 
     <string name="chat_glossary_title">現場固定用語</string>
     <string name="chat_glossary_subtitle">AIはこの用語の訳を変更しません</string>
@@ -81,4 +81,14 @@
     <string name="chat_dictation_type_instead">音声認識が利用できません。文字で入力してください。</string>
     <string name="chat_mic_rationale">「わかった？」では声を文字に変換するためにマイクを使用します。音声データは保存されません。</string>
     <string name="chat_type_instead">文字で入力</string>
+    <string name="chat_question_n_of">問題 %1$d / %2$d</string>
+    <string name="chat_correct_count">%2$d問中%1$d問正解</string>
+    <string name="chat_your_answer">あなたの回答：%1$s</string>
+    <string name="chat_right_answer">正解：%1$s</string>
+    <string name="chat_asked">職長に再説明をお願いしました</string>
+    <string name="chat_reexplain_for_you">あなただけへの再説明</string>
+    <string name="chat_wk_summary">%2$d人中%1$d人が理解</string>
+    <string name="chat_wk_read">既読</string>
+    <string name="chat_wk_unread">未読</string>
+    <string name="chat_wk_questions">確認質問 (%1$d)</string>
 </resources>

@@ -90,7 +90,7 @@ class OnboardingComposeTest {
 
         composeTestRule.onNodeWithText("Choose Your Language").assertExists()
         composeTestRule.onNodeWithText("English").assertExists()
-        composeTestRule.onNodeWithText("বাংলা").assertExists()
+        composeTestRule.onNodeWithText("日本語").assertExists()
     }
 
     @Test

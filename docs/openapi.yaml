@@ -6746,6 +6746,22 @@
             },
             "type": "array",
             "title": "Followupids"
+          },
+          "answers": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Answers",
+            "default": []
+          },
+          "answerKey": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Answerkey",
+            "default": []
           }
         },
         "additionalProperties": false,
@@ -11791,6 +11807,14 @@
             "type": "array",
             "title": "Taskdrafts",
             "default": []
+          },
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/WorkerResult"
+            },
+            "type": "array",
+            "title": "Results",
+            "default": []
           }
         },
         "additionalProperties": false,
@@ -11933,6 +11957,39 @@
           "nudged": {
             "type": "boolean",
             "title": "Nudged"
+          },
+          "myAnswers": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Myanswers"
+          },
+          "answerKey": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answerkey"
+          },
+          "asked": {
+            "type": "boolean",
+            "title": "Asked",
+            "default": false
           }
         },
         "additionalProperties": false,
@@ -15192,6 +15249,63 @@
           "red"
         ],
         "title": "WorkerCounts"
+      },
+      "WorkerResult": {
+        "properties": {
+          "userId": {
+            "type": "string",
+            "title": "Userid"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "green",
+                  "orange",
+                  "red"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          },
+          "answers": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answers"
+          },
+          "read": {
+            "type": "boolean",
+            "title": "Read"
+          },
+          "nudged": {
+            "type": "boolean",
+            "title": "Nudged"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "userId",
+          "status",
+          "answers",
+          "read",
+          "nudged"
+        ],
+        "title": "WorkerResult",
+        "description": "One Worker's state on a sent message, for the Foreman's Wakatta card."
       },
       "WrongQuestion": {
         "properties": {

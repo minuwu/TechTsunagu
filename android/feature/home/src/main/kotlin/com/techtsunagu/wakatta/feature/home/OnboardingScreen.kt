@@ -616,9 +616,7 @@ private fun WorkerStep1(
 
     val langs = listOf(
         "en" to ("English" to "English"),
-        "vi" to ("Tiếng Việt" to "Vietnamese"),
-        "id" to ("Bahasa Indonesia" to "Indonesian"),
-        "bn" to ("বাংলা" to "Bengali"),
+        "ja" to ("日本語" to "Japanese"),
     )
 
     WakattaCard(modifier = Modifier.fillMaxWidth()) {

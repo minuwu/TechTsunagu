@@ -534,7 +534,6 @@ fun MeContent(
                                     trailingContent = {
                                         val langLabel = when (state.currentLanguage) {
                                             "ja" -> stringResource(R.string.home_lang_ja)
-                                            "bn" -> stringResource(R.string.home_lang_bn)
                                             else -> stringResource(R.string.home_lang_en)
                                         }
                                         Text(
@@ -733,7 +732,6 @@ private fun LanguagePickerDialog(
     val options = listOf(
         "ja" to stringResource(R.string.home_lang_ja),
         "en" to stringResource(R.string.home_lang_en),
-        "bn" to stringResource(R.string.home_lang_bn),
     )
 
     AlertDialog(

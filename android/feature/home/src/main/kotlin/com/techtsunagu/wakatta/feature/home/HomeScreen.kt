@@ -688,7 +688,7 @@ private fun ForemanHomeLayout(
         } else {
             items(
                 items = state.attentionCards,
-                key = { it.id },
+                key = { "attention:${it.id}" },
                 contentType = { "attention_item" },
             ) { card ->
                 WakattaCard(
@@ -745,7 +745,7 @@ private fun ForemanHomeLayout(
             }
             items(
                 items = state.lockedMachines,
-                key = { it.id },
+                key = { "locked:${it.id}" },
                 contentType = { "locked_machine" },
             ) { machine ->
                 WakattaCard(
@@ -892,7 +892,7 @@ private fun WorkerHomeLayout(
         } else {
             items(
                 items = state.pendingChecks,
-                key = { it.id },
+                key = { "check:${it.id}" },
                 contentType = { "pending_check" },
             ) { check ->
                 WakattaCard(
@@ -1028,7 +1028,7 @@ private fun WorkerHomeLayout(
         } else {
             items(
                 items = state.myTasks,
-                key = { it.id },
+                key = { "task:${it.id}" },
                 contentType = { "task" },
             ) { task ->
                 WakattaCard(

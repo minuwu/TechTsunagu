@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.sp
 import com.techtsunagu.wakatta.core.design.component.StatusChip
 import com.techtsunagu.wakatta.core.design.theme.StatusColors
 import com.techtsunagu.wakatta.core.model.WakattaStatus
+import com.techtsunagu.wakatta.core.model.pick
 import com.techtsunagu.wakatta.feature.chat.model.ChatMessageUiModel
 
 @Composable
@@ -44,6 +45,7 @@ internal fun ForemanWakattaPill(
     onEvent: (ChatEvent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val lang = uiLanguage()
     Column(modifier = modifier.fillMaxWidth()) {
         Surface(
             shape = RoundedCornerShape(12.dp),
@@ -71,8 +73,14 @@ internal fun ForemanWakattaPill(
 
                 Spacer(modifier = Modifier.width(8.dp))
 
+                val statuses = message.workerStatuses.values
                 Text(
-                    text = stringResource(R.string.chat_wk_title),
+                    text = if (statuses.isEmpty()) stringResource(R.string.chat_wk_title)
+                    else stringResource(
+                        R.string.chat_wk_summary,
+                        statuses.count { it == WakattaStatus.GREEN },
+                        statuses.size,
+                    ),
                     style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.onSecondaryContainer,
                 )
@@ -103,12 +111,38 @@ internal fun ForemanWakattaPill(
                         color = MaterialTheme.colorScheme.primary,
                     )
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(text = "✓ " + stringResource(R.string.chat_wk_step_1), style = MaterialTheme.typography.bodySmall)
-                    Text(text = "✓ " + stringResource(R.string.chat_wk_step_2), style = MaterialTheme.typography.bodySmall)
-                    Text(text = "✓ " + stringResource(R.string.chat_wk_step_3), style = MaterialTheme.typography.bodySmall)
-                    Text(text = "✓ " + stringResource(R.string.chat_wk_step_4), style = MaterialTheme.typography.bodySmall)
-                    Text(text = "✓ " + stringResource(R.string.chat_wk_step_5), style = MaterialTheme.typography.bodySmall)
-                    Text(text = "✓ " + stringResource(R.string.chat_wk_step_6), style = MaterialTheme.typography.bodySmall)
+                    val allIn = message.workerStatuses.isNotEmpty() &&
+                        message.workerStatuses.values.none { it == WakattaStatus.WAIT }
+                    listOf(
+                        R.string.chat_wk_step_1, R.string.chat_wk_step_2, R.string.chat_wk_step_3,
+                        R.string.chat_wk_step_4, R.string.chat_wk_step_5, R.string.chat_wk_step_6,
+                    ).forEachIndexed { i, step ->
+                        val done = if (i == 5) allIn else i <= message.stage
+                        Text(
+                            text = (if (done) "✓ " else "○ ") + stringResource(step),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (done) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+
+                    if (message.senderQuestions.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = stringResource(R.string.chat_wk_questions, message.senderQuestions.size),
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                        message.senderQuestions.forEachIndexed { qi, q ->
+                            Text(
+                                text = "Q${qi + 1}. ${pick(q.prompt, lang)}",
+                                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold),
+                                modifier = Modifier.padding(top = 4.dp),
+                            )
+                            q.options.getOrNull(q.correctIndex)?.let {
+                                Text(text = "✓ ${pick(it, lang)}", style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+                    }
 
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
@@ -127,16 +161,30 @@ internal fun ForemanWakattaPill(
                                 .padding(vertical = 4.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Text(
-                                text = workerName,
-                                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
-                                modifier = Modifier.weight(1f),
-                            )
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = workerName,
+                                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
+                                )
+                                val total = message.senderQuestions.size
+                                val correct = message.workerAnswerMap[workerId]?.let { a ->
+                                    message.senderQuestions.indices.count { a.getOrNull(it) == message.senderQuestions[it].correctIndex }
+                                }
+                                Text(
+                                    text = stringResource(
+                                        if (workerId in message.workerRead) R.string.chat_wk_read else R.string.chat_wk_unread,
+                                    ) + (correct?.let { " · $it/$total" } ?: ""),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
                             StatusChip(status = status)
 
                             Spacer(modifier = Modifier.width(6.dp))
 
-                            if (status == WakattaStatus.WAIT) {
+                            if (status == WakattaStatus.WAIT && workerId in message.workerNudged) {
+                                Text(text = stringResource(R.string.chat_nudged), fontSize = 12.sp)
+                            } else if (status == WakattaStatus.WAIT) {
                                 OutlinedButton(
                                     onClick = { onEvent(ChatEvent.NudgeWorker(message.id, workerId)) },
                                     modifier = Modifier.sizeIn(minHeight = 36.dp),

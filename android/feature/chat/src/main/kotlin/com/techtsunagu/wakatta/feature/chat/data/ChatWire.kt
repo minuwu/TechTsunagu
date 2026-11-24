@@ -113,6 +113,10 @@ internal fun WireSenderMessage.toUi(ctx: MessageContext): ChatMessageUiModel {
         workerQuestions = questions.map { CheckQuestionForWorker(it.id, it.termId, it.prompt, it.options) },
         addedTasks = taskDrafts.map { pick(it.title, ctx.myLang) },
         needsEdit = needsEdit,
+        workerStatuses = results.associate { it.userId to (wireStatus(it.status) ?: WakattaStatus.WAIT) },
+        workerAnswerMap = results.mapNotNull { r -> r.answers?.let { r.userId to it } }.toMap(),
+        workerRead = results.filter { it.read }.map { it.userId }.toSet(),
+        workerNudged = results.filter { it.nudged }.map { it.userId }.toSet(),
     )
 }
 
@@ -121,6 +125,9 @@ internal fun WireWorkerMessage.toUi(ctx: MessageContext): ChatMessageUiModel = b
     workerQuestions = questions.map { CheckQuestionForWorker(it.id, it.termId, it.prompt, it.options) },
     workerAnswerStatus = wireStatus(myStatus),
     isNudged = nudged,
+    workerAnswers = myAnswers.orEmpty(),
+    answerKey = answerKey.orEmpty(),
+    asked = asked,
 )
 
 internal fun WireAnswerResult.toDto() =

@@ -3,6 +3,7 @@ package com.techtsunagu.wakatta.feature.chat.data
 import com.techtsunagu.wakatta.core.model.AppError
 import com.techtsunagu.wakatta.core.model.AppResult
 import com.techtsunagu.wakatta.core.model.CacheStore
+import com.techtsunagu.wakatta.core.model.appLanguage
 import com.techtsunagu.wakatta.core.model.GlossaryRepository
 import com.techtsunagu.wakatta.core.model.GlossaryTerm
 import com.techtsunagu.wakatta.core.model.Role
@@ -212,7 +213,7 @@ internal class RealChatRepository(
             is AppResult.Failure -> return r
         } ?: return AppResult.Failure(AppError.NotFound)
         val workerInfo = (workers.getWorkers() as? AppResult.Success)?.value?.firstOrNull { it.id == workerId }
-        val lang = workerInfo?.language ?: "en"
+        val lang = appLanguage(workerInfo?.language)
         val name = followUp.displayName.ifEmpty { workerInfo?.displayName.orEmpty() }
         val draft = when (val r = safeApiCall {
             api().reexplainDraft(messageId, ReexplainInDto(userId = workerId, termJa = followUp.termJa))
