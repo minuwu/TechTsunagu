@@ -7,6 +7,13 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 
 > **Message from Asif (2026-11-23), read first:** [CHATBOT_FROM_ASIF.md](CHATBOT_FROM_ASIF.md) explains the chatbot (what it does, the API, the four screen states, "Ask my Senpai" vs "Safety Senpai") and three decisions that are **yours**: where the ask box goes, one bot or two names, and which half grows first. Answer in XREQ-016.
 
+## 2026-11-24 (Shop Registration, Members screen, bilingual sign-in and intro)
+
+- Backend: `POST /api/auth/register` opens a new shop with its first Foreman, a 「全員」 group Thread and a copy of the standard Glossary (ADR 0017). New accounts join every group Thread. `UserOut` carries `shopCode`. Re-explain no longer fails with 503 for a term outside the Glossary.
+- Android: sign-in and intro redesigned, Japanese first with English under it; demo chips fill the form; errors show inline. Register a shop from the sign-in screen.
+- Android: Members screen for Foremen (Me tab row and Home shortcut). Add a person by name only; the app makes a first PIN and a share card (shop code, name, PIN) for LINE or SMS. Rename, reset PIN, stop or resume an account.
+- Checks: backend pytest, ruff, pyright; Android unit tests and `:app:assembleDebug` green.
+
 ## 2026-11-24 (Wakatta cards work end to end; Home crash; Japanese and English only)
 
 - Backend chat: the Foreman's message carries `results` (each Worker's status, answers, read, nudged); the Worker's carries `myAnswers`, `answerKey` (only after answering) and `asked`; the answer response returns the key; a repeated ask on the same term sends nothing new. Contract in `docs/MOBILE_API_CONTRACT.md` and `docs/openapi.yaml`; tests green.

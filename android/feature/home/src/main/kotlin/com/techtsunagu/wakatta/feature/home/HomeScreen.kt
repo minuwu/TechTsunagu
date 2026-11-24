@@ -88,6 +88,7 @@ import com.techtsunagu.wakatta.core.navigation.NearMissNewKey
 import com.techtsunagu.wakatta.core.navigation.NoteKey
 import com.techtsunagu.wakatta.core.navigation.NotificationsKey
 import com.techtsunagu.wakatta.core.navigation.ScanKey
+import com.techtsunagu.wakatta.core.navigation.MembersKey
 import com.techtsunagu.wakatta.core.navigation.SkillsKey
 import com.techtsunagu.wakatta.core.navigation.SupportLogKey
 import com.techtsunagu.wakatta.core.navigation.TaskKey
@@ -177,6 +178,7 @@ sealed interface HomeEvent {
     data object NearMissClick : HomeEvent
     data object AnalyticsClick : HomeEvent
     data object SkillsClick : HomeEvent
+    data object MembersClick : HomeEvent
     data object LifeClick : HomeEvent
     data object SupportLogClick : HomeEvent
     data object BoardTileClick : HomeEvent
@@ -313,6 +315,7 @@ class HomeViewModel @Inject constructor(
             HomeEvent.NearMissClick -> sendEffect(HomeEffect.Navigate(NearMissListKey))
             HomeEvent.AnalyticsClick -> sendEffect(HomeEffect.Navigate(AnalyticsKey))
             HomeEvent.SkillsClick -> sendEffect(HomeEffect.Navigate(SkillsKey))
+            HomeEvent.MembersClick -> sendEffect(HomeEffect.Navigate(MembersKey))
             HomeEvent.LifeClick -> sendEffect(HomeEffect.Navigate(LifeKey))
             HomeEvent.SupportLogClick -> sendEffect(HomeEffect.Navigate(SupportLogKey()))
             HomeEvent.BoardTileClick -> sendEffect(HomeEffect.Navigate(BoardKey))
@@ -1172,6 +1175,12 @@ private fun ForemanQuickActionsGrid(onEvent: (HomeEvent) -> Unit) {
             label = stringResource(R.string.home_qa_supportlog),
             iconRes = R.drawable.home_ic_doc,
             onClick = { onEvent(HomeEvent.SupportLogClick) },
+            modifier = Modifier.weight(1f),
+        )
+        QuickActionButton(
+            label = stringResource(R.string.home_mb_qa),
+            iconRes = R.drawable.home_ic_groups,
+            onClick = { onEvent(HomeEvent.MembersClick) },
             modifier = Modifier.weight(1f),
         )
     }

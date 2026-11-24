@@ -145,6 +145,47 @@
         }
       }
     },
+    "/api/auth/register": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Open a new shop; you become its first Foreman (rate-limited)",
+        "operationId": "register_api_auth_register_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_RegisterOut_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/auth/me": {
       "get": {
         "tags": [
@@ -9926,6 +9967,29 @@
         ],
         "title": "Envelope[ReexplainDraft]"
       },
+      "Envelope_RegisterOut_": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true,
+            "title": "Success",
+            "default": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/RegisterOut"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "title": "Envelope[RegisterOut]"
+      },
       "Envelope_SenpaiPairCreated_": {
         "properties": {
           "success": {
@@ -13919,6 +13983,71 @@
         "title": "ReexplainIn",
         "description": "POST /messages/{id}/reexplain. With `text` and `question` (the Foreman's edited draft from\n/reexplain/draft) it is sent as written and no model is called; without them the AI writes it (XREQ-022)."
       },
+      "RegisterIn": {
+        "properties": {
+          "shopName": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Shopname"
+          },
+          "displayName": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Displayname"
+          },
+          "pin": {
+            "type": "string",
+            "maxLength": 6,
+            "minLength": 4,
+            "title": "Pin"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "shopName",
+          "displayName",
+          "pin"
+        ],
+        "title": "RegisterIn",
+        "description": "POST /api/auth/register (ADR 0017): a new shop and its first Foreman."
+      },
+      "RegisterOut": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "title": "Token"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expiresat"
+          },
+          "mustChangePin": {
+            "type": "boolean",
+            "title": "Mustchangepin"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserOut"
+          },
+          "shopCode": {
+            "type": "string",
+            "title": "Shopcode"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "token",
+          "expiresAt",
+          "mustChangePin",
+          "user",
+          "shopCode"
+        ],
+        "title": "RegisterOut"
+      },
       "RemindIn": {
         "properties": {
           "workerId": {
@@ -15162,6 +15291,17 @@
               }
             ],
             "title": "Districtid"
+          },
+          "shopCode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shopcode"
           }
         },
         "additionalProperties": false,

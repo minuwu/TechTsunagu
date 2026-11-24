@@ -63,6 +63,7 @@ import com.techtsunagu.wakatta.core.model.WakattaStatus
 import com.techtsunagu.wakatta.core.model.pick
 import com.techtsunagu.wakatta.core.navigation.LearningKey
 import com.techtsunagu.wakatta.core.navigation.MachineKey
+import com.techtsunagu.wakatta.core.navigation.MembersKey
 import com.techtsunagu.wakatta.core.navigation.NoteKey
 import com.techtsunagu.wakatta.core.navigation.OnboardingKey
 import com.techtsunagu.wakatta.core.navigation.SkillsKey
@@ -115,6 +116,7 @@ sealed interface MeEvent {
     data object DismissLanguagePicker : MeEvent
     data class SelectLanguage(val langCode: String) : MeEvent
     data object OpenSkillsMatrix : MeEvent
+    data object OpenMembers : MeEvent
     data object OpenMyLearning : MeEvent
     data class PassportMachineClick(val machineId: String, val isSignedOff: Boolean) : MeEvent
     data object ReplayOnboarding : MeEvent
@@ -242,6 +244,7 @@ class MeViewModel @Inject constructor(
                 }
             }
             MeEvent.OpenSkillsMatrix -> sendEffect(MeEffect.Navigate(SkillsKey))
+            MeEvent.OpenMembers -> sendEffect(MeEffect.Navigate(MembersKey))
             MeEvent.OpenMyLearning -> sendEffect(MeEffect.Navigate(LearningKey(state.value.userId)))
             is MeEvent.PassportMachineClick -> {
                 if (event.isSignedOff) {
@@ -439,6 +442,25 @@ fun MeContent(
                                             )
                                         },
                                         onClick = { onEvent(MeEvent.OpenSkillsMatrix) },
+                                    )
+                                    HorizontalDivider()
+                                    WakattaListItem(
+                                        headlineContent = { Text(text = stringResource(R.string.home_mb_me_row), fontWeight = FontWeight.Bold) },
+                                        supportingContent = { Text(text = stringResource(R.string.home_mb_me_row_note)) },
+                                        leadingContent = {
+                                            Icon(
+                                                painter = painterResource(R.drawable.home_ic_groups),
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.primary,
+                                            )
+                                        },
+                                        trailingContent = {
+                                            Icon(
+                                                painter = painterResource(R.drawable.home_ic_arrow_forward),
+                                                contentDescription = null,
+                                            )
+                                        },
+                                        onClick = { onEvent(MeEvent.OpenMembers) },
                                     )
                                 }
                             }

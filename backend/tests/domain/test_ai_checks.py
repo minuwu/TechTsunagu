@@ -200,6 +200,17 @@ def test_reexplanation_question_must_be_on_the_missed_term() -> None:
     ]
 
 
+def test_a_term_outside_the_glossary_can_be_re_explained() -> None:
+    sentence = "今日は3号機の油の点検を先にしてください。"
+    text = tri(
+        "まず、3号機の油を見てください。", "প্রথমে ৩ নম্বর মেশিনের তেল দেখুন।", "First, check the oil of machine 3."
+    )
+    for term in ("バリ取り", sentence):
+        assert (
+            reexplain_problems(Reexplanation(text=text, question=question(term_ja=term)), term, GLOSSARY, LANGS) == []
+        )
+
+
 # Per-shop languages (XREQ-011 item 5): a shop that uses only English gets no Bengali, and must get English.
 def test_an_english_only_shop_needs_no_bengali_but_needs_english() -> None:
     en_only = AiTri(ja="保護メガネをかけます。", en="Put on safety glasses.")

@@ -47,4 +47,6 @@ class ScriptedAuthRepository : AuthRepository {
     override suspend fun signIn(userId: String, pin: String): AppResult<Session> = signInResult
     override suspend fun changePin(currentPin: String, newPin: String): AppResult<Unit> = changePinResult
     override suspend fun signOut() = Unit
+    var registerResult: AppResult<String> = AppResult.Success("NEWSHOP1")
+    override suspend fun register(shopName: String, displayName: String, pin: String) = registerResult
 }

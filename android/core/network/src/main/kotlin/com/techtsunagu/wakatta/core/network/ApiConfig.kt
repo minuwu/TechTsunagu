@@ -24,6 +24,7 @@ object ApiConfig {
         const val HEALTH_READY = "/api/health/ready"
         const val ROSTER = "/api/auth/roster"
         const val LOGIN = "/api/auth/login"
+        const val REGISTER = "/api/auth/register"
         const val ME = "/api/auth/me"
         const val ME_PIN = "/api/auth/me/pin"
         const val LOGOUT = "/api/auth/logout"

@@ -135,8 +135,10 @@ def reexplain_problems(
     """The new explanation keeps the missed term and its fixed translations, and the question is about that term."""
     term = next((t for t in glossary if t.ja == term_ja), GlossaryTerm(id="", ja=term_ja, reading="", translations={}))
     problems = language_problems([draft.text, *question_texts([draft.question])], languages)
-    problems += glossary_problems(term.ja, [draft.text], [term], languages)
-    problems += question_problems([draft.question], glossary)
+    # A term outside the Glossary (a word, or the whole message when the Worker named none) is not kept verbatim, and
+    # the question may name it: otherwise "term_ja must be the term" and "term_ja must be a Glossary Term" never agree.
+    problems += glossary_problems(term.ja, [draft.text], [term] if term.id else [], languages)
+    problems += question_problems([draft.question], [*glossary, term])
     if draft.question.term_ja is None or _nfkc(draft.question.term_ja) != _nfkc(term_ja):
         problems.append(f"The question must be about 「{term_ja}」: set term_ja to it.")
     return problems

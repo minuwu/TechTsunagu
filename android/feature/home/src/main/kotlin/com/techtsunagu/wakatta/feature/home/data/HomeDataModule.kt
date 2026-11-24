@@ -24,4 +24,12 @@ object HomeDataModule {
         val api = lazy { retrofit.get().create(HomeApi::class.java) }
         return RealHomeBoardSource { api.value }
     }
+
+    @Provides
+    @Singleton
+    fun provideMembersSource(fake: Provider<FakeMembersSource>, retrofit: Lazy<Retrofit>): MembersSource {
+        if (!ApiConfig.USE_LIVE_API) return fake.get()
+        val api = lazy { retrofit.get().create(MembersApi::class.java) }
+        return RealMembersSource { api.value }
+    }
 }

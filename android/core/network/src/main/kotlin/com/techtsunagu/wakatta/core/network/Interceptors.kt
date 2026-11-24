@@ -10,7 +10,7 @@ import okhttp3.logging.HttpLoggingInterceptor
 /** Tag a Retrofit call with `@Tag key: IdempotencyKey`; pass the same value on every retry of one user action. */
 class IdempotencyKey(val value: String)
 
-private val publicPaths = setOf(ApiPaths.LOGIN, ApiPaths.ROSTER)
+private val publicPaths = setOf(ApiPaths.LOGIN, ApiPaths.ROSTER, ApiPaths.REGISTER)
 
 internal class AppHeadersInterceptor(
     private val versionName: String,
