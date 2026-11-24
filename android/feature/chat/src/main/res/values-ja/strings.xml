@@ -56,9 +56,9 @@
 
     <string name="chat_question_progress">質問 %1$d / %2$d</string>
     <string name="chat_option_not_sure">自信がない</string>
-    <string name="chat_result_green">理解完了！全問正解</string>
-    <string name="chat_result_orange">一部確認が必要です</string>
-    <string name="chat_result_red">理解できませんでした。再説明します</string>
+    <string name="chat_result_green">わかった</string>
+    <string name="chat_result_orange">一部わかった</string>
+    <string name="chat_result_red">わからなかった</string>
     <string name="chat_added_to_board">タスクボードに追加されました</string>
     <string name="chat_ask_again">職長に再説明をお願いする</string>
 
@@ -79,7 +79,6 @@
     <string name="chat_mic_rationale">「わかった？」では声を文字に変換するためにマイクを使用します。音声データは保存されません。</string>
     <string name="chat_type_instead">文字で入力</string>
     <string name="chat_question_n_of">問題 %1$d / %2$d</string>
-    <string name="chat_correct_count">%2$d問中%1$d問正解</string>
     <string name="chat_your_answer">あなたの回答：%1$s</string>
     <string name="chat_right_answer">正解：%1$s</string>
     <string name="chat_asked">職長に再説明をお願いしました</string>

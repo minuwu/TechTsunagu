@@ -99,6 +99,9 @@ class DeviceDictation @Inject constructor(
                     putExtra(RecognizerIntent.EXTRA_LANGUAGE, languageTag)
                     putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
                     putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
+                    // a pause to think is not the end (recognizers that ignore this are restarted by continuous())
+                    putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 3_000L)
+                    putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 3_000L)
                 }
                 recognizer.startListening(intent)
             }

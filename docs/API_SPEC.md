@@ -60,7 +60,7 @@ Foremen and Workers also own personal data that no employer route reads ([ADR 00
 Generated from the code: `cd backend; uv run python -m app.openapi index` (CI fails when it is stale).
 
 <!-- endpoint index: generated -->
-130 operations on 103 paths, all live.
+131 operations on 104 paths, all live.
 
 | Method | Path | Who | What |
 | :--- | :--- | :--- | :--- |
@@ -68,6 +68,7 @@ Generated from the code: `cd backend; uv run python -m app.openapi index` (CI fa
 | `GET` | `/api/health/ready` | **public** | Readiness: the database answers |
 | `GET` | `/api/auth/roster` | **public** | Names to pick from, for a shop or district code (public, rate-limited) |
 | `POST` | `/api/auth/login` | **public** | Name + PIN → Bearer token |
+| `POST` | `/api/auth/find` | **public** | Forgot the shop code: shop name + your name + PIN → Bearer token (rate-limited) |
 | `POST` | `/api/auth/register` | **public** | Open a new shop; you become its first Foreman (rate-limited) |
 | `GET` | `/api/auth/me` | foreman, worker, poster | The signed-in user |
 | `PUT` | `/api/auth/me/pin` | foreman, worker, poster | Change your own PIN; your other sessions are signed out |

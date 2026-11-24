@@ -29,5 +29,7 @@
     <string name="auth_error_upgrade">続けるにはアプリを更新してください。</string>
     <string name="auth_error_unknown_shop">この店舗コードは見つかりませんでした。</string>
     <string name="auth_error_pin_rejected">その暗証番号は使えません。数字のみで、同じ数字の繰り返しや連番は避けてください。</string>
+    <string name="auth_error_code_taken">そのショップコードは使われています。別のコードにするか、空にしてください。</string>
+    <string name="auth_error_no_match">そのショップ名・名前・PINの人は見つかりません。確認してもう一度試してください。</string>
     <string name="auth_error_unknown">問題が起きました。もう一度お試しください。</string>
 </resources>

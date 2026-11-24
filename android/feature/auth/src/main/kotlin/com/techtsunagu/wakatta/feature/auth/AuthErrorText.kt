@@ -14,5 +14,7 @@ internal fun authErrorMessage(kind: AuthErrorKind, arg: String): String = when (
     AuthErrorKind.UPGRADE_REQUIRED -> stringResource(R.string.auth_error_upgrade)
     AuthErrorKind.UNKNOWN_SHOP -> stringResource(R.string.auth_error_unknown_shop)
     AuthErrorKind.PIN_REJECTED -> stringResource(R.string.auth_error_pin_rejected)
+    AuthErrorKind.CODE_TAKEN -> stringResource(R.string.auth_error_code_taken)
+    AuthErrorKind.NO_MATCH -> stringResource(R.string.auth_error_no_match)
     AuthErrorKind.UNKNOWN -> stringResource(R.string.auth_error_unknown)
 }

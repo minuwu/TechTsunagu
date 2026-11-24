@@ -9,7 +9,8 @@ from app.schemas.common import CamelModel, IdIn, Lang
 
 Role = Literal["foreman", "worker", "poster"]
 Pin = Annotated[str, StringConstraints(min_length=4, max_length=6)]
-ScopeCode = Annotated[str, StringConstraints(pattern=r"^[A-Z0-9]{8}$")]
+# A random 8-character code, or one the owner chose at registration (6 to 12 letters or digits)
+ScopeCode = Annotated[str, StringConstraints(pattern=r"^[A-Z0-9]{6,12}$")]
 DisplayName = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=40)]
 
 
@@ -70,6 +71,16 @@ class AccountOut(CamelModel):
 
 class RegisterIn(CamelModel):
     """POST /api/auth/register (ADR 0017): a new shop and its first Foreman."""
+
+    shop_name: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=60)]
+    display_name: DisplayName
+    pin: Pin
+    # A code people can remember (TECHTSUNAGU); left out, the shop gets a random one
+    shop_code: Annotated[str, StringConstraints(strip_whitespace=True, pattern=r"^[A-Za-z0-9]{6,12}$")] | None = None
+
+
+class FindIn(CamelModel):
+    """POST /api/auth/find: signing in without the shop code. The PIN proves who it is."""
 
     shop_name: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=60)]
     display_name: DisplayName

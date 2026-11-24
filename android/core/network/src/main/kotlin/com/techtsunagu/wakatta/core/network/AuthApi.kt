@@ -28,6 +28,10 @@ interface AuthApi {
     @POST(ApiPaths.REGISTER)
     suspend fun register(@Body body: RegisterRequest): Response<ApiEnvelope<RegisterResponse>>
 
+    /** Forgot the shop code: shop name + own name + PIN; answers like [login]. */
+    @POST(ApiPaths.FIND)
+    suspend fun find(@Body body: FindRequest): Response<ApiEnvelope<LoginResponse>>
+
     @GET(ApiPaths.ME)
     suspend fun me(): Response<ApiEnvelope<UserDto>>
 
@@ -45,7 +49,10 @@ data class RosterEntryDto(val id: String, val displayName: String)
 data class LoginRequest(val userId: String, val pin: String)
 
 @Serializable
-data class RegisterRequest(val shopName: String, val displayName: String, val pin: String)
+data class RegisterRequest(val shopName: String, val displayName: String, val pin: String, val shopCode: String? = null)
+
+@Serializable
+data class FindRequest(val shopName: String, val displayName: String, val pin: String)
 
 @Serializable
 data class RegisterResponse(val token: String, val expiresAt: String? = null, val user: UserDto, val shopCode: String)

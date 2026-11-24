@@ -1,5 +1,12 @@
 package com.techtsunagu.wakatta.core.media
 
+import kotlin.coroutines.resume
+import kotlinx.coroutines.suspendCancellableCoroutine
+import androidx.camera.core.resolutionselector.ResolutionStrategy
+import androidx.camera.core.resolutionselector.ResolutionSelector
+import android.util.Size
+import android.net.Uri
+import android.content.Context
 import android.Manifest
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -79,7 +86,14 @@ private fun CameraPreview(modifier: Modifier, torchOn: Boolean) {
             BarcodeScanning.getClient(BarcodeScannerOptions.Builder().setBarcodeFormats(Barcode.FORMAT_QR_CODE).build())
         }
         val preview = Preview.Builder().build().also { it.surfaceProvider = previewView.surfaceProvider }
-        val analysis = ImageAnalysis.Builder().setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST).build()
+        // 640x480 (the default) loses the small modules of a link QR shown on another phone's screen
+        val sharp = ResolutionSelector.Builder()
+            .setResolutionStrategy(ResolutionStrategy(Size(1280, 720), ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER))
+            .build()
+        val analysis = ImageAnalysis.Builder()
+            .setResolutionSelector(sharp)
+            .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+            .build()
         analysis.setAnalyzer(executor) { proxy ->
             val media = proxy.image
             if (media == null) {
@@ -117,3 +131,18 @@ private fun CameraPreview(modifier: Modifier, torchOn: Boolean) {
 
     AndroidView(factory = { previewView }, modifier = modifier)
 }
+
+/** The text of the QR in a picture (a QR card someone sent), or null when there is none. */
+suspend fun readQrFromImage(context: Context, uri: Uri): String? = runCatching<String?> {
+    val scanner = BarcodeScanning.getClient(BarcodeScannerOptions.Builder().setBarcodeFormats(Barcode.FORMAT_QR_CODE).build())
+    try {
+        val image = InputImage.fromFilePath(context, uri)
+        suspendCancellableCoroutine { cont ->
+            scanner.process(image)
+                .addOnSuccessListener { codes -> cont.resume(codes.firstNotNullOfOrNull { it.rawValue }) }
+                .addOnFailureListener { cont.resume(null) }
+        }
+    } finally {
+        scanner.close()
+    }
+}.getOrNull()

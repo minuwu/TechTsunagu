@@ -1,5 +1,16 @@
 package com.techtsunagu.wakatta.feature.connect
 
+import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.filled.ContentPaste
+import androidx.compose.ui.platform.LocalClipboard
+import com.techtsunagu.wakatta.core.media.readQrFromImage
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material.icons.filled.Image
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -44,6 +55,7 @@ import com.techtsunagu.wakatta.core.design.component.WakattaChip
 import com.techtsunagu.wakatta.core.design.component.WakattaTopBar
 import com.techtsunagu.wakatta.core.media.QrCamera
 import com.techtsunagu.wakatta.core.media.QrPayload
+import com.techtsunagu.wakatta.core.model.AppError
 import com.techtsunagu.wakatta.core.model.AppResult
 import com.techtsunagu.wakatta.core.model.QrScanner
 import com.techtsunagu.wakatta.feature.connect.domain.ContactRepository
@@ -66,6 +78,8 @@ internal sealed interface ConnectScanEvent {
     data class SetCode(val code: String) : ConnectScanEvent
     data object ReadCode : ConnectScanEvent
     data class PickSample(val token: String) : ConnectScanEvent
+    data class OpenLink(val token: String) : ConnectScanEvent
+    data class Scanned(val raw: String?) : ConnectScanEvent
     data object Confirm : ConnectScanEvent
     data object Cancel : ConnectScanEvent
 }
@@ -94,15 +108,16 @@ internal class ConnectScanViewModel @Inject constructor(
             is ConnectScanEvent.SetCode -> updateState { it.copy(code = event.code, error = null) }
             ConnectScanEvent.ReadCode -> resolveRaw(state.value.code)
             is ConnectScanEvent.PickSample -> resolveToken(event.token)
+            is ConnectScanEvent.OpenLink -> resolveToken(event.token)
+            is ConnectScanEvent.Scanned -> event.raw?.let(::resolveRaw) ?: updateState { it.copy(error = ConnectError.NO_QR_IN_PHOTO) }
             ConnectScanEvent.Confirm -> confirm()
             ConnectScanEvent.Cancel -> updateState { it.copy(pending = null) }
         }
     }
 
-    /** Accepts `wk:<token>` from a scan, or a bare token typed by hand. */
+    /** Accepts the My QR link, `wk:<token>` from an older QR, or a bare token typed by hand. */
     private fun resolveRaw(raw: String) {
-        val payload = QrPayload.parse(raw) ?: QrPayload.parse("wk:${raw.trim()}")
-        val token = (payload as? QrPayload.MyQr)?.token
+        val token = (QrPayload.parse(raw) as? QrPayload.MyQr)?.token ?: typedCode(raw)
         if (token == null) updateState { it.copy(error = ConnectError.BAD_CODE) } else resolveToken(token)
     }
 
@@ -112,7 +127,7 @@ internal class ConnectScanViewModel @Inject constructor(
         viewModelScope.launch {
             when (val res = contacts.resolve(token)) {
                 is AppResult.Success -> updateState { it.copy(isBusy = false, pending = res.value) }
-                is AppResult.Failure -> updateState { it.copy(isBusy = false, error = res.error.toConnectError()) }
+                is AppResult.Failure -> updateState { it.copy(isBusy = false, error = res.error.toScanError()) }
             }
         }
     }
@@ -127,7 +142,7 @@ internal class ConnectScanViewModel @Inject constructor(
                     sendEffect(ConnectScanEffect.Opened(res.value.id))
                 }
                 is AppResult.Failure -> updateState {
-                    it.copy(isBusy = false, pending = null, error = res.error.toConnectError())
+                    it.copy(isBusy = false, pending = null, error = res.error.toScanError())
                 }
             }
         }
@@ -138,9 +153,11 @@ internal class ConnectScanViewModel @Inject constructor(
 internal fun ConnectScanScreen(
     onBackClick: () -> Unit = {},
     onOpenThread: (String) -> Unit = {},
+    linkToken: String? = null,
     viewModel: ConnectScanViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    LaunchedEffect(linkToken) { linkToken?.let { viewModel.onEvent(ConnectScanEvent.OpenLink(it)) } }
     LaunchedEffect(viewModel) {
         viewModel.effects.collectLatest { effect ->
             when (effect) {
@@ -185,14 +202,39 @@ private fun ScanBody(state: ConnectScanUiState, onEvent: (ConnectScanEvent) -> U
         QrCamera(
             Modifier
                 .fillMaxWidth()
-                .height(260.dp)
+                .aspectRatio(1f)
                 .clip(MaterialTheme.shapes.large)
                 .background(MaterialTheme.colorScheme.surfaceVariant),
         )
+        val context = LocalContext.current
+        val scope = rememberCoroutineScope()
+        // a QR card that arrived in a chat cannot be pointed at with the same phone: read it from the picture
+        val pickPhoto = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+            if (uri != null) scope.launch { onEvent(ConnectScanEvent.Scanned(readQrFromImage(context, uri))) }
+        }
+        OutlinedButton(
+            onClick = { pickPhoto.launch(arrayOf("image/*")) },
+            enabled = !state.isBusy,
+            modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 48.dp),
+        ) {
+            Icon(Icons.Default.Image, contentDescription = null)
+            Spacer(Modifier.width(8.dp))
+            Text(stringResource(R.string.connect_scan_photo))
+        }
         OutlinedTextField(
             value = state.code,
             onValueChange = { onEvent(ConnectScanEvent.SetCode(it)) },
             label = { Text(stringResource(R.string.connect_scan_code_label)) },
+            placeholder = { Text("WK-7KQ4M2") },
+            trailingIcon = {
+                val clipboard = LocalClipboard.current
+                IconButton(onClick = {
+                    scope.launch {
+                        val pasted = clipboard.getClipEntry()?.clipData?.takeIf { it.itemCount > 0 }?.getItemAt(0)?.text?.toString()
+                        if (!pasted.isNullOrBlank()) onEvent(ConnectScanEvent.SetCode(pasted.trim()))
+                    }
+                }) { Icon(Icons.Default.ContentPaste, contentDescription = stringResource(R.string.connect_paste_code)) }
+            },
             singleLine = true,
             isError = state.error != null,
             modifier = Modifier.fillMaxWidth(),
@@ -262,4 +304,18 @@ private fun ConfirmDialog(person: ContactResolveDto, busy: Boolean, onEvent: (Co
         },
         dismissButton = { TextButton(onClick = { onEvent(ConnectScanEvent.Cancel) }) { Text(stringResource(R.string.connect_cancel)) } },
     )
+}
+
+/** On a scan, "not found" means no one has this QR: say that, not a generic "could not find it". */
+private fun AppError.toScanError(): ConnectError =
+    if (this == AppError.NotFound || this is AppError.Validation) ConnectError.QR_UNKNOWN else toConnectError()
+
+private val SHORT_CODE = Regex("WK([23456789ABCDEFGHJKMNPQRSTUVWXYZ]{6})")
+private val LONG_TOKEN = Regex("[A-Za-z0-9_-]{16,64}")
+
+/** A typed or pasted code: `wk 7kq4m2` is `WK-7KQ4M2`; an older long token passes as it is; anything else is not a code. */
+internal fun typedCode(raw: String): String? {
+    val text = raw.trim()
+    SHORT_CODE.matchEntire(text.filterNot { it.isWhitespace() || it == '-' }.uppercase())?.let { return "WK-${it.groupValues[1]}" }
+    return text.takeIf { LONG_TOKEN.matches(it) }
 }

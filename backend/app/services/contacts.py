@@ -27,7 +27,7 @@ from app.schemas.contacts import (
 from app.services.ai_runner import AiRunner
 from app.services.asks import translate
 from app.services.auth import Principal
-from app.services.credentials import new_token, token_digest
+from app.services.credentials import new_qr_code, normalize_qr, token_digest
 
 RESOLVES_PER_MINUTE = 20  # a scanned QR is resolved once; this stops guessing tokens
 SENDS_PER_MINUTE = 30
@@ -44,6 +44,17 @@ def _not_found() -> ApiError:
     return ApiError(404, "NOT_FOUND", "Not found")
 
 
+def _no_owner(db: Session, token: str) -> ApiError:
+    """A token that leads to no one: 410 when its owner replaced it (the scanner asks for the new QR), else 404."""
+    if repo.is_retired_qr(db, token_digest(token)):
+        return ApiError(410, "QR_REPLACED", "This QR code was replaced by a new one")
+    return _not_found()
+
+
+def _own_qr() -> ApiError:
+    return ApiError(409, "OWN_QR", "That is your own QR code")
+
+
 def _limit(db: Session, key: str, per_minute: int, now: datetime) -> None:
     if accounts.count_attempt(db, key, now, timedelta(minutes=1)) > per_minute:
         db.commit()
@@ -56,7 +67,7 @@ def my_qr(db: Session, who: Principal, rotate: bool, now: datetime) -> QrOut:
     current = repo.qr_of(db, me)
     if current is not None and not rotate:
         return QrOut(token=None, created_at=current.created_at)
-    token, digest = new_token()
+    token, digest = new_qr_code()
     repo.set_qr(db, me, digest, now)
     db.commit()
     return QrOut(token=token, created_at=now)
@@ -65,9 +76,12 @@ def my_qr(db: Session, who: Principal, rotate: bool, now: datetime) -> QrOut:
 def resolve(db: Session, who: Principal, token: str, now: datetime) -> ContactPreview:
     me = _me(who)
     _limit(db, f"qr-resolve:{me}", RESOLVES_PER_MINUTE, now)
+    token = normalize_qr(token)
     owner = repo.user_by_qr(db, token_digest(token))
     if owner is None:
-        raise _not_found()
+        raise _no_owner(db, token)
+    if owner.id == me:
+        raise _own_qr()
     return ContactPreview.model_validate({"display_name": owner.display_name, "language": owner.language})
 
 
@@ -89,11 +103,12 @@ def _contact_out(c: Contact, peer_name: str, peer_lang: str, last: datetime | No
 def add(db: Session, who: Principal, body: ContactCreate, now: datetime) -> ContactOut:
     me = _me(who)
     _limit(db, f"qr-resolve:{me}", RESOLVES_PER_MINUTE, now)
-    peer = repo.user_by_qr(db, token_digest(body.token))
+    token = normalize_qr(body.token)
+    peer = repo.user_by_qr(db, token_digest(token))
     if peer is None:
-        raise _not_found()
+        raise _no_owner(db, token)
     if peer.id == me:
-        raise ApiError(403, "FORBIDDEN", "That is your own QR code")
+        raise _own_qr()
     if repo.contact_with(db, me, peer.id) is not None:
         raise ApiError(409, "CONFLICT", "Already a Contact")
     try:

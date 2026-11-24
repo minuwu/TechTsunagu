@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, Query, Request
 from app.api.auth import AppSettings, DbSession, client_ip, now_utc, require
 from app.api.envelope import Envelope
 from app.schemas.auth import (
+    FindIn,
     LoginIn,
     LoginOut,
     PinChangeIn,
@@ -33,6 +34,18 @@ def roster(
 def login(request: Request, body: LoginIn, db: DbSession, settings: AppSettings) -> Envelope[LoginOut]:
     pepper = settings.pin_pepper.get_secret_value()
     token, expires_at, user = service.login(db, int(body.user_id), body.pin, client_ip(request), pepper, now_utc())
+    out = LoginOut(
+        token=token, expires_at=expires_at, must_change_pin=user.pin_must_change, user=service.user_out(db, user)
+    )
+    return Envelope(data=out)
+
+
+@router.post("/find", summary="Forgot the shop code: shop name + your name + PIN → Bearer token (rate-limited)")
+def find(request: Request, body: FindIn, db: DbSession, settings: AppSettings) -> Envelope[LoginOut]:
+    pepper = settings.pin_pepper.get_secret_value()
+    token, expires_at, user = service.find(
+        db, body.shop_name, body.display_name, body.pin, client_ip(request), pepper, now_utc()
+    )
     out = LoginOut(
         token=token, expires_at=expires_at, must_change_pin=user.pin_must_change, user=service.user_out(db, user)
     )

@@ -32,6 +32,16 @@ class QrToken(Base):
     created_at: Mapped[CreatedAt]
 
 
+class RetiredQrToken(Base):
+    """A My QR replaced by a new one, kept as its SHA-256 only so a scan can say "replaced", not "not found"."""
+
+    __tablename__ = "retired_qr_tokens"
+
+    token_hash: Mapped[bytes] = mapped_column(LargeBinary, primary_key=True)
+    user_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    created_at: Mapped[CreatedAt]
+
+
 class Contact(Base):
     """One side of a connection: `owner` sees `peer` in their list. Scanning a QR makes both sides."""
 

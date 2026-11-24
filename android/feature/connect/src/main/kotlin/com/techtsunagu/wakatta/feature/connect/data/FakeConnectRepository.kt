@@ -1,6 +1,5 @@
 package com.techtsunagu.wakatta.feature.connect.data
 
-import com.techtsunagu.wakatta.core.media.QrPng
 import android.content.Context
 import com.techtsunagu.wakatta.core.model.AppError
 import com.techtsunagu.wakatta.core.model.AppResult
@@ -54,10 +53,10 @@ class FakeConnectRepository(
 
     // shortcut: seeded people stand in for accounts; the real app resolves a token on the server
     private val people = listOf(
-        Person("mai", "田辺 舞", "ja", "q7Lm2xV9aRtB4eKd"),
-        Person("sato", "佐藤 美咲", "ja", "Zc81nPw0HyUf5sJm"),
-        Person("nguyen", "Nguyen Van An", "vi", "b3Td6QkE1gXo9rVa"),
-        Person("siti", "Siti Rahma", "id", "Lw5Yh2NzC8vMq0Pe"),
+        Person("mai", "田辺 舞", "ja", "WK-Q7KM2X"),
+        Person("sato", "佐藤 美咲", "ja", "WK-ZC8NPW"),
+        Person("nguyen", "Nguyen Van An", "vi", "WK-B3TD6Q"),
+        Person("siti", "Siti Rahma", "id", "WK-HW5Y2N"),
     )
 
     private val lock = Any()
@@ -67,6 +66,7 @@ class FakeConnectRepository(
     private var listenCounter = 0
     private var noticeAcknowledged = false
     private val blockedTokens = mutableSetOf<String>()
+    private val retiredTokens = mutableSetOf<String>()
     private val contacts = mutableListOf<ContactState>()
     private val talks = mutableListOf(seedTalk())
     private val threads = MutableStateFlow(summaries())
@@ -82,14 +82,14 @@ class FakeConnectRepository(
 
     override suspend fun rotateMyQr(): AppResult<MyQrDto> {
         delay(simulatedLatencyMs)
-        return AppResult.Success(MyQrDto(synchronized(lock) { newToken().also { myToken = it } }))
+        return AppResult.Success(MyQrDto(synchronized(lock) { newToken().also { retiredTokens += myToken; myToken = it } }))
     }
 
     override suspend fun createInviteFile(): AppResult<File> {
         delay(simulatedLatencyMs)
         return try {
             val dir = context?.cacheDir ?: File(System.getProperty("java.io.tmpdir") ?: ".")
-            val file = QrPng.write("wk:${synchronized(lock) { myToken }}", File(dir, "wakatta-my-qr.png"))
+            val file = writeInviteImage(context, synchronized(lock) { myToken }, null, dir)
             AppResult.Success(file)
         } catch (e: java.io.IOException) {
             AppResult.Failure(AppError.Unknown(e.message))
@@ -313,6 +313,8 @@ class FakeConnectRepository(
 
     private fun personFor(token: String): AppResult<Person> {
         if (token in blockedTokens) return AppResult.Failure(AppError.Forbidden)
+        if (token in retiredTokens) return AppResult.Failure(AppError.Gone)
+        if (token == myToken) return AppResult.Failure(AppError.Conflict("OWN_QR"))
         val person = people.firstOrNull { it.token == token }
         return person?.let { AppResult.Success(it) } ?: AppResult.Failure(AppError.NotFound)
     }
@@ -364,7 +366,7 @@ class FakeConnectRepository(
 
     private fun now(): String = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm"))
 
-    private fun newToken(): String = ByteArray(16).also { random.nextBytes(it) }.joinToString("") { "%02x".format(it) }
+    private fun newToken(): String = "WK-" + (1..6).map { "23456789ABCDEFGHJKMNPQRSTUVWXYZ"[random.nextInt(31)] }.joinToString("")
 }
 
 private inline fun <T, R> AppResult<T>.map(transform: (T) -> R): AppResult<R> = when (this) {

@@ -1,5 +1,18 @@
 package com.techtsunagu.wakatta.feature.connect
 
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.unit.sp
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.ClipEntry
+import android.content.ClipData
+import com.techtsunagu.wakatta.feature.connect.data.shareText
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.runtime.DisposableEffect
+import android.content.ContextWrapper
+import android.app.Activity
+import com.techtsunagu.wakatta.feature.connect.data.inviteLink
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -82,6 +95,7 @@ internal data class ConnectUiState(
     val error: ConnectError? = null,
     val qrSide: Int = 0,
     val qrModules: List<Boolean> = emptyList(),
+    val myCode: String = "",
     val contacts: List<ContactDto> = emptyList(),
     val talks: List<TalkThreadDto> = emptyList(),
     val noticeAcknowledged: Boolean = false,
@@ -154,6 +168,7 @@ internal class ConnectViewModel @Inject constructor(
                     isLoading = false,
                     qrSide = matrix?.width ?: 0,
                     qrModules = matrix?.data?.toList().orEmpty(),
+                    myCode = qr.getOrNull()?.token.orEmpty(),
                     contacts = list.getOrNull().orEmpty(),
                     talks = talks.getOrNull().orEmpty(),
                     noticeAcknowledged = acknowledged,
@@ -171,14 +186,14 @@ internal class ConnectViewModel @Inject constructor(
     }
 
     // zxing returns the module grid (with its quiet zone) when asked for a 1x1 size.
-    private fun encode(token: String): QrMatrix? = qrEncoder.encode("wk:$token", 1, 1) as? QrMatrix
+    private fun encode(token: String): QrMatrix? = qrEncoder.encode(inviteLink(token), 1, 1) as? QrMatrix
 
     private fun rotate() {
         viewModelScope.launch {
             when (val res = contacts.rotateMyQr()) {
                 is AppResult.Success -> {
                     val matrix = encode(res.value.token)
-                    updateState { it.copy(qrSide = matrix?.width ?: 0, qrModules = matrix?.data?.toList().orEmpty()) }
+                    updateState { it.copy(qrSide = matrix?.width ?: 0, qrModules = matrix?.data?.toList().orEmpty(), myCode = res.value.token) }
                     sendEffect(ConnectEffect.Rotated)
                 }
                 is AppResult.Failure -> sendEffect(ConnectEffect.Failed(res.error.toConnectError()))
@@ -189,7 +204,10 @@ internal class ConnectViewModel @Inject constructor(
     private fun share() {
         viewModelScope.launch {
             when (val res = contacts.createInviteFile()) {
-                is AppResult.Success -> shareFile.share(res.value, "image/png")
+                is AppResult.Success -> {
+                    val code = state.value.myCode
+                    if (code.isEmpty()) shareFile.share(res.value, "image/png") else shareFile.share(res.value, "image/png", shareText(inviteLink(code), code))
+                }
                 is AppResult.Failure -> sendEffect(ConnectEffect.Failed(res.error.toConnectError()))
             }
         }
@@ -347,6 +365,23 @@ private fun MyQrCard(state: ConnectUiState, onEvent: (ConnectEvent) -> Unit, onS
         ) {
             Text(stringResource(R.string.connect_my_qr_title), style = MaterialTheme.typography.titleMedium)
             QrCode(state.qrSide, state.qrModules)
+            if (state.myCode.isNotEmpty()) {
+                // the code under the QR: someone who cannot scan pastes or types it on Scan a QR
+                val clipboard = LocalClipboard.current
+                val scope = rememberCoroutineScope()
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        state.myCode,
+                        style = MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Monospace, letterSpacing = 2.sp),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.weight(1f, fill = false),
+                    )
+                    IconButton(onClick = { scope.launch { clipboard.setClipEntry(ClipEntry(ClipData.newPlainText("Wakatta? code", state.myCode))) } }) {
+                        Icon(Icons.Default.ContentCopy, contentDescription = stringResource(R.string.connect_copy_code))
+                    }
+                }
+            }
+            FullBrightness()
             Text(
                 text = stringResource(R.string.connect_my_qr_note),
                 style = MaterialTheme.typography.bodyMedium,
@@ -469,4 +504,18 @@ internal fun TalkNameField(value: String, invalid: Boolean, onChange: (String) -
         singleLine = true,
         modifier = Modifier.fillMaxWidth(),
     )
+}
+
+/** Full screen brightness while My QR shows: a dim screen is the usual reason another phone cannot read it. */
+@Composable
+private fun FullBrightness() {
+    val context = LocalContext.current
+    DisposableEffect(context) {
+        var c = context
+        while (c is ContextWrapper && c !is Activity) c = c.baseContext
+        val window = (c as? Activity)?.window
+        val before = window?.attributes?.screenBrightness
+        window?.attributes = window?.attributes?.apply { screenBrightness = 1f }
+        onDispose { if (before != null) window.attributes = window.attributes.apply { screenBrightness = before } }
+    }
 }

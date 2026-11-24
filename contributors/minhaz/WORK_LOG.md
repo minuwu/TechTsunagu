@@ -247,3 +247,40 @@ Minhaz mapped the prototype (`prototypes/wakatta/`) and the frontend against `ma
 - Share on My QR sends a PNG of the QR (QrPng, plain-JVM writer) instead of a wk: text file, so chat apps show a scannable image.
 - Chat device pass: a poll no longer closes an open translation or fold; Chats list shows 13:38 instead of a raw ISO time for contact/talk threads; "You: " keeps its space (Android trims unquoted trailing spaces). Checked on the Redmi: send, keyboard, glossary dialog, back, no crashes.
 - Foreman avatar in chat gets a thin primary ring (1.5dp, 60% alpha, 2.5dp gap); the poll now carries `fromRole` (backend + openapi).
+
+## 2026-11-24 14:15: My QR opens the app; captioned share card; replaced QR said plainly
+
+- My QR (on screen and shared) is the App Link `https://<API host>/c/{token}`. The scanner and deep-link matcher accept it (the matcher now takes the server's 43-char token). The link opens Me > Connect > Scan with the token, which resolves at once. Checked on the phone with `am start -d`.
+- The shared PNG is a card: Wakatta? title, the QR, "Scan to chat with <name>", a Japanese line, what scanning does, what is shared.
+- Rotating My QR keeps the old hash in `retired_qr_tokens`; resolve/add on it answer 410 `QR_REPLACED`, and the app says the QR was replaced and to ask for the new one (`AppError.Gone`).
+- "Make a new QR" button is now "New QR" / 「新しいQR」 (fits one line).
+- Fingerprints for `ANDROID_CERT_SHA256` written in AGENTS.md XREQ-026 for Anim (no az CLI here).
+
+## 2026-11-24 14:20: voice waits for a long pause; check verdict only; offline voice packs prompt
+
+- Chat dictation uses `continuous()` with one silent round: a pause restarts the recognizer and the send countdown starts only when a whole listen hears nothing (also asks the recognizer for a 3 s end-of-speech silence). Chat VM tests' fake recognizer now ends a round on Final or Error.
+- Worker check result banner shows only the verdict (Understood / Partly understood / Not understood); the "all answers correct" clause and "k of n correct" line are gone; missed questions still listed.
+- One-time prompt after sign-in to download the Japanese and English offline speech packs (`SpeechPackPrompt`): Android 13+ checks the on-device recognizer and triggers the download of missing packs; older phones open Google's Offline Speech Recognition screen. Checked on the Redmi (API 29).
+
+## 2026-11-24 — QR scan fixes, exact scan errors
+
+- Camera analyses at 1280x720 (was 640x480), so a link QR shown on another phone reads.
+- Scan a QR from a photo or file (system document picker, ML Kit on the image).
+- My QR shows its code under the QR and on the share card; the screen goes full brightness while it shows.
+- Share sends the link as text with the image, so chat apps make it tappable.
+- Scan errors say what is wrong: not a Wakatta? QR, QR replaced by a new one, no one has this QR, your own QR, no QR in the photo.
+- Backend: your own QR is 409 `OWN_QR` on resolve and add (was a 403 the app showed as "blocked").
+
+## 2026-11-24 — My QR short code
+
+- My QR code is now `WK-7KQ4M2` (WK- plus 6 characters, no 0/O/1/I/L; about 887 million values, resolve is rate-limited). Stored hashed; older long codes keep working until New QR.
+- Server normalizes typed codes (`wk 7kq4m2` is `WK-7KQ4M2`). The app checks the shape before asking.
+- Copy icon next to My QR code; paste icon in the scan field. The card prints the code large and bold; share text includes it.
+- Needs the backend deploy; until then the live server rejects short codes, and the scan shows "no one has this QR".
+
+## 2026-11-24 — Getting back into a new shop
+
+- Verified new-shop register and sign-in end to end on the Redmi (live API): roster, PIN, home, chat, empty board all load.
+- Fixed the lock-out: the app remembers the last shop code and role; the owner can choose a memorable shop code (6 to 12 letters or digits, 409 SHOP_CODE_TAKEN); new `POST /api/auth/find` signs in with shop name + name + PIN.
+- Register-done screen: copy and share the shop code.
+- Migration 8e3b5d0a2f41 widens `shops.code` to 6 to 12 characters. Needs a backend deploy for find and chosen codes.

@@ -1,5 +1,6 @@
 """XREQ-017 items 1-2 (ADR 0014): My QR, Contacts across shops, blocks, Contact Threads translated per side."""
 
+import re
 from dataclasses import dataclass
 
 import pytest
@@ -62,7 +63,11 @@ def test_the_qr_token_is_shown_once_and_rotating_kills_the_old_one(client: TestC
     new = _qr(client, people.nguyen, rotate=True)
 
     assert new is not None and new != first
-    assert client.get(f"/api/contacts/resolve?token={first}", headers=people.rahim).status_code == 404
+    old = client.get(f"/api/contacts/resolve?token={first}", headers=people.rahim)
+    assert old.status_code == 410 and old.json()["error"]["code"] == "QR_REPLACED"  # not "not found"
+    added = client.post("/api/contacts", headers=people.rahim, json={"token": first})
+    assert added.status_code == 410
+    assert client.get("/api/contacts/resolve?token=not-a-real-token", headers=people.rahim).status_code == 404
 
 
 def test_scanning_connects_both_sides_across_shops(client: TestClient, people: People) -> None:
@@ -71,8 +76,10 @@ def test_scanning_connects_both_sides_across_shops(client: TestClient, people: P
 
     again = client.post("/api/contacts", headers=people.rahim, json={"token": token})
     own = client.post("/api/contacts", headers=people.nguyen, json={"token": token})
+    peek = client.get(f"/api/contacts/resolve?token={token}", headers=people.nguyen)
 
-    assert mine and theirs and again.status_code == 409 and own.status_code == 403
+    assert mine and theirs and again.status_code == 409
+    assert own.status_code == peek.status_code == 409 and own.json()["error"]["code"] == "OWN_QR"
 
 
 def test_contact_messages_are_translated_for_the_reader(
@@ -193,3 +200,10 @@ def test_personal_texts_are_never_kept_in_the_ai_cache(
     client.post(f"/api/contacts/{mine}/messages", headers=people.rahim, json={"text": "ব্যক্তিগত", "lang": "bn"})
 
     assert fake_ai.calls == 1 and db.scalars(select(AiCache)).all() == []
+
+
+def test_my_qr_is_a_short_code_typed_any_way(client: TestClient, people: People) -> None:
+    code = _qr(client, people.nguyen, rotate=True)
+    assert re.fullmatch(r"WK-[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{6}", code)
+    typed = code.lower().replace("-", " ")  # "wk 7kq4m2"
+    assert client.get("/api/contacts/resolve", params={"token": typed}, headers=people.rahim).status_code == 200

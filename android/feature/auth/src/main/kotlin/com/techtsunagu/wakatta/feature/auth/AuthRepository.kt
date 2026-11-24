@@ -21,11 +21,14 @@ interface AuthRepository {
     suspend fun signOut()
 
     /** Opens a new shop with this person as its first Foreman, signs them in, and returns the new shop code. */
-    suspend fun register(shopName: String, displayName: String, pin: String): AppResult<String>
+    suspend fun register(shopName: String, displayName: String, pin: String, shopCode: String? = null): AppResult<String>
+
+    /** Forgot the shop code: signs in by shop name, own name and PIN; the session carries the code. */
+    suspend fun find(shopName: String, displayName: String, pin: String): AppResult<Session>
 }
 
 internal object AuthRules {
-    private val shopCodePattern = Regex("^[A-Z0-9]{8}$")
+    private val shopCodePattern = Regex("^[A-Z0-9]{6,12}$")
     private val pinPattern = Regex("^\\d{4,6}$")
 
     fun validateShopCode(shopCode: String): Boolean = shopCodePattern.matches(shopCode)
@@ -61,9 +64,13 @@ class FakeAuthRepository(private val store: SessionStore? = null) : AuthReposito
 
     override suspend fun changePin(currentPin: String, newPin: String): AppResult<Unit> = AppResult.Success(Unit)
 
-    override suspend fun register(shopName: String, displayName: String, pin: String): AppResult<String> {
+    override suspend fun find(shopName: String, displayName: String, pin: String): AppResult<Session> =
+        users.firstOrNull { it.displayName.equals(displayName.trim(), ignoreCase = true) }?.let { signIn(it.id, pin) }
+            ?: AppResult.Failure(AppError.WrongPin)
+
+    override suspend fun register(shopName: String, displayName: String, pin: String, shopCode: String?): AppResult<String> {
         store?.save(Session(token = "fake-token", user = User(id = "u_new", displayName = displayName, role = Role.FOREMAN, language = "ja")))
-        return AppResult.Success("NEWSHOP1")
+        return AppResult.Success(shopCode ?: "NEWSHOP1")
     }
 
     override suspend fun signOut() {

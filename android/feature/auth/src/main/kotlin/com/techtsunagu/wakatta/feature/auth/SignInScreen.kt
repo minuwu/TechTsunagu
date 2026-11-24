@@ -1,5 +1,15 @@
 package com.techtsunagu.wakatta.feature.auth
 
+import kotlinx.coroutines.launch
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.ContentCopy
+import android.content.Intent
+import android.content.ClipData
 import android.content.Context
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedContent
@@ -70,7 +80,18 @@ fun SignInScreen(
     val prefs = LocalContext.current.getSharedPreferences(INTRO_PREFS, Context.MODE_PRIVATE)
     var showIntro by rememberSaveable { mutableStateOf(!prefs.getBoolean(INTRO_SEEN, false)) }
     LaunchedEffect(viewModel) {
+        // The phone remembers the last shop, so a forgotten code never locks anyone out.
+        val last = prefs.getString(LAST_CODE, null)
+        if (last != null && viewModel.state.value.shopCode.isEmpty()) {
+            Role.entries.firstOrNull { it.name == prefs.getString(LAST_ROLE, null) }
+                ?.let { viewModel.onEvent(SignInEvent.OnRoleChanged(it)) }
+            viewModel.onEvent(SignInEvent.OnShopCodeChanged(last))
+        }
         viewModel.effects.collect { effect ->
+            val s = viewModel.state.value
+            if (AuthRules.validateShopCode(s.shopCode)) {
+                prefs.edit().putString(LAST_CODE, s.shopCode).putString(LAST_ROLE, s.role.name).apply()
+            }
             when (effect) {
                 SignInEffect.NavigateToHome -> onSignInSuccess()
                 SignInEffect.NavigateToChangePin -> onNavigateToChangePin()
@@ -93,6 +114,8 @@ fun SignInScreen(
 
 private const val INTRO_PREFS = "auth_intro"
 private const val INTRO_SEEN = "seen"
+private const val LAST_CODE = "last_shop_code"
+private const val LAST_ROLE = "last_role"
 
 /** Sign-in, Shop Registration and the new shop's code. Japanese leads every label; English sits under it, smaller. */
 @Composable
@@ -121,12 +144,14 @@ fun SignInContent(
             val page = when {
                 state.newShopCode != null -> 2
                 state.registering -> 1
+                state.finding -> 3
                 else -> 0
             }
             AnimatedContent(targetState = page, transitionSpec = { fadeIn() togetherWith fadeOut() }, label = "auth") {
                 when (it) {
                     2 -> ShopReady(state.newShopCode.orEmpty(), onEvent)
                     1 -> RegisterForm(state, onEvent)
+                    3 -> FindForm(state, onEvent)
                     else -> SignInForm(state, onEvent, onShowIntro)
                 }
             }
@@ -193,6 +218,9 @@ private fun SignInForm(state: SignInUiState, onEvent: (SignInEvent) -> Unit, onS
                 shape = RoundedCornerShape(28.dp),
                 modifier = Modifier.fillMaxWidth().height(52.dp),
             ) { BiLabel(R.string.auth_si_register_ja, R.string.auth_si_register_en) }
+            TextButton(onClick = { onEvent(SignInEvent.ShowFind(true)) }, modifier = Modifier.heightIn(min = 48.dp)) {
+                BiLabel(R.string.auth_fd_link_ja, R.string.auth_fd_link_en)
+            }
             TextButton(onClick = onShowIntro, modifier = Modifier.heightIn(min = 48.dp)) {
                 BiLabel(R.string.auth_si_what_ja, R.string.auth_si_what_en)
             }
@@ -222,6 +250,20 @@ private fun RegisterForm(state: SignInUiState, onEvent: (SignInEvent) -> Unit) {
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier.fillMaxWidth(),
             )
+            OutlinedTextField(
+                value = state.wantedCode,
+                onValueChange = { onEvent(SignInEvent.OnWantedCodeChanged(it)) },
+                label = { FieldLabel(R.string.auth_rg_code_ja, R.string.auth_rg_code_en) },
+                placeholder = { Text("TECHTSUNAGU") },
+                supportingText = {
+                    Text(stringResource(R.string.auth_rg_code_hint_ja) + " · " + stringResource(R.string.auth_rg_code_hint_en))
+                },
+                isError = state.wantedCode.isNotEmpty() && !AuthRules.validateShopCode(state.wantedCode),
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Characters, keyboardType = KeyboardType.Ascii),
+                singleLine = true,
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.fillMaxWidth(),
+            )
             PinField(
                 value = state.ownerPin,
                 onChange = { onEvent(SignInEvent.OnOwnerPinChanged(it)) },
@@ -247,6 +289,51 @@ private fun RegisterForm(state: SignInUiState, onEvent: (SignInEvent) -> Unit) {
 }
 
 @Composable
+private fun FindForm(state: SignInUiState, onEvent: (SignInEvent) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Section {
+            BiHeading(R.string.auth_fd_title_ja, R.string.auth_fd_title_en)
+            BiHeading(R.string.auth_fd_note_ja, R.string.auth_fd_note_en, small = true)
+            OutlinedTextField(
+                value = state.shopName,
+                onValueChange = { onEvent(SignInEvent.OnShopNameChanged(it)) },
+                label = { FieldLabel(R.string.auth_rg_shop_ja, R.string.auth_rg_shop_en) },
+                singleLine = true,
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.fillMaxWidth(),
+            )
+            OutlinedTextField(
+                value = state.ownerName,
+                onValueChange = { onEvent(SignInEvent.OnOwnerNameChanged(it)) },
+                label = { FieldLabel(R.string.auth_rg_name_ja, R.string.auth_rg_name_en) },
+                singleLine = true,
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.fillMaxWidth(),
+            )
+            PinField(
+                value = state.ownerPin,
+                onChange = { onEvent(SignInEvent.OnOwnerPinChanged(it)) },
+                ja = R.string.auth_si_pin_ja,
+                en = R.string.auth_si_pin_en,
+                isError = false,
+            )
+            if (state.error != null) ErrorLine(state, onRetry = null)
+            PrimaryButton(
+                ja = R.string.auth_si_submit_ja,
+                en = R.string.auth_si_submit_en,
+                enabled = state.canFind,
+                loading = state.isLoading,
+                onClick = { onEvent(SignInEvent.SubmitFind) },
+            )
+        }
+        TextButton(
+            onClick = { onEvent(SignInEvent.ShowFind(false)) },
+            modifier = Modifier.align(Alignment.CenterHorizontally).heightIn(min = 48.dp),
+        ) { BiLabel(R.string.auth_rg_back_ja, R.string.auth_rg_back_en) }
+    }
+}
+
+@Composable
 private fun ShopReady(code: String, onEvent: (SignInEvent) -> Unit) {
     Section {
         Box(
@@ -262,6 +349,19 @@ private fun ShopReady(code: String, onEvent: (SignInEvent) -> Unit) {
                     style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.ExtraBold, letterSpacing = 4.sp),
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
+                val context = LocalContext.current
+                val clipboard = LocalClipboard.current
+                val scope = rememberCoroutineScope()
+                Row {
+                    IconButton(onClick = { scope.launch { clipboard.setClipEntry(ClipEntry(ClipData.newPlainText("Shop code", code))) } }) {
+                        Icon(Icons.Default.ContentCopy, contentDescription = stringResource(R.string.auth_rg_copy_en))
+                    }
+                    IconButton(onClick = {
+                        val send = Intent(Intent.ACTION_SEND).setType("text/plain")
+                            .putExtra(Intent.EXTRA_TEXT, context.getString(R.string.auth_rg_share_text, code))
+                        context.startActivity(Intent.createChooser(send, null))
+                    }) { Icon(Icons.Default.Share, contentDescription = stringResource(R.string.auth_rg_share_en)) }
+                }
             }
         }
         BiHeading(R.string.auth_rg_done_note_ja, R.string.auth_rg_done_note_en, small = true)

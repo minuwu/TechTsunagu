@@ -8,7 +8,7 @@ from sqlalchemy import ColumnElement, and_, delete, func, or_, select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
-from app.models.personal import Block, Contact, ContactMessage, QrToken
+from app.models.personal import Block, Contact, ContactMessage, QrToken, RetiredQrToken
 from app.models.scopes import User
 
 # What a recipient can see: delivered (no block), and not deleted on their side.
@@ -20,6 +20,13 @@ def qr_of(db: Session, user_id: int) -> QrToken | None:
 
 
 def set_qr(db: Session, user_id: int, token_hash: bytes, now: datetime) -> None:
+    old = qr_of(db, user_id)
+    if old is not None:  # the replaced QR still answers "replaced" when someone scans it
+        db.execute(
+            insert(RetiredQrToken)
+            .values(token_hash=old.token_hash, user_id=user_id, created_at=now)
+            .on_conflict_do_nothing()
+        )
     stmt = insert(QrToken).values(user_id=user_id, token_hash=token_hash, created_at=now)
     db.execute(
         stmt.on_conflict_do_update(index_elements=["user_id"], set_={"token_hash": token_hash, "created_at": now})
@@ -29,6 +36,10 @@ def set_qr(db: Session, user_id: int, token_hash: bytes, now: datetime) -> None:
 def user_by_qr(db: Session, token_hash: bytes) -> User | None:
     stmt = select(User).join(QrToken, QrToken.user_id == User.id).where(QrToken.token_hash == token_hash, User.active)
     return db.scalar(stmt)
+
+
+def is_retired_qr(db: Session, token_hash: bytes) -> bool:
+    return db.get(RetiredQrToken, token_hash) is not None
 
 
 def user(db: Session, user_id: int) -> User | None:

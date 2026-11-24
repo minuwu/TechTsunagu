@@ -175,9 +175,8 @@ internal fun WorkerCheckCard(
         } else {
             val answers = message.workerAnswers
             val key = message.answerKey
-            val correct = key.indices.count { answers.getOrNull(it) == key[it] }
             val tone = StatusColors.forStatus(status).color
-            // result banner (prototype .ch-res): big icon, the verdict, k of n correct
+            // result banner: big icon and the verdict only (the missed questions follow)
             Row(
                 Modifier.fillMaxWidth().padding(top = 12.dp).clip(RoundedCornerShape(14.dp))
                     .background(tone.copy(alpha = 0.16f)).padding(horizontal = 14.dp, vertical = 12.dp),
@@ -194,22 +193,14 @@ internal fun WorkerCheckCard(
                     tint = tone,
                     modifier = Modifier.size(34.dp),
                 )
-                Column {
-                    Text(
-                        when (status) {
-                            WakattaStatus.GREEN -> stringResource(R.string.chat_result_green)
-                            WakattaStatus.ORANGE -> stringResource(R.string.chat_result_orange)
-                            else -> stringResource(R.string.chat_result_red)
-                        },
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    )
-                    if (key.isNotEmpty()) {
-                        Text(
-                            stringResource(R.string.chat_correct_count, correct, key.size),
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                    }
-                }
+                Text(
+                    when (status) {
+                        WakattaStatus.GREEN -> stringResource(R.string.chat_result_green)
+                        WakattaStatus.ORANGE -> stringResource(R.string.chat_result_orange)
+                        else -> stringResource(R.string.chat_result_red)
+                    },
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                )
             }
 
             // Each missed question with what the Worker picked and the right answer.

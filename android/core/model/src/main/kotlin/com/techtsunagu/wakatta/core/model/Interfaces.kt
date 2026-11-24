@@ -84,6 +84,9 @@ interface QrEncoder {
 
 interface ShareFile {
     fun share(file: File, mimeType: String)
+
+    /** The file with a line of text (a link the chat app makes tappable). */
+    fun share(file: File, mimeType: String, text: String) = share(file, mimeType)
 }
 
 interface Speaker {

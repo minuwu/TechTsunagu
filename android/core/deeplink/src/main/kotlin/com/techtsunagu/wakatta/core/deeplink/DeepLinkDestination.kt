@@ -1,5 +1,6 @@
 package com.techtsunagu.wakatta.core.deeplink
 
+import com.techtsunagu.wakatta.core.navigation.ConnectScanKey
 import androidx.navigation3.runtime.NavKey
 import com.techtsunagu.wakatta.core.model.TopLevelTab
 import com.techtsunagu.wakatta.core.navigation.BriefingCardKey
@@ -29,7 +30,7 @@ data class DeepLinkDestination(val tab: TopLevelTab, val stack: List<NavKey>) {
  */
 fun AppLink.toDestination(): DeepLinkDestination = when (this) {
     is AppLink.Machine -> DeepLinkDestination(TopLevelTab.MACHINES, listOf(MachinesKey, MachineKey(id)))
-    is AppLink.Contact -> DeepLinkDestination(TopLevelTab.ME, listOf(MeKey, ConnectKey))
+    is AppLink.Contact -> DeepLinkDestination(TopLevelTab.ME, listOf(MeKey, ConnectKey, ConnectScanKey(token)))
     is AppLink.Thread -> DeepLinkDestination(TopLevelTab.CHATS, listOf(ChatsKey, ChatKey(id)))
     is AppLink.Notice -> DeepLinkDestination(TopLevelTab.HOME, listOf(HomeKey, NoticeKey(id)))
     is AppLink.Briefing -> DeepLinkDestination(TopLevelTab.HOME, listOf(HomeKey, BriefingCardKey(id)))

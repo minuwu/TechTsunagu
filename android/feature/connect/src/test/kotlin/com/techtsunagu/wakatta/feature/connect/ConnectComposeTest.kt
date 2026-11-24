@@ -92,13 +92,14 @@ class ConnectComposeTest {
     @Test
     fun scanEmptyStillOffersTheCodeField() {
         show { ConnectScanContent(ConnectScanUiState(isLoading = false), {}) }
-        assertText("Type the code from the other person's QR, or tap a person below to try a scan.")
+        assertText("Point the camera at their QR. Got it as a picture? Choose the photo. You can also paste their link or code.")
+        rule.onNodeWithText("Scan from a photo or file").performScrollTo().assertIsDisplayed()
     }
 
     @Test
     fun scanError() {
         show { ConnectScanContent(ConnectScanUiState(isLoading = false, error = ConnectError.BAD_CODE), {}) }
-        rule.onNodeWithText("This is not a Wakatta? QR code. Check the code and try again.").performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText("This is not a Wakatta? QR. It holds something else (a website, Wi-Fi or another app). Ask them to open Me, then Connect, and show My QR.").performScrollTo().assertIsDisplayed()
     }
 
     @Test

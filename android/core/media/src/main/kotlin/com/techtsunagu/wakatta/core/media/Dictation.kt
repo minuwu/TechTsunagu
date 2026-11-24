@@ -93,7 +93,11 @@ fun rememberDictation(language: String, text: String, onText: (String) -> Unit):
 }
 
 /** The recognizer ends at each pause; this starts it again, and every event carries the whole text so far. */
-internal fun DictationSource.continuous(languageTag: String, initial: String): Flow<DictationEvent> = flow {
+fun DictationSource.continuous(
+    languageTag: String,
+    initial: String,
+    maxSilentRounds: Int = MAX_SILENT_ROUNDS,
+): Flow<DictationEvent> = flow {
     val text = DictationAccumulator(initial)
     var silent = 0
     while (true) {
@@ -112,7 +116,7 @@ internal fun DictationSource.continuous(languageTag: String, initial: String): F
         }
         silent = if (heard) 0 else silent + 1
         val kind = failed ?: DictationErrorKind.NO_SPEECH
-        if (kind != DictationErrorKind.NO_SPEECH || silent >= MAX_SILENT_ROUNDS) {
+        if (kind != DictationErrorKind.NO_SPEECH || silent >= maxSilentRounds) {
             emit(DictationEvent.Error(kind))
             return@flow
         }
