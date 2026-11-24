@@ -87,6 +87,17 @@ class InsightsViewModelTest {
     }
 
     @Test
+    fun followUps_clarifyMarksItClarified() { // M10
+        val repo = StubFollowUps()
+        val vm = FollowUpsViewModel(repo)
+        vm.onEvent(FollowUpsEvent.Clarify("f1"))
+        assertEquals(listOf("f1"), repo.clarified)
+        assertEquals(FollowUpStatus.CLARIFIED, vm.state.value.data!!.items.first { it.id == "f1" }.status)
+        assertTrue(vm.state.value.clarifying.isEmpty())
+        assertNull(vm.state.value.clarifyError)
+    }
+
+    @Test
     fun followUps_failureThenRetry() {
         val repo = StubFollowUps(AppResult.Failure(AppError.Forbidden))
         val vm = FollowUpsViewModel(repo)

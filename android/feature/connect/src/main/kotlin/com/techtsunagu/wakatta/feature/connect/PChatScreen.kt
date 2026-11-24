@@ -1,5 +1,6 @@
 package com.techtsunagu.wakatta.feature.connect
 
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Block
+import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -70,6 +72,9 @@ internal data class PChatUiState(
     val input: String = "",
     val isSending: Boolean = false,
     val confirmBlock: Boolean = false,
+    /** The message waiting for "Delete?" (long-press), or null. */
+    val confirmDelete: String? = null,
+    val confirmClear: Boolean = false,
 )
 
 internal sealed interface PChatEvent {
@@ -83,6 +88,11 @@ internal sealed interface PChatEvent {
     data object AskBlock : PChatEvent
     data object ConfirmBlock : PChatEvent
     data object DismissBlock : PChatEvent
+    data class AskDelete(val messageId: String) : PChatEvent
+    data object ConfirmDelete : PChatEvent
+    data object AskClear : PChatEvent
+    data object ConfirmClear : PChatEvent
+    data object DismissDelete : PChatEvent
 }
 
 internal sealed interface PChatEffect {
@@ -109,6 +119,11 @@ internal class PChatViewModel @Inject constructor(
             PChatEvent.AskBlock -> updateState { it.copy(confirmBlock = true) }
             PChatEvent.DismissBlock -> updateState { it.copy(confirmBlock = false) }
             PChatEvent.ConfirmBlock -> block()
+            is PChatEvent.AskDelete -> updateState { it.copy(confirmDelete = event.messageId) }
+            PChatEvent.AskClear -> updateState { it.copy(confirmClear = true) }
+            PChatEvent.DismissDelete -> updateState { it.copy(confirmDelete = null, confirmClear = false) }
+            PChatEvent.ConfirmDelete -> delete()
+            PChatEvent.ConfirmClear -> clear()
         }
     }
 
@@ -153,6 +168,27 @@ internal class PChatViewModel @Inject constructor(
                     updateState { it.copy(isSending = false) }
                     sendEffect(PChatEffect.Failed(res.error.toConnectError()))
                 }
+            }
+        }
+    }
+
+    private fun delete() {
+        val id = state.value.confirmDelete ?: return
+        updateState { it.copy(confirmDelete = null) }
+        viewModelScope.launch {
+            when (val res = threads.deleteMessage(state.value.threadId, id)) {
+                is AppResult.Success -> updateState { s -> s.copy(messages = s.messages.filterNot { it.id == id }) }
+                is AppResult.Failure -> sendEffect(PChatEffect.Failed(res.error.toConnectError()))
+            }
+        }
+    }
+
+    private fun clear() {
+        updateState { it.copy(confirmClear = false) }
+        viewModelScope.launch {
+            when (val res = threads.clearMessages(state.value.threadId)) {
+                is AppResult.Success -> updateState { it.copy(messages = emptyList()) }
+                is AppResult.Failure -> sendEffect(PChatEffect.Failed(res.error.toConnectError()))
             }
         }
     }
@@ -225,6 +261,11 @@ internal fun PChatContent(
                 title = state.title.ifEmpty { stringResource(R.string.connect_pchat_screen_title) },
                 onBackClick = onBackClick,
                 actions = {
+                    if (state.messages.isNotEmpty()) {
+                        IconButton(onClick = { onEvent(PChatEvent.AskClear) }, modifier = Modifier.size(48.dp)) {
+                            Icon(Icons.Default.DeleteSweep, contentDescription = stringResource(R.string.connect_clear_chat))
+                        }
+                    }
                     IconButton(onClick = { onEvent(PChatEvent.AskBlock) }, modifier = Modifier.size(48.dp)) {
                         Icon(Icons.Default.Block, contentDescription = stringResource(R.string.connect_block))
                     }
@@ -246,17 +287,33 @@ internal fun PChatContent(
                         message = stringResource(R.string.connect_chat_empty),
                         modifier = Modifier.fillMaxSize(),
                     )
-                    else -> Messages(state.messages, state.lang)
+                    else -> Messages(state.messages, state.lang) { onEvent(PChatEvent.AskDelete(it)) }
                 }
             }
             if (state.error == null) MessageInput(state, onEvent)
         }
     }
     if (state.confirmBlock) BlockDialog(state.title, onEvent)
+    if (state.confirmDelete != null || state.confirmClear) DeleteDialog(all = state.confirmClear, onEvent = onEvent)
 }
 
 @Composable
-private fun Messages(messages: List<ContactMessageDto>, lang: String) {
+private fun DeleteDialog(all: Boolean, onEvent: (PChatEvent) -> Unit) {
+    AlertDialog(
+        onDismissRequest = { onEvent(PChatEvent.DismissDelete) },
+        title = { Text(stringResource(if (all) R.string.connect_clear_title else R.string.connect_msg_delete_title)) },
+        text = { Text(stringResource(if (all) R.string.connect_clear_body else R.string.connect_msg_delete_body)) },
+        confirmButton = {
+            TextButton(onClick = { onEvent(if (all) PChatEvent.ConfirmClear else PChatEvent.ConfirmDelete) }) {
+                Text(stringResource(R.string.connect_delete), color = MaterialTheme.colorScheme.error)
+            }
+        },
+        dismissButton = { TextButton(onClick = { onEvent(PChatEvent.DismissDelete) }) { Text(stringResource(R.string.connect_cancel)) } },
+    )
+}
+
+@Composable
+private fun Messages(messages: List<ContactMessageDto>, lang: String, onLongPress: (String) -> Unit = {}) {
     val listState = rememberLazyListState()
     LaunchedEffect(messages.size) { if (messages.isNotEmpty()) listState.animateScrollToItem(messages.lastIndex) }
     LazyColumn(
@@ -264,12 +321,14 @@ private fun Messages(messages: List<ContactMessageDto>, lang: String) {
         modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        items(messages, key = { it.id }, contentType = { if (it.fromMe) "mine" else "theirs" }) { Bubble(it, lang) }
+        items(messages, key = { it.id }, contentType = { if (it.fromMe) "mine" else "theirs" }) { message ->
+            Bubble(message, lang, Modifier.combinedClickable(onClick = {}, onLongClick = { onLongPress(message.id) }))
+        }
     }
 }
 
 @Composable
-private fun Bubble(message: ContactMessageDto, lang: String) {
+private fun Bubble(message: ContactMessageDto, lang: String, modifier: Modifier = Modifier) {
     val japanese = lang == "ja"
     val alt = (if (japanese) message.en else message.ja).ifBlank { null }
     val shown = (if (japanese) message.ja else message.en).ifBlank { alt.orEmpty() }
@@ -278,7 +337,7 @@ private fun Bubble(message: ContactMessageDto, lang: String) {
         Surface(
             shape = RoundedCornerShape(16.dp),
             color = if (message.fromMe) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
-            modifier = Modifier.fillMaxWidth(0.8f),
+            modifier = Modifier.fillMaxWidth(0.8f).then(modifier),
         ) {
             Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(shown, style = MaterialTheme.typography.bodyLarge)

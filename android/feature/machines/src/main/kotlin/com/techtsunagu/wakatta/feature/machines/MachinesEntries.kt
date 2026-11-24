@@ -3,6 +3,7 @@ package com.techtsunagu.wakatta.feature.machines
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.techtsunagu.wakatta.core.navigation.FeatureEntries
+import com.techtsunagu.wakatta.core.navigation.ChatbotKey
 import com.techtsunagu.wakatta.core.navigation.MachineKey
 import com.techtsunagu.wakatta.core.navigation.MachinesKey
 import com.techtsunagu.wakatta.core.navigation.Navigator
@@ -34,6 +35,7 @@ class MachinesEntries @Inject constructor() : FeatureEntries {
                 onBackClick = { navigator.pop() },
                 onOpenPanelClick = { id -> navigator.push(PanelKey(id)) },
                 onOpenNoteClick = { id -> navigator.push(NoteKey(id)) },
+                onAskClick = { id -> navigator.push(ChatbotKey(id)) },
             )
         }
         // Screen id: scan

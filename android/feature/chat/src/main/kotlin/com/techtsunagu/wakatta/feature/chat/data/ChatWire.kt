@@ -101,6 +101,8 @@ private fun WireMessage.base(ctx: MessageContext): ChatMessageUiModel {
         text = text,
         originalText = original,
         translatedText = pick(text, ctx.myLang),
+        originalLang = if (text[language].isNullOrEmpty()) "ja" else language,
+        translatedLang = if (text[ctx.myLang].isNullOrEmpty()) "ja" else ctx.myLang,
         time = clock(sentAt ?: createdAt),
         stage = stage,
         isVoice = kind == MessageKind.VOICE,

@@ -5,6 +5,7 @@ import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextReplacement
@@ -266,6 +267,35 @@ class ChatComposeTest {
         composeTestRule.onNodeWithText("Nudge").assertExists()
     }
 
+    // ---------------- Read-aloud for every message (M9) ----------------
+
+    @Test
+    fun aTextMessageIsReadAloudInItsOwnLanguage() {
+        val events = mutableListOf<ChatEvent>()
+        val message = ChatMessageUiModel(
+            id = "m1",
+            threadId = "t1",
+            fromUserId = "u_rahim",
+            fromUserName = "Rahim",
+            isMine = false,
+            kind = MessageKind.TEXT,
+            text = mapOf("en" to "The press is making a noise.", "ja" to "プレスから音がします。"),
+            originalText = "The press is making a noise.",
+            translatedText = "プレスから音がします。",
+            originalLang = "en",
+            translatedLang = "ja",
+            time = "09:00",
+        )
+        composeTestRule.setContent {
+            ChatContent(
+                state = ChatUiState(threadId = "t1", title = "Line 2", currentRole = Role.FOREMAN, messages = listOf(message)),
+                onEvent = { events += it },
+            )
+        }
+        composeTestRule.onNodeWithContentDescription("Read aloud").performClick()
+        assertEquals(ChatEvent.PlayVoice("The press is making a noise.", "en"), events.last())
+    }
+
     // ---------------- Draft review card (M2) ----------------
 
     private fun draft(needsEdit: Boolean = false, en: String? = "Check the oil on Machine 3.") = ChatMessageUiModel(
@@ -321,10 +351,29 @@ class ChatComposeTest {
         val events = mutableListOf<ChatEvent>()
         showDraft(draft(needsEdit = true, en = null), events)
 
-        composeTestRule.onNodeWithText("Not translated. Send it in Japanese only, or edit it.").assertExists()
+        composeTestRule.onNodeWithText("Not translated", substring = true).assertExists()
         composeTestRule.onNodeWithText("Send").assertDoesNotExist()
         composeTestRule.onNodeWithText("Send in Japanese only").performClick()
         assertEquals(listOf<ChatEvent>(ChatEvent.SendDraft("d1")), events)
+    }
+
+    @Test
+    fun anUnsentDraftIsLabelledNotSent_andAnUntranslatedOneJapaneseOnly() { // M4
+        showDraft(draft(needsEdit = true, en = null), mutableListOf())
+        composeTestRule.onNodeWithText("Draft, not sent · Japanese only · 08:00").assertExists()
+    }
+
+    @Test
+    fun aTranslatedDraftIsLabelledNotSentOnly() { // M4
+        showDraft(draft(), mutableListOf())
+        composeTestRule.onNodeWithText("Draft, not sent · 08:00").assertExists()
+    }
+
+    @Test
+    fun aSentMessageCarriesNoDraftMark() { // M4
+        showDraft(draft().copy(isDraft = false, stage = 5), mutableListOf())
+        composeTestRule.onNodeWithText("Draft, not sent", substring = true).assertDoesNotExist()
+        composeTestRule.onNodeWithText("Check before sending").assertDoesNotExist()
     }
 
     @Test
@@ -339,30 +388,5 @@ class ChatComposeTest {
         composeTestRule.onNodeWithText("Save").performClick()
 
         assertEquals(listOf<ChatEvent>(ChatEvent.EditDraft("d1", "5号機の油を点検してください。")), events)
-    }
-
-    // ---------------- Draft label (M4) ----------------
-
-    @Test
-    fun anUnsentDraftIsMarkedAndAnUntranslatedOneToo() {
-        showDraft(draft(needsEdit = true, en = null), mutableListOf())
-
-        composeTestRule.onNodeWithText("Draft, not sent · Not translated").assertExists()
-    }
-
-    @Test
-    fun aGoodDraftIsMarkedNotSentOnly() {
-        showDraft(draft(), mutableListOf())
-
-        composeTestRule.onNodeWithText("Draft, not sent").assertExists()
-        composeTestRule.onNodeWithText("Not translated", substring = true).assertDoesNotExist()
-    }
-
-    @Test
-    fun aSentMessageCarriesNoDraftMark() {
-        showDraft(draft().copy(isDraft = false, stage = 5), mutableListOf())
-
-        composeTestRule.onNodeWithText("Draft, not sent", substring = true).assertDoesNotExist()
-        composeTestRule.onNodeWithText("Check before sending").assertDoesNotExist()
     }
 }

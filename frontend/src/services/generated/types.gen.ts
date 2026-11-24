@@ -15,7 +15,7 @@ export type AccountIn = {
     /**
      * Language
      */
-    language: 'ja' | 'bn' | 'en' | 'vi' | 'id' | 'ne' | 'my' | 'tl' | 'zh';
+    language: 'ja' | 'en' | 'vi' | 'id' | 'ne' | 'my' | 'tl' | 'zh';
     /**
      * Pin
      */
@@ -41,7 +41,7 @@ export type AccountOut = {
     /**
      * Language
      */
-    language: 'ja' | 'bn' | 'en' | 'vi' | 'id' | 'ne' | 'my' | 'tl' | 'zh';
+    language: 'ja' | 'en' | 'vi' | 'id' | 'ne' | 'my' | 'tl' | 'zh';
     /**
      * Active
      */
@@ -63,7 +63,7 @@ export type AccountUpdate = {
     /**
      * Language
      */
-    language?: 'ja' | 'bn' | 'en' | 'vi' | 'id' | 'ne' | 'my' | 'tl' | 'zh' | null;
+    language?: 'ja' | 'en' | 'vi' | 'id' | 'ne' | 'my' | 'tl' | 'zh' | null;
     /**
      * Pin
      */
@@ -631,7 +631,7 @@ export type CheckIn = {
     /**
      * Language
      */
-    language: 'ja' | 'bn' | 'en' | 'vi' | 'id' | 'ne' | 'my' | 'tl' | 'zh';
+    language: 'ja' | 'en' | 'vi' | 'id' | 'ne' | 'my' | 'tl' | 'zh';
     /**
      * Answers
      */
@@ -806,7 +806,7 @@ export type ContactMessageIn = {
     /**
      * Lang
      */
-    lang: 'ja' | 'bn' | 'en' | 'vi' | 'id' | 'ne' | 'my' | 'tl' | 'zh';
+    lang: 'ja' | 'en' | 'vi' | 'id' | 'ne' | 'my' | 'tl' | 'zh';
 };
 
 /**
@@ -828,7 +828,7 @@ export type ContactMessageOut = {
     /**
      * Srclang
      */
-    srcLang: 'ja' | 'bn' | 'en' | 'vi' | 'id' | 'ne' | 'my' | 'tl' | 'zh';
+    srcLang: 'ja' | 'en' | 'vi' | 'id' | 'ne' | 'my' | 'tl' | 'zh';
     /**
      * Text
      */
@@ -868,7 +868,7 @@ export type ContactOut = {
     /**
      * Language
      */
-    language: 'ja' | 'bn' | 'en' | 'vi' | 'id' | 'ne' | 'my' | 'tl' | 'zh';
+    language: 'ja' | 'en' | 'vi' | 'id' | 'ne' | 'my' | 'tl' | 'zh';
     /**
      * Muted
      */
@@ -904,7 +904,7 @@ export type ContactPreview = {
     /**
      * Language
      */
-    language: 'ja' | 'bn' | 'en' | 'vi' | 'id' | 'ne' | 'my' | 'tl' | 'zh';
+    language: 'ja' | 'en' | 'vi' | 'id' | 'ne' | 'my' | 'tl' | 'zh';
 };
 
 /**
@@ -4452,7 +4452,7 @@ export type SenpaiWorker = {
     /**
      * Language
      */
-    language: 'ja' | 'bn' | 'en' | 'vi' | 'id' | 'ne' | 'my' | 'tl' | 'zh';
+    language: 'ja' | 'en' | 'vi' | 'id' | 'ne' | 'my' | 'tl' | 'zh';
 };
 
 /**
@@ -5002,7 +5002,7 @@ export type TodayWord = {
     /**
      * Language
      */
-    language: 'ja' | 'bn' | 'en' | 'vi' | 'id' | 'ne' | 'my' | 'tl' | 'zh';
+    language: 'ja' | 'en' | 'vi' | 'id' | 'ne' | 'my' | 'tl' | 'zh';
     /**
      * Word
      */
@@ -5103,7 +5103,7 @@ export type UserOut = {
     /**
      * Language
      */
-    language: 'ja' | 'bn' | 'en' | 'vi' | 'id' | 'ne' | 'my' | 'tl' | 'zh';
+    language: 'ja' | 'en' | 'vi' | 'id' | 'ne' | 'my' | 'tl' | 'zh';
     /**
      * Shopid
      */

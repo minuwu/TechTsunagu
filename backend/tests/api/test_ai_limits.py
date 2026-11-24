@@ -66,7 +66,7 @@ def test_a_typed_chat_message_is_sent_untranslated_but_a_recording_is_refused(
     shop = db.get_one(Shop, worker.shop_id)
     url = f"/api/threads/{f.thread(db, shop, worker).id}/messages"
 
-    typed = client.post(url, headers=headers, data={"text": "আমি বুঝেছি"})
+    typed = client.post(url, headers=headers, data={"text": "I understand"})
     voice = headers | {"Idempotency-Key": str(uuid.uuid4())}
     spoken = client.post(url, headers=voice, files={"audio": ("a.webm", WEBM)})
 

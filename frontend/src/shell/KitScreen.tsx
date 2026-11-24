@@ -1,6 +1,7 @@
 import { lazy, Suspense, type ComponentType } from 'react'
 import { useLoaderData } from '@tanstack/react-router'
 import type { ScreenId } from '@/contract/ui-kit'
+import { AuthGate } from './AuthGate'
 import { kits, type KitId } from './ui-registry'
 
 type KitView = ComponentType<{ screen: ScreenId }>
@@ -16,7 +17,9 @@ const views: Partial<Record<KitId, KitView>> = Object.fromEntries(
           const Screen = screens[screen]
           return (
             <Layout>
-              <Screen />
+              <AuthGate screen={screen}>
+                <Screen />
+              </AuthGate>
             </Layout>
           )
         },

@@ -151,6 +151,18 @@ class FakeConnectRepository(
         }
     }
 
+    override suspend fun deleteMessage(contactId: String, messageId: String): AppResult<Unit> = synchronized(lock) {
+        val state = contacts.firstOrNull { it.person.threadId == contactId } ?: return AppResult.Failure(AppError.NotFound)
+        state.messages.removeAll { it.id == messageId }
+        AppResult.Success(Unit)
+    }
+
+    override suspend fun clearMessages(contactId: String): AppResult<Unit> = synchronized(lock) {
+        val state = contacts.firstOrNull { it.person.threadId == contactId } ?: return AppResult.Failure(AppError.NotFound)
+        state.messages.clear()
+        AppResult.Success(Unit)
+    }
+
     override suspend fun sendMessage(contactId: String, text: String, srcLang: String): AppResult<ContactMessageDto> {
         delay(simulatedLatencyMs)
         if (text.isBlank()) return AppResult.Failure(AppError.Validation(listOf("text")))

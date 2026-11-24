@@ -121,6 +121,12 @@ interface PersonalThreadRepository : ThreadSource {
     suspend fun getMessages(contactId: String): AppResult<List<ContactMessageDto>>
     suspend fun sendMessage(contactId: String, text: String, srcLang: String): AppResult<ContactMessageDto>
 
+    /** ADR 0014: a message you sent goes for both of you; one you received only on your side. */
+    suspend fun deleteMessage(contactId: String, messageId: String): AppResult<Unit>
+
+    /** The whole Contact Thread: all you sent, and your copy of what you received. */
+    suspend fun clearMessages(contactId: String): AppResult<Unit>
+
     suspend fun getTalks(): AppResult<List<TalkThreadDto>>
     suspend fun getTalk(id: String): AppResult<TalkThreadDto>
     suspend fun createTalk(title: String): AppResult<TalkThreadDto>

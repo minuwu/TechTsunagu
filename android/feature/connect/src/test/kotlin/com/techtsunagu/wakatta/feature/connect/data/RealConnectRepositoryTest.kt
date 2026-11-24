@@ -186,6 +186,22 @@ class RealConnectRepositoryTest {
     }
 
     @Test
+    fun deletingAMessageAndTheWholeChatCallTheirRoutes() = runBlocking { // ADR 0014
+        ok("null")
+        ok("null")
+
+        assertTrue(repo.deleteMessage("tc_42", "m2") is AppResult.Success)
+        assertTrue(repo.clearMessages("tc_42") is AppResult.Success)
+
+        val one = server.takeRequest()
+        assertEquals("DELETE", one.method)
+        assertEquals("/api/contacts/42/messages/m2", one.url.encodedPath)
+        val all = server.takeRequest()
+        assertEquals("DELETE", all.method)
+        assertEquals("/api/contacts/42/messages", all.url.encodedPath)
+    }
+
+    @Test
     fun blockCallsBackendWithoutPrefix() = runBlocking {
         ok("null")
 

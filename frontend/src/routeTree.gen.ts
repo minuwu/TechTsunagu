@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CommunityRouteImport } from './routes/community'
 import { Route as CourseRouteImport } from './routes/course'
+import { Route as DemoRouteImport } from './routes/demo'
 import { Route as ForemanIndexRouteImport } from './routes/foreman.index'
 import { Route as ForemanAssignRouteImport } from './routes/foreman.assign'
 import { Route as ForemanBriefingRouteImport } from './routes/foreman.briefing'
@@ -42,6 +43,11 @@ const CommunityRoute = CommunityRouteImport.update({
 const CourseRoute = CourseRouteImport.update({
   id: '/course',
   path: '/course',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DemoRoute = DemoRouteImport.update({
+  id: '/demo',
+  path: '/demo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ForemanIndexRoute = ForemanIndexRouteImport.update({
@@ -129,6 +135,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/community': typeof CommunityRoute
   '/course': typeof CourseRoute
+  '/demo': typeof DemoRoute
   '/foreman/assign': typeof ForemanAssignRoute
   '/foreman/briefing': typeof ForemanBriefingRoute
   '/foreman/glossary': typeof ForemanGlossaryRoute
@@ -150,6 +157,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/community': typeof CommunityRoute
   '/course': typeof CourseRoute
+  '/demo': typeof DemoRoute
   '/foreman/assign': typeof ForemanAssignRoute
   '/foreman/briefing': typeof ForemanBriefingRoute
   '/foreman/glossary': typeof ForemanGlossaryRoute
@@ -172,6 +180,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/community': typeof CommunityRoute
   '/course': typeof CourseRoute
+  '/demo': typeof DemoRoute
   '/foreman/assign': typeof ForemanAssignRoute
   '/foreman/briefing': typeof ForemanBriefingRoute
   '/foreman/glossary': typeof ForemanGlossaryRoute
@@ -195,6 +204,7 @@ export interface FileRouteTypes {
     | '/'
     | '/community'
     | '/course'
+    | '/demo'
     | '/foreman/assign'
     | '/foreman/briefing'
     | '/foreman/glossary'
@@ -216,6 +226,7 @@ export interface FileRouteTypes {
     | '/'
     | '/community'
     | '/course'
+    | '/demo'
     | '/foreman/assign'
     | '/foreman/briefing'
     | '/foreman/glossary'
@@ -237,6 +248,7 @@ export interface FileRouteTypes {
     | '/'
     | '/community'
     | '/course'
+    | '/demo'
     | '/foreman/assign'
     | '/foreman/briefing'
     | '/foreman/glossary'
@@ -259,6 +271,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CommunityRoute: typeof CommunityRoute
   CourseRoute: typeof CourseRoute
+  DemoRoute: typeof DemoRoute
   ForemanAssignRoute: typeof ForemanAssignRoute
   ForemanBriefingRoute: typeof ForemanBriefingRoute
   ForemanGlossaryRoute: typeof ForemanGlossaryRoute
@@ -298,6 +311,13 @@ declare module '@tanstack/react-router' {
       path: '/course'
       fullPath: '/course'
       preLoaderRoute: typeof CourseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/demo': {
+      id: '/demo'
+      path: '/demo'
+      fullPath: '/demo'
+      preLoaderRoute: typeof DemoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/foreman/': {
@@ -419,6 +439,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CommunityRoute: CommunityRoute,
   CourseRoute: CourseRoute,
+  DemoRoute: DemoRoute,
   ForemanAssignRoute: ForemanAssignRoute,
   ForemanBriefingRoute: ForemanBriefingRoute,
   ForemanGlossaryRoute: ForemanGlossaryRoute,

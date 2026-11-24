@@ -20,7 +20,18 @@ import type {
 } from '@/domain/wakatta'
 import { gradeCheck, tokyoDate } from '@/domain/wakatta'
 import { isValidRrule } from '@/domain/calendar'
-import { ApiError, USE_MOCK, request } from './api'
+import {
+  ApiError,
+  USE_MOCK,
+  authHeaders,
+  getSession,
+  request,
+  requestAll,
+  requestBlob,
+  setSession,
+  type Session,
+} from './api'
+import { briefing as liveBriefing, liveList } from './live'
 import { applyScenario } from './mocks/scenario'
 import type { Db } from './mocks/seed'
 import { readDb, resetDb, update, wait } from './mocks/store'
@@ -40,39 +51,31 @@ export {
   type Scenario,
 } from './mocks/scenario'
 
-const PATHS: Record<Collection, string> = {
-  workers: '/api/workers',
-  machines: '/api/machines',
-  glossary: '/api/glossary',
-  notes: '/api/note-versions',
-  checks: '/api/checks',
-  confusions: '/api/confusions',
-  signOffs: '/api/sign-offs',
-  assignments: '/api/shift-assignments',
-  briefings: '/api/briefings',
-  receipts: '/api/receipts',
-  nearMisses: '/api/near-misses',
-  posters: '/api/posters',
-  notices: '/api/notices',
-  pairs: '/api/senpai-pairs',
-  asks: '/api/asks',
-  meetups: '/api/meetups',
-}
-
-const json = (method: string, body: unknown): RequestInit => ({
+const json = (
+  method: string,
+  body: unknown,
+  idempotent = false,
+): RequestInit => ({
   method,
-  headers: { 'Content-Type': 'application/json' },
-  credentials: 'include',
+  headers: { 'Content-Type': 'application/json', ...authHeaders(idempotent) },
   body: JSON.stringify(body),
 })
 
+/** A Senpai link route. The token comes from a URL anyone can craft, so encode it: `../` must not reach another route. */
+const senpaiPath = (token: string) => `/api/senpai/${encodeURIComponent(token)}`
+
+/** Multipart POST with an Idempotency-Key (every multipart route takes one). Empty fields are left out. */
 const multipart = (
-  fields: Record<string, string | Blob | null>,
+  fields: Record<string, string | Blob | null | undefined>,
 ): RequestInit => {
   const form = new FormData()
   for (const [k, v] of Object.entries(fields)) if (v) form.append(k, v)
-  return { method: 'POST', credentials: 'include', body: form }
+  return { method: 'POST', headers: authHeaders(true), body: form }
 }
+
+/** Photos travel as data URLs on screen; the API takes them as files. */
+const photoFile = async (dataUrl: string | null) =>
+  dataUrl ? (await fetch(dataUrl)).blob() : null
 
 const uid = (prefix: string) =>
   `${prefix}-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`
@@ -80,7 +83,7 @@ const nowIso = () => new Date().toISOString()
 
 export async function list<K extends Collection>(key: K): Promise<Db[K]> {
   if (USE_MOCK) return applyScenario(readDb()[key])
-  return request<Db[K]>(PATHS[key])
+  return liveList(key)
 }
 
 export async function resetDemo(): Promise<void> {
@@ -90,10 +93,7 @@ export async function resetDemo(): Promise<void> {
 
 export async function scanMachine(machineId: string, workerId: string) {
   if (!USE_MOCK)
-    return request<void>(
-      `/api/machines/${machineId}/scan`,
-      json('POST', { workerId }),
-    )
+    return request<void>(`/api/machines/${machineId}/scan`, json('POST', {}))
   update((db) => {
     const m = db.machines.find((x) => x.id === machineId)
     if (m) m.activeWorkerId = workerId
@@ -107,7 +107,7 @@ export async function createNoteDraft(
   if (!USE_MOCK)
     return request<NoteVersion>(
       `/api/machines/${machineId}/notes`,
-      multipart(input),
+      multipart({ text: input.text, audio: input.audio }),
     )
   await wait(2200) // the AI step
   return update((db) => {
@@ -167,7 +167,14 @@ export async function submitCheck(input: {
   language: Lang
   answers: number[]
 }): Promise<CheckResult> {
-  if (!USE_MOCK) return request<CheckResult>('/api/checks', json('POST', input))
+  if (!USE_MOCK) {
+    const { target, language, answers } = input // the Worker comes from the token
+    const r = await request<{ passed: boolean; wrong: CheckQuestion[] }>(
+      '/api/checks',
+      json('POST', { target, language, answers }, true),
+    )
+    return { passed: r.passed, wrong: r.wrong }
+  }
   await wait(400)
   return update((db) => {
     const { target } = input
@@ -254,7 +261,11 @@ export async function setAssignment(
 
 export async function addGlossaryTerm(term: Omit<GlossaryTerm, 'id'>) {
   if (!USE_MOCK)
-    return request<GlossaryTerm>('/api/glossary', json('POST', term))
+    // shortcut: the API requires Bengali and a reading, the web form has no Bengali field; ask Anim to make bn optional
+    return request<GlossaryTerm>(
+      '/api/glossary',
+      json('POST', { ...term, reading: term.reading || term.ja, bn: term.en }),
+    )
   update((db) => {
     db.glossary.push({ id: uid('g'), ...term })
   })
@@ -265,25 +276,34 @@ export async function createBriefingDraft(
   input: Blob | { text: string } | null,
 ): Promise<Briefing> {
   if (!USE_MOCK)
-    return request<Briefing>(
-      '/api/briefings/draft',
-      multipart(input instanceof Blob || !input ? { audio: input } : input),
+    return liveBriefing(
+      await request(
+        '/api/briefings/draft',
+        multipart(input instanceof Blob || !input ? { audio: input } : input),
+      ),
     )
   await wait(2000)
   return ai.briefingDraft(nowIso())
 }
 
 export async function publishBriefing(briefing: Briefing) {
-  if (!USE_MOCK) return request<void>('/api/briefings', json('POST', briefing))
+  if (!USE_MOCK) {
+    // Only these fields: the API refuses unknown ones (422)
+    const { id, text, question } = briefing
+    return request<void>('/api/briefings', json('POST', { id, text, question }))
+  }
   update((db) => {
     db.briefings.unshift(briefing)
   })
 }
 
 /** Receipt: the Worker opened a Briefing or Notice. */
-export async function openTarget(targetId: string, workerId: string) {
-  if (!USE_MOCK)
-    return request<void>('/api/receipts', json('POST', { targetId, workerId }))
+export async function openTarget(
+  target: { kind: 'briefing' | 'notice'; id: string },
+  workerId: string,
+) {
+  const targetId = target.id
+  if (!USE_MOCK) return request<void>('/api/receipts', json('POST', { target }))
   update((db) => {
     if (
       !db.receipts.some(
@@ -302,7 +322,15 @@ export async function reportNearMiss(input: {
   photo: string | null
 }): Promise<NearMissReport> {
   if (!USE_MOCK)
-    return request<NearMissReport>('/api/near-misses', multipart(input))
+    return request<NearMissReport>(
+      '/api/near-misses',
+      multipart({
+        machineId: input.machineId,
+        text: input.text,
+        audio: input.audio,
+        photo: await photoFile(input.photo),
+      }),
+    )
   await wait(1500)
   const text = input.audio ? ai.NEAR_MISS_VOICE : ai.typedNearMiss(input.text)
   return update((db) => {
@@ -336,7 +364,19 @@ export async function createNoticeDraft(input: {
   audio: Blob | null
   photo: string | null
 }): Promise<Notice> {
-  if (!USE_MOCK) return request<Notice>('/api/notices', multipart(input))
+  if (!USE_MOCK) {
+    // Exactly the one source sourceKind names; the Poster comes from the token
+    const source =
+      input.sourceKind === 'text'
+        ? { text: input.text }
+        : input.sourceKind === 'voice'
+          ? { audio: input.audio }
+          : { photo: await photoFile(input.photo) }
+    return request<Notice>(
+      '/api/notices',
+      multipart({ sourceKind: input.sourceKind, ...source }),
+    )
+  }
   await wait(2500)
   return update((db) => {
     const draft = ai.noticeDraft(
@@ -379,7 +419,7 @@ export async function publishNotice(noticeId: string) {
       n.events.some((e) => !e.confirmed || (e.rrule && !isValidRrule(e.rrule)))
     )
       throw new ApiError(
-        422,
+        409,
         'EVENTS_NOT_CONFIRMED',
         'Confirm every date first',
       )
@@ -392,7 +432,11 @@ export async function askQuestion(input: {
   text: string
   audio: Blob | null
 }): Promise<Ask> {
-  if (!USE_MOCK) return request<Ask>('/api/asks', multipart(input))
+  if (!USE_MOCK)
+    return request<Ask>(
+      '/api/asks',
+      multipart({ text: input.text, audio: input.audio }),
+    )
   await wait(1600)
   const text = input.audio ? ai.ASK_VOICE_TRANSCRIPT : input.text
   return update((db) => {
@@ -438,9 +482,11 @@ export async function forwardAsk(askId: string) {
 
 export async function senpaiReply(token: string, askId: string, reply: Tri) {
   if (!USE_MOCK)
+    // The backend translates the Japanese for the Worker
     return request<void>(
-      `/api/senpai/${token}/asks/${askId}/reply`,
-      json('POST', { reply }),
+      `${senpaiPath(token)}/asks/${encodeURIComponent(askId)}/reply`,
+      json('POST', { replyJa: reply.ja }),
+      false,
     )
   update((db) => {
     const pair = db.pairs.find((p) => p.token === token)
@@ -457,10 +503,20 @@ export async function logMeetup(input: {
   date: string
   note: string
   loggedBy: 'worker' | 'senpai'
+  /** The Senpai's link token: a Senpai has no account */
+  token?: string
 }) {
-  if (!USE_MOCK) return request<void>('/api/meetups', json('POST', input))
+  const { token, ...meetup } = input
+  if (!USE_MOCK) {
+    const body = { kind: meetup.kind, date: meetup.date, note: meetup.note }
+    return request<void>(
+      token ? `${senpaiPath(token)}/meetups` : '/api/meetups',
+      json('POST', body, !token),
+      !token,
+    )
+  }
   update((db) => {
-    db.meetups.unshift({ id: uid('mu'), ...input })
+    db.meetups.unshift({ id: uid('mu'), ...meetup })
   })
 }
 
@@ -486,17 +542,124 @@ export async function addPair(input: {
 /** Demo PINs, shown on the hub. shortcut: real check is server-side (SHOP_PIN, COMMUNITY_PIN). */
 export const DEMO_PINS = { foreman: '1234', community: '5678' } as const
 
+/** Mock only: the real API signs in a person (signIn), not a role. */
 export async function verifyPin(
   role: 'foreman' | 'community',
   pin: string,
 ): Promise<boolean> {
-  if (!USE_MOCK)
-    return request<{ ok: boolean }>(
-      '/api/auth/pin',
-      json('POST', { role, pin }),
-    )
-      .then((r) => r.ok)
-      .catch(() => false)
   await wait(300)
   return pin === DEMO_PINS[role]
 }
+
+// --- Accounts (real API, XREQ-001; ADR 0010) ---
+
+export type AccountRole = Session['user']['role']
+export interface RosterEntry {
+  id: string
+  displayName: string
+}
+
+/** Names to pick from: a shop code for Foremen and Workers, a district code for Posters. */
+export const roster = (code: string, role: AccountRole) =>
+  request<RosterEntry[]>(
+    `/api/auth/roster?code=${encodeURIComponent(code)}&role=${role}`,
+  )
+
+export async function signIn(userId: string, pin: string): Promise<Session> {
+  const session = await request<Session>(
+    '/api/auth/login',
+    json('POST', { userId, pin }),
+  )
+  setSession(session)
+  return session
+}
+
+/** First sign-in with a PIN the Foreman set: the person chooses their own before anything else. */
+export async function changePin(currentPin: string, newPin: string) {
+  await request<void>('/api/auth/me/pin', json('PUT', { currentPin, newPin }))
+  const session = getSession()
+  if (session) setSession({ ...session, mustChangePin: false })
+}
+
+export async function signOut() {
+  // Best effort: the token is dropped here either way
+  if (!USE_MOCK)
+    await request<void>('/api/auth/logout', json('POST', {})).catch(
+      () => undefined,
+    )
+  setSession(null)
+}
+
+export interface Account {
+  id: string
+  displayName: string
+  language: string
+  active: boolean
+  mustChangePin: boolean
+}
+const accountsPath = (role: 'worker' | 'foreman') =>
+  role === 'worker' ? '/api/workers' : '/api/foremen'
+
+/** Foreman: the shop's Workers or Foremen, deactivated ones included. */
+export const listAccounts = (role: 'worker' | 'foreman') =>
+  requestAll<Account>(accountsPath(role))
+
+export const createAccount = (
+  role: 'worker' | 'foreman',
+  input: { displayName: string; language: string; pin: string },
+) => request<Account>(accountsPath(role), json('POST', input))
+
+/** Reset a PIN (the person must choose a new one at next sign-in) or deactivate. */
+export const updateAccount = (
+  role: 'worker' | 'foreman',
+  id: string,
+  patch: { pin?: string; active?: boolean },
+) => request<Account>(`${accountsPath(role)}/${id}`, json('PATCH', patch))
+
+// --- Real-API-only reads (XREQ-002) ---
+
+/** Poster: how many of the district's Workers opened and understood a Notice. */
+export const noticeReach = (noticeId: string) =>
+  request<{
+    workers: number
+    opened: number
+    understood: number
+    notOpened: number
+  }>(`/api/notices/${noticeId}/reach`)
+
+/** Foreman: the Support Log CSV the backend builds (grouped by support item, formula-safe cells). */
+export const supportLogCsv = (from: string, to: string) =>
+  requestBlob(`/api/support-log.csv?from=${from}&to=${to}`)
+
+/** The Machine Panel as the backend decides it (Sign-off, Note Version, Foreman override). */
+export const machinePanel = (machineId: string) =>
+  request<{
+    state: 'idle' | 'locked' | 'ready' | 'override'
+    worker: { id: string; displayName: string } | null
+    reason: string | null
+  }>(`/api/machines/${machineId}/panel`)
+
+export interface SenpaiView {
+  senpaiName: string
+  worker: { displayName: string; language: string }
+  asks: {
+    id: string
+    text: string
+    textJa: string | null
+    createdAt: string
+    replyJa: string | null
+  }[]
+  events: { eventId: string; noticeId: string; title: Tri; at: string }[]
+  meetups: {
+    id: string
+    kind: MeetupKind
+    date: string
+    note: string
+    loggedBy: 'worker' | 'senpai'
+    pairId: string
+  }[]
+}
+
+/** The Senpai's private link: no account, the token is the key (404 when wrong or revoked). */
+export const senpaiView = (token: string) =>
+  request<SenpaiView>(senpaiPath(token), undefined, false)

@@ -1,8 +1,8 @@
 from app.domain.grounding import NOT_COVERED, GroundedAnswer, ground
 
 SENT = ["11", "12", "13"]
-LANGUAGES = ["bn", "en"]
-ANSWER = {"ja": "扇風機は粗大ごみです。", "bn": "ফ্যান বড় আকারের ময়লা।", "en": "A fan is oversized garbage."}
+LANGUAGES = ["vi", "en"]
+ANSWER = {"ja": "扇風機は粗大ごみです。", "vi": "Quạt là rác cồng kềnh.", "en": "A fan is oversized garbage."}
 
 
 def test_answer_citing_notices_that_were_sent_is_kept() -> None:
@@ -20,7 +20,7 @@ def test_answer_citing_a_notice_that_was_not_sent_is_not_covered() -> None:
 
 
 def test_answer_missing_a_language_is_not_covered() -> None:
-    assert ground(True, {**ANSWER, "bn": "  "}, ["11"], SENT, LANGUAGES) == NOT_COVERED
+    assert ground(True, {**ANSWER, "vi": "  "}, ["11"], SENT, LANGUAGES) == NOT_COVERED
     assert ground(True, {"ja": ANSWER["ja"], "en": ANSWER["en"]}, ["11"], SENT, LANGUAGES) == NOT_COVERED
 
 

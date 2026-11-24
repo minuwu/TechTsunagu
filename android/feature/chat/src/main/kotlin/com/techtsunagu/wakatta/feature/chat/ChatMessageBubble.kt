@@ -140,7 +140,7 @@ internal fun ChatMessageBubble(
                             )
                             Spacer(modifier = Modifier.weight(1f))
                             IconButton(
-                                onClick = { onEvent(ChatEvent.PlayVoice(message.originalText, "ja")) },
+                                onClick = { onEvent(ChatEvent.PlayVoice(message.originalText, message.originalLang)) },
                                 modifier = Modifier.size(36.dp),
                             ) {
                                 Icon(
@@ -155,12 +155,22 @@ internal fun ChatMessageBubble(
                     // Main text: always the original as spoken; a Worker opens the translation below it
                     val displayText = message.originalText.ifEmpty { message.translatedText }
 
-                    GlossaryHighlightedText(
-                        text = displayText,
-                        terms = glossaryTerms,
-                        onTermClick = { onEvent(ChatEvent.SelectGlossaryTerm(it)) },
-                        linkColor = if (isMine) textColor else MaterialTheme.colorScheme.primary,
-                    )
+                    Row(verticalAlignment = Alignment.Top) {
+                        GlossaryHighlightedText(
+                            text = displayText,
+                            terms = glossaryTerms,
+                            onTermClick = { onEvent(ChatEvent.SelectGlossaryTerm(it)) },
+                            linkColor = if (isMine) textColor else MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.weight(1f, fill = false),
+                        )
+                        // M9: every message can be read aloud, in its own language (voice messages have the bar above)
+                        if (!message.isVoice && displayText.isNotBlank()) {
+                            ReadAloudButton {
+                                val lang = if (message.originalText.isEmpty()) message.translatedLang else message.originalLang
+                                onEvent(ChatEvent.PlayVoice(displayText, lang))
+                            }
+                        }
+                    }
 
                     // Translation toggle for Workers
                     if (!isForeman && !isMine && message.originalText.isNotEmpty() && message.originalText != message.translatedText) {
@@ -187,39 +197,39 @@ internal fun ChatMessageBubble(
                                     .fillMaxWidth()
                                     .padding(top = 4.dp),
                             ) {
-                                Text(
-                                    text = message.translatedText,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    modifier = Modifier.padding(8.dp),
-                                )
+                                Row(verticalAlignment = Alignment.Top) {
+                                    Text(
+                                        text = message.translatedText,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        modifier = Modifier.padding(8.dp).weight(1f, fill = false),
+                                    )
+                                    ReadAloudButton {
+                                        onEvent(ChatEvent.PlayVoice(message.translatedText, message.translatedLang))
+                                    }
+                                }
                             }
                         }
                     }
 
                     Spacer(modifier = Modifier.height(4.dp))
 
-                    Row(
+                    // M4: an unsent draft must not look sent, and an untranslated message says so
+                    val draft = isMine && message.isDraft
+                    val status = listOfNotNull(
+                        stringResource(R.string.chat_bubble_draft_not_sent).takeIf { draft },
+                        stringResource(R.string.chat_bubble_japanese_only).takeIf { message.needsEdit },
+                        message.time,
+                    ).joinToString(" · ")
+                    Text(
+                        text = status,
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontSize = 11.sp,
+                            fontWeight = if (draft) FontWeight.Bold else FontWeight.Normal,
+                        ),
+                        color = LocalContentColor.current.copy(alpha = if (draft) 1f else 0.7f),
                         modifier = Modifier.align(Alignment.End),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    ) {
-                        // a draft must never look sent
-                        val marks = listOfNotNull(
-                            stringResource(R.string.chat_draft_not_sent).takeIf { message.isDraft },
-                            stringResource(R.string.chat_not_translated).takeIf { message.needsEdit },
-                        )
-                        if (marks.isNotEmpty()) {
-                            Text(
-                                text = marks.joinToString(" · "),
-                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp, fontWeight = FontWeight.Bold),
-                            )
-                        }
-                        Text(
-                            text = message.time,
-                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
-                            color = LocalContentColor.current.copy(alpha = 0.7f),
-                        )
-                    }
+                    )
                 }
             }
 
@@ -276,6 +286,18 @@ internal fun ChatMessageBubble(
     }
 }
 
+
+@Composable
+private fun ReadAloudButton(onClick: () -> Unit) {
+    IconButton(onClick = onClick, modifier = Modifier.size(36.dp)) {
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.VolumeUp,
+            contentDescription = stringResource(R.string.chat_read_aloud),
+            tint = LocalContentColor.current.copy(alpha = 0.8f),
+            modifier = Modifier.size(18.dp),
+        )
+    }
+}
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable

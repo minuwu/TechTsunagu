@@ -98,4 +98,6 @@
     <string name="insights_learning_no_gaps">課題はありません</string>
     <string name="insights_learning_timeline">学習の記録</string>
     <string name="insights_learning_missed">%1$d回つまずきました</string>
+    <string name="insights_followup_clarified_button">説明した</string>
+    <string name="insights_followup_clarify_failed">保存できませんでした。もう一度ためしてください。</string>
 </resources>

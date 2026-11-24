@@ -80,7 +80,6 @@
    "code": "plasma-1",
    "name": {
     "ja": "プラズマ切断機 #1",
-    "bn": "প্লাজমা কাটার #১",
     "en": "Plasma cutter #1"
    }
   },
@@ -90,7 +89,6 @@
    "code": "press-brake-2",
    "name": {
     "ja": "プレスブレーキ #2",
-    "bn": "প্রেস ব্রেক #২",
     "en": "Press brake #2"
    }
   },
@@ -100,7 +98,6 @@
    "code": "crane-3",
    "name": {
     "ja": "天井クレーン（玉掛け）#3",
-    "bn": "ওভারহেড ক্রেন (তামাকাকে) #৩",
     "en": "Overhead crane (slinging) #3"
    }
   },
@@ -110,7 +107,6 @@
    "code": "weld-4",
    "name": {
     "ja": "溶接ブース #4",
-    "bn": "ওয়েল্ডিং বুথ #৪",
     "en": "Welding booth #4"
    }
   },
@@ -120,7 +116,6 @@
    "code": "lathe-1",
    "name": {
     "ja": "旋盤 #1",
-    "bn": "লেদ মেশিন #1",
     "en": "Lathe #1"
    }
   }
@@ -136,7 +131,6 @@
     {
      "text": {
       "ja": "保護メガネをかけます。",
-      "bn": "সুরক্ষা চশমা পরুন।",
       "en": "Put on safety glasses."
      },
      "icon": "ppe-goggles"
@@ -144,7 +138,6 @@
     {
      "text": {
       "ja": "段取り（材料の位置と設定）を確認します。",
-      "bn": "দানদোরি (প্রস্তুতি): মালের জায়গা আর সেটিং দেখে নিন।",
       "en": "Check the set-up (dandori): material position and settings."
      },
      "icon": "check-list"
@@ -152,7 +145,6 @@
     {
      "text": {
       "ja": "切ったあと、バリを取ります。",
-      "bn": "কাটার পরে ধারালো কিনারা (বারি) পরিষ্কার করুন।",
       "en": "After cutting, remove the burr (bari)."
      },
      "icon": "ppe-gloves"
@@ -160,14 +152,12 @@
     {
      "text": {
       "ja": "次の作業の前に、寸法を必ず測ります。",
-      "bn": "পরের কাজের আগে অবশ্যই মাপ (সুনপো) নিন।",
       "en": "Always measure the dimensions (sunpō) before the next job."
      },
      "icon": "measure"
     }
    ],
    "backTranslation": {
-    "bn": "保護メガネをかける。段取り（材料の場所と設定）を見る。切ったあとバリをきれいにする。次の仕事の前に必ず寸法を測る。",
     "en": "保護メガネをかける。段取り（材料の位置と設定）を確認。切断後にバリを取る。次の作業の前に必ず寸法を測る。"
    },
    "questions": [
@@ -176,23 +166,19 @@
      "term": "g-sunpo",
      "prompt": {
       "ja": "次の作業の前に、何をしますか？",
-      "bn": "পরের কাজের আগে কী করবেন?",
       "en": "What do you do before the next job?"
      },
      "options": [
       {
        "ja": "寸法を測る",
-       "bn": "মাপ নেব",
        "en": "Measure the dimensions"
       },
       {
        "ja": "すぐ次を切る",
-       "bn": "সঙ্গে সঙ্গে পরেরটা কাটব",
        "en": "Cut the next piece right away"
       },
       {
        "ja": "機械を止めて帰る",
-       "bn": "মেশিন বন্ধ করে চলে যাব",
        "en": "Stop the machine and leave"
       }
      ],
@@ -203,23 +189,19 @@
      "term": "g-bari",
      "prompt": {
       "ja": "「バリ」は何ですか？",
-      "bn": "\"বারি\" মানে কী?",
       "en": "What is \"bari\"?"
      },
      "options": [
       {
        "ja": "材料の名前",
-       "bn": "মালের নাম",
        "en": "The name of the material"
       },
       {
        "ja": "切ったあとの、とがった部分",
-       "bn": "কাটার পরে ধারালো কিনারা",
        "en": "The sharp edge left after cutting"
       },
       {
        "ja": "機械のボタン",
-       "bn": "মেশিনের বোতাম",
        "en": "A button on the machine"
       }
      ],
@@ -238,7 +220,6 @@
     {
      "text": {
       "ja": "型の中に手を入れません。",
-      "bn": "ডাইয়ের ভিতরে হাত দেবেন না।",
       "en": "Never put your hands inside the die."
      },
      "icon": "hands-clear"
@@ -246,7 +227,6 @@
     {
      "text": {
       "ja": "両手をはなしてから、ペダルを踏みます。",
-      "bn": "দুই হাত সরিয়ে তারপর প্যাডেল চাপুন।",
       "en": "Take both hands away, then press the pedal."
      },
      "icon": "hands-clear"
@@ -254,14 +234,12 @@
     {
      "text": {
       "ja": "おかしいと思ったら、すぐ非常停止を押します。",
-      "bn": "কিছু অস্বাভাবিক মনে হলে সঙ্গে সঙ্গে জরুরি বন্ধ বোতাম চাপুন।",
       "en": "If anything seems wrong, press the emergency stop at once."
      },
      "icon": "emergency-stop"
     }
    ],
    "backTranslation": {
-    "bn": "型の中に手を入れない。両手をどけてからペダルを押す。何か変なら、すぐ非常停止ボタンを押す。",
     "en": "型の中に手を入れない。両手を離してからペダルを踏む。何かおかしければすぐ非常停止を押す。"
    },
    "questions": [
@@ -270,23 +248,19 @@
      "term": "g-estop",
      "prompt": {
       "ja": "音がおかしいとき、何をしますか？",
-      "bn": "আওয়াজ অস্বাভাবিক হলে কী করবেন?",
       "en": "What do you do when the sound is strange?"
      },
      "options": [
       {
        "ja": "そのまま続ける",
-       "bn": "চালিয়ে যাব",
        "en": "Keep going"
       },
       {
        "ja": "非常停止を押す",
-       "bn": "জরুরি বন্ধ বোতাম চাপব",
        "en": "Press the emergency stop"
       },
       {
        "ja": "音楽を止める",
-       "bn": "গান বন্ধ করব",
        "en": "Turn off the music"
       }
      ],
@@ -297,23 +271,19 @@
      "term": null,
      "prompt": {
       "ja": "ペダルを踏むのはいつですか？",
-      "bn": "প্যাডেল কখন চাপবেন?",
       "en": "When do you press the pedal?"
      },
      "options": [
       {
        "ja": "両手をはなしたあと",
-       "bn": "দুই হাত সরানোর পরে",
        "en": "After both hands are away"
       },
       {
        "ja": "片手で材料をおさえながら",
-       "bn": "এক হাতে মাল ধরে রেখে",
        "en": "While holding the material with one hand"
       },
       {
        "ja": "いつでもよい",
-       "bn": "যেকোনো সময়",
        "en": "Any time"
       }
      ],
@@ -332,7 +302,6 @@
     {
      "text": {
       "ja": "玉掛けは、資格のある人だけがします。",
-      "bn": "তামাকাকে (স্লিং বাঁধা) শুধু লাইসেন্সধারী করবেন।",
       "en": "Only licensed people do the slinging (tamakake)."
      },
      "icon": "crane-sling"
@@ -340,7 +309,6 @@
     {
      "text": {
       "ja": "吊り荷の下に、ぜったいに入りません。",
-      "bn": "ঝুলন্ত মালের নিচে কখনও যাবেন না।",
       "en": "Never stand under a suspended load."
      },
      "icon": "crane-sling"
@@ -348,14 +316,12 @@
     {
      "text": {
       "ja": "合図の前に、指差し確認をします。",
-      "bn": "সংকেত দেওয়ার আগে আঙুল দিয়ে দেখিয়ে যাচাই করুন।",
       "en": "Do a point-and-call check before giving the signal."
      },
      "icon": "check-list"
     }
    ],
    "backTranslation": {
-    "bn": "玉掛けは免許のある人だけ。つっている荷物の下に行かない。合図の前に指で示して確認する。",
     "en": "玉掛けは資格者のみ。吊り荷の下に立たない。合図の前に指差し確認。"
    },
    "questions": [
@@ -364,23 +330,19 @@
      "term": "g-tsuriage",
      "prompt": {
       "ja": "吊り荷が動いているとき、どこに立ちますか？",
-      "bn": "ঝুলন্ত মাল চলার সময় কোথায় দাঁড়াবেন?",
       "en": "Where do you stand while a load is moving?"
      },
      "options": [
       {
        "ja": "吊り荷の真下",
-       "bn": "মালের ঠিক নিচে",
        "en": "Right under the load"
       },
       {
        "ja": "吊り荷から離れた場所",
-       "bn": "মাল থেকে দূরে",
        "en": "Away from the load"
       },
       {
        "ja": "クレーンの上",
-       "bn": "ক্রেনের উপরে",
        "en": "On top of the crane"
       }
      ],
@@ -391,23 +353,19 @@
      "term": "g-tamakake",
      "prompt": {
       "ja": "玉掛けをしてよいのはだれですか？",
-      "bn": "তামাকাকে কে করতে পারবেন?",
       "en": "Who may do the slinging?"
      },
      "options": [
       {
        "ja": "だれでも",
-       "bn": "যে কেউ",
        "en": "Anyone"
       },
       {
        "ja": "資格のある人",
-       "bn": "লাইসেন্সধারী ব্যক্তি",
        "en": "A licensed person"
       },
       {
        "ja": "新人",
-       "bn": "নতুন কর্মী",
        "en": "New staff"
       }
      ],
@@ -426,7 +384,6 @@
     {
      "text": {
       "ja": "溶接の前に、換気をつけます。",
-      "bn": "ওয়েল্ডিংয়ের আগে বাতাস চলাচল (ফ্যান) চালু করুন।",
       "en": "Turn on the ventilation before welding."
      },
      "icon": "ventilation"
@@ -434,14 +391,12 @@
     {
      "text": {
       "ja": "終わったあとも材料は熱いです。素手でさわりません。",
-      "bn": "কাজ শেষেও মাল গরম থাকে। খালি হাতে ধরবেন না।",
       "en": "The material stays hot after welding. Do not touch it bare-handed."
      },
      "icon": "hot-surface"
     }
    ],
    "backTranslation": {
-    "bn": "溶接の前に換気（ファン）をつける。終わっても材料は熱い。素手で持たない。",
     "en": "溶接前に換気をつける。溶接後も材料は熱いので素手で触らない。"
    },
    "questions": [
@@ -450,23 +405,19 @@
      "term": "g-kanetsu",
      "prompt": {
       "ja": "溶接が終わった材料は？",
-      "bn": "ওয়েল্ডিং শেষ হওয়া মাল কেমন?",
       "en": "What about material just after welding?"
      },
      "options": [
       {
        "ja": "すぐ素手で運ぶ",
-       "bn": "সঙ্গে সঙ্গে খালি হাতে নেব",
        "en": "Carry it bare-handed right away"
       },
       {
        "ja": "まだ熱いので手袋を使う",
-       "bn": "এখনও গরম, তাই গ্লাভস ব্যবহার করব",
        "en": "Still hot, so use gloves"
       },
       {
        "ja": "水をかけて食べる",
-       "bn": "পানি দিয়ে খাব",
        "en": "Pour water on it and eat it"
       }
      ],

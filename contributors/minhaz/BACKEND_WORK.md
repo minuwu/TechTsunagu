@@ -15,8 +15,8 @@ For whoever writes the backend code: Anim, Galib, or Minhaz after the Android wo
 | # | Work | Where | Status |
 |---|---|---|---|
 | 1 | **AI capacity (new, core loop).** See below | `app/ai/chains.py`, server settings | TODO |
-| 2 | **PATCH draft must not lose a good draft (new).** See below | `app/services/chat.py` `edit_draft`, `_apply_draft` | TODO |
-| 3 | **Task drafts lost on a retried POST (new).** See below | `app/services/chat.py`, migration | TODO |
+| 2 | **PATCH draft must not lose a good draft (new).** See below | `app/services/chat.py` `edit_draft`, `_apply_draft` | Done: the new text stays as `needsEdit` and the same PATCH repairs it (`test_an_edit_that_lost_the_model_is_repaired_by_the_same_edit`) |
+| 3 | **Task drafts lost on a retried POST (new).** See below | `app/services/chat.py`, migration | Done: stored with the message (`test_a_retried_post_returns_the_task_drafts_until_send`) |
 | 4 | XREQ-023 Near-miss: Worker's own list, get by id, severity, `textJa`, photo mark, `taskId`, reporter name | `routers/near_misses.py`, `services/near_misses.py`, migration | TODO |
 | 5 | XREQ-024 Foreman reads Asks, `PUT /today-word`, Support Log summary, voice Ask transcript | `services/asks.py`, `services/support_log.py` | TODO |
 | 6 | XREQ-021 Remind, override `Idempotency-Key`, `GET /tasks?machineId=` | `routers/work.py`, `services/floor.py`, `services/chat.py` | TODO |

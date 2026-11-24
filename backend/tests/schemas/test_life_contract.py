@@ -11,7 +11,7 @@ from app.schemas.common import CheckQuestion, DateRange, IdIn
 from app.schemas.notices import EventsQuery, EventUpdate, NoticeDraftForm, NoticeForWorker, NoticeUpdate
 from app.schemas.senpai import MeetupCreate, SenpaiPairCreate, SenpaiPairCreated, SenpaiPairOut, SenpaiView
 
-TRI = {"ja": "燃えるごみ", "bn": "দাহ্য ময়লা", "en": "Burnable garbage"}
+TRI = {"ja": "燃えるごみ", "en": "Burnable garbage"}
 AT = datetime(2026, 11, 23, tzinfo=UTC)
 QUESTION = {"id": "q1", "termId": None, "prompt": TRI, "options": [TRI, TRI, TRI]}
 
@@ -77,7 +77,7 @@ def test_fields_the_backend_takes_from_the_session_are_rejected(model: type[Base
 
 @pytest.mark.parametrize(
     "text",
-    [{"bn": "x", "en": "y"}, {"ja": "x", "bn": " "}, {"ja": "x", "fr": "y"}, {"ja": "x" * 1001}],
+    [{"en": "y"}, {"ja": "x", "en": " "}, {"ja": "x", "fr": "y"}, {"ja": "x" * 1001}],
 )
 def test_translated_text_needs_japanese_and_text_in_every_language(text: dict[str, str]) -> None:
     with pytest.raises(ValidationError):

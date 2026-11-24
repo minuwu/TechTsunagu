@@ -74,4 +74,24 @@
     <string name="asks_pair_kind_jichikai">Neighborhood association</string>
     <string name="asks_pair_meetups">%1$d meet-ups · last %2$s</string>
     <string name="asks_share_link">Share link</string>
+    <!-- Ask Wakatta, the chatbot (XREQ-016, M7) -->
+    <string name="asks_bot_title">Ask Wakatta</string>
+    <string name="asks_bot_intro">Ask about safety at work or life in town. I answer only from your shop\'s instructions and official guides, and show the page.</string>
+    <string name="asks_bot_placeholder">Your question</string>
+    <string name="asks_bot_send">Send</string>
+    <string name="asks_bot_mic">Speak your question</string>
+    <string name="asks_bot_thinking">Looking it up…</string>
+    <string name="asks_bot_emergency_title">Emergency</string>
+    <string name="asks_bot_sources">Sources</string>
+    <string name="asks_bot_page">p. %1$d</string>
+    <string name="asks_bot_check">Check yourself</string>
+    <string name="asks_bot_right">Right!</string>
+    <string name="asks_bot_wrong">Not quite. The right answer: %1$s</string>
+    <string name="asks_bot_not_covered">No guide covers this question.</string>
+    <string name="asks_bot_ask_senpai">Ask my Senpai</string>
+    <string name="asks_bot_sent_senpai">Sent to your Senpai.</string>
+    <string name="asks_bot_error">Could not get an answer. Try again.</string>
+    <string name="asks_bot_busy">The AI is busy. Try again in a minute.</string>
+    <string name="asks_bot_limit">Today\'s AI limit is reached. Try again later.</string>
+    <string name="asks_bot_ok">OK</string>
 </resources>

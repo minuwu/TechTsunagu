@@ -7,6 +7,14 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 
 > **Message from Asif (2026-11-23), read first:** [CHATBOT_FROM_ASIF.md](CHATBOT_FROM_ASIF.md) explains the chatbot (what it does, the API, the four screen states, "Ask my Senpai" vs "Safety Senpai") and three decisions that are **yours**: where the ask box goes, one bot or two names, and which half grows first. Answer in XREQ-016.
 
+## 2026-11-24 (prototype demo: interactive story beside the two phones)
+
+- `prototypes/wakatta/index.html` is now a guided journey: a story rail on the left (Nekko as guide, 5 chapters, choices) and a "behind the scenes" rail on the right (AI pipeline, Wakatta Status, live feed). Logic is in `story.js`.
+- Chapters: the nod (trust it or ask again, then the injury), Tanaka speaks, Rahim answers (understood or misread 金型交換), close the gap (Follow-up, Re-explanation), what changed.
+- The story follows the real Bus events, so visitors can tap freely; off-script answers take their own branch. "Do this step for me" drives the phones for passive visitors.
+- Phone splash now shows the Nekko icon instead of the bridge mark (`parts/skeleton.html`, `app.html` rebuilt with `merge.py`). Nekko expressions copied to `prototypes/wakatta/nekko/`.
+- Limits: under 900px it still opens one phone without the story; on `file://` the in-phone highlights do not show.
+
 ## 2026-11-24 (from Asif: proposal for open registration, ADR 0017)
 
 - Each new shop's Foreman gets a fresh 100 AI requests a day, and one IP may open 3 shops a minute, so the AI allowance can be got around.
@@ -40,6 +48,30 @@ Update after each work session. Newest entry first. Bangladesh time (UTC+6). Lin
 - **Done for you (with your OK):** the App Links filter in `android/app/src/main/AndroidManifest.xml` is enabled on the API host with the `/m/ /c/ /t/ /n/ /b/ /nm/ /i/` prefixes; `MainActivity.openFromAppLink` parses `intent.dataString` with `parseAppLink` against the host of `ApiConfig.BASE_URL` and opens `toDestination()` once signed in (same wait as notifications); new `AppLinkHostTest` keeps the two hosts equal. **Not compiled or run here (no JDK or SDK on my machine): please run `testDebugUnitTest` and `:app:assembleDebug`.**
 - **Still yours:** send Anim the SHA-256 fingerprints of the debug and release keys (`keytool -list -v -keystore …`); `assetlinks.json` is `[]` until then, so links do not verify yet. The Machine scanner (`QrPayload.parse`) still accepts any host and requires `?s=`; the contract wants it on `UriDeepLinkMatcher` too (2.10 check 8).
 - `?s={shopCode}` on the web QR stickers waits on XREQ-001: the web app gets `shopCode` only from real sign-in. When you do XREQ-001, tell me and I add it, or add it in the same change. We also need to agree which host stickers print: the web `VITE_PUBLIC_URL` opens the web Machine page, the API host opens the app (or its "open in the app" page).
+
+## 2026-11-24 (web: Play the Story fills the window)
+
+- `/demo` (lg and up): the title block, lead and "Open full screen" link are gone; the story demo fills the window under the header. The h1 stays for screen readers. Phones still get the "wider screen" note.
+- `.demo-stage` (16:9 box) removed from `ui/v4/tokens.css`; the e2e test checks the frame covers everything below the 80px header.
+
+## 2026-11-24 (web: "Play the Story", Nekko in the header)
+
+- The demo tab is now **Play the Story** (ja: ストーリー体験), replacing "Nekko's Shift".
+- v4 header: the blue square beside WAKATTA? is now the Nekko app icon (`/brand/identity/logo-icon.svg`). The splash and state plates keep the Megane-bridge mark.
+
+## 2026-11-24 (web: nav trimmed, the story demo is "Nekko's Shift")
+
+- v4 nav: Board (`/foreman`) and Town (`/community`) are out of the header and tab bar; the routes still work. Three tabs: Home, Course, Nekko's Shift (ja: ネッコの現場).
+- `frontend/public/prototype` now holds the latest `prototypes/wakatta` demo end to end: `app.html`, `story.js` (Nekko's gamified story) and `nekko/`. Its page uses the web app's ground (Fuji at Lake Motosu under the day mist) and type (Manrope + Noto Sans JP, Aileron headings, fonts in `prototype/fonts`).
+- The hosted copy still ignores `?app=`, and its relay now takes messages only from its two phones (the security review's second point). @Arjun: copy these two choices back if you re-sync from `prototypes/wakatta`.
+- `tests/e2e/live-demo.spec.ts` follows the new tab name and checks the phones load `app.html`; 3 passed.
+
+## 2026-11-24 (web: Senpai link calls are safe to open while signed in)
+
+- `frontend/src/services/wakatta.ts`: `senpaiView`, `senpaiReply` and `logMeetup` (Senpai side) build their path with `senpaiPath(token)`, which encodes the link token; `senpaiReply` also encodes `askId`. A crafted link such as `../../tasks/x` can no longer reach another API route.
+- `api.ts`: `request(path, init, false)` leaves out the `Authorization` header. The Senpai calls use it, so the signed-in account's Bearer is not sent with a link token, and a 401 there no longer signs that person out.
+- New test in `api.test.ts`. The frontend tests need Node 22 or 24 (`engines`); under Node 23.7 `msw`/`undici` fails to load.
+- Not checked: that the live backend accepts Senpai routes with no Bearer (they are link-token only by contract).
 
 ## 2026-11-24 (Shop Registration, Members screen, bilingual sign-in and intro)
 
@@ -319,3 +351,34 @@ Minhaz mapped the prototype (`prototypes/wakatta/`) and the frontend against `ma
 - Machines tab (Foreman): "Add machine" button (code + ja/en name), menu per card to rename or archive.
 - Backend (by me, with tests): `PATCH /api/machines/{id}` rename, `DELETE /api/machines/{id}` archive (soft delete, migration `9a4c6e2b8d13`), Worker may `POST /api/tasks` for themself only. Task Board FAB now shows for Workers too (no assignee picker).
 - **Anim:** deploy and run the migrations, XREQ-027. Until then rename, archive and the Worker FAB fail against the live API.
+
+## 2026-11-24: hackathon proposal draft
+
+- Added `submission/TechTsunagu_Proposal.md`, the proposal draft for the submission (problem, evidence, solution). Review and edit it there.
+
+## 2026-11-24 19:45: push notifications work end to end (XREQ-014 resolved)
+
+- `:app` now applies the `google-services` plugin when `android/app/google-services.json` exists. Before, Firebase never started, so the phone had no FCM token and never registered.
+- `WakattaApp` builds the device registrar at start: every sign-in and cold start sends `PUT /api/devices/me`.
+- Verified on the emulator against the live API: a Worker message in Thread 1 shows 「Rahim Uddinさんからメッセージ」 on the Foreman's phone, without the message text.
+- Notifications must be allowed on the phone (Android 13+ asks); with them off the server skips the phone.
+
+## 2026-11-24: Android release 1.0.3
+
+- Built and signed `android/release/wakatta-1.0.3.apk` (versionCode 4) from current main; `latest.json` points the in-app updater at it. Same signing certificate as 1.0.2 (SHA-256 `64ded8e9…2d979`).
+
+## 2026-11-24 19:50: web calendar file and demo flyer (XREQ-002 items 9, 12, 3)
+
+- "Add to calendar" `.ics`: long lines fold at 75 octets (Japanese and Bengali titles no longer get mangled by Google or Outlook) and the file carries a `VTIMEZONE` for Asia/Tokyo.
+- Demo flyer: the recyclables Event (Wednesdays) is gone; 佐世保市 sets those days per area. Recyclables are now a step: see-through bag, out by 8:00, check the area calendar.
+- The mock now refuses publish with 409 `EVENTS_NOT_CONFIRMED`, the same as the backend.
+- **Galib:** the same flyer fix is still needed in the seeded AI cache fixture (XREQ-002 item 12).
+
+## 2026-11-24 20:40: web runs on the real API (XREQ-001, XREQ-002 resolved)
+
+- With `VITE_USE_MOCK=false` the web signs in for real: shop or district code, your name, your PIN; a first PIN must be changed. The mock demo is unchanged.
+- Every list and write goes through the live API with the Bearer token, `Idempotency-Key` and `{items, nextCursor}` paging. Photos and voice go as files.
+- Machine Panel, Senpai link, Poster reach and the Support Log CSV now come from their backend routes. QR stickers carry the shop code.
+- Foreman: new accounts card under the Skill Matrix (create Worker or Foreman, reset PIN, deactivate).
+- Left: the Panel uses a Foreman sign-in, not the device token; glossary `bn` is sent as English; the SWA origin still needs adding to the API CORS list.
+- **Anim:** make glossary `bn` optional; add the SWA origin to CORS (`backend/deploy/set-cors.ps1`) when the web goes live.

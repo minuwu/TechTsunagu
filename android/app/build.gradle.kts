@@ -4,6 +4,9 @@ plugins {
     id("wakatta.android.hilt")
 }
 
+// google-services.json is gitignored: a clone without it still builds, and push stays off.
+if (file("google-services.json").exists()) apply(plugin = "com.google.gms.google-services")
+
 android {
     namespace = "com.techtsunagu.wakatta"
     compileSdkMinor = 1

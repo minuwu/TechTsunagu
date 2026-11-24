@@ -5,7 +5,9 @@ import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
@@ -25,6 +27,7 @@ fun MachineScreen(
     onBackClick: () -> Unit = {},
     onOpenPanelClick: (String) -> Unit = {},
     onOpenNoteClick: (String) -> Unit = {},
+    onAskClick: (String) -> Unit = {},
     viewModel: MachineViewModel = hiltViewModel(),
 ) {
     RefreshOnReturn { viewModel.onEvent(MachineEvent.Refresh) }
@@ -57,6 +60,7 @@ fun MachineScreen(
         onBackClick = onBackClick,
         onOpenPanelClick = onOpenPanelClick,
         onOpenNoteClick = onOpenNoteClick,
+        onAskClick = { onAskClick(machineId) },
     )
 }
 
@@ -68,9 +72,16 @@ fun MachineContent(
     onBackClick: () -> Unit = {},
     onOpenPanelClick: (String) -> Unit = {},
     onOpenNoteClick: (String) -> Unit = {},
+    onAskClick: () -> Unit = {},
 ) {
     Scaffold(
         modifier = modifier.fillMaxSize(),
+        // Ask Wakatta about this Machine: its instruction ranks first (XREQ-016)
+        floatingActionButton = {
+            ExtendedFloatingActionButton(onClick = onAskClick) {
+                Text(stringResource(R.string.machines_ask_wakatta))
+            }
+        },
         topBar = {
             WakattaTopBar(
                 title = if (state.nameTranslated.isNotEmpty()) state.nameTranslated else stringResource(R.string.machines_machine_screen_title),

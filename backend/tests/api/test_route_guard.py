@@ -53,7 +53,7 @@ OPERATIONS: dict[str, list[str]] = {
     for method, op in ops.items()
 }
 
-TRI = {"ja": "日本語", "bn": "বাংলা", "en": "English"}
+TRI = {"ja": "日本語", "en": "English"}
 QUESTION: Json = {"id": "q1", "termId": None, "prompt": TRI, "options": [TRI, TRI, TRI], "correctIndex": 0}
 
 
@@ -115,7 +115,7 @@ CALLS: dict[str, Call] = {
     "PUT /api/contacts/{contact_id}": Call(json={"muted": True}),
     "DELETE /api/blocks/{contact_id}": Call(),
     "GET /api/contacts/{contact_id}/messages": Call(),
-    "POST /api/contacts/{contact_id}/messages": Call(json={"text": "hi", "lang": "bn"}),
+    "POST /api/contacts/{contact_id}/messages": Call(json={"text": "hi", "lang": "en"}),
     "PATCH /api/messages/{message_id}": Call(json={"textJa": "明日は8時集合です"}, rows={"message_id": "draft"}),
     "POST /api/messages/{message_id}/reexplain/draft": Call(json={"userId": "{worker}", "termJa": "金型"}),
     "POST /api/messages/{message_id}/ask": Call(json={"termJa": "金型"}),
@@ -270,7 +270,7 @@ def _life_rows(db: Session, s: Shop, worker: User, foreman: User, poster: User) 
         worker_id=worker.id,
         source_kind="text",
         text_src="?",
-        language="bn",
+        language="en",
         covered=False,
         idempotency_key=uuid.uuid4(),
     )
@@ -294,9 +294,9 @@ def _life_rows(db: Session, s: Shop, worker: User, foreman: User, poster: User) 
 
 
 def _personal_rows(db: Session, worker: User, peer: User) -> dict[str, int]:
-    message = ContactMessage(sender_id=worker.id, recipient_id=peer.id, text_src="hi", src_lang="bn")
+    message = ContactMessage(sender_id=worker.id, recipient_id=peer.id, text_src="hi", src_lang="en")
     talk = _save(db, TalkThread(owner_id=worker.id, title="山田さん"))
-    entry = TalkEntry(thread_id=talk.id, owner_id=worker.id, transcript="お茶ば", meaning_lang="bn")
+    entry = TalkEntry(thread_id=talk.id, owner_id=worker.id, transcript="お茶ば", meaning_lang="en")
     return {
         "talk_thread": talk.id,
         "entry_id": _save(db, entry).id,

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { nextOccurrences, toIcs } from '@/domain/calendar'
+import { toIcs, upcomingDates } from '@/domain/calendar'
 import {
   latestSignOff,
   pick,
@@ -93,7 +93,9 @@ export function useWorkerWork(workerId: string | null) {
   const receipt = receipts.find(
     (r) => r.targetId === briefing?.id && r.workerId === workerId,
   )
-  const open = useAction((id: string) => openTarget(id, workerId ?? ''))
+  const open = useAction((id: string) =>
+    openTarget({ kind: 'briefing', id }, workerId ?? ''),
+  )
   const briefingCheck = useOneQuestion(workerId, 'briefing')
 
   // Near-miss form
@@ -173,7 +175,7 @@ export function useWorkerLife(workerId: string | null) {
       n.events
         .filter((e) => e.confirmed)
         .flatMap((e) =>
-          nextOccurrences(e, now, 2).map((at) => ({
+          upcomingDates(e, now, 2).map((at) => ({
             key: `${e.id}-${at.getTime()}`,
             noticeId: n.id,
             title: e.title,
@@ -189,7 +191,9 @@ export function useWorkerLife(workerId: string | null) {
     .sort((a, b) => a.at.getTime() - b.at.getTime())
 
   const [expanded, setExpanded] = useState<string | null>(null)
-  const open = useAction((id: string) => openTarget(id, workerId ?? ''))
+  const open = useAction((id: string) =>
+    openTarget({ kind: 'notice', id }, workerId ?? ''),
+  )
   const noticeCheck = useOneQuestion(workerId, 'notice')
 
   const recorder = useRecorder(30)

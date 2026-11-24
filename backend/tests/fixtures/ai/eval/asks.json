@@ -3,10 +3,10 @@
   "notices_from": "notices.json",
   "cases": [
     {"id": "a01-sodai-en", "lang": "en", "question": "How do I throw away my broken fan?", "expect_covered": true, "expect_sources": ["f01-garbage"]},
-    {"id": "a02-time-bn", "lang": "bn", "question": "ময়লা কয়টার মধ্যে বের করতে হবে?", "expect_covered": true, "expect_sources": ["f01-garbage"]},
+    {"id": "a02-time-en", "lang": "en", "question": "By what time must the garbage be put out?", "expect_covered": true, "expect_sources": ["f01-garbage"]},
     {"id": "a03-drill-place-en", "lang": "en", "question": "Where do we meet for the disaster drill?", "expect_covered": true, "expect_sources": ["f02-drill"]},
-    {"id": "a04-cleanup-bring-bn", "lang": "bn", "question": "পরিষ্কারের দিনে কী নিয়ে যেতে হবে?", "expect_covered": true, "expect_sources": ["f04-cleanup"]},
+    {"id": "a04-cleanup-bring-en", "lang": "en", "question": "What should I bring on the cleanup day?", "expect_covered": true, "expect_sources": ["f04-cleanup"]},
     {"id": "a05-recycle-day-en", "lang": "en", "question": "Which day is recyclables collection?", "expect_covered": false, "expect_sources": [], "_why": "no Notice states a collection day; a guessed weekday is the failure"},
-    {"id": "a06-doctor-bn", "lang": "bn", "question": "রাতে অসুস্থ হলে কোন হাসপাতালে যাব?", "expect_covered": false, "expect_sources": [], "_why": "outside every Notice: must forward to the Senpai, not answer from general knowledge"}
+    {"id": "a06-doctor-en", "lang": "en", "question": "Which hospital should I go to if I feel sick at night?", "expect_covered": false, "expect_sources": [], "_why": "outside every Notice: must forward to the Senpai, not answer from general knowledge"}
   ]
 }

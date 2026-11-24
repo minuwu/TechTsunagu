@@ -144,4 +144,6 @@
     <string name="home_mb_me_row">メンバー管理</string>
     <string name="home_mb_me_row_note">作業員の追加・PINリセット</string>
     <string name="home_mb_qa">メンバー追加</string>
+    <string name="home_ask_wakatta">わかった？に聞く</string>
+    <string name="home_ask_wakatta_sub">仕事の安全や町のくらし。出典のページつき</string>
 </resources>

@@ -41,8 +41,7 @@ function Splash() {
 const ICONS = {
   home: 'M4 11.5 12 5l8 6.5V20h-5v-5h-6v5H4z',
   course: 'M5 4h9a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM9 8h5M9 12h5',
-  board: 'M4 5h16v14H4zM10 5v14M15 5v14',
-  town: 'M3 20h18M5 20V9l5-3 5 3v11M15 20v-7h4v7M8 12h4',
+  demo: 'M3 5h18v12H3zM8 21h8M12 17v4M10 8.5v5l4-2.5z',
 } as const
 
 const TABS = [
@@ -54,16 +53,10 @@ const TABS = [
     match: (p: string) => p.startsWith('/course'),
   },
   {
-    to: '/foreman',
-    icon: 'board',
-    label: m.tab_board,
-    match: (p: string) => p.startsWith('/foreman'),
-  },
-  {
-    to: '/community',
-    icon: 'town',
-    label: m.tab_community,
-    match: (p: string) => p.startsWith('/community'),
+    to: '/demo',
+    icon: 'demo',
+    label: m.tab_demo,
+    match: (p: string) => p.startsWith('/demo'),
   },
 ] as const
 
@@ -72,7 +65,7 @@ function TabBar({ path, sound }: { path: string; sound: boolean }) {
   const active = TABS.findIndex((t) => t.match(path))
   return (
     <nav aria-label={m.tabs_label()} className="tabbar">
-      <ul className="grid grid-cols-4">
+      <ul className="grid grid-cols-3">
         {TABS.map((t, i) => (
           <li
             key={t.to}
@@ -110,7 +103,7 @@ function TabBar({ path, sound }: { path: string; sound: boolean }) {
   )
 }
 
-/** Desktop: the same four destinations as text links in the header. */
+/** Desktop: the same three destinations as text links in the header. */
 function HeaderLinks({ path, sound }: { path: string; sound: boolean }) {
   const active = TABS.findIndex((t) => t.match(path))
   return (
@@ -255,8 +248,14 @@ export function Layout({ children }: { children: ReactNode }) {
             to="/"
             className="flex min-w-0 items-center gap-2 py-1 sm:gap-3"
           >
-            {/* the mark in the photo's sky blue, so it sits in the misty ground instead of punching through it */}
-            <span aria-hidden="true" className="size-4 shrink-0 bg-primary" />
+            {/* Nekko, the brand mascot (public/brand/identity) */}
+            <img
+              src="/brand/identity/logo-icon.svg"
+              alt=""
+              width={36}
+              height={36}
+              className="size-8 shrink-0 sm:size-9"
+            />
             <span className="display truncate text-base font-extrabold tracking-tight uppercase sm:text-lg">
               {m.app_name()}
             </span>

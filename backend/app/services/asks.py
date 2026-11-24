@@ -28,7 +28,6 @@ TRANSLATE_PROMPT_VERSION = 1
 NOTICES_SENT = 20  # the newest published Notices of the district go into the prompt
 LANGUAGE_NAMES = {
     "ja": "Japanese",
-    "bn": "Bengali",
     "en": "English",
     "vi": "Vietnamese",
     "id": "Indonesian",

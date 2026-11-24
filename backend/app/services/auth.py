@@ -134,10 +134,16 @@ def find(
         # code. One dummy check keeps the reply as slow as a real one, so timing does not tell who exists.
         verify_pin(pepper, _dummy_hash(pepper), pin)
         raise _unauthorized()
+    user = users[0]
+    if user.pin_locked_until is not None and user.pin_locked_until > now:
+        # A lock would confirm that this shop and person exist (the shop-code route shows it), so answer as for
+        # nobody, after the same hash: a locked person must not answer faster either.
+        verify_pin(pepper, _dummy_hash(pepper), pin)
+        raise _unauthorized()
     try:
-        return _sign_in(db, users[0], pin, pepper, now)
+        return _sign_in(db, user, pin, pepper, now)
     except ApiError as e:
-        if e.status == 423:  # a lock would confirm that this shop and person exist; the shop-code route shows it
+        if e.status == 423:  # this wrong PIN locked the account just now; it already did its hash
             raise _unauthorized() from e
         raise
 

@@ -125,8 +125,9 @@ class SignInViewModel @Inject constructor(
             is SignInEvent.OnOwnerPinChanged ->
                 updateState { it.copy(ownerPin = event.pin.filter(Char::isDigit).take(OWNER_PIN_LENGTH)) }
             SignInEvent.SubmitRegister -> register()
-            SignInEvent.FinishRegister -> {
+            SignInEvent.FinishRegister -> viewModelScope.launch {
                 updateState { it.copy(shopCode = it.newShopCode.orEmpty(), role = Role.FOREMAN) }
+                repository.finishRegister()
                 sendEffect(SignInEffect.NavigateToHome)
             }
             is SignInEvent.OnWantedCodeChanged ->

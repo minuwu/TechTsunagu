@@ -98,4 +98,6 @@
     <string name="insights_learning_no_gaps">No gaps right now</string>
     <string name="insights_learning_timeline">Timeline</string>
     <string name="insights_learning_missed">Missed %1$d times</string>
+    <string name="insights_followup_clarified_button">I explained it</string>
+    <string name="insights_followup_clarify_failed">Could not save. Try again.</string>
 </resources>

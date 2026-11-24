@@ -7,7 +7,7 @@ from typing import Annotated, Literal, Self
 from pydantic import AfterValidator, BaseModel, ConfigDict, Field, StringConstraints, model_validator
 from pydantic.alias_generators import to_camel
 
-Lang = Literal["ja", "bn", "en", "vi", "id", "ne", "my", "tl", "zh"]
+Lang = Literal["ja", "en", "vi", "id", "ne", "my", "tl", "zh"]  # no Bengali (ADR 0016)
 
 # Ids are bigint in Postgres and strings on the wire; a non-numeric id is refused before it reaches a query.
 IdIn = Annotated[str, StringConstraints(pattern=r"^[1-9][0-9]{0,18}$")]

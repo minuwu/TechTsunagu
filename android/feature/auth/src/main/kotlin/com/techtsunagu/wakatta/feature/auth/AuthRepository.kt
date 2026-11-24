@@ -20,8 +20,14 @@ interface AuthRepository {
     suspend fun changePin(currentPin: String, newPin: String): AppResult<Unit>
     suspend fun signOut()
 
-    /** Opens a new shop with this person as its first Foreman, signs them in, and returns the new shop code. */
+    /**
+     * Opens a new shop with this person as its first Foreman and returns the new shop code. The session starts only
+     * with [finishRegister], after the owner has seen the code: a saved session switches the app to Home at once (M11).
+     */
     suspend fun register(shopName: String, displayName: String, pin: String, shopCode: String? = null): AppResult<String>
+
+    /** Starts the session [register] kept back. */
+    suspend fun finishRegister()
 
     /** Forgot the shop code: signs in by shop name, own name and PIN; the session carries the code. */
     suspend fun find(shopName: String, displayName: String, pin: String): AppResult<Session>
@@ -68,9 +74,16 @@ class FakeAuthRepository(private val store: SessionStore? = null) : AuthReposito
         users.firstOrNull { it.displayName.equals(displayName.trim(), ignoreCase = true) }?.let { signIn(it.id, pin) }
             ?: AppResult.Failure(AppError.WrongPin)
 
+    private var pending: Session? = null
+
     override suspend fun register(shopName: String, displayName: String, pin: String, shopCode: String?): AppResult<String> {
-        store?.save(Session(token = "fake-token", user = User(id = "u_new", displayName = displayName, role = Role.FOREMAN, language = "ja")))
+        pending = Session(token = "fake-token", user = User(id = "u_new", displayName = displayName, role = Role.FOREMAN, language = "ja"))
         return AppResult.Success(shopCode ?: "NEWSHOP1")
+    }
+
+    override suspend fun finishRegister() {
+        pending?.let { store?.save(it) }
+        pending = null
     }
 
     override suspend fun signOut() {
