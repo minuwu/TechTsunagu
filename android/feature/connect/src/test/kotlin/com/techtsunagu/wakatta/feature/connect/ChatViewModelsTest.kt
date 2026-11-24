@@ -110,6 +110,19 @@ class ChatViewModelsTest {
     }
 
     @Test
+    fun contactChatPollShowsMessagesSentFromElsewhere() = runTest { // R7
+        val vm = PChatViewModel(repo, repo)
+        vm.onEvent(PChatEvent.Init(contactId(), "en"))
+        val before = vm.state.value.messages.size
+        repo.sendMessage(contactId(), "Sent from another phone", "en")
+
+        vm.onEvent(PChatEvent.Poll)
+
+        assertTrue(vm.state.value.messages.size > before)
+        assertFalse(vm.state.value.isLoading)
+    }
+
+    @Test
     fun contactChatBlockEmitsBlockedAndRemovesTheContact() = runTest {
         val vm = PChatViewModel(repo, repo)
         vm.onEvent(PChatEvent.Init(contactId(), "en"))
