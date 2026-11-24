@@ -10,6 +10,10 @@ import retrofit2.converter.kotlinx.serialization.asConverterFactory
 /** Builds the HTTP stack. Hilt uses it ([NetworkModule]); tests call it directly against a MockWebServer. */
 object ApiClientFactory {
 
+    /** Longer than the server takes for an AI draft (25 s, then a degraded answer: G1), so a slow draft still
+     *  arrives instead of a timeout for a message the server goes on to store (ANDROID_FIX_PLAN R1). */
+    const val READ_TIMEOUT_SECONDS = 60L
+
     /** Interceptor order is fixed: app headers, bearer, idempotency, logging (debug only), session expiry. */
     fun okHttp(
         versionName: String,
@@ -18,7 +22,7 @@ object ApiClientFactory {
         debug: Boolean,
     ): OkHttpClient = OkHttpClient.Builder()
         .connectTimeout(15, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(READ_TIMEOUT_SECONDS, TimeUnit.SECONDS)
         .addInterceptor(AppHeadersInterceptor(versionName, language))
         .addInterceptor(BearerInterceptor { sessionStore.getCachedToken() })
         .addInterceptor(IdempotencyInterceptor())

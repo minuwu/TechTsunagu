@@ -79,7 +79,7 @@ One task, one commit, one push. Do not start the next task before the push is th
 
 **Files:** in `android/feature/chat`: `ChatViewModel.kt`, `data/*`, `model/*`. Also `android/core/network/**`, and the ViewModel parts of `NearMissNewScreen.kt` and `PChatScreen.kt` (no layout changes there).
 
-- [ ] **R1 (P0, live) The app gives up before the AI answers.** Read timeout is 30 s (`core/network/.../ApiClientFactory.kt:21`); 4 of 14 live AI drafts took 51–61 s. Set it to 60 s (above the server's 45 s from G1).
+- [x] **R1 (P0, live) The app gives up before the AI answers.** *Done (Arjun): `ApiClientFactory.READ_TIMEOUT_SECONDS = 60`, test `ReadTimeoutTest`; not run locally (no JDK on Arjun's PC), Minhaz's Gradle run checks it.* Read timeout is 30 s (`core/network/.../ApiClientFactory.kt:21`); 4 of 14 live AI drafts took 51–61 s. Set it to 60 s (above the server's 45 s from G1).
   *Done when:* a MockWebServer answer after 40 s arrives in the app.
 - [ ] **R2 (P0, code) A voice message is cut short or sent twice.** `doSend` (`ChatViewModel.kt:409`) does not stop dictation, so a late result refills the box and sends again. Cancel `dictationJob` before sending. The button half is M1.
   *Done when:* a test sends during recording, then emits a late `Final`, and exactly one message goes out.
